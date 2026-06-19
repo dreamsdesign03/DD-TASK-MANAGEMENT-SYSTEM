@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
@@ -23,7 +23,7 @@ const STATUS_STYLES = {
   'In Progress': 'bg-amber-100 text-amber-700',
   Review: 'bg-blue-100 text-blue-700',
   Done: 'bg-green-100 text-green-700',
-  Pending: 'bg-gray-100 text-on-surface',
+  Pending: 'bg-gray-100 text-gray-700',
 }
 
 const STATUS_ICON = {
@@ -46,7 +46,16 @@ export default function TaskTable() {
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
   const [selectedClient, setSelectedClient] = useState('All Companies')
   const [selectedUser, setSelectedUser] = useState('All Users')
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [tasksPerPage, setTasksPerPage] = useState(10)
+
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, activeFilter, selectedClient, selectedUser, sortBy, tasksPerPage])
 
   // Extract unique clients
   const uniqueClients = ['All Companies', ...new Set(tasks.map((t) => t.client))]
@@ -97,6 +106,12 @@ export default function TaskTable() {
       return 0
     })
 
+  // Pagination Logic
+  const totalPages = Math.ceil(filtered.length / tasksPerPage)
+  const indexOfLastTask = currentPage * tasksPerPage
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage
+  const currentTasks = filtered.slice(indexOfFirstTask, indexOfLastTask)
+
   return (
     <>
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
@@ -109,8 +124,8 @@ export default function TaskTable() {
                 key={f}
                 onClick={() => setActiveFilter(f)}
                 className={`px-5 py-2 rounded-full font-label-md text-label-md transition-all shadow-sm ${activeFilter === f
-                    ? 'bg-primary text-on-primary border-transparent'
-                    : 'bg-surface-container-lowest border border-primary text-primary hover:bg-surface-container-low'
+                  ? 'bg-primary text-on-primary border-transparent'
+                  : 'bg-surface-container-lowest border border-primary text-primary hover:bg-surface-container-low'
                   }`}
               >
                 {f}
@@ -220,14 +235,14 @@ export default function TaskTable() {
             </thead>
 
             <tbody className="divide-y divide-outline-variant">
-              {filtered.length === 0 ? (
+              {currentTasks.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="text-center py-12 text-secondary font-label-md">
                     No matching tasks found. Try altering your filters.
                   </td>
                 </tr>
               ) : (
-                filtered.map((task) => {
+                currentTasks.map((task) => {
                   let isTaskOverdue = false
                   if (task.status !== 'Done' && task.dueDate) {
                     const due = new Date(task.dueDate)
@@ -345,10 +360,10 @@ export default function TaskTable() {
                       {/* Due date */}
                       <td
                         className={`px-4 py-3 text-body-sm font-bold whitespace-nowrap ${isTaskOverdue
-                            ? 'text-error'
-                            : task.status === 'Done'
-                              ? 'text-secondary line-through'
-                              : 'text-on-surface'
+                          ? 'text-error'
+                          : task.status === 'Done'
+                            ? 'text-secondary line-through'
+                            : 'text-on-surface'
                           }`}
                       >
                         {task.dueDate}
@@ -371,7 +386,7 @@ export default function TaskTable() {
                             value={task.status}
                             onChange={(e) => updateTask(task.id, { status: e.target.value })}
                             disabled={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name)}
-                            className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-on-surface'
+                            className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'
                               } appearance-none px-4 py-1.5 pr-8 rounded-full text-label-sm font-label-sm font-bold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed outline-none border-none ring-0`}
                             title={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name) ? "Only assigned users can update status" : ""}
                           >
@@ -407,26 +422,45 @@ export default function TaskTable() {
         </div>
 
         {/* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
+        <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-label-sm font-label-sm text-secondary">
-            Showing 1-{filtered.length} of {filtered.length} tasks
+            Showing {filtered.length === 0 ? 0 : indexOfFirstTask + 1}-{Math.min(indexOfLastTask, filtered.length)} of {filtered.length} tasks
           </p>
-          <div className="flex items-center gap-2">
-            <button
-              disabled
-              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg font-bold text-label-md bg-primary text-on-primary">
-              1
-            </button>
-            <button
-              disabled
-              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined">chevron_right</span>
-            </button>
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-label-sm text-secondary font-medium">Tasks per page:</span>
+              <select
+                value={tasksPerPage}
+                onChange={(e) => setTasksPerPage(Number(e.target.value))}
+                className="bg-surface-container-lowest border border-outline-variant rounded-md px-2 py-1 text-sm outline-none cursor-pointer focus:border-primary text-on-surface"
+              >
+                <option value={10}>10</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+
+              <div className="px-2 font-bold text-label-md text-on-surface">
+                Page {currentPage} of {Math.max(1, totalPages)}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
