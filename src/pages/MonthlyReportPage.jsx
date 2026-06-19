@@ -1,0 +1,388 @@
+import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Sidebar from '../components/Sidebar'
+import TopNav from '../components/TopNav'
+import { useApp } from '../context/AppContext'
+
+export default function MonthlyReportPage() {
+  const navigate = useNavigate()
+  const { tasks } = useApp()
+  const [filterType, setFilterType] = useState('Overall') // 'Overall', 'Company', 'User'
+  const [selectedValue, setSelectedValue] = useState('')
+
+  // Derive unique months from task due dates
+  const availableMonths = useMemo(() => {
+    const months = new Set()
+    tasks.forEach(t => {
+      if (t.dueDate) {
+        const d = new Date(t.dueDate)
+        if (!isNaN(d.getTime())) {
+          months.add(d.toLocaleString('default', { month: 'long', year: 'numeric' }))
+        }
+      }
+    })
+    const monthArray = Array.from(months)
+    monthArray.sort((a, b) => new Date(a) - new Date(b))
+    return ['All Months', ...monthArray]
+  }, [tasks])
+
+  // Initialize with 'All Months' or the most recent month
+  const [currentMonth, setCurrentMonth] = useState('All Months')
+
+  // Derive unique clients and users
+  const clients = [...new Set(tasks.map((t) => t.client).filter(Boolean))].sort()
+  const users = [...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
+
+  const handleFilterChange = (type) => {
+    setFilterType(type)
+    if (type === 'Overall') setSelectedValue('')
+    else if (type === 'Company') setSelectedValue(clients[0] || '')
+    else if (type === 'User') setSelectedValue(users[0] || '')
+  }
+
+  // Filter tasks based on selection
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      // Month filter
+      if (currentMonth !== 'All Months') {
+        if (!t.dueDate) return false
+        const d = new Date(t.dueDate)
+        if (isNaN(d.getTime())) return false
+        const taskMonth = d.toLocaleString('default', { month: 'long', year: 'numeric' })
+        if (taskMonth !== currentMonth) return false
+      }
+
+      if (filterType === 'Company' && selectedValue) {
+        return t.client === selectedValue
+      }
+      if (filterType === 'User' && selectedValue) {
+        return (t.assignedTo || '').includes(selectedValue)
+      }
+      return true
+    })
+  }, [tasks, filterType, selectedValue, currentMonth])
+
+  // Compute metrics
+  const totalTasks = filteredTasks.length
+  const completed = filteredTasks.filter((t) => t.status === 'Done').length
+  const inProgress = filteredTasks.filter((t) => t.status === 'In Progress' || t.status === 'Review').length
+  const blocked = filteredTasks.filter((t) => t.status === 'Blocked').length
+  const overdue = filteredTasks.filter((t) => t.daysOverdue && t.daysOverdue !== 'No').length
+  const pending = filteredTasks.filter((t) => t.status === 'Pending').length
+
+  const completedPct = totalTasks ? Math.round((completed / totalTasks) * 100) : 0
+  const inProgressPct = totalTasks ? Math.round((inProgress / totalTasks) * 100) : 0
+  const pendingPct = totalTasks ? Math.round((pending / totalTasks) * 100) : 0
+  const blockedPct = totalTasks ? Math.round((blocked / totalTasks) * 100) : 0
+
+  // Calculate conic gradient string for the donut chart
+  // Order: Done -> In Progress -> Pending -> Blocked
+  const p1 = completedPct
+  const p2 = p1 + inProgressPct
+  const p3 = p2 + pendingPct
+  const gradient = `conic-gradient(
+    #2ECC71 0% ${p1}%, 
+    #F1C40F ${p1}% ${p2}%, 
+    #3498DB ${p2}% ${p3}%, 
+    #E74C3C ${p3}% 100%
+  )`
+
+  return (
+    <div className="bg-background text-on-surface flex h-screen overflow-hidden">
+      <Sidebar />
+
+      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+        <TopNav />
+
+        <main className="flex-1 bg-white overflow-y-auto pb-12 custom-scrollbar">
+          <div className="max-w-[1200px] mx-auto p-8 space-y-8">
+            {/* Title & Month Selector */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <h2 className="font-Montserrat font-bold text-[28px] text-primary">Monthly Report Analysis</h2>
+              <div className="flex items-center gap-3 bg-white border border-outline-variant px-4 py-2 rounded-lg shadow-sm">
+                <span className="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+                <select
+                  value={currentMonth}
+                  onChange={(e) => setCurrentMonth(e.target.value)}
+                  className="font-Montserrat font-semibold text-primary whitespace-nowrap bg-transparent outline-none cursor-pointer appearance-none pr-4"
+                >
+                  {availableMonths.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined text-primary pointer-events-none -ml-4 text-[20px]">expand_more</span>
+              </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-outline-variant">
+                {['Overall', 'Company', 'User'].map(type => (
+                  <button
+                    key={type}
+                    onClick={() => handleFilterChange(type)}
+                    className={`px-4 py-2 rounded-md font-label-md transition-all ${
+                      filterType === type ? 'bg-primary-container text-white shadow-sm' : 'text-secondary hover:bg-surface-container'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic Dropdown based on filter type */}
+              {filterType === 'Company' && (
+                <div className="flex items-center gap-3">
+                  <label className="text-label-sm font-bold text-secondary uppercase">Select Client:</label>
+                  <select
+                    value={selectedValue}
+                    onChange={(e) => setSelectedValue(e.target.value)}
+                    className="bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                  >
+                    {clients.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              )}
+              {filterType === 'User' && (
+                <div className="flex items-center gap-3">
+                  <label className="text-label-sm font-bold text-secondary uppercase">Select User:</label>
+                  <select
+                    value={selectedValue}
+                    onChange={(e) => setSelectedValue(e.target.value)}
+                    className="bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                  >
+                    {users.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Tasks Assigned */}
+              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-primary hover:-translate-y-0.5 transition-all duration-300">
+                <div>
+                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Total Tasks</p>
+                  <h3 className="text-headline-lg text-primary">{totalTasks}</h3>
+                </div>
+                <span className="material-symbols-outlined text-primary-container opacity-20 text-4xl">
+                  assignment_add
+                </span>
+              </div>
+
+              {/* Completed */}
+              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#2ECC71] hover:-translate-y-0.5 transition-all duration-300">
+                <div>
+                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Completed</p>
+                  <h3 className="text-headline-lg text-[#2ECC71]">{completed}</h3>
+                  <div className="w-32 h-2 bg-gray-200 rounded-full mt-3 overflow-hidden">
+                    <div className="bg-[#2ECC71] h-full transition-all" style={{ width: `${completedPct}%` }}></div>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-[#2ECC71] opacity-20 text-4xl">
+                  check_circle
+                </span>
+              </div>
+
+              {/* In Progress */}
+              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#F1C40F] hover:-translate-y-0.5 transition-all duration-300">
+                <div>
+                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">In Progress</p>
+                  <h3 className="text-headline-lg text-[#F1C40F]">{inProgress}</h3>
+                  <p className="text-xs text-on-surface-variant mt-2">Active now</p>
+                </div>
+                <span className="material-symbols-outlined text-[#F1C40F] opacity-20 text-4xl">
+                  pending
+                </span>
+              </div>
+
+              {/* Overdue */}
+              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#E74C3C] hover:-translate-y-0.5 transition-all duration-300">
+                <div>
+                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Overdue</p>
+                  <h3 className="text-headline-lg text-[#E74C3C]">{overdue}</h3>
+                  {overdue > 0 ? (
+                    <p className="text-xs text-[#E74C3C] font-semibold mt-2">Requires attention!</p>
+                  ) : (
+                    <p className="text-xs text-[#2ECC71] font-semibold mt-2">All on track</p>
+                  )}
+                </div>
+                <span className="material-symbols-outlined text-[#E74C3C] opacity-20 text-4xl">
+                  warning
+                </span>
+              </div>
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Status Breakdown (Donut) */}
+              <div className="ambient-card p-6 flex flex-col hover:-translate-y-0.5 transition-all duration-300">
+                <h4 className="font-bold text-headline-sm text-on-surface mb-8">Status Breakdown</h4>
+                {totalTasks === 0 ? (
+                  <div className="flex flex-1 items-center justify-center text-secondary font-label-md">
+                    No data available for this selection.
+                  </div>
+                ) : (
+                  <div className="flex flex-1 items-center justify-center gap-8 flex-wrap">
+                    <div
+                      className="relative w-40 h-40 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: gradient }}
+                    >
+                      <div className="w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center">
+                        <span className="text-headline-md font-bold text-on-surface">{totalTasks}</span>
+                        <span className="text-label-sm text-on-surface-variant">Total</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-[#2ECC71]"></span>
+                        <span className="text-label-md text-on-surface-variant">Done ({completedPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-[#F1C40F]"></span>
+                        <span className="text-label-md text-on-surface-variant">In Progress ({inProgressPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-[#3498DB]"></span>
+                        <span className="text-label-md text-on-surface-variant">Pending ({pendingPct}%)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-[#E74C3C]"></span>
+                        <span className="text-label-md text-on-surface-variant">Blocked ({blockedPct}%)</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Insights Card */}
+              <div className="ambient-card p-6 flex flex-col hover:-translate-y-0.5 transition-all duration-300">
+                <h4 className="font-bold text-headline-sm text-on-surface mb-6">Key Insights</h4>
+                <div className="space-y-4 flex-1">
+                  <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-primary">
+                    <span className="material-symbols-outlined text-primary mt-0.5">info</span>
+                    <div>
+                      <h5 className="font-bold text-body-sm text-on-surface">Completion Rate</h5>
+                      <p className="text-xs text-secondary mt-1">
+                        {filterType === 'Overall' ? 'Overall' : selectedValue} has a completion rate of {completedPct}%.
+                        {completedPct > 50 ? ' Great progress!' : ' There is room for improvement.'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-[#F1C40F]">
+                    <span className="material-symbols-outlined text-[#F1C40F] mt-0.5">trending_flat</span>
+                    <div>
+                      <h5 className="font-bold text-body-sm text-on-surface">Active Workload</h5>
+                      <p className="text-xs text-secondary mt-1">
+                        There are {inProgress} tasks currently actively being worked on.
+                      </p>
+                    </div>
+                  </div>
+                  {overdue > 0 && (
+                    <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-[#E74C3C]">
+                      <span className="material-symbols-outlined text-[#E74C3C] mt-0.5">warning</span>
+                      <div>
+                        <h5 className="font-bold text-body-sm text-on-surface">Overdue Alerts</h5>
+                        <p className="text-xs text-secondary mt-1">
+                          {overdue} tasks are overdue. Immediate follow-up is recommended.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Filtered Task Table */}
+            <div className="ambient-card overflow-hidden">
+              <div className="p-6 border-b border-outline-variant flex items-center justify-between">
+                <h4 className="font-bold text-headline-sm text-on-surface">
+                  {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Activity`}
+                </h4>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-outline-variant">
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Task ID</th>
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Task Title</th>
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Client</th>
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Assigned To</th>
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Status</th>
+                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E8DDF0]">
+                    {filteredTasks.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-8 text-secondary text-sm">
+                          No tasks found for this selection.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTasks.map((row) => (
+                        <tr
+                          key={row.id}
+                          className={`table-row-hover ${
+                            row.status === 'Done'
+                              ? 'border-l-4 border-[#2ECC71]'
+                              : row.daysOverdue && row.daysOverdue !== 'No'
+                              ? 'border-l-4 border-[#E74C3C]'
+                              : ''
+                          }`}
+                        >
+                          <td className="px-6 py-4 font-mono text-xs text-on-surface-variant font-bold">{row.id}</td>
+                          <td className="px-6 py-4 font-label-md">{row.title}</td>
+                          <td className="px-6 py-4 text-body-sm">{row.client}</td>
+                          <td className="px-6 py-4 text-body-sm">
+                            <span className="truncate max-w-[150px] inline-block">{row.assignedTo || 'Unassigned'}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                                row.status === 'Done'
+                                  ? 'bg-[#2ECC71]/10 text-[#2ECC71]'
+                                  : row.status === 'In Progress' || row.status === 'Review'
+                                  ? 'bg-[#F1C40F]/10 text-[#F1C40F]'
+                                  : row.status === 'Blocked'
+                                  ? 'bg-[#E74C3C]/10 text-[#E74C3C]'
+                                  : 'bg-primary/10 text-primary'
+                              }`}
+                            >
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-body-sm">
+                            <button
+                              onClick={() => navigate(`/tasks/${row.id}`)}
+                              className="text-primary font-label-sm hover:underline flex items-center gap-1"
+                            >
+                              View <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer Action */}
+            <div className="flex justify-center md:justify-end pb-8">
+              <button
+                onClick={() => alert('Downloading report...')}
+                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group"
+              >
+                <span className="material-symbols-outlined transition-transform group-hover:translate-y-1">
+                  download
+                </span>
+                Download Report
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}

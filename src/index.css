@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Floating label behaviour */
+.login-input:focus-within label,
+.login-input input:not(:placeholder-shown)+label {
+  transform: translateY(-24px) scale(0.85);
+  color: #702c91;
+  background: #ffffff;
+  padding: 0 4px;
+}
+
+/* Fix autofill text color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+  -webkit-text-fill-color: #1A1A1A !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Card shadow */
+.card-shadow {
+  box-shadow: 0px 2px 12px rgba(112, 44, 145, 0.08);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #E8DDF0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #D0C2D1;
+}
+
+/* Chat bubble tails */
+.chat-bubble-sent {
+  position: relative;
+}
+
+.chat-bubble-sent::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  background-color: #702c91;
+  clip-path: polygon(0 0, 0% 100%, 100% 100%);
+}
+
+.chat-bubble-received {
+  position: relative;
+}
+
+.chat-bubble-received::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  background-color: #F9F4FB;
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+
+@keyframes bird-fly {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.group:hover .hover-bird-fly {
+  animation: bird-fly 3s ease-in-out infinite;
+  filter: brightness(0) invert(1) drop-shadow(0 10px 15px rgba(255, 255, 255, 0.3));
+}
