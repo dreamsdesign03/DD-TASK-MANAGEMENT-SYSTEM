@@ -21,7 +21,7 @@ export default function MyTasksPage() {
   const [title, setTitle] = useState('')
   const [client, setClient] = useState(() => companyList[0] || 'Internal')
   const [assignedTo, setAssignedTo] = useState([profile?.name || 'Mansi Shah'])
-  
+
   const uniqueTeamMembers = [...new Set([...teamNames, ...assignedTo].filter(Boolean))].filter(name => name !== profile?.name)
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false)
   const [assignedBy] = useState(profile?.name || 'Mansi Shah')
@@ -130,7 +130,7 @@ export default function MyTasksPage() {
         <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
           <div className="flex justify-between items-center px-gutter w-full">
             <p className="font-label-sm text-label-sm text-secondary">
-              Â© 2024 Dreamsdesk Internal Systems
+              Dreamsdesk
             </p>
             <div className="flex gap-6">
               <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">

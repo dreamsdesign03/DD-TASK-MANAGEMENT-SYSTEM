@@ -219,7 +219,7 @@ export default function TeamPage() {
         {/* Footer */}
         <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-8">
           <p className="font-label-sm text-label-sm text-secondary opacity-95">
-            Â© 2024 Dreamsdesk Internal Systems
+            Dreamsdesk
           </p>
           <div className="flex gap-6">
             <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">

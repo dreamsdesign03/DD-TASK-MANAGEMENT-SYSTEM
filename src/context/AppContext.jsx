@@ -433,7 +433,7 @@ export function AppProvider({ children }) {
       icon: category === 'Status Updates' ? 'check_circle' : (category === 'Task Reminders' ? 'assignment' : 'chat_bubble'),
       title,
       subtitle,
-      time: 'Just now',
+      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
       taskId
     }
     setNotifications(prev => [newNotif, ...prev])

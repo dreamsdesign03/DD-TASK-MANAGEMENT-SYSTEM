@@ -160,7 +160,7 @@ export default function NotificationsPage() {
         {/* Footer */}
         <footer className="w-full py-4 px-margin_desktop bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
           <p className="font-label-sm text-label-sm text-secondary">
-            Â© 2024 Dreamsdesk Internal Systems
+            Dreamsdesk
           </p>
           <div className="flex gap-6">
             <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
