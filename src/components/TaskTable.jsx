@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
-/* ─── Priority badge config ─────────────────────────────────────── */
+/* â”€â”€â”€ Priority badge config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const PRIORITY_STYLES = {
   Urgent: 'bg-[#E74C3C] text-white',
   High: 'bg-[#F39C12] text-white',
@@ -17,20 +17,20 @@ const PRIORITY_WEIGHTS = {
   Low: 1,
 }
 
-/* ─── Status badge config ───────────────────────────────────────── */
+/* â”€â”€â”€ Status badge config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const STATUS_STYLES = {
   Blocked: 'bg-red-100 text-red-700',
   'In Progress': 'bg-amber-100 text-amber-700',
   Review: 'bg-blue-100 text-blue-700',
   Done: 'bg-green-100 text-green-700',
-  Pending: 'bg-gray-100 text-gray-700',
+  Pending: 'bg-gray-100 text-on-surface',
 }
 
 const STATUS_ICON = {
   Done: 'check',
 }
 
-/* ─── Filter tabs ───────────────────────────────────────────────── */
+/* â”€â”€â”€ Filter tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
 
 function getInitials(name) {
@@ -99,7 +99,7 @@ export default function TaskTable() {
 
   return (
     <>
-      {/* ── Filter bar ─────────────────────────────────────────── */}
+      {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex flex-col gap-4">
         {/* Top tab filter */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -108,11 +108,10 @@ export default function TaskTable() {
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-5 py-2 rounded-full font-label-md text-label-md transition-all shadow-sm ${
-                  activeFilter === f
-                    ? 'bg-primary-container text-white'
-                    : 'bg-white border border-primary-container text-primary-container hover:bg-surface-container-low'
-                }`}
+                className={`px-5 py-2 rounded-full font-label-md text-label-md transition-all shadow-sm ${activeFilter === f
+                    ? 'bg-primary text-on-primary border-transparent'
+                    : 'bg-surface-container-lowest border border-primary text-primary hover:bg-surface-container-low'
+                  }`}
               >
                 {f}
               </button>
@@ -131,7 +130,7 @@ export default function TaskTable() {
               <select
                 value={selectedClient}
                 onChange={(e) => setSelectedClient(e.target.value)}
-                className="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
               >
                 {uniqueClients.map((client) => (
                   <option key={client} value={client}>
@@ -154,7 +153,7 @@ export default function TaskTable() {
               <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
               >
                 {uniqueUsers.map((user) => (
                   <option key={user} value={user}>
@@ -180,7 +179,7 @@ export default function TaskTable() {
               <select
                 value={`Sort by: ${sortBy}`}
                 onChange={(e) => setSortBy(e.target.value.replace('Sort by: ', ''))}
-                className="w-full appearance-none bg-white border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-secondary focus:border-primary focus:ring-0 outline-none cursor-pointer font-bold"
+                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-secondary focus:border-primary focus:ring-0 outline-none cursor-pointer font-bold"
               >
                 <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
                 <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
@@ -197,9 +196,9 @@ export default function TaskTable() {
         </div>
       </div>
 
-      {/* ── Table ──────────────────────────────────────────────── */}
+      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
-        className="bg-white rounded-xl border border-outline-variant overflow-hidden mt-4"
+        className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mt-4"
         style={{ boxShadow: '0px 2px 12px rgba(112, 44, 145, 0.08)' }}
       >
         <div className="overflow-x-auto">
@@ -210,9 +209,8 @@ export default function TaskTable() {
                   (h) => (
                     <th
                       key={h}
-                      className={`px-4 py-3 font-label-md text-label-md text-secondary uppercase tracking-wider ${
-                        h === 'Action' ? 'text-center' : ''
-                      }`}
+                      className={`px-4 py-3 font-label-md text-label-md text-secondary uppercase tracking-wider ${h === 'Action' ? 'text-center' : ''
+                        }`}
                     >
                       {h}
                     </th>
@@ -239,13 +237,13 @@ export default function TaskTable() {
                       isTaskOverdue = true
                     }
                   }
-                  
+
                   const rowClass = isTaskOverdue
-                    ? 'bg-[#fff8f7]'
+                    ? 'bg-error-container'
                     : task.status === 'Done'
-                    ? 'opacity-60'
-                    : ''
-                    
+                      ? 'opacity-60'
+                      : ''
+
                   const firstTdClass = isTaskOverdue
                     ? 'border-l-4 border-urgent-red'
                     : 'border-l-4 border-transparent'
@@ -276,7 +274,7 @@ export default function TaskTable() {
                             if (!msgs || msgs.length === 0) return null
                             const lastSeen = lastSeenTimestamps?.[task.id]
                             const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
-                            
+
                             const unreadCount = msgs.filter(m => {
                               const isMe = String(m.senderName || m.sender || '').trim().toLowerCase() === myName
                               if (isMe || m.type === 'system' || m.type === 'divider') return false
@@ -287,7 +285,7 @@ export default function TaskTable() {
 
                             if (unreadCount > 0) {
                               return (
-                                <span className="flex items-center justify-center w-5 h-5 bg-error text-white text-[10px] font-bold rounded-full shadow-sm animate-scale-in">
+                                <span className="flex items-center justify-center w-5 h-5 bg-error text-on-error text-[10px] font-bold rounded-full shadow-sm animate-scale-in">
                                   {unreadCount}
                                 </span>
                               )
@@ -301,7 +299,7 @@ export default function TaskTable() {
                       <td className="px-4 py-3">
                         <a
                           onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="font-semibold text-primary-container hover:underline cursor-pointer"
+                          className="font-semibold text-primary hover:underline cursor-pointer"
                         >
                           {task.title}
                         </a>
@@ -346,13 +344,12 @@ export default function TaskTable() {
 
                       {/* Due date */}
                       <td
-                        className={`px-4 py-3 text-body-sm font-bold whitespace-nowrap ${
-                          isTaskOverdue
+                        className={`px-4 py-3 text-body-sm font-bold whitespace-nowrap ${isTaskOverdue
                             ? 'text-error'
                             : task.status === 'Done'
-                            ? 'text-secondary line-through'
-                            : 'text-on-surface'
-                        }`}
+                              ? 'text-secondary line-through'
+                              : 'text-on-surface'
+                          }`}
                       >
                         {task.dueDate}
                       </td>
@@ -360,9 +357,8 @@ export default function TaskTable() {
                       {/* Priority */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <span
-                          className={`${
-                            PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'
-                          } inline-block whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-tighter`}
+                          className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'
+                            } inline-block whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-tighter`}
                         >
                           {task.priority}
                         </span>
@@ -375,16 +371,15 @@ export default function TaskTable() {
                             value={task.status}
                             onChange={(e) => updateTask(task.id, { status: e.target.value })}
                             disabled={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name)}
-                            className={`${
-                              STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'
-                            } appearance-none px-4 py-1.5 pr-8 rounded-full text-label-sm font-label-sm font-bold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed outline-none border-none ring-0`}
+                            className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-on-surface'
+                              } appearance-none px-4 py-1.5 pr-8 rounded-full text-label-sm font-label-sm font-bold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed outline-none border-none ring-0`}
                             title={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name) ? "Only assigned users can update status" : ""}
                           >
-                            <option value="Pending" className="bg-white text-gray-700">Pending</option>
-                            <option value="In Progress" className="bg-white text-gray-700">In Progress</option>
-                            <option value="Review" className="bg-white text-gray-700">Review</option>
-                            <option value="Done" className="bg-white text-gray-700">Done</option>
-                            <option value="Blocked" className="bg-white text-gray-700">Blocked</option>
+                            <option value="Pending" className="bg-surface-container-lowest text-on-surface">Pending</option>
+                            <option value="In Progress" className="bg-surface-container-lowest text-on-surface">In Progress</option>
+                            <option value="Review" className="bg-surface-container-lowest text-on-surface">Review</option>
+                            <option value="Done" className="bg-surface-container-lowest text-on-surface">Done</option>
+                            <option value="Blocked" className="bg-surface-container-lowest text-on-surface">Blocked</option>
                           </select>
                           <span className="material-symbols-outlined text-[14px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70">
                             arrow_drop_down
@@ -397,7 +392,7 @@ export default function TaskTable() {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => navigate(`/tasks/${task.id}`)}
-                            className="px-3 py-1.5 border border-primary-container text-primary-container rounded-lg font-label-sm text-label-sm hover:bg-primary-container hover:text-white transition-colors whitespace-nowrap"
+                            className="px-3 py-1.5 border border-primary text-primary rounded-lg font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors whitespace-nowrap"
                           >
                             View
                           </button>
@@ -411,7 +406,7 @@ export default function TaskTable() {
           </table>
         </div>
 
-        {/* ── Pagination ─────────────────────────────────────────── */}
+        {/* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-between">
           <p className="text-label-sm font-label-sm text-secondary">
             Showing 1-{filtered.length} of {filtered.length} tasks
@@ -419,16 +414,16 @@ export default function TaskTable() {
           <div className="flex items-center gap-2">
             <button
               disabled
-              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-white transition-colors disabled:opacity-50"
+              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50"
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            <button className="w-10 h-10 flex items-center justify-center rounded-lg font-bold text-label-md bg-primary-container text-white">
+            <button className="w-10 h-10 flex items-center justify-center rounded-lg font-bold text-label-md bg-primary text-on-primary">
               1
             </button>
             <button
               disabled
-              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-white transition-colors disabled:opacity-50"
+              className="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-lg text-primary hover:bg-surface-container-lowest transition-colors disabled:opacity-50"
             >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
@@ -438,3 +433,6 @@ export default function TaskTable() {
     </>
   )
 }
+
+
+

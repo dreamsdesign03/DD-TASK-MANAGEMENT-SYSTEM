@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
 import { processMessagesList, renderMessageText, renderAvatar } from './ChatPage'
-/* ─── Priority badge ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PriorityBadge({ priority }) {
   const map = {
     Urgent: 'bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20',
@@ -19,7 +19,7 @@ function PriorityBadge({ priority }) {
   )
 }
 
-/* ─── Status badge ────────────────────────────────────────────────── */
+/* â”€â”€â”€ Status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function StatusBadge({ status }) {
   const map = {
     Blocked: 'bg-urgent-red text-white',
@@ -421,7 +421,7 @@ export default function TaskDetailPage() {
         {/* Main canvas */}
         <main className="pt-0 flex-1 bg-background overflow-y-auto custom-scrollbar">
           <div className="max-w-[1200px] mx-auto px-8 py-8 flex gap-8">
-            {/* ── LEFT COLUMN (65%) ─────────────────────────────────── */}
+            {/* â”€â”€ LEFT COLUMN (65%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="w-[65%] space-y-8">
               {/* Breadcrumb */}
               <button
@@ -625,7 +625,7 @@ export default function TaskDetailPage() {
                       <button
                         onClick={sendReply}
                         disabled={isSendingReply || (!reply.trim() && !replyAttachment)}
-                        className="bg-primary text-white px-6 py-2 rounded-md font-medium hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm text-[13px]"
+                        className="bg-primary text-on-primary px-6 py-2 rounded-md font-medium hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm text-[13px]"
                       >
                         {isSendingReply ? (
                           <>
@@ -645,7 +645,7 @@ export default function TaskDetailPage() {
               </section>
             </div>
 
-            {/* ── RIGHT COLUMN (35%) ────────────────────────────────── */}
+            {/* â”€â”€ RIGHT COLUMN (35%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="w-[35%] space-y-6">
               {/* Task Info Card */}
               <div className="bg-surface p-6 rounded-lg border border-outline-variant/40 shadow-sm">
@@ -781,7 +781,7 @@ export default function TaskDetailPage() {
                       </div>
                       <button
                         onClick={handleSaveStatus}
-                        className="w-full bg-primary text-white py-3 rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all mt-2 text-[13px]"
+                        className="w-full bg-primary text-on-primary py-3 rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all mt-2 text-[13px]"
                       >
                         Save Status
                       </button>
@@ -833,7 +833,7 @@ export default function TaskDetailPage() {
                 </div>
 
                 {/* Add Link Form */}
-                <div className="space-y-3 mb-6 bg-white/50 p-4 rounded-lg border border-divider">
+                <div className="space-y-3 mb-6 bg-surface-container-lowest/50 p-4 rounded-lg border border-divider">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-secondary uppercase tracking-wider">Link URL</label>
                     <input
@@ -841,7 +841,7 @@ export default function TaskDetailPage() {
                       value={linkUrl}
                       onChange={(e) => setLinkUrl(e.target.value)}
                       placeholder="Paste your link here"
-                      className="w-full bg-white border border-divider rounded-lg px-3 py-2 text-body-sm focus:border-primary focus:ring-0 outline-none"
+                      className="w-full bg-surface-container-lowest border border-divider rounded-lg px-3 py-2 text-body-sm focus:border-primary focus:ring-0 outline-none"
                     />
                   </div>
                   <button
@@ -878,7 +878,7 @@ export default function TaskDetailPage() {
                       setLinkUrl('')
                       alert('Attachment link added successfully and synced to Google Sheets!')
                     }}
-                    className="w-full bg-primary text-white py-2.5 rounded-lg text-label-sm font-label-sm shadow-sm hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
+                    className="w-full bg-primary text-on-primary py-2.5 rounded-lg text-label-sm font-label-sm shadow-sm hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
                   >
                     <span className="material-symbols-outlined text-[16px]">add_link</span>
                     Add Link Attachment
@@ -907,7 +907,7 @@ export default function TaskDetailPage() {
 
                 <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                   {(task.attachments || []).length === 0 ? (
-                    <div className="text-center py-6 text-secondary text-body-sm italic bg-white/30 rounded-lg border border-dashed border-[#E8DDF0]">
+                    <div className="text-center py-6 text-secondary text-body-sm italic bg-surface-container-lowest/30 rounded-lg border border-dashed border-[#E8DDF0]">
                       No link attachments added yet.
                     </div>
                   ) : (
@@ -959,7 +959,7 @@ export default function TaskDetailPage() {
 
         {/* Footer */}
         <footer className="w-full py-4 px-8 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
-          <p className="text-label-sm font-label-sm text-secondary">© 2024 Dreamsdesk Internal Systems</p>
+          <p className="text-label-sm font-label-sm text-secondary">Â© 2024 Dreamsdesk Internal Systems</p>
           <div className="flex gap-6">
             <a href="#" className="text-label-sm font-label-sm text-secondary hover:text-primary transition-colors">
               Support
@@ -974,7 +974,7 @@ export default function TaskDetailPage() {
       {/* Assignee Modal */}
       {isAssigneeModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-white w-[400px] rounded-xl shadow-xl p-6 flex flex-col gap-4 max-h-[80vh] overflow-hidden">
+          <div className="bg-surface-container-lowest w-[400px] rounded-xl shadow-xl p-6 flex flex-col gap-4 max-h-[80vh] overflow-hidden">
             <div className="flex justify-between items-center border-b border-divider pb-3">
               <h2 className="text-[18px] font-bold text-primary flex items-center gap-2">
                 <span className="material-symbols-outlined">group_add</span>
@@ -1016,7 +1016,7 @@ export default function TaskDetailPage() {
               </button>
               <button
                 onClick={handleSaveAssignees}
-                className="px-6 py-2 bg-primary text-white rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
               >
                 Save
               </button>
@@ -1028,7 +1028,7 @@ export default function TaskDetailPage() {
       {/* Delete Attachment Confirmation Modal */}
       {attachmentToDelete !== null && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-white w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
+          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
             <div className="flex items-center gap-3 text-error">
               <span className="material-symbols-outlined text-[28px]">warning</span>
               <h2 className="text-[18px] font-bold">Delete Attachment</h2>
@@ -1049,7 +1049,7 @@ export default function TaskDetailPage() {
                   updateTask(task.id, { attachments: updated });
                   setAttachmentToDelete(null);
                 }}
-                className="px-5 py-2 bg-error text-white rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
               >
                 Delete
               </button>
@@ -1060,3 +1060,6 @@ export default function TaskDetailPage() {
     </div>
   )
 }
+
+
+

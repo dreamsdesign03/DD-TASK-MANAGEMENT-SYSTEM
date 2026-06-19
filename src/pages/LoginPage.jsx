@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 
-/* ─── Dreamsdesk Logo ─────────── */
+/* â”€â”€â”€ Dreamsdesk Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const LOGO_SRC = '/logo.png'
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
 
@@ -176,22 +176,39 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen w-full">
-      {/* ── LEFT PANEL ─────────────────────────────────────────────── */}
+      {/* â”€â”€ LEFT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, #1b0a33 0%, #461466 100%)' }}>
         <div className="absolute inset-0 z-0 opacity-10 bg-[url('/noise.png')] mix-blend-overlay"></div>
         <div className="relative z-10 flex flex-col items-center text-center px-12">
-          <div className="mb-10 group relative cursor-pointer">
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700 rounded-full pointer-events-none" />
+          <div className="mb-10 group relative cursor-pointer inline-block">
+            <div className="absolute inset-0 bg-surface-container-lowest opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700 rounded-full pointer-events-none" />
+            
             <img
               alt="Dreamsdesk Logo"
-              className="max-w-[280px] h-auto filter brightness-0 invert transition-transform duration-700 hover-bird-fly relative z-10"
+              className="max-w-[280px] h-auto opacity-0"
               src={LOGO_SRC}
+            />
+            
+            <div
+              className="absolute inset-0 transition-transform duration-700 hover-bird-fly z-10"
+              style={{
+                backgroundColor: '#e9b3ff',
+                WebkitMaskImage: `url(${LOGO_SRC})`,
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: `url(${LOGO_SRC})`,
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+              }}
+              aria-hidden="true"
             />
           </div>
           <h2 className="text-white font-headline-sm text-[20px] font-semibold tracking-wider uppercase opacity-90 mb-4">
             Track. Collaborate. Deliver.
           </h2>
-          <div className="mt-12 p-8 rounded-2xl max-w-md bg-white/[0.03] border border-white/[0.08] shadow-2xl backdrop-blur-sm">
+          <div className="mt-12 p-8 rounded-2xl max-w-md bg-surface-container-lowest/[0.03] border border-white/[0.08] shadow-2xl backdrop-blur-sm">
             <p className="text-white/[0.85] text-[15px] font-body-md leading-relaxed tracking-wide">
               "Empowering teams to visualize productivity and streamline internal workflows with executive precision."
             </p>
@@ -199,15 +216,20 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* ── RIGHT PANEL ────────────────────────────────────────────── */}
-      <section className="w-full lg:w-1/2 bg-white flex items-center justify-center px-6 md:px-margin_desktop py-12 overflow-y-auto">
+      {/* â”€â”€ RIGHT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section className="w-full lg:w-1/2 bg-surface-container-lowest flex items-center justify-center px-6 md:px-margin_desktop py-12 overflow-y-auto">
         <div className="w-full max-w-[440px]">
-          <header className="mb-8">
+          <header className={`mb-8 ${!isRegisterMode ? 'text-center flex flex-col items-center' : ''}`}>
+            {!isRegisterMode && (
+              <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6">
+                <span className="material-symbols-outlined text-3xl">waving_hand</span>
+              </div>
+            )}
             <h1 className="text-[32px] font-headline-lg font-bold text-on-surface mb-3 tracking-tight">
               {isRegisterMode ? 'Complete Registration' : 'Welcome Back'}
             </h1>
             <p className="text-[15px] font-body-md text-secondary">
-              {isRegisterMode ? 'Please provide your details to request access.' : 'Sign in to your Dreamsdesk account'}
+              {isRegisterMode ? 'Please provide your details to request access.' : 'Sign in to your Dreamsdesk account to continue'}
             </p>
           </header>
 
@@ -229,7 +251,7 @@ export default function LoginPage() {
                   id="name" required placeholder=" " value={name} onChange={(e) => setName(e.target.value)}
                   className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                 />
-                <label htmlFor="name" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Full Name</label>
+                <label htmlFor="name" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Full Name</label>
               </div>
             )}
 
@@ -239,7 +261,7 @@ export default function LoginPage() {
                   id="email" type="email" required placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} disabled={isRegisterMode && email.length > 0}
                   className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200 disabled:opacity-60 disabled:bg-surface"
                 />
-                <label htmlFor="email" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Email Address</label>
+                <label htmlFor="email" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Email Address</label>
               </div>
             )}
 
@@ -252,21 +274,21 @@ export default function LoginPage() {
                     id="role" required placeholder=" " value={role} onChange={(e) => setRole(e.target.value)}
                     className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                   />
-                  <label htmlFor="role" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Role (e.g. Designer)</label>
+                  <label htmlFor="role" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Role (e.g. Designer)</label>
                 </div>
                 <div className="login-input relative">
                   <input
                     id="department" required placeholder=" " value={department} onChange={(e) => setDepartment(e.target.value)}
                     className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                   />
-                  <label htmlFor="department" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Department</label>
+                  <label htmlFor="department" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Department</label>
                 </div>
                 <div className="login-input relative">
                   <input
                     id="phone" required placeholder=" " value={phone} onChange={(e) => setPhone(e.target.value)}
                     className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                   />
-                  <label htmlFor="phone" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
+                  <label htmlFor="phone" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
                 </div>
               </>
             )}
@@ -278,21 +300,21 @@ export default function LoginPage() {
                 id="login-btn"
                 type="submit"
                 disabled={loading}
-                className="w-full h-[54px] bg-primary text-white font-label-lg font-medium tracking-wide rounded-[10px] flex items-center justify-center hover:bg-primary-container active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm mt-8"
+                className="w-full h-[54px] bg-primary text-on-primary font-label-lg font-medium tracking-wide rounded-[10px] flex items-center justify-center hover:bg-primary-container active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm mt-8"
               >
                 {loading ? 'Processing...' : 'Submit Registration'}
               </button>
             )}
 
             {!isRegisterMode && (
-              <div className="flex justify-center w-full google-login-wrapper">
+              <div className="flex justify-center w-full google-login-wrapper mt-4">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => setErrorMsg('Google login failed.')}
-                  shape="rectangular"
+                  shape="pill"
                   size="large"
                   theme="outline"
-                  width="100%"
+                  width="360"
                   text="continue_with"
                 />
               </div>
@@ -313,3 +335,5 @@ export default function LoginPage() {
     </main>
   )
 }
+
+

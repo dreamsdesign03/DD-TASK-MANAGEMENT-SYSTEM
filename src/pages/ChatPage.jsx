@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import EmojiPicker from 'emoji-picker-react'
 import Sidebar from '../components/Sidebar'
@@ -16,7 +16,7 @@ export function renderMessageTextWithMentions(text, isSent = false) {
         if (part.startsWith('@')) {
           return (
             <span key={i} className={`inline-block px-1.5 py-0.5 rounded font-bold mx-0.5 ${
-              isSent ? 'bg-white/25 text-white' : 'bg-primary/10 text-primary'
+              isSent ? 'bg-surface-container-lowest/25 text-white' : 'bg-primary/10 text-primary'
             }`}>
               {part}
             </span>
@@ -62,7 +62,7 @@ export function renderMessageText(text, isSent = false, isDeleted = false) {
   if (replyMatch) {
     const [_, rSender, rText, rest] = replyMatch
     replyNode = (
-      <div className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-white/10 text-white' : 'border-primary bg-black/5 text-on-surface'
+      <div className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-surface-container-lowest/10 text-white' : 'border-primary bg-black/5 text-on-surface'
         }`}>
         <span className={`font-bold block ${isSent ? 'text-white' : 'text-primary'}`}>{rSender}</span>
         <span className={`truncate block ${isSent ? 'text-white/80' : 'text-outline'}`}>{rText}</span>
@@ -125,7 +125,7 @@ export function renderMessageText(text, isSent = false, isDeleted = false) {
           target="_blank"
           rel="noreferrer"
           className={`px-4 py-2 rounded-lg font-semibold text-center transition-colors shadow-sm ${
-            isSent ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:opacity-90'
+            isSent ? 'bg-surface-container-lowest text-primary hover:bg-gray-100' : 'bg-primary text-on-primary hover:opacity-90'
           }`}
         >
           Join Meeting
@@ -892,7 +892,7 @@ export default function ChatPage() {
       [selectedChatId]: [...(prev[selectedChatId] || []), newMessage],
     }))
 
-    const previewDisplay = '📹 Video Meeting'
+    const previewDisplay = 'Ã°Å¸â€œÂ¹ Video Meeting'
 
     if (activeTab === 'personal') {
       setPersonalChats((prev) =>
@@ -974,7 +974,7 @@ export default function ChatPage() {
       }))
     }
 
-    const previewDisplay = attachedFile ? `📎 File: ${attachedFile.name}` : text.trim()
+    const previewDisplay = attachedFile ? `Ã°Å¸â€œÅ½ File: ${attachedFile.name}` : text.trim()
 
     // Update preview text in chat list
     if (activeTab === 'personal') {
@@ -1326,8 +1326,8 @@ export default function ChatPage() {
       <Sidebar />
 
       <main className="ml-[240px] flex flex-1 h-screen overflow-hidden">
-        {/* ── LEFT PANEL: Conversation List ─────────────────────────── */}
-        <div className="w-[280px] bg-white flex flex-col border-r border-outline-variant flex-shrink-0">
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ LEFT PANEL: Conversation List Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        <div className="w-[280px] bg-surface-container-lowest flex flex-col border-r border-outline-variant flex-shrink-0">
           {/* Panel header with Clear All button */}
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <h2 className="text-label-lg font-bold text-on-surface">Messages</h2>
@@ -1522,8 +1522,8 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* ── MIDDLE PANEL: Message Thread ──────────────────────────── */}
-        <div className="flex-1 flex flex-col bg-white min-w-0">
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ MIDDLE PANEL: Message Thread Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        <div className="flex-1 flex flex-col bg-surface-container-lowest min-w-0">
           {activeChat ? (
             <>
               {/* Header */}
@@ -1572,14 +1572,10 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* Messages lists — WhatsApp-style wallpaper */}
+              {/* Messages lists Ã¢â‚¬â€ WhatsApp-style wallpaper */}
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 custom-scrollbar"
-                style={{
-                  background: 'linear-gradient(135deg,#ede9fe 0%,#f5f3ff 40%,#ede9fe 100%)',
-                  backgroundImage: `linear-gradient(135deg,#ede9fe 0%,#f5f3ff 40%,#ede9fe 100%), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a78bfa' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                }}
+                className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 custom-scrollbar chat-wallpaper"
               >
                 {activeMessages.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-outline">
@@ -1629,7 +1625,7 @@ export default function ChatPage() {
                             )}
                             {/* Hover menu */}
                             {hoveredMessageId === m.id && (
-                              <div className="absolute top-1/2 -right-12 translate-x-full -translate-y-1/2 z-10 bg-white border border-outline-variant shadow-lg rounded-full px-2.5 py-1 flex items-center gap-1.5 animate-scale-in">
+                              <div className="absolute top-1/2 -right-12 translate-x-full -translate-y-1/2 z-10 bg-surface-container-lowest border border-outline-variant shadow-lg rounded-full px-2.5 py-1 flex items-center gap-1.5 animate-scale-in">
                                 <button onClick={() => setReplyTarget(m)} className="text-outline hover:text-primary transition-colors flex items-center" title="Reply">
                                   <span className="material-symbols-outlined text-[15px]">reply</span>
                                 </button>
@@ -1637,23 +1633,23 @@ export default function ChatPage() {
                             )}
                             {/* Bubble with left tail */}
                             <div
-                              className="relative bg-white text-gray-800 rounded-2xl rounded-tl-sm px-3 shadow-sm min-w-[60px] py-2"
+                              className="relative bg-surface-container-highest text-on-surface rounded-2xl rounded-tl-sm px-3 shadow-sm min-w-[60px] py-2"
                               style={{ maxWidth: '100%' }}
                             >
                               <div
-                                className="absolute -left-2 top-0 w-3 h-3 bg-white"
+                                className="absolute -left-2 top-0 w-3 h-3 bg-surface-container-highest"
                                 style={{ clipPath: 'polygon(100% 0,100% 100%,0 0)' }}
                               />
                               {renderMessageText(m.text, false, m.isDeleted)}
                               <div className="flex items-center justify-end gap-1 mt-1">
-                                <span className="text-[10px] text-gray-400 leading-none">{m.time}</span>
+                                <span className="text-[10px] text-secondary leading-none">{m.time}</span>
                               </div>
                             </div>
                           </div>
                         </div>
                       )
                     }
-                    // Sent message — WhatsApp style with right tail
+                    // Sent message Ã¢â‚¬â€ WhatsApp style with right tail
                     return (
                       <div
                         key={index}
@@ -1666,7 +1662,7 @@ export default function ChatPage() {
                         <div className="flex flex-col items-end max-w-[72%] relative">
                           {/* Hover menu */}
                           {hoveredMessageId === m.id && (
-                            <div className="absolute top-1/2 -left-12 -translate-x-full -translate-y-1/2 z-10 bg-white border border-outline-variant shadow-lg rounded-full px-2.5 py-1 flex items-center gap-1.5 animate-scale-in">
+                            <div className="absolute top-1/2 -left-12 -translate-x-full -translate-y-1/2 z-10 bg-surface-container-lowest border border-outline-variant shadow-lg rounded-full px-2.5 py-1 flex items-center gap-1.5 animate-scale-in">
                               <button onClick={() => handleStartEdit(m)} className="text-outline hover:text-primary transition-colors flex items-center" title="Edit">
                                 <span className="material-symbols-outlined text-[15px]">edit</span>
                               </button>
@@ -1688,7 +1684,7 @@ export default function ChatPage() {
                             <div className="flex items-center justify-end gap-1 mt-1">
                               {m.isEdited && <span className="text-[9px] text-white/60 italic">edited</span>}
                               <span className="text-[10px] text-white/70 leading-none">{m.time}</span>
-                              {/* Double tick — sent indicator */}
+                              {/* Double tick Ã¢â‚¬â€ sent indicator */}
                               <span className="text-[10px] text-white/80 leading-none">{getMessageTicks(m)}</span>
                             </div>
                           </div>
@@ -1701,10 +1697,10 @@ export default function ChatPage() {
               </div>
 
               {/* Input bar */}
-              <div className="p-4 border-t border-outline-variant bg-white flex-shrink-0 flex flex-col gap-2 relative">
+              <div className="p-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0 flex flex-col gap-2 relative">
                 {/* Mention Dropdown Popover */}
                 {mentionIndex !== -1 && activeTab === 'groups' && (
-                  <div ref={mentionDropdownRef} className="absolute bottom-16 left-4 z-50 bg-white border border-outline-variant shadow-xl rounded-xl p-2 w-[240px] max-h-[180px] overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-surface-container-lowest animate-scale-in">
+                  <div ref={mentionDropdownRef} className="absolute bottom-16 left-4 z-50 bg-surface-container-lowest border border-outline-variant shadow-xl rounded-xl p-2 w-[240px] max-h-[180px] overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-surface-container-lowest animate-scale-in">
                     <div className="text-[11px] font-bold text-outline px-2 py-1 uppercase tracking-wider border-b border-outline-variant mb-1">
                       Mention Member
                     </div>
@@ -1795,7 +1791,7 @@ export default function ChatPage() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2.5 shadow-md border border-purple-100 focus-within:ring-2 focus-within:ring-primary transition-all">
+                <div className="flex items-center gap-2 bg-surface-container-lowest rounded-full px-4 py-2.5 shadow-md border border-purple-100 focus-within:ring-2 focus-within:ring-primary transition-all">
                   {/* Emoji Picker Popover */}
                   <div ref={emojiPickerRef} className="relative flex items-center">
                     <button
@@ -1848,7 +1844,7 @@ export default function ChatPage() {
                   />
                   <button
                     onClick={handleSend}
-                    className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0"
+                    className="w-9 h-9 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0"
                   >
                     <span className="material-symbols-outlined text-[20px]">send</span>
                   </button>
@@ -1870,7 +1866,7 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* ── RIGHT PANEL: Details Panel ────────────────────────────── */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ RIGHT PANEL: Details Panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeChat && activeTab === 'personal' && (
           <div className="w-[240px] bg-surface flex flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
             <div className="flex flex-col items-center gap-4">
@@ -1943,7 +1939,7 @@ export default function ChatPage() {
 
               {/* Add Member Dropdown Overlay */}
               {showAddMemberDropdown && (
-                <div className="absolute right-0 bottom-12 w-full bg-white border border-outline-variant rounded-xl shadow-xl z-50 p-3 max-h-[260px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                <div className="absolute right-0 bottom-12 w-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 p-3 max-h-[260px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
                   <div className="flex justify-between items-center pb-2 border-b border-outline-variant">
                     <span className="text-label-md font-bold">Select Contact</span>
                     <button
@@ -2047,7 +2043,7 @@ export default function ChatPage() {
   )
 }
 
-// ── Edit Name Modal ────────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Edit Name Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function EditNameModal({ currentName, onClose, onConfirm }) {
   const [value, setValue] = useState(currentName)
 
@@ -2059,7 +2055,7 @@ function EditNameModal({ currentName, onClose, onConfirm }) {
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in"
+        className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -2089,7 +2085,7 @@ function EditNameModal({ currentName, onClose, onConfirm }) {
               onChange={e => setValue(e.target.value)}
               className="block px-4 pb-2.5 pt-5 w-full text-body-sm text-on-surface bg-transparent rounded-xl border-2 border-outline-variant appearance-none focus:outline-none focus:border-primary peer transition-colors"
             />
-            <label className="absolute text-body-sm text-outline duration-200 transform -translate-y-4 scale-75 top-3 z-10 origin-[0] bg-white px-1 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:top-3.5 peer-focus:top-3 peer-focus:scale-75 peer-focus:-translate-y-4 left-3">
+            <label className="absolute text-body-sm text-outline duration-200 transform -translate-y-4 scale-75 top-3 z-10 origin-[0] bg-surface-container-lowest px-1 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:top-3.5 peer-focus:top-3 peer-focus:scale-75 peer-focus:-translate-y-4 left-3">
               Chat Display Name
             </label>
           </div>
@@ -2106,7 +2102,7 @@ function EditNameModal({ currentName, onClose, onConfirm }) {
             <button
               type="submit"
               disabled={!value.trim() || value.trim() === currentName}
-              className="flex-1 py-2.5 bg-primary text-white rounded-xl font-label-md shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 bg-primary text-on-primary rounded-xl font-label-md shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Save Name
             </button>
@@ -2117,12 +2113,12 @@ function EditNameModal({ currentName, onClose, onConfirm }) {
   )
 }
 
-// ── Confirm Modal (Clear / Delete) ─────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Confirm Modal (Clear / Delete) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function ConfirmModal({ title, message, icon, danger, onClose, onConfirm }) {
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in"
+        className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -2164,7 +2160,7 @@ function ConfirmModal({ title, message, icon, danger, onClose, onConfirm }) {
   )
 }
 
-// ── Message Search Modal ────────────────────────────────────────────────────
+// Ã¢â€â‚¬Ã¢â€â‚¬ Message Search Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef(null)
@@ -2206,7 +2202,7 @@ function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat 
     t = t.replace(/^\[Attachment:[^\]]+\]/, '[Attachment]')
     t = t.replace(/^\[Edit:[^|]+\|/, '').replace(/\]$/, '')
     t = t.replace(/^\[Delete:[^\]]+\]/, '[Deleted]')
-    t = t.replace(/^\[Meeting:([^\]]+)\]/, '📹 Video Meeting')
+    t = t.replace(/^\[Meeting:([^\]]+)\]/, 'Ã°Å¸â€œÂ¹ Video Meeting')
     t = t.replace(/^\[React:[^\]]+\]/, '')
     return t.trim() || '[Media]'
   }
@@ -2214,7 +2210,7 @@ function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat 
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-start justify-center pt-[80px] px-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-scale-in"
+        className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-scale-in"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Header */}
@@ -2317,7 +2313,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-      <div className="bg-white w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
+      <div className="bg-surface-container-lowest w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-headline-sm font-bold text-primary">Create New Group</h2>
@@ -2339,7 +2335,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
             />
             <label
               htmlFor="gname"
-              className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2"
+              className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-surface-container-lowest px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2"
             >
               Group Name
             </label>
@@ -2413,7 +2409,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
           </button>
           <button
             onClick={handleCreate}
-            className="px-6 py-2 bg-primary text-white rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all"
+            className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all"
           >
             Create Group
           </button>
@@ -2422,3 +2418,5 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
     </div>
   )
 }
+
+

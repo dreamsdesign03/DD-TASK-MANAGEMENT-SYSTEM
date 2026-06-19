@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 
 export default function TopNav() {
   const navigate = useNavigate()
-  const { searchQuery, setSearchQuery, profile, notifications } = useApp()
+  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode } = useApp()
 
   const unreadCount = notifications.filter((n) => n.unread).length
 
@@ -24,12 +24,22 @@ export default function TopNav() {
       {/* Right actions */}
       <div className="flex items-center gap-6">
 
+        {/* Theme Toggle */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="text-on-surface-variant hover:text-primary transition-all duration-150 flex items-center justify-center"
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          <span className="material-symbols-outlined">
+            {isDarkMode ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
 
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative flex items-center justify-center">
           <button
             onClick={() => navigate('/notifications')}
-            className="text-on-surface-variant hover:text-primary transition-all duration-150"
+            className="text-on-surface-variant hover:text-primary transition-all duration-150 flex items-center justify-center"
           >
             <span className="material-symbols-outlined">notifications</span>
           </button>

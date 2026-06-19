@@ -45,7 +45,7 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="px-6 mb-8 flex items-center gap-3 min-h-0">
         <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-          <img src="./logo.png" alt="Dreamsdesk Logo" className="w-full h-full object-contain" />
+          <div className="logo-mask w-full h-full" aria-label="Dreamsdesk Logo" />
         </div>
         <div className="min-w-0">
           <h1 className="font-headline-md text-[18px] font-bold text-primary leading-tight truncate">
@@ -75,7 +75,7 @@ export default function Sidebar() {
               </span>
             )}
             {label === 'My Tasks' && totalUnreadTasks > 0 && (
-              <span className="ml-auto min-w-[18px] h-[18px] px-1.5 bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-scale-in">
+              <span className="ml-auto min-w-[18px] h-[18px] px-1.5 bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-scale-in">
                 {totalUnreadTasks}
               </span>
             )}
@@ -118,3 +118,4 @@ export default function Sidebar() {
     </aside>
   )
 }
+

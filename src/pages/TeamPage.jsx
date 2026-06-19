@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
@@ -98,7 +98,7 @@ export default function TeamPage() {
             </div>
 
             {/* Filter and Search controls */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white p-4 rounded-lg border border-outline-variant/40 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface-container-lowest p-4 rounded-lg border border-outline-variant/40 shadow-sm">
 
 
               <div className="relative w-full md:w-80">
@@ -126,7 +126,7 @@ export default function TeamPage() {
                 filtered.map((emp) => (
                   <div
                     key={emp.id}
-                    className="bg-white rounded-lg border border-outline-variant/40 p-6 flex flex-col items-center text-center relative hover:border-outline-variant transition-all duration-200 hover:shadow-sm"
+                    className="bg-surface-container-lowest rounded-lg border border-outline-variant/40 p-6 flex flex-col items-center text-center relative hover:border-outline-variant transition-all duration-200 hover:shadow-sm"
                   >
                     {/* Status indicator dot */}
                     <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container-low px-2 py-0.5 rounded-full border border-outline-variant/30">
@@ -202,7 +202,7 @@ export default function TeamPage() {
                             setSearchQuery(emp.name)
                             navigate('/tasks')
                           }}
-                          className="flex items-center justify-center gap-2 bg-primary text-white py-2 rounded-md font-body-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                          className="flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-md font-body-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
                         >
                           <span className="material-symbols-outlined text-[16px]">visibility</span>
                           Tasks
@@ -219,7 +219,7 @@ export default function TeamPage() {
         {/* Footer */}
         <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-8">
           <p className="font-label-sm text-label-sm text-secondary opacity-95">
-            © 2024 Dreamsdesk Internal Systems
+            Â© 2024 Dreamsdesk Internal Systems
           </p>
           <div className="flex gap-6">
             <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
@@ -236,3 +236,5 @@ export default function TeamPage() {
     </div>
   )
 }
+
+

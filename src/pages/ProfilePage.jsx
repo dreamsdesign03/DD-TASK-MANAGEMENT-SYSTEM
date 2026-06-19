@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
@@ -30,7 +30,7 @@ export default function ProfilePage() {
           <div className="max-w-[1200px] mx-auto px-8 py-10">
             <div className="max-w-4xl mx-auto">
               {/* Profile Form & Info Card */}
-              <div className="bg-white rounded-lg border border-outline-variant/40 shadow-sm flex flex-col h-full min-h-[600px]">
+              <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm flex flex-col h-full min-h-[600px]">
                 <div className="p-8 flex-grow">
                   <div className="space-y-6">
 
@@ -86,7 +86,7 @@ export default function ProfilePage() {
                           value={profile.name}
                         />
                         <label
-                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-white px-1 text-label-sm text-outline"
+                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-surface-container-lowest px-1 text-label-sm text-outline"
                           htmlFor="full_name"
                         >
                           Full Name
@@ -102,7 +102,7 @@ export default function ProfilePage() {
                           value={profile.email}
                         />
                         <label
-                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-white px-1 text-label-sm text-outline"
+                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-surface-container-lowest px-1 text-label-sm text-outline"
                           htmlFor="email"
                         >
                           Email Address
@@ -118,7 +118,7 @@ export default function ProfilePage() {
                           value={profile.phone}
                         />
                         <label
-                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-white px-1 text-label-sm text-outline"
+                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-surface-container-lowest px-1 text-label-sm text-outline"
                           htmlFor="phone"
                         >
                           Phone Number
@@ -134,7 +134,7 @@ export default function ProfilePage() {
                           value={profile.role}
                         />
                         <label
-                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-white px-1 text-label-sm text-outline"
+                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-surface-container-lowest px-1 text-label-sm text-outline"
                           htmlFor="role"
                         >
                           Role
@@ -150,7 +150,7 @@ export default function ProfilePage() {
                           value={profile.department}
                         />
                         <label
-                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-white px-1 text-label-sm text-outline"
+                          className="absolute left-3 top-3.5 z-10 origin-[0] -translate-y-6 scale-75 transform bg-surface-container-lowest px-1 text-label-sm text-outline"
                           htmlFor="department"
                         >
                           Department
@@ -171,7 +171,7 @@ export default function ProfilePage() {
         {/* Footer */}
         <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-8">
           <p className="font-label-sm text-label-sm text-secondary opacity-90">
-            © 2024 Dreamsdesk Internal Systems
+            Â© 2024 Dreamsdesk Internal Systems
           </p>
           <div className="flex gap-6">
             <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
@@ -186,3 +186,4 @@ export default function ProfilePage() {
     </div>
   )
 }
+

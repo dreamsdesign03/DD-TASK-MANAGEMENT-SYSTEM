@@ -240,6 +240,23 @@ export function AppProvider({ children }) {
     localStorage.setItem('dd_profile', JSON.stringify(profile))
   }, [profile])
 
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_dark_mode')
+      if (saved !== null) return JSON.parse(saved)
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    } catch { return false }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('dd_dark_mode', JSON.stringify(isDarkMode))
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDarkMode])
+
 
   // Chat channels state
   const [employees, setEmployees] = useState(() => {
@@ -1795,6 +1812,8 @@ export function AppProvider({ children }) {
         clearedChatTimestamps,
         readReceiptsByChatId,
         addSystemAndWebNotification,
+        isDarkMode,
+        setIsDarkMode,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext'
 
 const FILTER_TABS = ['All', 'Unread', 'Status Updates']
 
-/* ─── Single notification card ───────────────────────────────────── */
+/* â”€â”€â”€ Single notification card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function NotificationCard({ notification, onRead }) {
   const navigate = useNavigate()
   const { id, unread, iconBg, iconColor, icon, title, subtitle, time, taskId, category } = notification
@@ -26,7 +26,7 @@ function NotificationCard({ notification, onRead }) {
   return (
     <div
       onClick={handleClick}
-      className={`flex items-center p-6 rounded-lg shadow-sm border transition-all cursor-pointer group ${unread ? 'bg-primary/5 border-primary/20 hover:border-primary/40' : 'bg-white border-outline-variant/40 hover:border-outline-variant'
+      className={`flex items-center p-6 rounded-lg shadow-sm border transition-all cursor-pointer group ${unread ? 'bg-primary/5 border-primary/20 hover:border-primary/40' : 'bg-surface-container-lowest border-outline-variant/40 hover:border-outline-variant'
         }`}
     >
       {/* Icon */}
@@ -63,7 +63,7 @@ function NotificationCard({ notification, onRead }) {
   )
 }
 
-/* ─── Main Notifications Page ────────────────────────────────────── */
+/* â”€â”€â”€ Main Notifications Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function NotificationsPage() {
   const { notifications, markNotificationRead, markAllNotificationsRead } = useApp()
   const [activeFilter, setActiveFilter] = useState('All')
@@ -86,7 +86,7 @@ export default function NotificationsPage() {
 
         <main className="flex-1 bg-background overflow-y-auto custom-scrollbar">
           <div className="max-w-[1200px] mx-auto px-margin_desktop py-10">
-            {/* ── Header row ──────────────────────────────────────── */}
+            {/* â”€â”€ Header row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h2
@@ -130,7 +130,7 @@ export default function NotificationsPage() {
               </a>
             </div>
 
-            {/* ── Notification cards ───────────────────────────────── */}
+            {/* â”€â”€ Notification cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="space-y-4">
               {filtered.length === 0 ? (
                 <div className="text-center py-20 text-on-surface-variant">
@@ -153,14 +153,14 @@ export default function NotificationsPage() {
               )}
             </div>
 
-            {/* ── Bento insights ───────────────────────────────────── */}
+            {/* â”€â”€ Bento insights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           </div>
         </main>
 
         {/* Footer */}
         <footer className="w-full py-4 px-margin_desktop bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
           <p className="font-label-sm text-label-sm text-secondary">
-            © 2024 Dreamsdesk Internal Systems
+            Â© 2024 Dreamsdesk Internal Systems
           </p>
           <div className="flex gap-6">
             <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
@@ -175,3 +175,4 @@ export default function NotificationsPage() {
     </div>
   )
 }
+

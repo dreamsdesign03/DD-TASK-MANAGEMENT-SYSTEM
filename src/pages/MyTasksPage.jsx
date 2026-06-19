@@ -114,8 +114,8 @@ export default function MyTasksPage() {
             <div className="mb-4">
               {/* Page title */}
               <h2
-                className="mb-4"
-                style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px', color: '#702c91' }}
+                className="mb-4 text-primary"
+                style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
               >
                 My Tasks
               </h2>
@@ -130,7 +130,7 @@ export default function MyTasksPage() {
         <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
           <div className="flex justify-between items-center px-gutter w-full">
             <p className="font-label-sm text-label-sm text-secondary">
-              © 2024 Dreamsdesk Internal Systems
+              Â© 2024 Dreamsdesk Internal Systems
             </p>
             <div className="flex gap-6">
               <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
@@ -149,7 +149,7 @@ export default function MyTasksPage() {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
           <form
             onSubmit={handleCreateTask}
-            className="bg-white w-[520px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar border border-outline-variant/20"
+            className="bg-surface-container-lowest w-[520px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar border border-outline-variant/20"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-divider pb-3">
@@ -181,13 +181,13 @@ export default function MyTasksPage() {
                 />
                 <label
                   htmlFor="task_title"
-                  className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2 pointer-events-none"
+                  className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-surface-container-lowest px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2 pointer-events-none"
                 >
                   Task Title *
                 </label>
               </div>
 
-              {/* Company (Client) — full width, dynamic from existing tasks */}
+              {/* Company (Client) â€” full width, dynamic from existing tasks */}
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
                   Company (Client)
@@ -196,7 +196,7 @@ export default function MyTasksPage() {
                   <select
                     value={client}
                     onChange={(e) => setClient(e.target.value)}
-                    className="w-full appearance-none bg-white border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                    className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
                   >
                     {companyList.map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -218,7 +218,7 @@ export default function MyTasksPage() {
                   <div className="relative">
                     <div
                       onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
-                      className="w-full bg-white border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface cursor-pointer flex justify-between items-center hover:border-primary/50 transition-colors"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface cursor-pointer flex justify-between items-center hover:border-primary/50 transition-colors"
                     >
                       <span className="truncate">{assignedTo.length > 0 ? assignedTo.join(', ') : 'Select Assignee'}</span>
                       <span className="material-symbols-outlined text-secondary text-[18px]">
@@ -226,7 +226,7 @@ export default function MyTasksPage() {
                       </span>
                     </div>
                     {isAssigneeOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-outline-variant rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="absolute top-full left-0 mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
                         {uniqueTeamMembers.map((m) => (
                           <label key={m} className="flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low cursor-pointer">
                             <input
@@ -249,7 +249,7 @@ export default function MyTasksPage() {
                   </div>
                 </div>
 
-                {/* Assigned By — locked to current user */}
+                {/* Assigned By â€” locked to current user */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
                     Assigned By
@@ -267,7 +267,7 @@ export default function MyTasksPage() {
                   </div>
                 </div>
 
-                {/* Due Date — calendar picker */}
+                {/* Due Date â€” calendar picker */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
                     Due Date *
@@ -289,7 +289,7 @@ export default function MyTasksPage() {
                         }
                         setDueDate(val)
                       }}
-                      className="w-full bg-white border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
                     />
                   </div>
                 </div>
@@ -309,8 +309,8 @@ export default function MyTasksPage() {
                         key={p}
                         onClick={() => setPriority(p)}
                         className={`py-2 rounded-md text-[13px] font-medium text-center border transition-all ${isSelected
-                          ? 'bg-primary text-white border-primary shadow-sm'
-                          : 'bg-white border-outline text-secondary hover:border-outline-variant'
+                          ? 'bg-primary text-on-primary border-primary shadow-sm'
+                          : 'bg-surface-container-lowest border-outline text-secondary hover:border-outline-variant'
                           }`}
                       >
                         {p}
@@ -328,7 +328,7 @@ export default function MyTasksPage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full min-h-[100px] p-3 bg-white border border-outline-variant rounded-md text-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none transition-colors"
+                  className="w-full min-h-[100px] p-3 bg-surface-container-lowest border border-outline-variant rounded-md text-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none transition-colors"
                   placeholder="Details about the task..."
                 ></textarea>
               </div>
@@ -343,7 +343,7 @@ export default function MyTasksPage() {
                     type="text"
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    className="w-full bg-white border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
                     placeholder="Any remarks..."
                   />
                 </div>
@@ -354,7 +354,7 @@ export default function MyTasksPage() {
                   <select
                     value={post}
                     onChange={(e) => setPost(e.target.value)}
-                    className="w-full bg-white border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none transition-colors"
+                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none transition-colors"
                   >
                     <option value="YES">YES</option>
                     <option value="NO">NO</option>
@@ -374,7 +374,7 @@ export default function MyTasksPage() {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-primary text-white rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all text-[13px]"
+                className="px-6 py-2.5 bg-primary text-on-primary rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all text-[13px]"
               >
                 Create Task
               </button>
@@ -385,3 +385,5 @@ export default function MyTasksPage() {
     </div>
   )
 }
+
+

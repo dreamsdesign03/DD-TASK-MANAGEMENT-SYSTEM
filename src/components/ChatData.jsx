@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 
 export const PERSONAL = []
 export const GROUPS = []
@@ -13,7 +13,7 @@ export const INIT_MESSAGES = [
   { id: 5, type: 'received', sender: 'Riya Patel',   text: 'We need the final assets. Karan, are we still on track?', time: '11:05 AM' },
 ]
 
-/* ── Enhanced Create Group Modal ────────────────────────────────── */
+/* â”€â”€ Enhanced Create Group Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export function CreateGroupModal({ onClose }) {
   const [groupName, setGroupName] = useState('')
   const [search, setSearch]       = useState('')
@@ -33,7 +33,7 @@ export function CreateGroupModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-      <div className="bg-white w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
+      <div className="bg-surface-container-lowest w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -53,7 +53,7 @@ export function CreateGroupModal({ onClose }) {
             />
             <label
               htmlFor="gname"
-              className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2"
+              className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-surface-container-lowest px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2"
             >
               Group Name
             </label>
@@ -121,7 +121,7 @@ export function CreateGroupModal({ onClose }) {
             Cancel
           </button>
           <button onClick={onClose}
-            className="px-6 py-2 bg-primary text-white rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
+            className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
             Create Group
           </button>
         </div>
@@ -129,3 +129,5 @@ export function CreateGroupModal({ onClose }) {
     </div>
   )
 }
+
+

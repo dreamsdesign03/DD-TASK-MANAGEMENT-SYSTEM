@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
   const { tasks } = useApp()
   const [filterType, setFilterType] = useState('Overall') // 'Overall', 'Company', 'User'
   const [selectedValue, setSelectedValue] = useState('')
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // Derive unique months from task due dates
   const availableMonths = useMemo(() => {
@@ -77,15 +80,75 @@ export default function MonthlyReportPage() {
 
   // Calculate conic gradient string for the donut chart
   // Order: Done -> In Progress -> Pending -> Blocked
-  const p1 = completedPct
-  const p2 = p1 + inProgressPct
-  const p3 = p2 + pendingPct
-  const gradient = `conic-gradient(
-    #2ECC71 0% ${p1}%, 
-    #F1C40F ${p1}% ${p2}%, 
-    #3498DB ${p2}% ${p3}%, 
-    #E74C3C ${p3}% 100%
-  )`
+  // SVG Donut Chart Calculations
+  const radius = 42.5
+  const circumference = 2 * Math.PI * radius
+  
+  const doneDash = (completedPct / 100) * circumference
+  const inProgressDash = (inProgressPct / 100) * circumference
+  const pendingDash = (pendingPct / 100) * circumference
+  const blockedDash = (blockedPct / 100) * circumference
+
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true)
+    const element = document.getElementById('report-content')
+    if (!element) return
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          clonedDoc.documentElement.classList.remove('dark')
+          const clonedElement = clonedDoc.getElementById('report-content')
+          if (clonedElement) {
+            clonedElement.style.backgroundColor = '#fbf9f8'
+            clonedElement.style.padding = '40px'
+
+            // Fix vertical clipping bug caused by truncate / overflow: hidden
+            const truncates = clonedElement.querySelectorAll('.truncate')
+            truncates.forEach(el => {
+              el.classList.remove('truncate', 'max-w-[150px]', 'inline-block')
+            })
+
+            // Fix vertical clipping and bad rendering of <select> elements in html2canvas
+            const selects = clonedElement.querySelectorAll('select')
+            selects.forEach(sel => {
+              const selectedText = sel.options[sel.selectedIndex]?.text || ''
+              const span = clonedDoc.createElement('span')
+              span.innerText = selectedText
+              span.className = sel.className + ' inline-block'
+              // Strip borders/backgrounds for a cleaner PDF look or keep them
+              sel.parentNode.replaceChild(span, sel)
+            })
+          }
+        }
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+
+      const sanitizedMonth = currentMonth.replace(/\s+/g, '_')
+      const sanitizedValue = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
+      const fileName = `Dreamsdesk_Report_${sanitizedMonth}_${sanitizedValue}.pdf`
+
+      pdf.save(fileName)
+    } catch (error) {
+      console.error('Failed to generate PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   return (
     <div className="bg-background text-on-surface flex h-screen overflow-hidden">
@@ -94,12 +157,12 @@ export default function MonthlyReportPage() {
       <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         <TopNav />
 
-        <main className="flex-1 bg-white overflow-y-auto pb-12 custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto p-8 space-y-8">
+        <main className="flex-1 bg-surface-container-lowest overflow-y-auto pb-12 custom-scrollbar">
+          <div id="report-content" className="max-w-[1200px] mx-auto p-8 space-y-8">
             {/* Title & Month Selector */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <h2 className="font-Montserrat font-bold text-[28px] text-primary">Monthly Report Analysis</h2>
-              <div className="flex items-center gap-3 bg-white border border-outline-variant px-4 py-2 rounded-lg shadow-sm">
+              <div className="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant px-4 py-2 rounded-lg shadow-sm">
                 <span className="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
                 <select
                   value={currentMonth}
@@ -116,7 +179,7 @@ export default function MonthlyReportPage() {
 
             {/* Filter Tabs */}
             <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex flex-col md:flex-row gap-6 items-start md:items-center">
-              <div className="flex items-center gap-2 bg-white rounded-lg p-1 shadow-sm border border-outline-variant">
+              <div className="flex items-center gap-2 bg-surface-container-lowest rounded-lg p-1 shadow-sm border border-outline-variant">
                 {['Overall', 'Company', 'User'].map(type => (
                   <button
                     key={type}
@@ -137,7 +200,7 @@ export default function MonthlyReportPage() {
                   <select
                     value={selectedValue}
                     onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                    className="bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
                   >
                     {clients.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -149,7 +212,7 @@ export default function MonthlyReportPage() {
                   <select
                     value={selectedValue}
                     onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-white border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                    className="bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
                   >
                     {users.map(u => <option key={u} value={u}>{u}</option>)}
                   </select>
@@ -165,7 +228,7 @@ export default function MonthlyReportPage() {
                   <p className="text-label-sm text-on-surface-variant uppercase mb-1">Total Tasks</p>
                   <h3 className="text-headline-lg text-primary">{totalTasks}</h3>
                 </div>
-                <span className="material-symbols-outlined text-primary-container opacity-20 text-4xl">
+                <span className="material-symbols-outlined text-primary opacity-30 dark:opacity-80 text-4xl">
                   assignment_add
                 </span>
               </div>
@@ -179,7 +242,7 @@ export default function MonthlyReportPage() {
                     <div className="bg-[#2ECC71] h-full transition-all" style={{ width: `${completedPct}%` }}></div>
                   </div>
                 </div>
-                <span className="material-symbols-outlined text-[#2ECC71] opacity-20 text-4xl">
+                <span className="material-symbols-outlined text-[#2ECC71] opacity-30 dark:opacity-80 text-4xl">
                   check_circle
                 </span>
               </div>
@@ -191,7 +254,7 @@ export default function MonthlyReportPage() {
                   <h3 className="text-headline-lg text-[#F1C40F]">{inProgress}</h3>
                   <p className="text-xs text-on-surface-variant mt-2">Active now</p>
                 </div>
-                <span className="material-symbols-outlined text-[#F1C40F] opacity-20 text-4xl">
+                <span className="material-symbols-outlined text-[#F1C40F] opacity-30 dark:opacity-80 text-4xl">
                   pending
                 </span>
               </div>
@@ -207,7 +270,7 @@ export default function MonthlyReportPage() {
                     <p className="text-xs text-[#2ECC71] font-semibold mt-2">All on track</p>
                   )}
                 </div>
-                <span className="material-symbols-outlined text-[#E74C3C] opacity-20 text-4xl">
+                <span className="material-symbols-outlined text-[#E74C3C] opacity-30 dark:opacity-80 text-4xl">
                   warning
                 </span>
               </div>
@@ -224,11 +287,37 @@ export default function MonthlyReportPage() {
                   </div>
                 ) : (
                   <div className="flex flex-1 items-center justify-center gap-8 flex-wrap">
-                    <div
-                      className="relative w-40 h-40 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: gradient }}
-                    >
-                      <div className="w-28 h-28 bg-white rounded-full flex flex-col items-center justify-center">
+                    <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                        {/* Background ring */}
+                        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--color-surface-container-high, #e9e8e7)" strokeWidth="15" />
+                        
+                        {/* Done */}
+                        {completedPct > 0 && (
+                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#2ECC71" strokeWidth="15" 
+                            strokeDasharray={`${doneDash} ${circumference}`} 
+                            strokeDashoffset={0} />
+                        )}
+                        {/* In Progress */}
+                        {inProgressPct > 0 && (
+                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#F1C40F" strokeWidth="15" 
+                            strokeDasharray={`${inProgressDash} ${circumference}`} 
+                            strokeDashoffset={-doneDash} />
+                        )}
+                        {/* Pending */}
+                        {pendingPct > 0 && (
+                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#3498DB" strokeWidth="15" 
+                            strokeDasharray={`${pendingDash} ${circumference}`} 
+                            strokeDashoffset={-(doneDash + inProgressDash)} />
+                        )}
+                        {/* Blocked */}
+                        {blockedPct > 0 && (
+                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#E74C3C" strokeWidth="15" 
+                            strokeDasharray={`${blockedDash} ${circumference}`} 
+                            strokeDashoffset={-(doneDash + inProgressDash + pendingDash)} />
+                        )}
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full pointer-events-none">
                         <span className="text-headline-md font-bold text-on-surface">{totalTasks}</span>
                         <span className="text-label-sm text-on-surface-variant">Total</span>
                       </div>
@@ -369,15 +458,18 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-center md:justify-end pb-8">
+            <div className="flex justify-center md:justify-end pb-8" data-html2canvas-ignore>
               <button
-                onClick={() => alert('Downloading report...')}
-                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group"
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group disabled:opacity-70 disabled:cursor-wait"
               >
-                <span className="material-symbols-outlined transition-transform group-hover:translate-y-1">
-                  download
-                </span>
-                Download Report
+                {isDownloading ? (
+                  <span className="material-symbols-outlined animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined transition-transform group-hover:translate-y-1">download</span>
+                )}
+                {isDownloading ? 'Generating PDF...' : 'Download PDF Report'}
               </button>
             </div>
           </div>
@@ -386,3 +478,4 @@ export default function MonthlyReportPage() {
     </div>
   )
 }
+
