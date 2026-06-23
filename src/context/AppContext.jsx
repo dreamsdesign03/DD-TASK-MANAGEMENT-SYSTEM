@@ -1647,7 +1647,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_tasks'
+      const url = `https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_tasks&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1737,7 +1737,7 @@ export function AppProvider({ children }) {
     let success = false
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_team'
+      const url = `https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_team&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1772,7 +1772,7 @@ export function AppProvider({ children }) {
 
   const fetchClients = async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_clients'
+      const url = `https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_clients&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1781,12 +1781,10 @@ export function AppProvider({ children }) {
           const data = JSON.parse(text)
           const items = Array.isArray(data) ? data : (data.clients || [])
 
-          if (items.length > 0) {
-            setClients(prev => {
-              if (JSON.stringify(prev) === JSON.stringify(items)) return prev;
-              return items;
-            })
-          }
+          setClients(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(items)) return prev;
+            return items;
+          })
         } catch (e) {
           console.warn('Failed to parse Google Sheets clients:', e)
         }
