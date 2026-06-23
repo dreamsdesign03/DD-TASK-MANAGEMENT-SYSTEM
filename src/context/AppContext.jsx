@@ -1781,30 +1781,10 @@ export function AppProvider({ children }) {
           const data = JSON.parse(text)
           const items = Array.isArray(data) ? data : (data.clients || [])
 
-          const activeItems = items.filter(item => {
-            const isActive = item['Is Active'] || item['isActive'] || item['is_active'] || item['Is active'] || item.isActive
-            return String(isActive).toLowerCase() === 'yes' || isActive === true
-          })
-
-          // Extract client/company name from each active row
-          const names = activeItems
-            .map(item =>
-              item['Client Name'] ||
-              item['Company Name'] ||
-              item['ClientName'] ||
-              item['Company'] ||
-              item['Name'] ||
-              item['name'] ||
-              item['client'] ||
-              ''
-            )
-            .filter(Boolean)
-
-          if (names.length > 0) {
+          if (items.length > 0) {
             setClients(prev => {
-              const isSame = prev.length === names.length && prev.every((c, i) => c === names[i])
-              if (isSame) return prev
-              return names
+              if (JSON.stringify(prev) === JSON.stringify(items)) return prev;
+              return items;
             })
           }
         } catch (e) {

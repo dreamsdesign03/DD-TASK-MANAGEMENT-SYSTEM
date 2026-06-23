@@ -13,8 +13,17 @@ export default function MyTasksPage() {
   // Derive company list: prefer live Clients sheet from n8n, fallback to task-derived clients
   const taskClients = tasks.map(t => t.client).filter(Boolean)
   const taskUniqueCompanies = [...new Set(taskClients)]
+  // Extract active client names from the objects
+  const activeClientNames = clients
+    .filter(item => {
+      const isActive = item['Is Active'] || item['isActive'] || item['is_active'] || item['Is active'] || item.isActive
+      return String(isActive).toLowerCase() === 'yes' || isActive === true
+    })
+    .map(item => item['Project Name'] || item['Client Name'] || item['Company Name'] || item['Company'] || item['Name'] || '')
+    .filter(Boolean)
+
   // Merge n8n clients + task-derived, deduplicated
-  const allClients = [...new Set([...clients, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal')
+  const allClients = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal')
   const companyList = allClients
 
   // Form states

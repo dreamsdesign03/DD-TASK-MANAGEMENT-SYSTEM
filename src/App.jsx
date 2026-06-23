@@ -10,6 +10,7 @@ import MonthlyReportPage from './pages/MonthlyReportPage'
 import ProfilePage from './pages/ProfilePage'
 import ProjectOverviewPage from './pages/ProjectOverviewPage'
 import TeamPage from './pages/TeamPage'
+import ClientsPage from './pages/ClientsPage'
 
 function GlobalNav() {
   const navigate = useNavigate()
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/projects" element={<MyTasksPage />} />
         <Route path="/projects/:projectName" element={<ProjectOverviewPage />} />
         <Route path="/team" element={<TeamPage />} />
+        <Route path="/clients" element={<ClientsPage />} />
         <Route path="/reports" element={<MonthlyReportPage />} />
         <Route path="/settings" element={<ProfilePage />} />
 

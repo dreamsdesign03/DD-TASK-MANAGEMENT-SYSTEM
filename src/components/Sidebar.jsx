@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { icon: 'notifications', label: 'Notifications', to: '/notifications' },
   { icon: 'chat', label: 'Chat', to: '/chat' },
   { icon: 'group', label: 'Team', to: '/team' },
+  { icon: 'domain', label: 'Clients', to: '/clients' },
   { icon: 'assessment', label: 'Monthly Reports', to: '/reports' },
 ]
 
@@ -17,9 +18,10 @@ export default function Sidebar() {
   
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [clientForm, setClientForm] = useState({
+    projectName: '',
     clientName: '',
-    contactPerson: '',
-    contactEmail: '',
+    email: '',
+    additionalEmail: '',
     phone: '',
     industry: ''
   })
@@ -27,8 +29,8 @@ export default function Sidebar() {
 
   const handleCreateClient = async (e) => {
     e.preventDefault()
-    if (!clientForm.clientName) {
-      alert('Client Name is required')
+    if (!clientForm.projectName) {
+      alert('Project Name is required')
       return
     }
 
@@ -39,14 +41,18 @@ export default function Sidebar() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'add_client',
-          ...clientForm
+          projectName: clientForm.projectName,
+          clientName: clientForm.clientName,
+          contactEmail: clientForm.additionalEmail ? `${clientForm.email}, ${clientForm.additionalEmail}` : clientForm.email,
+          phone: clientForm.phone,
+          industry: clientForm.industry
         })
       })
       const data = await res.json()
       if (data.ok) {
         alert('Client added successfully!')
         setShowNewClientModal(false)
-        setClientForm({ clientName: '', contactPerson: '', contactEmail: '', phone: '', industry: '' })
+        setClientForm({ projectName: '', clientName: '', email: '', additionalEmail: '', phone: '', industry: '' })
         fetchClients()
       } else {
         alert('Failed to add client: ' + (data.error || 'Unknown error'))
@@ -193,10 +199,21 @@ export default function Sidebar() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Client Name *</label>
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Project Name *</label>
               <input
                 type="text"
                 required
+                value={clientForm.projectName}
+                onChange={e => setClientForm({ ...clientForm, projectName: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                placeholder="e.g. Dreamsdesign Redesign"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Client Name</label>
+              <input
+                type="text"
                 value={clientForm.clientName}
                 onChange={e => setClientForm({ ...clientForm, clientName: e.target.value })}
                 className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
@@ -204,26 +221,28 @@ export default function Sidebar() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Contact Person</label>
-              <input
-                type="text"
-                value={clientForm.contactPerson}
-                onChange={e => setClientForm({ ...clientForm, contactPerson: e.target.value })}
-                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                placeholder="e.g. John Doe"
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Email</label>
+                <input
+                  type="email"
+                  value={clientForm.email}
+                  onChange={e => setClientForm({ ...clientForm, email: e.target.value })}
+                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  placeholder="john@example.com"
+                />
+              </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Contact Email</label>
-              <input
-                type="email"
-                value={clientForm.contactEmail}
-                onChange={e => setClientForm({ ...clientForm, contactEmail: e.target.value })}
-                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                placeholder="john@example.com"
-              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Additional Email</label>
+                <input
+                  type="email"
+                  value={clientForm.additionalEmail}
+                  onChange={e => setClientForm({ ...clientForm, additionalEmail: e.target.value })}
+                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  placeholder="alt@example.com"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

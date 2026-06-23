@@ -311,7 +311,11 @@ function doPost(e) {
         var sheet = ss.getSheetByName("Clients");
         if (!sheet) {
           sheet = ss.insertSheet("Clients");
-          sheet.appendRow(["Client ID", "Client Name", "Contact Person", "Contact Email", "Phone", "Industry", "Is Active"]);
+          sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Industry", "Is Active"]);
+        } else {
+          // Rename the old headers to match the new schema
+          sheet.getRange("B1").setValue("Project Name");
+          sheet.getRange("C1").setValue("Client Name");
         }
         
         var data = sheet.getDataRange().getValues();
@@ -325,14 +329,43 @@ function doPost(e) {
   
         sheet.appendRow([
           newId,
+          payload.projectName || "",
           payload.clientName || "",
-          payload.contactPerson || "",
           payload.contactEmail || "",
           payload.phone || "",
           payload.industry || "",
           "Yes"
         ]);
         return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+      } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // -------------------------
+    // 5.5. UPDATE CLIENT
+    // -------------------------
+    if (payload.action === 'update_client') {
+      try {
+        var sheet = ss.getSheetByName("Clients");
+        if (!sheet) {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Clients sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var data = sheet.getDataRange().getValues();
+        var found = false;
+        for (var i = 1; i < data.length; i++) {
+          if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
+            // Update Is Active column (Column G)
+            sheet.getRange(i + 1, 7).setValue(payload.isActive);
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+        } else {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Client not found" })).setMimeType(ContentService.MimeType.JSON);
+        }
       } catch (err) {
         return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
       }
@@ -423,9 +456,8 @@ function doPost(e) {
           var row = data[i];
           if (row.length === 0 || !row[0]) continue;
 
-          // Check Is Active column (Column G / index 6)
-          var isActive = String(row[6]).trim();
-          if (isActive.toLowerCase() !== 'yes') continue;
+          // We no longer filter out inactive clients here because we need them for the Clients details page
+          // Active filtering is done on the React frontend
 
           var clientObj = {};
           for (var j = 0; j < headers.length; j++) {
