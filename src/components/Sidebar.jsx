@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
@@ -12,7 +13,50 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const navigate = useNavigate()
-  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile } = useApp()
+  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients } = useApp()
+  
+  const [showNewClientModal, setShowNewClientModal] = useState(false)
+  const [clientForm, setClientForm] = useState({
+    clientName: '',
+    contactPerson: '',
+    contactEmail: '',
+    phone: '',
+    industry: ''
+  })
+  const [isSubmittingClient, setIsSubmittingClient] = useState(false)
+
+  const handleCreateClient = async (e) => {
+    e.preventDefault()
+    if (!clientForm.clientName) {
+      alert('Client Name is required')
+      return
+    }
+
+    setIsSubmittingClient(true)
+    try {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'add_client',
+          ...clientForm
+        })
+      })
+      const data = await res.json()
+      if (data.ok) {
+        alert('Client added successfully!')
+        setShowNewClientModal(false)
+        setClientForm({ clientName: '', contactPerson: '', contactEmail: '', phone: '', industry: '' })
+        fetchClients()
+      } else {
+        alert('Failed to add client: ' + (data.error || 'Unknown error'))
+      }
+    } catch (err) {
+      alert('Error adding client: ' + err.message)
+    } finally {
+      setIsSubmittingClient(false)
+    }
+  }
 
   const totalUnreadChat =
     (personalChats?.reduce((acc, c) => acc + (c.unread || 0), 0) || 0) +
@@ -93,13 +137,19 @@ export default function Sidebar() {
             setShowNewTaskModal(true)
             navigate('/tasks')
           }}
-          className="w-full mb-4 py-3 bg-primary-container text-white rounded-lg font-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+          className="w-full mb-2 py-3 bg-primary-container text-white rounded-lg font-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
         >
           <span className="material-symbols-outlined">add</span>
           New Task
         </button>
 
-
+        <button
+          onClick={() => setShowNewClientModal(true)}
+          className="w-full mb-4 py-3 bg-surface-container border border-primary/20 text-primary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+        >
+          <span className="material-symbols-outlined">domain_add</span>
+          New Client
+        </button>
 
         <button
           onClick={() => {
@@ -119,6 +169,113 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+
+      {/* New Client Modal */}
+      {showNewClientModal && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
+          <form
+            onSubmit={handleCreateClient}
+            className="bg-surface-container-lowest w-[480px] rounded-lg shadow-2xl p-6 flex flex-col gap-4"
+          >
+            <div className="flex justify-between items-center border-b border-divider pb-3">
+              <h2 className="text-headline-sm font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined">domain_add</span>
+                Add New Client
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowNewClientModal(false)}
+                className="text-secondary hover:text-on-surface transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Client Name *</label>
+              <input
+                type="text"
+                required
+                value={clientForm.clientName}
+                onChange={e => setClientForm({ ...clientForm, clientName: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                placeholder="e.g. Dreamsdesign"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Contact Person</label>
+              <input
+                type="text"
+                value={clientForm.contactPerson}
+                onChange={e => setClientForm({ ...clientForm, contactPerson: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                placeholder="e.g. John Doe"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Contact Email</label>
+              <input
+                type="email"
+                value={clientForm.contactEmail}
+                onChange={e => setClientForm({ ...clientForm, contactEmail: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                placeholder="john@example.com"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone</label>
+                <input
+                  type="text"
+                  value={clientForm.phone}
+                  onChange={e => setClientForm({ ...clientForm, phone: e.target.value })}
+                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  placeholder="+91 98000 00000"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Industry</label>
+                <input
+                  type="text"
+                  value={clientForm.industry}
+                  onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
+                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  placeholder="e.g. Technology"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-divider mt-2">
+              <button
+                type="button"
+                onClick={() => setShowNewClientModal(false)}
+                className="px-5 py-2.5 rounded-md text-label-lg font-bold text-secondary hover:bg-surface-container transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingClient}
+                className="px-5 py-2.5 rounded-md text-label-lg font-bold bg-primary text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSubmittingClient ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Client'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   )
 }
 

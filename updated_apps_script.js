@@ -318,6 +318,41 @@ function doPost(e) {
     ]);
     return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
   }
+          // -------------------------
+          // 6. ADD CLIENT
+          // -------------------------
+          if (payload.action === 'add_client') {
+            try {
+              var sheet = ss.getSheetByName("Clients");
+              if (!sheet) {
+                sheet = ss.insertSheet("Clients");
+                sheet.appendRow(["Client ID", "Client Name", "Contact Person", "Contact Email", "Phone", "Industry", "Is Active"]);
+              }
+              
+              var data = sheet.getDataRange().getValues();
+              var lastId = 0;
+              for (var i = 1; i < data.length; i++) {
+                var idStr = String(data[i][0]).replace("C-", "");
+                var idNum = parseInt(idStr, 10);
+                if (!isNaN(idNum) && idNum > lastId) lastId = idNum;
+              }
+              var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
+        
+              sheet.appendRow([
+                newId,
+                payload.clientName || "",
+                payload.contactPerson || "",
+                payload.contactEmail || "",
+                payload.phone || "",
+                payload.industry || "",
+                "Yes"
+              ]);
+              return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+            } catch (err) {
+              return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+            }
+          }
+        }
 
   // ============================================
   // doGet handles GET Requests (Data Retrieval & Email Approvals)
@@ -385,6 +420,11 @@ function doPost(e) {
         for (var i = 1; i < data.length; i++) {
           var row = data[i];
           if (row.length === 0 || !row[0]) continue;
+
+          // Check Is Active column (Column G / index 6)
+          var isActive = String(row[6]).trim();
+          if (isActive.toLowerCase() !== 'yes') continue;
+
           var clientObj = {};
           for (var j = 0; j < headers.length; j++) {
             var headerStr = String(headers[j]).trim();

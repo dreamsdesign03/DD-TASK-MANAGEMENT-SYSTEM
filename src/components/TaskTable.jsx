@@ -96,7 +96,7 @@ export default function TaskTable() {
         reader.readAsDataURL(file)
       })
 
-      const currentClient = selectedClient !== 'All Companies' ? selectedClient : (tasks[0]?.client || 'General')
+      const currentClient = selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || 'General')
 
       const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
       const res = await fetch(url, {
@@ -133,7 +133,7 @@ export default function TaskTable() {
   }, [searchQuery, activeFilter, selectedClient, selectedUser, selectedDepartment, sortBy, tasksPerPage])
 
   // Extract unique clients
-  const uniqueClients = ['All Companies', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal'))]
+  const uniqueClients = ['All Clients', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal'))]
 
   // Extract unique users
   const uniqueUsers = ['All Users', ...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)))]
@@ -149,7 +149,7 @@ export default function TaskTable() {
       if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
 
       const matchesStatus = activeFilter === 'All' || t.status === activeFilter
-      const matchesClient = selectedClient === 'All Companies' || t.client === selectedClient
+      const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient
       const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser)
       const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment
 
@@ -340,7 +340,7 @@ export default function TaskTable() {
           {/* Client Filter */}
           <div className="flex flex-col gap-1 min-w-[200px] flex-1 md:flex-initial">
             <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-              Filter by Company
+              Filter by Client
             </label>
             <div className="relative">
               <select
@@ -423,15 +423,19 @@ export default function TaskTable() {
             >
               <span className="material-symbols-outlined text-[18px]">view_kanban</span> Board
             </button>
-            {selectedClient !== 'All Companies' && (
-              <button
-                onClick={() => navigate(`/projects/${encodeURIComponent(selectedClient)}`)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-md text-label-sm font-bold transition-all text-primary hover:text-primary hover:bg-primary/10 border-l border-outline-variant/50 ml-1 pl-5 bg-primary/5"
-                title={`Open Overview for ${selectedClient}`}
-              >
-                <span className="material-symbols-outlined text-[18px]">open_in_new</span> Overview
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (selectedClient === 'All Clients') {
+                  alert('Please select the client from the filter first.')
+                } else {
+                  navigate(`/projects/${encodeURIComponent(selectedClient)}`)
+                }
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-md text-label-sm font-bold transition-all text-primary hover:text-primary hover:bg-primary/10 border-l border-outline-variant/50 ml-1 pl-5 bg-primary/5"
+              title="Open Overview"
+            >
+              <span className="material-symbols-outlined text-[18px]">open_in_new</span> Overview
+            </button>
           </div>
 
           {/* Sort selector */}
@@ -460,7 +464,7 @@ export default function TaskTable() {
         </div>
       </div>
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ──────────────────────────────────────────────────────────── */}
       {viewMode === 'List' ? (
         <>
           <div
@@ -471,7 +475,7 @@ export default function TaskTable() {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-surface-container-low border-b border-outline-variant">
                   <tr>
-                    {['Task ID', 'Task Title', 'Company', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
+                    {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
                       (h) => (
                         <th
                           key={h}
@@ -626,7 +630,7 @@ export default function TaskTable() {
                                     </div>
                                   </td>
 
-                                  {/* Client (Company) */}
+                                  {/* Client */}
                                   <td className="px-4 py-3 font-semibold text-secondary whitespace-nowrap">
                                     <span
                                       onClick={(e) => {
@@ -742,7 +746,7 @@ export default function TaskTable() {
               </table>
             </div>
 
-            {/* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ──────────────────────────────────────────────────────────── */}
             <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-label-sm font-label-sm text-secondary">
                 Showing {filtered.length === 0 ? 0 : indexOfFirstTask + 1}-{Math.min(indexOfLastTask, filtered.length)} of {filtered.length} tasks
