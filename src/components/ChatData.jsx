@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 
 export const PERSONAL = []
 export const GROUPS = []
@@ -13,7 +13,7 @@ export const INIT_MESSAGES = [
   { id: 5, type: 'received', sender: 'Riya Patel',   text: 'We need the final assets. Karan, are we still on track?', time: '11:05 AM' },
 ]
 
-/* â”€â”€ Enhanced Create Group Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Enhanced Create Group Modal ────────────────────────────────── */
 export function CreateGroupModal({ onClose }) {
   const [groupName, setGroupName] = useState('')
   const [search, setSearch]       = useState('')

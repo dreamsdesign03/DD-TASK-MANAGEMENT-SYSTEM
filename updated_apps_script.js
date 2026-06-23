@@ -1,0 +1,528 @@
+// ============================================
+// Dreamsdesk Production Backend 
+// doPost handles Writes (Tasks, Chat, Auth)
+// doGet handles Reads (Tasks, Team, Clients, Chat, and Approvals)
+// ============================================
+
+function doPost(e) {
+  if (!e || !e.postData) {
+    return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No payload received." })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var payload = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // -------------------------
+  // 1. HANDLE FILE UPLOAD 
+  // -------------------------
+  if (payload.action === 'upload_file') {
+    try {
+      var mainFolderName = "Dreamsdesign's Projects Attachments";
+      var mainFolders = DriveApp.getFoldersByName(mainFolderName);
+      var mainFolder;
+
+      // 1. Main Root Folder
+      if (mainFolders.hasNext()) {
+        mainFolder = mainFolders.next();
+      } else {
+        mainFolder = DriveApp.createFolder(mainFolderName);
+        mainFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      }
+
+      // 2. Project Folder
+      var projectName = payload.projectName || "General";
+      var subfolders = mainFolder.getFoldersByName(projectName);
+      var projectFolder;
+
+      if (subfolders.hasNext()) {
+        projectFolder = subfolders.next();
+      } else {
+        projectFolder = mainFolder.createFolder(projectName);
+        projectFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      }
+
+      // 3. Department Folder
+      var departmentName = payload.department || "COMMON";
+      var deptFolders = projectFolder.getFoldersByName(departmentName);
+      var departmentFolder;
+
+      if (deptFolders.hasNext()) {
+        departmentFolder = deptFolders.next();
+      } else {
+        departmentFolder = projectFolder.createFolder(departmentName);
+        departmentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      }
+
+      var contentType = payload.mimeType || 'application/octet-stream';
+      var blob = Utilities.newBlob(Utilities.base64Decode(payload.base64), contentType, payload.filename);
+
+      // Upload directly into the Department folder
+      var file = departmentFolder.createFile(blob);
+
+      return ContentService.createTextOutput(JSON.stringify({
+        "ok": true,
+        "url": file.getUrl(),
+        "downloadUrl": file.getDownloadUrl()
+      })).setMimeType(ContentService.MimeType.JSON);
+
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({
+        "ok": false,
+        "error": err.message
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // -------------------------
+  // 2. HANDLE TASKS
+  // -------------------------
+  if (payload.action === 'add_task' || payload.action === 'update_task' || payload.action === 'delete_task') {
+    try {
+      var sheet = ss.getSheetByName("Tasks");
+      if (!sheet) {
+        sheet = ss.insertSheet("Tasks");
+        sheet.appendRow(["Task ID", "Client", "Month", "Task Title", "Task Type", "Main Task ID", "Description", "Assigned By", "Assigned To", "Employee IDs", "Assigned Emails", "Department", "Assigned Date", "Due Date", "Priority", "Status", "Status Updated On", "Time Taken", "Days Overdue", "Remarks", "Post", "Attachment"]);
+      }
+
+      var maxCols = sheet.getMaxColumns();
+      if (maxCols < 22) {
+        sheet.insertColumnsAfter(maxCols, 22 - maxCols);
+      }
+
+      if ((payload.action === 'update_task' || payload.action === 'delete_task') && payload.taskId) {
+        var data = sheet.getDataRange().getValues();
+        for (var i = 1; i < data.length; i++) {
+          if (data[i][0] == payload.taskId) {
+            if (payload.action === 'delete_task') {
+              sheet.deleteRow(i + 1);
+              return ContentService.createTextOutput(JSON.stringify({ "ok": true, "deleted": true })).setMimeType(ContentService.MimeType.JSON);
+            }
+            sheet.getRange(i + 1, 1, 1, 22).setValues([[
+              payload.taskId || "",
+              payload.client || "",
+              payload.month || "",
+              payload.taskTitle || "",
+              payload.taskType || "",
+              payload.mainTaskId || "",
+              payload.description || "",
+              payload.assignedBy || "",
+              payload.assignedTo || "",
+              payload.employeeId || "",
+              payload.assignedEmail || "",
+              payload.department || "COMMON",
+              payload.assignedDate || "",
+              payload.dueDate || "",
+              payload.priority || "",
+              payload.status || "",
+              payload.statusUpdatedOn || "",
+              payload.timeTaken || "0h 0m",
+              payload.daysOverdue || "",
+              payload.remarks || "",
+              payload.post || "NO",
+              payload.attachment || ""
+            ]]);
+            return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+        if (payload.action === 'delete_task') {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": true, "error": "not_found" })).setMimeType(ContentService.MimeType.JSON);
+        }
+        // Find the first empty row to prevent skipping pre-formatted blank rows
+        var dataAll = sheet.getDataRange().getValues();
+        var insertRow = dataAll.length + 1;
+        for (var r = 1; r < dataAll.length; r++) {
+          // If Task ID is completely empty, we can use this row
+          if (!dataAll[r][0] || String(dataAll[r][0]).trim() === "") {
+            insertRow = r + 1;
+            break;
+          }
+        }
+
+        sheet.getRange(insertRow, 1, 1, 22).setValues([[
+          payload.taskId || "",
+          payload.client || "",
+          payload.month || "",
+          payload.taskTitle || "",
+          payload.taskType || "",
+          payload.mainTaskId || "",
+          payload.description || "",
+          payload.assignedBy || "",
+          payload.assignedTo || "",
+          payload.employeeId || "",
+          payload.assignedEmail || "",
+          payload.department || "COMMON",
+          payload.assignedDate || "",
+          payload.dueDate || "",
+          payload.priority || "",
+          payload.status || "",
+          payload.statusUpdatedOn || "",
+          payload.timeTaken || "0h 0m",
+          payload.daysOverdue || "",
+          payload.remarks || "",
+          payload.post || "NO",
+          payload.attachment || ""
+        ]]);
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+      } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+  // -------------------------
+  // 3. HANDLE LOGIN & LOGOUT
+  // -------------------------
+  if (payload.action === 'login' || payload.action === 'google_login' || payload.action === 'logout') {
+      var teamSheet = ss.getSheetByName("Team");
+      if (!teamSheet) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Team sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var data = teamSheet.getDataRange().getValues();
+      var emailToMatch = String(payload.email).trim().toLowerCase();
+
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        var rowEmail = String(row[2]).trim().toLowerCase();
+        var rowPassword = String(row[3]).trim();
+        var isActive = String(row[8]).trim(); // Column I (Is Active)
+
+        if (rowEmail === emailToMatch) {
+          if (payload.action === 'login' && rowPassword !== String(payload.password).trim()) {
+            return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Invalid email or password" })).setMimeType(ContentService.MimeType.JSON);
+          }
+
+          if (payload.action === 'logout') {
+            teamSheet.getRange(i + 1, 9).setValue("No");
+            return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+          }
+
+          if (isActive === "Pending") {
+            return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Admin not approved" })).setMimeType(ContentService.MimeType.JSON);
+          }
+
+
+          teamSheet.getRange(i + 1, 9).setValue("Yes");
+
+          var userObj = {
+            "Employee ID": row[0],
+            "Full Name": row[1],
+            "Email Address": row[2],
+            "Role": row[4],
+            "Department": row[5],
+            "Phone": row[6],
+            "Joined Date": row[7],
+            "Is Active": "Yes"
+          };
+          return ContentService.createTextOutput(JSON.stringify({
+            "ok": true, "authenticated": true, "user": userObj
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+
+      if (payload.action === 'google_login') {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "not_registered" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Invalid email or password" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------
+    // 4. HANDLE REGISTRATION (With HTML Email Button)
+    // -------------------------
+    if (payload.action === 'register') {
+      var teamSheet = ss.getSheetByName("Team");
+      if (!teamSheet) {
+        teamSheet = ss.insertSheet("Team");
+        teamSheet.appendRow(["Employee ID", "Full Name", "Email Address", "Password Token", "Role", "Department", "Phone", "Joined Date", "Is Active"]);
+      }
+
+      var data = teamSheet.getDataRange().getValues();
+      var lastEmpId = 0;
+      for (var i = 1; i < data.length; i++) {
+        var idStr = String(data[i][0]).replace("EMP-", "");
+        var idNum = parseInt(idStr, 10);
+        if (!isNaN(idNum) && idNum > lastEmpId) {
+          lastEmpId = idNum;
+        }
+      }
+      var newEmpId = "EMP-" + ("000" + (lastEmpId + 1)).slice(-3);
+      var joinedDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+
+      teamSheet.appendRow([
+        newEmpId,
+        payload.name || "",
+        payload.email || "",
+        "token_" + payload.name.split(" ")[0].toLowerCase() + "_" + newEmpId.split("-")[1],
+        payload.role || "Employee",
+        payload.department || "General",
+        payload.phone || "",
+        joinedDate,
+        "Pending"
+      ]);
+
+      // Send RICH HTML Approval Email to Admin with a Button
+      try {
+        var adminEmail = "dreamsdesign.in03@gmail.com";
+        var subject = "New User Registration Approval Request - Dreamsdesk";
+
+        var scriptUrl = ScriptApp.getService().getUrl();
+        var approveLink = scriptUrl + "?action=approve_user&email=" + encodeURIComponent(payload.email);
+
+        var htmlBody = "<div style='font-family: Inter, Arial, sans-serif; color: #333; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" +
+          "<div style='text-align: center; margin-bottom: 24px;'>" +
+          "<h2 style='color: #461466; margin: 0; font-size: 24px; font-weight: 700;'>New Registration Request</h2>" +
+          "<p style='color: #64748b; margin-top: 8px; font-size: 14px;'>A new user is waiting for access to Dreamsdesk.</p>" +
+          "</div>" +
+          "<div style='background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 30px;'>" +
+          "<table style='width: 100%; border-collapse: collapse; font-size: 14px;'>" +
+          "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 100px;'>Name</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.name + "</td></tr>" +
+          "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Email</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.email + "</td></tr>" +
+          "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Role</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.role + "</td></tr>" +
+          "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Department</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.department + "</td></tr>" +
+          "<tr><td style='padding: 10px 0; color: #64748b;'>Phone</td><td style='padding: 10px 0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.phone + "</td></tr>" +
+          "</table>" +
+          "</div>" +
+          "<div style='text-align: center;'>" +
+          "<a href='" + approveLink + "' style='background-color: #461466; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block; transition: all 0.2s;'>Approve User Access</a>" +
+          "</div>" +
+          "<div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;'>" +
+          "Dreamsdesk Automated System<br>Do not forward this email." +
+          "</div>" +
+          "</div>";
+
+        MailApp.sendEmail({
+          to: adminEmail,
+          subject: subject,
+          htmlBody: htmlBody
+        });
+      } catch (e) {
+        console.error("Mail Error:", e.message);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------
+    // 5. HANDLE CHAT
+    // -------------------------
+    var sheetName = "Chat";
+    if (payload.roomId && payload.roomId.indexOf("group_") === 0) {
+      sheetName = payload.roomId;
+    }
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(["id", "action", "roomId", "senderId", "senderName", "message", "timestamp", "type", "groupName"]);
+    }
+    sheet.appendRow([
+      payload.id || "", payload.action || "", payload.roomId || "", payload.senderId || "", payload.senderName || "", payload.message || "", payload.timestamp || "", payload.type || "", payload.groupName || ""
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ============================================
+  // doGet handles GET Requests (Data Retrieval & Email Approvals)
+  // ============================================
+  function doGet(e) {
+    var action = (e && e.parameter) ? e.parameter.action : null;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // -------------------------
+    // 0. HANDLE 1-CLICK EMAIL APPROVAL
+    // -------------------------
+    if (action === 'approve_user') {
+      var email = e.parameter.email;
+      if (!email) {
+        return HtmlService.createHtmlOutput("<div style='font-family:sans-serif;text-align:center;padding:40px;color:#dc3545;'><h2>Error</h2><p>No email provided.</p></div>");
+      }
+
+      var teamSheet = ss.getSheetByName("Team");
+      if (!teamSheet) {
+        return HtmlService.createHtmlOutput("<div style='font-family:sans-serif;text-align:center;padding:40px;color:#dc3545;'><h2>Error</h2><p>Team Database not found.</p></div>");
+      }
+
+      var data = teamSheet.getDataRange().getValues();
+      var found = false;
+
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
+          teamSheet.getRange(i + 1, 9).setValue("Yes"); // Change Is Active to Yes
+          found = true;
+          break;
+        }
+      }
+
+      if (found) {
+        return HtmlService.createHtmlOutput(
+          "<div style='font-family: Arial, sans-serif; text-align: center; margin-top: 80px;'>" +
+          "<div style='background-color: #f0fdf4; border: 1px solid #bbf7d0; max-width: 400px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);'>" +
+          "<h1 style='color: #16a34a; margin-top: 0;'>Access Granted!</h1>" +
+          "<p style='color: #334155; font-size: 16px;'>The user <b>" + email + "</b> has been approved successfully.</p>" +
+          "<p style='color: #64748b; font-size: 14px; margin-top: 20px;'>They can now log in to the system. You may close this window.</p>" +
+          "</div></div>"
+        );
+      } else {
+        return HtmlService.createHtmlOutput(
+          "<div style='font-family: Arial, sans-serif; text-align: center; margin-top: 80px;'>" +
+          "<div style='background-color: #fef2f2; border: 1px solid #fecaca; max-width: 400px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);'>" +
+          "<h1 style='color: #dc2626; margin-top: 0;'>User Not Found</h1>" +
+          "<p style='color: #334155; font-size: 16px;'>Could not find user <b>" + email + "</b> in the Team sheet.</p>" +
+          "</div></div>"
+        );
+      }
+    }
+
+
+    // -------------------------
+    // 1. READ CLIENTS
+    // -------------------------
+    if (action === 'get_clients') {
+      var sheet = ss.getSheetByName("Clients");
+      if (!sheet) return ContentService.createTextOutput(JSON.stringify({ clients: [] })).setMimeType(ContentService.MimeType.JSON);
+      var data = sheet.getDataRange().getValues();
+      var clients = [];
+      if (data.length > 1) {
+        var headers = data[0];
+        for (var i = 1; i < data.length; i++) {
+          var row = data[i];
+          if (row.length === 0 || !row[0]) continue;
+          var clientObj = {};
+          for (var j = 0; j < headers.length; j++) {
+            var headerStr = String(headers[j]).trim();
+            if (headerStr) clientObj[headerStr] = row[j];
+          }
+          clients.push(clientObj);
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ clients: clients })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------
+    // 2. READ TASKS
+    // -------------------------
+    if (action === "get_tasks") {
+      var sheet = ss.getSheetByName("Tasks");
+      var taskResult = [];
+      if (sheet) {
+        var taskData = sheet.getDataRange().getValues();
+        if (taskData.length > 1) {
+          var taskHeaders = ["Task ID", "Client", "Month", "Task Title", "Task Type", "Main Task ID", "Description", "Assigned By", "Assigned To", "Employee IDs", "Assigned Emails", "Department", "Assigned Date", "Due Date", "Priority", "Status", "Status Updated On", "Time Taken", "Days Overdue", "Remarks", "Post", "Attachment"];
+          for (var i = 1; i < taskData.length; i++) {
+            var row = taskData[i];
+            var obj = {};
+            for (var j = 0; j < taskHeaders.length; j++) {
+              obj[taskHeaders[j]] = row[j];
+            }
+            taskResult.push(obj);
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify(taskResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------
+    // 3. READ TEAM
+    // -------------------------
+    if (action === "get_team") {
+      var sheet = ss.getSheetByName("Team");
+      var teamResult = [];
+
+      if (sheet) {
+        var data = sheet.getDataRange().getValues();
+        if (data.length > 1) {
+          var headers = data[0];
+
+          for (var i = 1; i < data.length; i++) {
+            var row = data[i];
+            if (row.length === 0 || !row[0]) continue;
+
+            var obj = {};
+            for (var j = 0; j < headers.length; j++) {
+              var headerStr = String(headers[j]).trim();
+              if (headerStr) {
+                obj[headerStr] = row[j];
+              }
+            }
+            teamResult.push(obj);
+          }
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify(teamResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------
+    // 4. READ PROJECT FILES FROM DRIVE
+    // -------------------------
+    if (action === "get_project_files") {
+      try {
+        var projectName = e.parameter.projectName;
+        if (!projectName) {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No project name provided" })).setMimeType(ContentService.MimeType.JSON);
+        }
+
+        var mainFolderName = "Dreamsdesign's Projects Attachments";
+        var mainFolders = DriveApp.getFoldersByName(mainFolderName);
+        if (!mainFolders.hasNext()) {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": true, "files": [] })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var mainFolder = mainFolders.next();
+        var projectFolders = mainFolder.getFoldersByName(projectName);
+        if (!projectFolders.hasNext()) {
+          return ContentService.createTextOutput(JSON.stringify({ "ok": true, "files": [] })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var projectFolder = projectFolders.next();
+
+        var filesResult = [];
+
+        // Function to recursively get files
+        function getFilesInFolder(folder, pathStr) {
+          var files = folder.getFiles();
+          while (files.hasNext()) {
+            var f = files.next();
+            filesResult.push({
+              name: f.getName(),
+              url: f.getUrl(),
+              type: f.getMimeType(),
+              department: pathStr || "General",
+              date: Utilities.formatDate(f.getDateCreated(), Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss")
+            });
+          }
+          var subFolders = folder.getFolders();
+          while (subFolders.hasNext()) {
+            var subFolder = subFolders.next();
+            getFilesInFolder(subFolder, subFolder.getName());
+          }
+        }
+
+        getFilesInFolder(projectFolder, "");
+
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true, "files": filesResult })).setMimeType(ContentService.MimeType.JSON);
+
+      } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // -------------------------
+    // 5. READ CHATS
+    // -------------------------
+    var sheets = ss.getSheets();
+    var result = [];
+    for (var s = 0; s < sheets.length; s++) {
+      var sheet = sheets[s];
+      var sName = sheet.getName();
+      if (sName !== "Chat" && sName.indexOf("group_") !== 0) continue;
+      var data = sheet.getDataRange().getValues();
+      if (data.length < 2) continue;
+      var headers = data[0];
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        var obj = {};
+        for (var j = 0; j < headers.length; j++) {
+          obj[headers[j]] = row[j];
+        }
+        result.push(obj);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  }

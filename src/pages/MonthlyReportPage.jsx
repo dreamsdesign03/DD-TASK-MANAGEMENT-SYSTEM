@@ -33,7 +33,7 @@ export default function MonthlyReportPage() {
   const [currentMonth, setCurrentMonth] = useState('All Months')
 
   // Derive unique clients and users
-  const clients = [...new Set(tasks.map((t) => t.client).filter(Boolean))].sort()
+  const clients = [...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal'))].sort()
   const users = [...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
 
   const handleFilterChange = (type) => {
@@ -46,6 +46,9 @@ export default function MonthlyReportPage() {
   // Filter tasks based on selection
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
+      // Exclude Internal projects from the report completely
+      if (t.client && t.client.toLowerCase() === 'internal') return false
+
       // Month filter
       if (currentMonth !== 'All Months') {
         if (!t.dueDate) return false
@@ -379,6 +382,125 @@ export default function MonthlyReportPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Project / Lists Progress View */}
+            <div className="ambient-card overflow-hidden">
+              <div className="p-6 border-b border-outline-variant flex items-center justify-between">
+                <h4 className="font-bold text-headline-sm text-on-surface flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">view_list</span>
+                  Project Progress Lists
+                </h4>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-outline-variant text-label-sm text-secondary uppercase tracking-wider">
+                      <th className="px-6 py-4 font-bold">Name</th>
+                      <th className="px-6 py-4 font-bold w-[250px]">Progress</th>
+                      <th className="px-6 py-4 font-bold">Start</th>
+                      <th className="px-6 py-4 font-bold">End</th>
+                      <th className="px-6 py-4 font-bold">Priority</th>
+                      <th className="px-6 py-4 font-bold">Owner</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/50 bg-surface-container-lowest">
+                    {(() => {
+                      const projectsMap = {};
+                      filteredTasks.forEach(t => {
+                        const clientName = t.client || 'General';
+                        if (!projectsMap[clientName]) {
+                          projectsMap[clientName] = {
+                            name: clientName,
+                            total: 0,
+                            progressScore: 0,
+                            start: t.assignedDate || t.assigned || '-',
+                            end: t.dueDate || '-',
+                            priority: t.priority || 'Medium',
+                            owner: (t.assignedTo || 'Unassigned').split(',')[0].trim()
+                          };
+                        }
+                        projectsMap[clientName].total += 1;
+                        
+                        // Weighted progress according to status
+                        if (t.status === 'Done') projectsMap[clientName].progressScore += 100;
+                        else if (t.status === 'Review') projectsMap[clientName].progressScore += 75;
+                        else if (t.status === 'In Progress') projectsMap[clientName].progressScore += 50;
+                        // Pending and Blocked = 0
+                      });
+                      
+                      const projectsList = Object.values(projectsMap).sort((a,b) => b.total - a.total);
+                      
+                      if (projectsList.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan="6" className="text-center py-8 text-secondary text-sm">
+                              No projects found for this selection.
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      return projectsList.map((proj, idx) => {
+                        const progressPct = proj.total > 0 ? Math.round(proj.progressScore / proj.total) : 0;
+                        return (
+                          <tr key={idx} className="hover:bg-surface-container-low transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2 font-bold text-on-surface cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/projects/${encodeURIComponent(proj.name)}`)}>
+                                <span className="material-symbols-outlined text-[18px] text-secondary group-hover:text-primary">folder_open</span>
+                                {proj.name}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden flex-1 border border-outline-variant/30">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${progressPct === 100 ? 'bg-[#2ECC71]' : 'bg-primary'}`} 
+                                    style={{ width: `${progressPct}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs font-bold text-secondary whitespace-nowrap w-12 text-right">
+                                  {progressPct}%
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1.5 text-xs text-secondary font-medium">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                {proj.start}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-1.5 text-xs text-secondary font-medium">
+                                <span className="material-symbols-outlined text-[14px]">event</span>
+                                {proj.end}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
+                                proj.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
+                                proj.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
+                                'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                              }`}>
+                                <span className="material-symbols-outlined text-[10px] mr-1 inline-block align-middle pb-[1px]">flag</span>
+                                {proj.priority}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+                                  {proj.owner.substring(0,2).toUpperCase()}
+                                </div>
+                                <span className="text-xs font-medium text-secondary truncate max-w-[100px]">{proj.owner}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      });
+                    })()}
+                  </tbody>
+                </table>
               </div>
             </div>
 

@@ -1,13 +1,23 @@
-﻿import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import EmojiPicker from 'emoji-picker-react'
 import Sidebar from '../components/Sidebar'
 import { useApp, getPersonalChatRoomId } from '../context/AppContext'
 import { useGoogleLogin } from '@react-oauth/google'
 
-export function renderMessageTextWithMentions(text, isSent = false) {
+export function renderMessageTextWithMentions(text, isSent = false, employeeNames = []) {
   if (!text) return null
-  const parts = text.split(/(@(?:all|[A-Z][a-zA-Z]+(?:\s[A-Z][a-zA-Z]+)?)|https?:\/\/[^\s]+)/g)
+
+  // Build dynamic regex using exact employee names if available, falling back to a general word pattern
+  let namePattern = '[A-Z][a-zA-Z]+(?:\\s[A-Z][a-zA-Z]+)?';
+  if (employeeNames && employeeNames.length > 0) {
+    // Sort by length descending to match longest names first (e.g. "Mansi Shah" before "Mansi")
+    const sortedNames = [...employeeNames].sort((a, b) => b.length - a.length);
+    namePattern = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  }
+
+  const regex = new RegExp(`(@(?:all|${namePattern})|https?:\\/\\/[^\\s]+)`, 'g');
+  const parts = text.split(regex);
 
   return (
     <p className="text-[13px] whitespace-pre-wrap leading-relaxed break-words">
@@ -15,19 +25,18 @@ export function renderMessageTextWithMentions(text, isSent = false) {
         if (!part) return null;
         if (part.startsWith('@')) {
           return (
-            <span key={i} className={`inline-block px-1.5 py-0.5 rounded font-bold mx-0.5 ${
-              isSent ? 'bg-surface-container-lowest/25 text-white' : 'bg-primary/10 text-primary'
-            }`}>
+            <span key={i} className={`inline-block px-1.5 py-0.5 rounded font-bold mx-0.5 ${isSent ? 'bg-surface-container-lowest/25 text-white' : 'bg-primary/10 text-primary'
+              }`}>
               {part}
             </span>
           )
         }
         if (part.match(/^https?:\/\//i)) {
           return (
-            <a 
-              key={i} 
-              href={part} 
-              target="_blank" 
+            <a
+              key={i}
+              href={part}
+              target="_blank"
               rel="noopener noreferrer"
               className={`underline underline-offset-2 hover:opacity-80 transition-opacity ${isSent ? 'text-white font-semibold' : 'text-primary font-semibold'}`}
             >
@@ -42,7 +51,7 @@ export function renderMessageTextWithMentions(text, isSent = false) {
 }
 
 // Render message text with quoted reply and file attachment parsing
-export function renderMessageText(text, isSent = false, isDeleted = false) {
+export function renderMessageText(text, isSent = false, isDeleted = false, employeeNames = []) {
   if (isDeleted) {
     return (
       <div className={`flex items-center gap-1 italic text-[13px] ${isSent ? 'text-white/70' : 'text-outline/70'}`}>
@@ -104,7 +113,7 @@ export function renderMessageText(text, isSent = false, isDeleted = false) {
             </div>
           )}
         </div>
-        {restText && renderMessageTextWithMentions(restText, isSent)}
+        {restText && renderMessageTextWithMentions(restText, isSent, employeeNames)}
       </div>
     )
   }
@@ -124,13 +133,12 @@ export function renderMessageText(text, isSent = false, isDeleted = false) {
           href={url}
           target="_blank"
           rel="noreferrer"
-          className={`px-4 py-2 rounded-lg font-semibold text-center transition-colors shadow-sm ${
-            isSent ? 'bg-surface-container-lowest text-primary hover:bg-gray-100' : 'bg-primary text-on-primary hover:opacity-90'
-          }`}
+          className={`px-4 py-2 rounded-lg font-semibold text-center transition-colors shadow-sm ${isSent ? 'bg-surface-container-lowest text-primary hover:bg-gray-100' : 'bg-primary text-on-primary hover:opacity-90'
+            }`}
         >
           Join Meeting
         </a>
-        {restText && renderMessageTextWithMentions(restText, isSent)}
+        {restText && renderMessageTextWithMentions(restText, isSent, employeeNames)}
       </div>
     )
   }
@@ -138,7 +146,7 @@ export function renderMessageText(text, isSent = false, isDeleted = false) {
   return (
     <div className="flex flex-col text-left">
       {replyNode}
-      {renderMessageTextWithMentions(currentText, isSent)}
+      {renderMessageTextWithMentions(currentText, isSent, employeeNames)}
     </div>
   )
 }
@@ -222,9 +230,9 @@ export function processMessagesList(messages, currentProfile) {
       // Protocol reactions win for conflicts; existing unsynced reactions are preserved so they don't blink out
       const msgReactions = reactionsMap[m.id] || {}
       const mergedReactions = {}
-      ;(finalMsg.reactions || []).forEach(r => {
-        mergedReactions[r.emoji] = r
-      })
+        ; (finalMsg.reactions || []).forEach(r => {
+          mergedReactions[r.emoji] = r
+        })
       Object.keys(msgReactions).forEach(emoji => {
         const users = Array.from(msgReactions[emoji])
         mergedReactions[emoji] = {
@@ -379,7 +387,7 @@ export default function ChatPage() {
     const pendingChatId = localStorage.getItem('dd_pending_chat_nav')
     if (pendingChatId) {
       localStorage.removeItem('dd_pending_chat_nav')
-      
+
       const isGroup = groupChats.some(g => String(g.id) === pendingChatId)
       if (isGroup) {
         setActiveTab('groups')
@@ -513,7 +521,7 @@ export default function ChatPage() {
           return emp ? emp.email : null
         })
         .filter(Boolean)
-      
+
       if (otherMemberEmails.length > 0) {
         let allRead = true
         let debugTimes = []
@@ -659,7 +667,7 @@ export default function ChatPage() {
           })
         }
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
 
         let success = false
         try {
@@ -874,7 +882,7 @@ export default function ChatPage() {
 
   const sendMeetingMessage = (meetingUrl) => {
     const finalMessageText = `[Meeting:${meetingUrl}]`
-    
+
     const tempId = String(Date.now())
     const isoTimestamp = new Date().toISOString()
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -892,7 +900,7 @@ export default function ChatPage() {
       [selectedChatId]: [...(prev[selectedChatId] || []), newMessage],
     }))
 
-    const previewDisplay = 'Ã°Å¸â€œÂ¹ Video Meeting'
+    const previewDisplay = 'ðŸ“¹ Video Meeting'
 
     if (activeTab === 'personal') {
       setPersonalChats((prev) =>
@@ -974,7 +982,7 @@ export default function ChatPage() {
       }))
     }
 
-    const previewDisplay = attachedFile ? `Ã°Å¸â€œÅ½ File: ${attachedFile.name}` : text.trim()
+    const previewDisplay = attachedFile ? `ðŸ“Ž File: ${attachedFile.name}` : text.trim()
 
     // Update preview text in chat list
     if (activeTab === 'personal') {
@@ -1326,28 +1334,12 @@ export default function ChatPage() {
       <Sidebar />
 
       <main className="ml-[240px] flex flex-1 h-screen overflow-hidden">
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ LEFT PANEL: Conversation List Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="w-[280px] bg-surface-container-lowest flex flex-col border-r border-outline-variant flex-shrink-0">
           {/* Panel header with Clear All button */}
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <h2 className="text-label-lg font-bold text-on-surface">Messages</h2>
-            <button
-              onClick={() => setConfirmModal({
-                title: 'Clear All Chat History',
-                message: 'This will hide all messages in every personal and group chat. New messages will still appear. This persists after refresh.',
-                icon: 'cleaning_services',
-                danger: true,
-                onConfirm: () => {
-                  clearAllChatsLocally()
-                  setConfirmModal(null)
-                }
-              })}
-              className="flex items-center gap-1 text-[11px] font-semibold text-error hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors border border-red-100"
-              title="Clear all chat history"
-            >
-              <span className="material-symbols-outlined text-[14px]">cleaning_services</span>
-              Clear All
-            </button>
+
           </div>
 
           {/* Search */}
@@ -1522,7 +1514,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ MIDDLE PANEL: Message Thread Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* â”€â”€ MIDDLE PANEL: Message Thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="flex-1 flex flex-col bg-surface-container-lowest min-w-0">
           {activeChat ? (
             <>
@@ -1572,7 +1564,7 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* Messages lists Ã¢â‚¬â€ WhatsApp-style wallpaper */}
+              {/* Messages lists â€” WhatsApp-style wallpaper */}
               <div
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 custom-scrollbar chat-wallpaper"
@@ -1640,7 +1632,7 @@ export default function ChatPage() {
                                 className="absolute -left-2 top-0 w-3 h-3 bg-surface-container-highest"
                                 style={{ clipPath: 'polygon(100% 0,100% 100%,0 0)' }}
                               />
-                              {renderMessageText(m.text, false, m.isDeleted)}
+                              {renderMessageText(m.text, false, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span className="text-[10px] text-secondary leading-none">{m.time}</span>
                               </div>
@@ -1649,7 +1641,7 @@ export default function ChatPage() {
                         </div>
                       )
                     }
-                    // Sent message Ã¢â‚¬â€ WhatsApp style with right tail
+                    // Sent message â€” WhatsApp style with right tail
                     return (
                       <div
                         key={index}
@@ -1680,11 +1672,11 @@ export default function ChatPage() {
                               className="absolute -right-2 top-0 w-3 h-3"
                               style={{ background: '#5b21b6', clipPath: 'polygon(0 0,0 100%,100% 0)' }}
                             />
-                            {renderMessageText(m.text, true, m.isDeleted)}
+                            {renderMessageText(m.text, true, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
                             <div className="flex items-center justify-end gap-1 mt-1">
                               {m.isEdited && <span className="text-[9px] text-white/60 italic">edited</span>}
                               <span className="text-[10px] text-white/70 leading-none">{m.time}</span>
-                              {/* Double tick Ã¢â‚¬â€ sent indicator */}
+                              {/* Double tick â€” sent indicator */}
                               <span className="text-[10px] text-white/80 leading-none">{getMessageTicks(m)}</span>
                             </div>
                           </div>
@@ -1866,7 +1858,7 @@ export default function ChatPage() {
           )}
         </div>
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ RIGHT PANEL: Details Panel Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* â”€â”€ RIGHT PANEL: Details Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeChat && activeTab === 'personal' && (
           <div className="w-[240px] bg-surface flex flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
             <div className="flex flex-col items-center gap-4">
@@ -2043,7 +2035,7 @@ export default function ChatPage() {
   )
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬ Edit Name Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// â”€â”€ Edit Name Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function EditNameModal({ currentName, onClose, onConfirm }) {
   const [value, setValue] = useState(currentName)
 
@@ -2113,7 +2105,7 @@ function EditNameModal({ currentName, onClose, onConfirm }) {
   )
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬ Confirm Modal (Clear / Delete) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// â”€â”€ Confirm Modal (Clear / Delete) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ConfirmModal({ title, message, icon, danger, onClose, onConfirm }) {
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
@@ -2160,7 +2152,7 @@ function ConfirmModal({ title, message, icon, danger, onClose, onConfirm }) {
   )
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬ Message Search Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// â”€â”€ Message Search Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef(null)
@@ -2202,7 +2194,7 @@ function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat 
     t = t.replace(/^\[Attachment:[^\]]+\]/, '[Attachment]')
     t = t.replace(/^\[Edit:[^|]+\|/, '').replace(/\]$/, '')
     t = t.replace(/^\[Delete:[^\]]+\]/, '[Deleted]')
-    t = t.replace(/^\[Meeting:([^\]]+)\]/, 'Ã°Å¸â€œÂ¹ Video Meeting')
+    t = t.replace(/^\[Meeting:([^\]]+)\]/, 'ðŸ“¹ Video Meeting')
     t = t.replace(/^\[React:[^\]]+\]/, '')
     return t.trim() || '[Media]'
   }

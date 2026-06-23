@@ -8,6 +8,7 @@ import ChatPage from './pages/ChatPage'
 
 import MonthlyReportPage from './pages/MonthlyReportPage'
 import ProfilePage from './pages/ProfilePage'
+import ProjectOverviewPage from './pages/ProjectOverviewPage'
 import TeamPage from './pages/TeamPage'
 
 function GlobalNav() {
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/chat/groups" element={<ChatPage initialTab="groups" />} />
         <Route path="/dashboard" element={<MyTasksPage />} />
         <Route path="/projects" element={<MyTasksPage />} />
+        <Route path="/projects/:projectName" element={<ProjectOverviewPage />} />
         <Route path="/team" element={<TeamPage />} />
         <Route path="/reports" element={<MonthlyReportPage />} />
         <Route path="/settings" element={<ProfilePage />} />

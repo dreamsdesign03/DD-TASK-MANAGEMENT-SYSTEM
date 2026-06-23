@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
@@ -88,7 +88,7 @@ const getPriorityConfig = (priority) => {
 export default function TaskDetailPage() {
   const { taskId } = useParams()
   const navigate = useNavigate()
-  const { tasks, updateTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead } = useApp()
+  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead } = useApp()
 
   const task = tasks.find((t) => t.id === taskId) || tasks[0]
 
@@ -111,6 +111,73 @@ export default function TaskDetailPage() {
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false)
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [attachmentToDelete, setAttachmentToDelete] = useState(null)
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
+  const [newSubtaskAssignee, setNewSubtaskAssignee] = useState('')
+  const [newSubtaskDueDate, setNewSubtaskDueDate] = useState('')
+  const [newSubtaskPriority, setNewSubtaskPriority] = useState('Medium')
+  const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
+
+  const handleDueDateChange = (e) => {
+    const val = e.target.value;
+    if (!val) {
+      setNewSubtaskDueDate('');
+      return;
+    }
+    // Check for Sunday
+    const d = new Date(val + 'T00:00:00'); // Local time zone mapping
+    if (d.getDay() === 0) { // 0 is Sunday
+      alert('Sundays cannot be selected as a due date. Please select another day.');
+      return;
+    }
+    setNewSubtaskDueDate(val);
+  }
+
+  const parseTimeStr = (str) => {
+    if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return 0;
+    let secs = 0;
+    const hMatch = str.match(/(\d+)h/i);
+    const mMatch = str.match(/(\d+)m/i);
+    const sMatch = str.match(/(\d+)s/i);
+    if (hMatch) secs += parseInt(hMatch[1]) * 3600;
+    if (mMatch) secs += parseInt(mMatch[1]) * 60;
+    if (sMatch) secs += parseInt(sMatch[1]);
+    return secs;
+  };
+
+  const formatTimeStr = (totalSecs) => {
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m`;
+    return `${s}s`;
+  };
+
+  const [isTracking, setIsTracking] = useState(false);
+  const [sessionSecs, setSessionSecs] = useState(0);
+  const timerRef = useRef(null);
+
+  const handleToggleTimer = () => {
+    if (isTracking) {
+      clearInterval(timerRef.current);
+      setIsTracking(false);
+      const currentTotalSecs = parseTimeStr(task.timeTaken);
+      const newTotalSecs = currentTotalSecs + sessionSecs;
+      updateTask(task.id, { timeTaken: formatTimeStr(newTotalSecs) });
+      setSessionSecs(0);
+    } else {
+      setIsTracking(true);
+      timerRef.current = setInterval(() => {
+        setSessionSecs(prev => prev + 1);
+      }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (task) {
@@ -123,8 +190,70 @@ export default function TaskDetailPage() {
     setIsAssigneeModalOpen(false)
   }
 
+  const handleAddSubtask = () => {
+    if (!newSubtaskTitle.trim()) return
+    let maxSubIdNum = 0;
+    const existingSubtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'));
+    existingSubtasks.forEach(st => {
+      const match = String(st.id).match(/-(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxSubIdNum) maxSubIdNum = num;
+      }
+    });
+    const nextSubIdNum = maxSubIdNum + 1;
+    const newStId = `${task.id}-${String(nextSubIdNum).padStart(2, '0')}`;
+
+    let calculatedOverdue = 'No';
+    if (newSubtaskDueDate) {
+      const dueTime = new Date(newSubtaskDueDate).setHours(23, 59, 59, 999);
+      if (dueTime < Date.now()) {
+        calculatedOverdue = 'Yes';
+      }
+    }
+
+    const assignedEmps = employees?.filter(e => (newSubtaskAssignee || '').split(',').map(s => s.trim()).includes(e.name)) || [];
+
+    const newSt = {
+      id: newStId,
+      title: newSubtaskTitle.trim(),
+      taskType: 'Sub Task',
+      mainTaskId: task.id,
+      client: task.client,
+      project: task.project,
+      department: task.department,
+      status: 'Pending',
+      assignedTo: newSubtaskAssignee,
+      assignedBy: profile?.name || 'Mansi Shah',
+      employeeId: assignedEmps.map(e => e.id).filter(Boolean).join(', '),
+      assignedEmail: assignedEmps.map(e => e.email).filter(Boolean).join(', '),
+      priority: newSubtaskPriority,
+      dueDate: newSubtaskDueDate,
+      daysOverdue: calculatedOverdue,
+      description: { intro: '', bullets: [], outro: '' }
+    }
+    addTask(newSt)
+    
+    // Dispatch instant notification if assigned to someone else
+    if (newSubtaskAssignee && newSubtaskAssignee !== profile?.name) {
+      addSystemAndWebNotification(
+        'Task Reminders',
+        `New Subtask Assigned`,
+        `${profile?.name || 'Mansi Shah'} assigned you: ${newSubtaskTitle.trim()}`,
+        task.id
+      )
+    }
+    setNewSubtaskTitle('')
+    setNewSubtaskAssignee('')
+    setNewSubtaskPriority('Medium')
+    setNewSubtaskDueDate('')
+    setIsSubtaskInputActive(false)
+  }
+
+  const subtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'))
+
   const teamMembers = employees ? employees.map(e => e.name) : []
-  const uniqueTeamMembers = [...new Set([...teamMembers, ...selectedAssignees].filter(Boolean))].filter(name => name !== profile?.name)
+  const uniqueTeamMembers = [...new Set([...teamMembers, ...selectedAssignees].filter(Boolean))]
   const [isUploading, setIsUploading] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -153,7 +282,7 @@ export default function TaskDetailPage() {
         })
 
         // Send to Apps Script
-        const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -162,7 +291,8 @@ export default function TaskDetailPage() {
             filename: file.name,
             mimeType: file.type,
             base64: base64Data.split(',')[1], // remove data:image/...;base64,
-            projectName: task.client || 'General'
+            projectName: task.client || 'General',
+            department: task.department || 'COMMON'
           })
         })
 
@@ -269,7 +399,7 @@ export default function TaskDetailPage() {
           reader.readAsDataURL(replyAttachment.file)
         })
 
-        const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -278,7 +408,8 @@ export default function TaskDetailPage() {
             filename: replyAttachment.name,
             mimeType: replyAttachment.type,
             base64: base64Data.split(',')[1],
-            projectName: task.client || 'General'
+            projectName: task.client || 'General',
+            department: task.department || 'COMMON'
           })
         })
         const data = await res.json()
@@ -333,7 +464,7 @@ export default function TaskDetailPage() {
         }
       })
 
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -461,6 +592,16 @@ export default function TaskDetailPage() {
                   <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
                   Assigned by: {task.assignedBy || 'Mansi Shah'}
                 </span>
+                <button
+                  onClick={handleToggleTimer}
+                  title="Track Time"
+                  className={`px-3 py-1.5 rounded-full text-label-sm font-label-sm flex items-center gap-1.5 border transition-all cursor-pointer ${isTracking ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30 shadow-sm' : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30 hover:bg-surface-container'}`}
+                >
+                  <span className={`material-symbols-outlined text-[18px] ${isTracking ? 'animate-pulse' : ''}`}>
+                    {isTracking ? 'stop_circle' : 'play_circle'}
+                  </span>
+                  {isTracking ? `Tracking: ${formatTimeStr(sessionSecs)}` : `Time: ${task.timeTaken || '0h 0m'}`}
+                </button>
               </div>
 
               <hr className="border-divider" />
@@ -479,6 +620,166 @@ export default function TaskDetailPage() {
                   </ul>
                   <p>{task.description.outro}</p>
                 </div>
+              </section>
+
+              <hr className="border-divider" />
+
+              {/* Subtasks */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">checklist</span>
+                    Subtasks
+                  </h3>
+                </div>
+                
+                {/* List of existing subtasks */}
+                {subtasks.length > 0 && (
+                  <div className="space-y-2">
+                    {subtasks.map((st) => (
+                      <div key={st.id} className="flex items-center gap-3 p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl">
+                        <input 
+                          type="checkbox" 
+                          checked={st.status === 'Done'}
+                          onChange={(e) => {
+                             updateTask(st.id, { status: e.target.checked ? 'Done' : 'Pending' })
+                          }}
+                          className="w-5 h-5 accent-primary cursor-pointer rounded"
+                        />
+                        <div className={`flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
+                          <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
+                        </div>
+                        {st.priority && (
+                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold shrink-0 ${
+                            st.priority === 'Urgent' ? 'bg-urgent-red/10 border-urgent-red/30 text-urgent-red' :
+                            st.priority === 'High' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' :
+                            st.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' :
+                            'bg-blue-500/10 border-blue-500/30 text-blue-600'
+                          }`}>
+                            <span className="material-symbols-outlined text-[12px]">flag</span>
+                            {st.priority}
+                          </div>
+                        )}
+                        {st.dueDate && (
+                          <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50 shrink-0">
+                            <span className="material-symbols-outlined text-[13px] text-secondary">calendar_month</span>
+                            <span className="text-[11px] font-bold text-secondary">{new Date(st.dueDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
+                          </div>
+                        )}
+                        {st.assignedTo && (
+                          <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50 shrink-0">
+                            <span className="material-symbols-outlined text-[13px] text-secondary">person</span>
+                            <span className="text-[11px] font-bold text-secondary truncate max-w-[100px]">{st.assignedTo}</span>
+                          </div>
+                        )}
+                        <button 
+                          onClick={() => {
+                            if (!window.confirm('Delete this subtask?')) return;
+                            deleteTask(st.id)
+                          }}
+                          className="p-1 text-secondary hover:text-urgent-red transition-colors shrink-0"
+                          title="Delete Subtask"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add new subtask inline creator */}
+                {!isSubtaskInputActive ? (
+                  <button 
+                    onClick={() => setIsSubtaskInputActive(true)}
+                    className="flex items-center gap-2 mt-4 px-3 py-2 rounded-xl text-secondary hover:bg-surface-container-low hover:text-primary transition-colors text-[14px] font-medium w-full text-left"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                    Add subtask
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-3 mt-4 bg-surface-container-lowest p-4 rounded-xl border border-primary/40 focus-within:border-primary transition-colors shadow-sm">
+                    <div className="flex items-center gap-2 border-b border-divider pb-2">
+                      <span className="material-symbols-outlined text-secondary text-[18px]">radio_button_unchecked</span>
+                      <input 
+                        type="text" 
+                        placeholder="Task Name or type '/' for commands"
+                        value={newSubtaskTitle}
+                        onChange={e => setNewSubtaskTitle(e.target.value)}
+                        autoFocus
+                        className="flex-1 bg-transparent border-none focus:ring-0 text-[14px] outline-none w-full p-0 text-on-surface"
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleAddSubtask()
+                          if (e.key === 'Escape') setIsSubtaskInputActive(false)
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Assignee Selector */}
+                        <div className="relative group">
+                          <select 
+                            value={newSubtaskAssignee}
+                            onChange={e => setNewSubtaskAssignee(e.target.value)}
+                            className="appearance-none bg-surface-container hover:bg-surface-container-high text-[12px] font-medium border border-outline-variant/50 rounded-lg focus:ring-1 focus:ring-primary outline-none py-1.5 pl-7 pr-6 cursor-pointer text-secondary group-hover:text-primary transition-colors h-[32px]"
+                            title="Assign to"
+                          >
+                            <option value="">Unassigned</option>
+                            {uniqueTeamMembers.map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </select>
+                          <span className="material-symbols-outlined text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary group-hover:text-primary transition-colors">person_add</span>
+                        </div>
+                        
+                        {/* Due Date Selector */}
+                        <div className="relative group flex items-center bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 rounded-lg h-[32px] px-2 overflow-hidden transition-colors">
+                           <span className="material-symbols-outlined text-[14px] text-secondary group-hover:text-primary mr-1 transition-colors">calendar_month</span>
+                           <input 
+                            type="date" 
+                            value={newSubtaskDueDate}
+                            onChange={handleDueDateChange}
+                            className="bg-transparent text-[12px] font-medium focus:ring-0 border-none outline-none p-0 cursor-pointer text-secondary group-hover:text-primary w-min"
+                            title="Due Date"
+                          />
+                        </div>
+
+                        {/* Priority Selector */}
+                        <div className="relative group">
+                          <select 
+                            value={newSubtaskPriority}
+                            onChange={e => setNewSubtaskPriority(e.target.value)}
+                            className="appearance-none bg-surface-container hover:bg-surface-container-high text-[12px] font-medium border border-outline-variant/50 rounded-lg focus:ring-1 focus:ring-primary outline-none py-1.5 pl-7 pr-6 cursor-pointer text-secondary group-hover:text-primary transition-colors h-[32px]"
+                            title="Priority"
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                          </select>
+                          <span className="material-symbols-outlined text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary group-hover:text-primary transition-colors">flag</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setIsSubtaskInputActive(false)}
+                          className="px-3 py-1.5 rounded-lg text-secondary hover:bg-surface-container-high text-[13px] font-medium transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={handleAddSubtask}
+                          disabled={!newSubtaskTitle.trim()}
+                          className="bg-primary text-white px-4 py-1.5 rounded-lg font-bold text-[13px] hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                          Save
+                          <span className="material-symbols-outlined text-[14px]">keyboard_return</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </section>
 
               {/* Comments / Replies Section */}
@@ -523,7 +824,7 @@ export default function TaskDetailPage() {
                               </span>
                             </div>
                             <div className="bg-brand-accent p-4 rounded-xl rounded-tl-none border border-divider max-w-md">
-                              {renderMessageText(m.text, false, m.isDeleted)}
+                              {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name))}
                             </div>
                           </div>
                         </div>
@@ -544,7 +845,7 @@ export default function TaskDetailPage() {
                         </div>
                         <div className="bg-primary p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
                           <div className="text-white text-body-sm">
-                            {renderMessageText(m.text, true, m.isDeleted)}
+                            {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name))}
                           </div>
                         </div>
                       </div>
@@ -722,6 +1023,10 @@ export default function TaskDetailPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-body-sm text-secondary">Client</span>
                     <span className="text-label-md font-label-md text-primary">{task.client}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-body-sm text-secondary">Department</span>
+                    <span className="text-label-md font-label-md">{task.department || 'COMMON'}</span>
                   </div>
                 </div>
               </div>

@@ -104,7 +104,7 @@ export default function Sidebar() {
         <button
           onClick={() => {
             if (profile?.email) {
-              fetch('https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec', {
+              fetch('https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'logout', email: profile.email })

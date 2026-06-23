@@ -35,6 +35,9 @@ const mapWebhookTaskToApp = (item) => {
   const title = data["Task Title"] || data.taskTitle || data.title || (typeof data.Description === 'string' ? data.Description : '') || (typeof data.description === 'string' ? data.description : '') || data.description?.intro || 'Untitled Task'
   const client = data.Client || data.client
 
+  const taskType = data["Task Type"] || data.taskType || data.type || 'Main Task'
+  const mainTaskId = data["Main Task ID"] || data.mainTaskId || ''
+
   // Ignore system messages or responses that don't look like tasks
   if (data.message || (!id && !employeeId && !title && !client)) {
     return null
@@ -89,18 +92,41 @@ const mapWebhookTaskToApp = (item) => {
     : [])
 
   const getIntroDescription = (desc) => {
-    if (!desc) return 'Synced from n8n webhook.'
+    if (!desc) return 'No description available'
     if (typeof desc === 'string') return desc
     if (typeof desc === 'object' && desc.intro) return desc.intro
-    return 'Synced from n8n webhook.'
+    return 'No description available'
   }
 
-  const descObj = data.Description || data.description
+  let descObj = data.Description || data.description
+  if (typeof descObj === 'string') {
+    if (descObj.trim().startsWith('{')) {
+      try {
+        descObj = JSON.parse(descObj)
+      } catch (e) { }
+    }
+  }
+
   const isDone = data.Status === 'Done' || data.status === 'Done' || data.done === true
+
+  // Department Mapping
+  const rawDept = data.Department || data.department || data.Dept || data.dept || ''
+  const validDepartments = ['SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMMON']
+  let mappedDept = 'COMMON'
+  if (rawDept) {
+    const upper = String(rawDept).toUpperCase().trim()
+    if (validDepartments.includes(upper)) {
+      mappedDept = upper
+    } else {
+      mappedDept = validDepartments.find(d => upper.includes(d)) || 'COMMON'
+    }
+  }
 
   return {
     id: finalId,
     title: title,
+    taskType: taskType,
+    mainTaskId: mainTaskId,
     client: finalClient,
     project: finalProject,
     assigned: assigned || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -109,13 +135,16 @@ const mapWebhookTaskToApp = (item) => {
     status: data.Status || data.status || 'Pending',
     overdue: !isDone && isOverdue,
     done: isDone,
+    department: mappedDept,
     assignedTo: data["Assigned To"] || data.assignedTo || 'Unassigned',
     assignedBy: data["Assigned By"] || data.assignedBy || 'Mansi Shah',
+    timeTaken: data["Time Taken"] || data.timeTaken || '0h 0m',
     daysOverdue: daysOverdueStr,
     description: {
       intro: getIntroDescription(descObj),
       bullets: Array.isArray(descObj?.bullets) ? descObj.bullets : [],
       outro: descObj?.outro || (remarks ? `Remarks: ${remarks}` : ''),
+      subtasks: Array.isArray(descObj?.subtasks) ? descObj.subtasks : []
     },
     comments: comments,
     attachments: (() => {
@@ -538,7 +567,7 @@ export function AppProvider({ children }) {
         timestamp: new Date().toISOString(),
         type: 'personal'
       }
-      fetch('https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(sheetPayload)
@@ -663,7 +692,7 @@ export function AppProvider({ children }) {
   // Fetch messages from n8n CHAT_ENGINE Webhook
   const fetchMessages = async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
 
       let res = null;
       try {
@@ -1240,6 +1269,24 @@ export function AppProvider({ children }) {
     }
   }, [])
 
+  const formatDescriptionForSheet = (desc) => {
+    if (!desc) return '';
+    if (typeof desc === 'string') return desc;
+
+    // Check if it's an effectively empty structured description
+    const intro = String(desc.intro || '').trim();
+    const isIntroEmpty = !intro || intro === 'Synced from n8n webhook.' || intro === 'No description provided.';
+    const hasBullets = desc.bullets && desc.bullets.length > 0;
+    const hasOutro = desc.outro && String(desc.outro).trim() !== '';
+    const hasSubtasks = desc.subtasks && desc.subtasks.length > 0;
+
+    if (isIntroEmpty && !hasBullets && !hasOutro && !hasSubtasks) {
+      return '';
+    }
+
+    return JSON.stringify(desc);
+  }
+
   const updateTask = async (id, fields) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...fields } : t))
@@ -1293,7 +1340,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1303,16 +1350,20 @@ export function AppProvider({ children }) {
           client: mergedTask.client,
           month: mergedTask.project || '',
           taskTitle: mergedTask.title,
-          description: typeof mergedTask.description === 'string' ? mergedTask.description : (mergedTask.description?.intro || ''),
+          taskType: mergedTask.taskType || 'Main Task',
+          mainTaskId: mergedTask.mainTaskId || '',
+          description: formatDescriptionForSheet(mergedTask.description),
           assignedBy: mergedTask.assignedBy,
           assignedTo: mergedTask.assignedTo,
           employeeId: (employees?.filter(e => (mergedTask.assignedTo || '').split(',').map(s => s.trim()).includes(e.name)) || []).map(e => e.id).join(', '),
           assignedEmail: (employees?.filter(e => (mergedTask.assignedTo || '').split(',').map(s => s.trim()).includes(e.name)) || []).map(e => e.email).join(', '),
+          department: mergedTask.department || 'COMMON',
           assignedDate: mergedTask.assignedDate || mergedTask.assigned || new Date().toISOString().split('T')[0],
           dueDate: mergedTask.dueDate,
           priority: mergedTask.priority,
           status: mergedTask.status,
           statusUpdatedOn: new Date().toISOString().split('T')[0],
+          timeTaken: mergedTask.timeTaken || '0h 0m',
           daysOverdue: mergedTask.daysOverdue || 'No',
           remarks: mergedTask.comments && mergedTask.comments.length > 0 ? mergedTask.comments[mergedTask.comments.length - 1].text : '',
           post: mergedTask.post || 'YES',
@@ -1349,8 +1400,11 @@ export function AppProvider({ children }) {
     }
     initialTaskIds.current.add(newTask.id)
     initialTaskStatuses.current[newTask.id] = newTask.status
+
+    // Prevent this new task from being wiped out by an immediate sync
+    recentTaskUpdates.current[newTask.id] = { timestamp: Date.now(), fields: newTask, isNew: true }
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1360,16 +1414,20 @@ export function AppProvider({ children }) {
           client: newTask.client,
           month: newTask.project || '',
           taskTitle: newTask.title,
-          description: typeof newTask.description === 'string' ? newTask.description : (newTask.description?.intro || ''),
+          taskType: newTask.taskType || 'Main Task',
+          mainTaskId: newTask.mainTaskId || '',
+          description: formatDescriptionForSheet(newTask.description),
           assignedBy: newTask.assignedBy,
           assignedTo: newTask.assignedTo,
           employeeId: newTask.employeeId || '',
           assignedEmail: newTask.assignedEmail || '',
+          department: newTask.department || 'COMMON',
           assignedDate: newTask.assignedDate || newTask.assigned || new Date().toISOString().split('T')[0],
           dueDate: newTask.dueDate,
           priority: newTask.priority,
           status: newTask.status,
           statusUpdatedOn: new Date().toISOString().split('T')[0],
+          timeTaken: newTask.timeTaken || '0h 0m',
           daysOverdue: newTask.daysOverdue || 'No',
           remarks: newTask.remarks || '',
           post: newTask.post || 'YES',
@@ -1388,7 +1446,7 @@ export function AppProvider({ children }) {
 
   const deleteTask = async (id) => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec'
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1418,6 +1476,16 @@ export function AppProvider({ children }) {
         const recent = recentTaskUpdates.current[nt.id]
         if (recent && Date.now() - recent.timestamp < 15000) {
           Object.assign(nt, recent.fields)
+          if (recent.isNew) recent.isNew = false // Task has arrived from server
+        }
+      })
+
+      // INJECT newly created tasks that haven't made it to the server yet
+      Object.entries(recentTaskUpdates.current).forEach(([id, recent]) => {
+        if (recent.isNew && Date.now() - recent.timestamp < 15000) {
+          if (!newTasksList.find(t => t.id === id)) {
+            newTasksList.unshift(recent.fields)
+          }
         }
       })
 
@@ -1559,7 +1627,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec?action=get_tasks'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec?action=get_tasks'
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1571,7 +1639,7 @@ export function AppProvider({ children }) {
 
           items.forEach(item => {
             // Filter out empty rows that Google Sheets might return
-            if (item.taskId || item.id) {
+            if (item.taskId || item.id || item["Task ID"]) {
               const mapped = mapWebhookTaskToApp(item)
               if (mapped) {
                 newTasks.push(mapped)
@@ -1649,7 +1717,7 @@ export function AppProvider({ children }) {
     let success = false
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec?action=get_team'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec?action=get_team'
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1684,7 +1752,7 @@ export function AppProvider({ children }) {
 
   const fetchClients = async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzqINCBhGlD8Ak13YGj53fCPCwPz-rn6K13RC9sZgIE77QFDVgZ0dWMLF_6tKHeKmPy/exec?action=get_clients'
+      const url = 'https://script.google.com/macros/s/AKfycbzT91J_rKfzJ-jID6UufxvBuDgzoi2fE8CGRRVKWzFCFjKlxkj2XnDXRO83Qde_hBKZ/exec?action=get_clients'
       const res = await fetch(url)
 
       if (res.ok) {

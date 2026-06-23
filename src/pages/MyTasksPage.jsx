@@ -14,17 +14,17 @@ export default function MyTasksPage() {
   const taskClients = tasks.map(t => t.client).filter(Boolean)
   const taskUniqueCompanies = [...new Set(taskClients)]
   // Merge n8n clients + task-derived, deduplicated
-  const allClients = [...new Set([...clients, ...taskUniqueCompanies])]
-  const companyList = allClients.length > 0 ? allClients : ['Internal']
+  const allClients = [...new Set([...clients, ...taskUniqueCompanies])].filter(c => c && c.toLowerCase() !== 'internal')
+  const companyList = allClients
 
   // Form states
   const [title, setTitle] = useState('')
-  const [client, setClient] = useState(() => companyList[0] || 'Internal')
-  const [assignedTo, setAssignedTo] = useState([profile?.name || 'Mansi Shah'])
-
-  const uniqueTeamMembers = [...new Set([...teamNames, ...assignedTo].filter(Boolean))].filter(name => name !== profile?.name)
+  const [client, setClient] = useState(() => companyList[0] || '')
+  const [department, setDepartment] = useState('COMMON')
+  const [assignedTo, setAssignedTo] = useState([profile?.name || ''])
+  const uniqueTeamMembers = [...new Set([...teamNames, ...assignedTo].filter(Boolean))]
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false)
-  const [assignedBy] = useState(profile?.name || 'Mansi Shah')
+  const [assignedBy] = useState(profile?.name || '')
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState('Medium')
   const [description, setDescription] = useState('')
@@ -46,10 +46,10 @@ export default function MyTasksPage() {
 
     let maxIdNum = 0
     tasks.forEach(t => {
-      if (t.id) {
-        const match = String(t.id).match(/\d+/)
+      if (t.id && (!t.taskType || t.taskType === 'Main Task' || t.taskType === 'Task') && String(t.id).match(/^T-\d+$/)) {
+        const match = String(t.id).match(/^T-(\d+)$/)
         if (match) {
-          const num = parseInt(match[0], 10)
+          const num = parseInt(match[1], 10)
           if (num > maxIdNum) maxIdNum = num
         }
       }
@@ -72,6 +72,7 @@ export default function MyTasksPage() {
       statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       overdue: false,
       done: false,
+      department,
       assignedTo: assignedTo.join(', '),
       assignedBy,
       employeeId: assignedEmps.map(e => e.id).filter(Boolean).join(', '),
@@ -95,6 +96,7 @@ export default function MyTasksPage() {
     setDescription('')
     setRemarks('')
     setPost('YES')
+    setDepartment('COMMON')
     setAssignedTo([profile?.name])
   }
 
@@ -187,24 +189,46 @@ export default function MyTasksPage() {
                 </label>
               </div>
 
-              {/* Company (Client) â€” full width, dynamic from existing tasks */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                  Company (Client)
-                </label>
-                <div className="relative">
-                  <select
-                    value={client}
-                    onChange={(e) => setClient(e.target.value)}
-                    className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
-                  >
-                    {companyList.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
-                    expand_more
-                  </span>
+              {/* Company (Client) and Department Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                    Company (Client)
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={client}
+                      onChange={(e) => setClient(e.target.value)}
+                      className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                    >
+                      {companyList.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                    Department
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                    >
+                      {['SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMMON'].map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
+                      expand_more
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -289,8 +313,11 @@ export default function MyTasksPage() {
                         }
                         setDueDate(val)
                       }}
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md pl-9 pr-2 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
                     />
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[18px]">
+                      calendar_month
+                    </span>
                   </div>
                 </div>
               </div>
