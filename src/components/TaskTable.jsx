@@ -45,7 +45,7 @@ export default function TaskTable() {
   const location = useLocation()
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
-  const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || 'All Companies')
+  const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || 'All Clients')
   const [selectedUser, setSelectedUser] = useState('All Users')
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
 
@@ -272,7 +272,7 @@ export default function TaskTable() {
     const newTask = {
       id: nextIdStr,
       title: quickAddTitle.trim(),
-      client: selectedClient !== 'All Companies' ? selectedClient : (tasks[0]?.client || ''),
+      client: selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || ''),
       project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
       assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
