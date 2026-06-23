@@ -1326,7 +1326,11 @@ export function AppProvider({ children }) {
       shouldNotify = false
     } else if (fields.attachments && (!currentTask.attachments || fields.attachments.length > currentTask.attachments.length)) {
       updateTitle = `Attachment added to Task ${id}`
-    } else if (fields.description) {
+    } else if (fields.assignedTo && fields.assignedTo !== currentTask.assignedTo) {
+      updateTitle = `Task Reassigned`
+      updateSubtitle = `You have been assigned to ${mergedTask.title}`
+      updateType = 'Task Reminders'
+    } else if (fields.description && fields.description !== currentTask.description) {
       updateTitle = `Task ${id} description updated`
     }
 
@@ -1395,6 +1399,22 @@ export function AppProvider({ children }) {
 
   const addTask = async (newTask) => {
     setTasks((prev) => [newTask, ...prev])
+
+    // Dispatch instant notification for new assignments
+    if (newTask.assignedTo) {
+      const assignees = newTask.assignedTo.split(',').map(s => s.trim()).filter(Boolean);
+      assignees.forEach(assignee => {
+        if (assignee !== profile?.name) {
+          addSystemAndWebNotification(
+            'Task Reminders',
+            newTask.taskType === 'Sub Task' || newTask.taskType === 'Subtask' ? 'New Subtask Assigned' : 'New Task Assigned',
+            `${profile?.name || 'Mansi Shah'} assigned you: ${newTask.title}`,
+            newTask.mainTaskId || newTask.id
+          );
+        }
+      });
+    }
+
     if (!initialTaskIds.current) {
       initialTaskIds.current = new Set()
     }

@@ -234,15 +234,6 @@ export default function TaskDetailPage() {
     }
     addTask(newSt)
     
-    // Dispatch instant notification if assigned to someone else
-    if (newSubtaskAssignee && newSubtaskAssignee !== profile?.name) {
-      addSystemAndWebNotification(
-        'Task Reminders',
-        `New Subtask Assigned`,
-        `${profile?.name || 'Mansi Shah'} assigned you: ${newSubtaskTitle.trim()}`,
-        task.id
-      )
-    }
     setNewSubtaskTitle('')
     setNewSubtaskAssignee('')
     setNewSubtaskPriority('Medium')
