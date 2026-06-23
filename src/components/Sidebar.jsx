@@ -84,7 +84,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-6 z-50">
+    <>
+      <aside className="fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-6 z-50">
 
       {/* Brand */}
       <div 
