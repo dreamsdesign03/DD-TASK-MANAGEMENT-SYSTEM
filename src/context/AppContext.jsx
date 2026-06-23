@@ -49,7 +49,7 @@ const mapWebhookTaskToApp = (item) => {
     finalId = `T-${employeeId || 'SYNC'}-${rand}`
   }
 
-  const finalClient = client || 'XYZ Ltd'
+  const finalClient = client || 'Unknown Client'
   const finalProject = data.Project || data.project || data.Month || data.month || 'June 2025'
 
   const formatDate = (dateStr) => {

@@ -14,7 +14,7 @@ export default function MyTasksPage() {
   const taskClients = tasks.map(t => t.client).filter(Boolean)
   const taskUniqueCompanies = [...new Set(taskClients)]
   // Merge n8n clients + task-derived, deduplicated
-  const allClients = [...new Set([...clients, ...taskUniqueCompanies])].filter(c => c && c.toLowerCase() !== 'internal')
+  const allClients = [...new Set([...clients, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal')
   const companyList = allClients
 
   // Form states
@@ -62,7 +62,7 @@ export default function MyTasksPage() {
     const newTask = {
       id: nextIdStr,
       title: title.trim(),
-      client,
+      client: client || companyList[0] || 'Unknown Client',
       project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
       assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
