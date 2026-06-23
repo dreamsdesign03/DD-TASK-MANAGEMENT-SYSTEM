@@ -127,8 +127,10 @@ function doPost(e) {
         if (payload.action === 'delete_task') {
           return ContentService.createTextOutput(JSON.stringify({ "ok": true, "error": "not_found" })).setMimeType(ContentService.MimeType.JSON);
         }
-        // Find the first empty row to prevent skipping pre-formatted blank rows
-        var dataAll = sheet.getDataRange().getValues();
+      } // Close the if block here!
+
+      // Find the first empty row to prevent skipping pre-formatted blank rows
+      var dataAll = sheet.getDataRange().getValues();
         var insertRow = dataAll.length + 1;
         for (var r = 1; r < dataAll.length; r++) {
           // If Task ID is completely empty, we can use this row
@@ -302,7 +304,42 @@ function doPost(e) {
     }
 
     // -------------------------
-    // 5. HANDLE CHAT
+    // 5. ADD CLIENT
+    // -------------------------
+    if (payload.action === 'add_client') {
+      try {
+        var sheet = ss.getSheetByName("Clients");
+        if (!sheet) {
+          sheet = ss.insertSheet("Clients");
+          sheet.appendRow(["Client ID", "Client Name", "Contact Person", "Contact Email", "Phone", "Industry", "Is Active"]);
+        }
+        
+        var data = sheet.getDataRange().getValues();
+        var lastId = 0;
+        for (var i = 1; i < data.length; i++) {
+          var idStr = String(data[i][0]).replace("C-", "");
+          var idNum = parseInt(idStr, 10);
+          if (!isNaN(idNum) && idNum > lastId) lastId = idNum;
+        }
+        var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
+  
+        sheet.appendRow([
+          newId,
+          payload.clientName || "",
+          payload.contactPerson || "",
+          payload.contactEmail || "",
+          payload.phone || "",
+          payload.industry || "",
+          "Yes"
+        ]);
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+      } catch (err) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // -------------------------
+    // 6. HANDLE CHAT (Fallback)
     // -------------------------
     var sheetName = "Chat";
     if (payload.roomId && payload.roomId.indexOf("group_") === 0) {
@@ -317,42 +354,7 @@ function doPost(e) {
       payload.id || "", payload.action || "", payload.roomId || "", payload.senderId || "", payload.senderName || "", payload.message || "", payload.timestamp || "", payload.type || "", payload.groupName || ""
     ]);
     return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
-  }
-          // -------------------------
-          // 6. ADD CLIENT
-          // -------------------------
-          if (payload.action === 'add_client') {
-            try {
-              var sheet = ss.getSheetByName("Clients");
-              if (!sheet) {
-                sheet = ss.insertSheet("Clients");
-                sheet.appendRow(["Client ID", "Client Name", "Contact Person", "Contact Email", "Phone", "Industry", "Is Active"]);
-              }
-              
-              var data = sheet.getDataRange().getValues();
-              var lastId = 0;
-              for (var i = 1; i < data.length; i++) {
-                var idStr = String(data[i][0]).replace("C-", "");
-                var idNum = parseInt(idStr, 10);
-                if (!isNaN(idNum) && idNum > lastId) lastId = idNum;
-              }
-              var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
-        
-              sheet.appendRow([
-                newId,
-                payload.clientName || "",
-                payload.contactPerson || "",
-                payload.contactEmail || "",
-                payload.phone || "",
-                payload.industry || "",
-                "Yes"
-              ]);
-              return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
-            } catch (err) {
-              return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
-            }
-          }
-        }
+}
 
   // ============================================
   // doGet handles GET Requests (Data Retrieval & Email Approvals)
