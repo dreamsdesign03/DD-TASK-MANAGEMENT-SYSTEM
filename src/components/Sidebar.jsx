@@ -20,9 +20,8 @@ export default function Sidebar() {
   const [clientForm, setClientForm] = useState({
     projectName: '',
     clientName: '',
-    email: '',
-    additionalEmail: '',
-    phone: '',
+    emails: [''],
+    phones: [''],
     industry: ''
   })
   const [isSubmittingClient, setIsSubmittingClient] = useState(false)
@@ -43,8 +42,8 @@ export default function Sidebar() {
           action: 'add_client',
           projectName: clientForm.projectName,
           clientName: clientForm.clientName,
-          contactEmail: clientForm.additionalEmail ? `${clientForm.email}, ${clientForm.additionalEmail}` : clientForm.email,
-          phone: clientForm.phone,
+          contactEmail: clientForm.emails.filter(e => e.trim()).join(', '),
+          phone: clientForm.phones.filter(p => p.trim()).join(', '),
           industry: clientForm.industry
         })
       })
@@ -52,7 +51,7 @@ export default function Sidebar() {
       if (data.ok) {
         alert('Client added successfully!')
         setShowNewClientModal(false)
-        setClientForm({ projectName: '', clientName: '', email: '', additionalEmail: '', phone: '', industry: '' })
+        setClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '' })
         fetchClients()
       } else {
         alert('Failed to add client: ' + (data.error || 'Unknown error'))
@@ -221,52 +220,103 @@ export default function Sidebar() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Email</label>
-                <input
-                  type="email"
-                  value={clientForm.email}
-                  onChange={e => setClientForm({ ...clientForm, email: e.target.value })}
-                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                  placeholder="john@example.com"
-                />
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Email(s)</label>
+                <button
+                  type="button"
+                  onClick={() => setClientForm({ ...clientForm, emails: [...clientForm.emails, ''] })}
+                  className="text-primary hover:bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
+                  title="Add another email"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </button>
               </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Additional Email</label>
-                <input
-                  type="email"
-                  value={clientForm.additionalEmail}
-                  onChange={e => setClientForm({ ...clientForm, additionalEmail: e.target.value })}
-                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                  placeholder="alt@example.com"
-                />
+              <div className="space-y-2">
+                {clientForm.emails.map((email, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => {
+                        const newEmails = [...clientForm.emails]
+                        newEmails[idx] = e.target.value
+                        setClientForm({ ...clientForm, emails: newEmails })
+                      }}
+                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                      placeholder="e.g. client@example.com"
+                    />
+                    {clientForm.emails.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newEmails = clientForm.emails.filter((_, i) => i !== idx)
+                          setClientForm({ ...clientForm, emails: newEmails })
+                        }}
+                        className="text-error hover:bg-error/10 rounded-md px-2.5 flex items-center justify-center transition-colors border border-outline-variant hover:border-error/50"
+                        title="Remove email"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone</label>
-                <input
-                  type="text"
-                  value={clientForm.phone}
-                  onChange={e => setClientForm({ ...clientForm, phone: e.target.value })}
-                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                  placeholder="+91 98000 00000"
-                />
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone(s)</label>
+                <button
+                  type="button"
+                  onClick={() => setClientForm({ ...clientForm, phones: [...clientForm.phones, ''] })}
+                  className="text-primary hover:bg-primary/10 rounded-full w-6 h-6 flex items-center justify-center transition-colors"
+                  title="Add another phone"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </button>
               </div>
+              <div className="space-y-2">
+                {clientForm.phones.map((phone, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={e => {
+                        const newPhones = [...clientForm.phones]
+                        newPhones[idx] = e.target.value
+                        setClientForm({ ...clientForm, phones: newPhones })
+                      }}
+                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                      placeholder="+91 98000 00000"
+                    />
+                    {clientForm.phones.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newPhones = clientForm.phones.filter((_, i) => i !== idx)
+                          setClientForm({ ...clientForm, phones: newPhones })
+                        }}
+                        className="text-error hover:bg-error/10 rounded-md px-2.5 flex items-center justify-center transition-colors border border-outline-variant hover:border-error/50"
+                        title="Remove phone"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Industry</label>
-                <input
-                  type="text"
-                  value={clientForm.industry}
-                  onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
-                  className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                  placeholder="e.g. Technology"
-                />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Industry</label>
+              <input
+                type="text"
+                value={clientForm.industry}
+                onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                placeholder="e.g. Technology"
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-divider mt-2">
