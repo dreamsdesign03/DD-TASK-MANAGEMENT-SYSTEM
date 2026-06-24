@@ -199,7 +199,7 @@ export default function MyTasksPage() {
               </div>
 
               {/* Company (Client) and Department Row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
                     Company (Client)
@@ -242,7 +242,7 @@ export default function MyTasksPage() {
               </div>
 
               {/* Assignee, Assigned By & Due Date */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Assignee */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
@@ -336,7 +336,7 @@ export default function MyTasksPage() {
                 <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
                   Priority
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {['Low', 'Medium', 'High', 'Urgent'].map((p) => {
                     const isSelected = priority === p
                     return (
@@ -370,7 +370,7 @@ export default function MyTasksPage() {
               </div>
 
               {/* Remarks and Post */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
                     Remarks

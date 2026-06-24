@@ -19,10 +19,10 @@ export default function TopNav() {
         </button>
 
         {/* Search */}
-        <div className="flex flex-1 md:flex-none items-center gap-2 bg-surface px-3 py-2 rounded-md border border-outline-variant w-full max-w-[250px] md:max-w-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
-          <span className="material-symbols-outlined text-outline text-[20px]">search</span>
+        <div className="flex flex-1 md:flex-none items-center gap-2 bg-surface px-2 sm:px-3 py-2 rounded-md border border-outline-variant w-full max-w-[120px] sm:max-w-[200px] md:max-w-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+          <span className="material-symbols-outlined text-outline text-[18px] sm:text-[20px]">search</span>
           <input
-            className="bg-transparent border-none focus:ring-0 w-full text-[13px] md:text-label-md font-label-md placeholder:text-outline outline-none min-w-0"
+            className="bg-transparent border-none focus:ring-0 w-full text-[12px] sm:text-[13px] md:text-label-md font-label-md placeholder:text-outline outline-none min-w-0"
             placeholder="Search tasks..."
             type="text"
             value={searchQuery}
@@ -32,7 +32,7 @@ export default function TopNav() {
       </div>
 
       {/* Right actions */}
-      <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-6 flex-shrink-0">
 
         {/* Theme Toggle */}
         <button

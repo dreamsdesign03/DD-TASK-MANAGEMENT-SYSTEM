@@ -555,9 +555,9 @@ export default function TaskDetailPage() {
 
         {/* Main canvas */}
         <main className="pt-0 flex-1 bg-background overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 flex gap-8">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8">
             {/* â”€â”€ LEFT COLUMN (65%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            <div className="w-[65%] space-y-8">
+            <div className="w-full lg:w-[65%] space-y-8">
               {/* Breadcrumb */}
               <button
                 onClick={() => navigate('/tasks')}
@@ -960,7 +960,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* â”€â”€ RIGHT COLUMN (35%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            <div className="w-[35%] space-y-6">
+            <div className="w-full lg:w-[35%] space-y-6">
               {/* Task Info Card */}
               <div className="bg-surface p-6 rounded-lg border border-outline-variant/40 shadow-sm">
                 <h3 className="text-label-md font-label-md text-on-surface mb-6 flex items-center gap-2">
@@ -1083,7 +1083,7 @@ export default function TaskDetailPage() {
                           expand_more
                         </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <button
                           onClick={() => setLocalStatus('Done')}
                           className="bg-success-green text-white py-2.5 rounded-lg text-label-sm font-label-sm flex items-center justify-center gap-1 hover:brightness-105 transition-all"
