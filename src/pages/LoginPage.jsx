@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode'
 
 /* â”€â”€â”€ Dreamsdesk Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const LOGO_SRC = '/logo.png'
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJXe4c9yDIEtf7UHaXHWBIpMnnc4NxtSwOl3nVzvTsN882GWIDzbMdTm1-cIUueGQo/exec'
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPVKFR4TKWe4Mp_6KWwF2p3CUS3qmr3bU69xCmqYpi5g0I1-av2-N2jBCiPljM-HlK/exec'
 
 export default function LoginPage() {
   const [isRegisterMode, setIsRegisterMode] = useState(false)
