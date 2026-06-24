@@ -1354,24 +1354,14 @@ export default function ChatPage() {
         {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
           {/* Panel header with Clear All button */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2 md:bg-transparent bg-[#075e54] md:text-on-surface text-white">
+          <div className="flex items-center justify-between px-4 pt-4 pb-2 md:bg-transparent bg-primary md:text-on-surface text-white">
             <div className="flex items-center gap-2">
               <button className="md:hidden p-1 -ml-1 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" onClick={() => setIsSidebarOpen(true)}>
                 <span className="material-symbols-outlined text-[24px]">menu</span>
               </button>
               <h2 className="text-[20px] font-semibold tracking-tight">Messages</h2>
             </div>
-            <div className="flex items-center gap-4 md:hidden">
-              <button className="hover:opacity-80 transition-opacity">
-                <span className="material-symbols-outlined text-[22px]">camera_alt</span>
-              </button>
-              <button className="hover:opacity-80 transition-opacity">
-                <span className="material-symbols-outlined text-[22px]">search</span>
-              </button>
-              <button className="hover:opacity-80 transition-opacity">
-                <span className="material-symbols-outlined text-[22px]">more_vert</span>
-              </button>
-            </div>
+            {/* Unnecessary icons removed on user request */}
           </div>
 
           {/* Search */}
@@ -1551,7 +1541,7 @@ export default function ChatPage() {
           {activeChat ? (
             <>
               {/* Header */}
-              <div className="h-14 md:h-16 flex items-center justify-between px-2 md:px-6 md:bg-surface-container-lowest bg-[#075e54] md:text-on-surface text-white border-b border-outline-variant flex-shrink-0 shadow-sm md:shadow-none z-10">
+              <div className="h-14 md:h-16 flex items-center justify-between px-2 md:px-6 md:bg-surface-container-lowest bg-primary md:text-on-surface text-white border-b border-outline-variant flex-shrink-0 shadow-sm md:shadow-none z-10">
                 <div className="flex items-center gap-1 md:gap-3">
                   <button 
                     className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/20 transition-colors -ml-1 text-white"
@@ -1595,9 +1585,6 @@ export default function ChatPage() {
                     title="Search messages"
                   >
                     <span className="material-symbols-outlined text-[22px]">search</span>
-                  </button>
-                  <button className="md:hidden hover:text-white/80 transition-colors flex items-center">
-                    <span className="material-symbols-outlined text-[24px]">more_vert</span>
                   </button>
                 </div>
               </div>
