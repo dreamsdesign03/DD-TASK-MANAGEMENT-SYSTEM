@@ -271,6 +271,8 @@ function doPost(e) {
     var newEmpId = "EMP-" + ("000" + (lastEmpId + 1)).slice(-3);
     var joinedDate = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
 
+    var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
+
     teamSheet.appendRow([
       newEmpId,
       payload.name || "",
@@ -278,7 +280,7 @@ function doPost(e) {
       "token_" + payload.name.split(" ")[0].toLowerCase() + "_" + newEmpId.split("-")[1],
       payload.role || "Employee",
       payload.department || "General",
-      payload.phone || "",
+      formattedPhone,
       joinedDate,
       "Pending",
       payload.systemRole || "Employee"
@@ -355,12 +357,14 @@ function doPost(e) {
       }
       var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
 
+      var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
+
       sheet.appendRow([
         newId,
         payload.projectName || "",
         payload.clientName || "",
         payload.contactEmail || "",
-        payload.phone || "",
+        formattedPhone,
         payload.industry || "",
         "Yes",
         payload.services || ""
@@ -390,7 +394,10 @@ function doPost(e) {
           if (payload.projectName !== undefined) sheet.getRange(i + 1, 2).setValue(payload.projectName);
           if (payload.clientName !== undefined) sheet.getRange(i + 1, 3).setValue(payload.clientName);
           if (payload.contactEmail !== undefined) sheet.getRange(i + 1, 4).setValue(payload.contactEmail);
-          if (payload.phone !== undefined) sheet.getRange(i + 1, 5).setValue(payload.phone);
+          if (payload.phone !== undefined) {
+            var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
+            sheet.getRange(i + 1, 5).setValue(formattedPhone);
+          }
           if (payload.industry !== undefined) sheet.getRange(i + 1, 6).setValue(payload.industry);
           if (payload.isActive !== undefined) sheet.getRange(i + 1, 7).setValue(payload.isActive);
           if (payload.services !== undefined) sheet.getRange(i + 1, 8).setValue(payload.services);
