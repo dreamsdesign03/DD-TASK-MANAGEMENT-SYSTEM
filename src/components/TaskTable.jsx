@@ -469,11 +469,11 @@ export default function TaskTable() {
       {viewMode === 'List' ? (
         <>
           <div
-            className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden mt-4"
+            className="bg-surface-container-lowest rounded-xl border border-outline-variant mt-4"
             style={{ boxShadow: '0px 2px 12px rgba(112, 44, 145, 0.08)' }}
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
                 <thead className="bg-surface-container-low border-b border-outline-variant">
                   <tr>
                     {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(

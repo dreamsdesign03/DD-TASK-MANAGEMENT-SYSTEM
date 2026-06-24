@@ -1351,7 +1351,7 @@ export default function ChatPage() {
 
       <main className="md:ml-[240px] flex flex-1 h-screen overflow-hidden">
         {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="w-[280px] bg-surface-container-lowest flex flex-col border-r border-outline-variant flex-shrink-0">
+        <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
           {/* Panel header with Clear All button */}
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <h2 className="text-label-lg font-bold text-on-surface">Messages</h2>
@@ -1531,12 +1531,18 @@ export default function ChatPage() {
         </div>
 
         {/* â”€â”€ MIDDLE PANEL: Message Thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="flex-1 flex flex-col bg-surface-container-lowest min-w-0">
+        <div className={`flex-1 flex-col bg-surface-container-lowest min-w-0 ${!selectedChatId ? 'hidden md:flex' : 'flex'}`}>
           {activeChat ? (
             <>
               {/* Header */}
-              <div className="h-16 flex items-center justify-between px-6 border-b border-outline-variant flex-shrink-0">
+              <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-outline-variant flex-shrink-0">
                 <div className="flex items-center gap-3">
+                  <button 
+                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container transition-colors -ml-1 text-secondary"
+                    onClick={() => setSelectedChatId(null)}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                  </button>
                   {activeTab === 'personal' ? (
                     <>
                       {renderAvatar(activeChat?.avatar, activeChat?.name, "w-10 h-10 rounded-full")}
