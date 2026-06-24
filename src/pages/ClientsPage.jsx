@@ -51,12 +51,17 @@ export default function ClientsPage() {
       <Sidebar />
       <main className="ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
         <TopNav />
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-surface custom-scrollbar">
-          <div className="max-w-[1450px] mx-auto w-full space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
+          <div className="max-w-[1450px] mx-auto w-full py-4 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-display-sm font-bold text-on-surface">Clients Database</h1>
-                <p className="text-body-md text-secondary mt-1">Manage client details and active status.</p>
+                <h2 
+                  className="mb-1 text-primary"
+                  style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
+                >
+                  Clients Database
+                </h2>
+                <p className="text-secondary text-body-sm">Manage client details and active status.</p>
               </div>
               
               <div className="relative max-w-xs w-full">
@@ -145,6 +150,23 @@ export default function ClientsPage() {
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
+          <div className="flex justify-between items-center px-8 w-full">
+            <p className="font-label-sm text-label-sm text-secondary">
+              Dreamsdesk
+            </p>
+            <div className="flex gap-6">
+              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
+                Support
+              </a>
+              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
+                Privacy Policy
+              </a>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   )
