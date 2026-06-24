@@ -99,7 +99,7 @@ export default function TaskTable() {
 
       const currentClient = selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || 'General')
 
-      const url = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
