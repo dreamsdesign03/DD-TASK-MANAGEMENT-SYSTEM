@@ -527,11 +527,14 @@ export default function TaskTable() {
                                   <button 
                                     onClick={(e) => handleDeptUploadClick(e, dept)}
                                     disabled={isUploading && uploadDept === dept}
-                                    title="Upload file to Drive"
-                                    className="ml-2 flex items-center justify-center w-6 h-6 rounded bg-primary/10 hover:bg-primary/20 transition-colors text-primary disabled:opacity-50"
+                                    title={`Add attachment for ${dept} department`}
+                                    className="ml-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-primary disabled:opacity-50"
                                   >
                                     <span className={`material-symbols-outlined text-[16px] ${isUploading && uploadDept === dept ? 'animate-spin' : ''}`}>
                                       {isUploading && uploadDept === dept ? 'refresh' : 'add'}
+                                    </span>
+                                    <span className="text-[11px] font-bold tracking-normal normal-case mt-[1px]">
+                                      Add attachment for {dept}
                                     </span>
                                   </button>
                                 </div>
