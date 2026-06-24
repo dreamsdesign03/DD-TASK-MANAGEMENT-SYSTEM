@@ -319,6 +319,7 @@ export default function ChatPage() {
     readReceiptsByChatId,
     messageStatusByChatId,
     setIsSidebarOpen,
+    addToast
   } = useApp()
   const ALL_EMPLOYEES = employees || []
   const location = useLocation()
@@ -620,7 +621,7 @@ export default function ChatPage() {
 
     // Limit to 4MB to keep payload size optimal
     if (file.size > 4 * 1024 * 1024) {
-      alert('File size should be less than 4MB')
+      addToast('File size should be less than 4MB', 'error')
       return
     }
 
@@ -872,11 +873,11 @@ export default function ChatPage() {
         const meetLink = data.conferenceData.entryPoints.find(e => e.entryPointType === 'video').uri;
         sendMeetingMessage(meetLink);
       } else {
-        alert("Failed to create Google Meet link. Please ensure Google Calendar is enabled for your account.");
+        addToast("Failed to create Google Meet link. Please ensure Google Calendar is enabled for your account.", 'error');
       }
     } catch (err) {
       console.error(err);
-      alert("Error creating meeting: " + err.message);
+      addToast("Error creating meeting: " + err.message, 'error');
     }
   }
 
@@ -885,7 +886,7 @@ export default function ChatPage() {
       createMeetingEvent(tokenResponse.access_token);
     },
     scope: 'https://www.googleapis.com/auth/calendar.events',
-    onError: () => alert('Google authentication failed. Cannot create meeting.')
+    onError: () => addToast('Google authentication failed. Cannot create meeting.', 'error')
   });
 
   const handleCreateMeeting = () => {
@@ -2308,6 +2309,7 @@ function MessageSearchModal({ allChats, messagesByChatId, onClose, onSelectChat 
 }
 
 function CreateGroupModal({ onClose, onCreate, employees }) {
+  const { addToast } = useApp()
   const [groupName, setGroupName] = useState('')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState([])
@@ -2325,7 +2327,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
 
   const handleCreate = () => {
     if (!groupName.trim()) {
-      alert('Please enter a group name')
+      addToast('Please enter a group name', 'error')
       return
     }
     onCreate(groupName.trim(), selected)

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import mqtt from 'mqtt'
+import { useToast } from './ToastContext'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
 
@@ -192,6 +193,7 @@ const mapWebhookTaskToApp = (item) => {
 }
 
 export function AppProvider({ children }) {
+  const { addToast } = useToast()
   const [tasks, setTasks] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_tasks_v1')
@@ -467,6 +469,14 @@ export function AppProvider({ children }) {
       taskId
     }
     setNotifications(prev => [newNotif, ...prev])
+
+    // Show beautiful UI toast notification
+    let toastType = 'info'
+    if (category === 'Status Updates' || title.toLowerCase().includes('success') || title.toLowerCase().includes('done')) toastType = 'success'
+    if (title.toLowerCase().includes('overdue') || category === 'Error') toastType = 'error'
+    
+    // Don't show toast if it's just a general system sync unless important
+    addToast(`${title} - ${subtitle}`, toastType)
 
     if ('Notification' in window && Notification.permission === 'granted') {
       const n = new Notification(title, {
@@ -1378,7 +1388,7 @@ export function AppProvider({ children }) {
       const data = await res.json()
       if (!data.ok) {
         console.error('Apps Script Error (update_task):', data.error)
-        alert('Failed to sync to Google Sheets: ' + data.error)
+        addToast('Failed to sync to Google Sheets: ' + data.error, 'error')
       }
       if (mqttClient && mqttClient.connected) {
         setTimeout(() => {
@@ -1904,6 +1914,7 @@ export function AppProvider({ children }) {
         addSystemAndWebNotification,
         isDarkMode,
         setIsDarkMode,
+        addToast,
       }}
     >
       {children}

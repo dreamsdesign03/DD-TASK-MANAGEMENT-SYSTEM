@@ -41,7 +41,7 @@ function getInitials(name) {
 }
 
 export default function TaskTable() {
-  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask } = useApp()
+  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast } = useApp()
   const location = useLocation()
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
@@ -115,13 +115,13 @@ export default function TaskTable() {
 
       const data = await res.json()
       if (data.ok) {
-        alert('File successfully uploaded to Google Drive!')
+        addToast('File successfully uploaded to Google Drive!', 'success')
       } else {
         throw new Error(data.error || 'Upload failed')
       }
     } catch (error) {
       console.error('File upload error:', error)
-      alert('Failed to upload file: ' + error.message)
+      addToast('Failed to upload file: ' + error.message, 'error')
     } finally {
       setIsUploading(false)
       setUploadDept(null)
@@ -427,7 +427,7 @@ export default function TaskTable() {
             <button
               onClick={() => {
                 if (selectedClient === 'All Clients') {
-                  alert('Please select the client from the filter first.')
+                  addToast('Please select the client from the filter first.', 'error')
                 } else {
                   navigate(`/projects/${encodeURIComponent(selectedClient)}`)
                 }
@@ -1079,7 +1079,7 @@ export default function TaskTable() {
                                   if (e.target.value) {
                                     const dateObj = new Date(e.target.value)
                                     if (dateObj.getDay() === 0) { // 0 is Sunday
-                                      alert("Sundays cannot be selected as due dates.")
+                                      addToast("Sundays cannot be selected as due dates.", 'error')
                                       setQuickAddDueDate('')
                                       return
                                     }

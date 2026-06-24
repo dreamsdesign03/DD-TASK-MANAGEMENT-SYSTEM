@@ -88,7 +88,7 @@ const getPriorityConfig = (priority) => {
 export default function TaskDetailPage() {
   const { taskId } = useParams()
   const navigate = useNavigate()
-  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead } = useApp()
+  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast } = useApp()
 
   const task = tasks.find((t) => t.id === taskId) || tasks[0]
 
@@ -129,7 +129,7 @@ export default function TaskDetailPage() {
     // Check for Sunday
     const d = new Date(val + 'T00:00:00'); // Local time zone mapping
     if (d.getDay() === 0) { // 0 is Sunday
-      alert('Sundays cannot be selected as a due date. Please select another day.');
+      addToast('Sundays cannot be selected as a due date. Please select another day.', 'error');
       return;
     }
     setNewSubtaskDueDate(val);
@@ -306,10 +306,10 @@ export default function TaskDetailPage() {
 
       const updatedAttachments = [...(task.attachments || []), ...newAttachments]
       updateTask(task.id, { attachments: updatedAttachments })
-      alert('Files uploaded successfully!')
+      addToast('Files uploaded successfully!', 'success')
     } catch (error) {
       console.error('File upload error:', error)
-      alert('Failed to upload file: ' + error.message)
+      addToast('Failed to upload file: ' + error.message, 'error')
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -472,7 +472,7 @@ export default function TaskDetailPage() {
 
     } catch (err) {
       console.error(err)
-      alert("Failed to send reply: " + err.message)
+      addToast("Failed to send reply: " + err.message, 'error')
     } finally {
       setIsSendingReply(false)
       if (replyFileInputRef.current) replyFileInputRef.current.value = ''
@@ -1165,7 +1165,7 @@ export default function TaskDetailPage() {
                   <button
                     onClick={() => {
                       if (!linkUrl.trim()) {
-                        alert('Please enter a valid link URL.');
+                        addToast('Please enter a valid link URL.', 'error');
                         return;
                       }
                       let formattedUrl = linkUrl.trim();
@@ -1176,7 +1176,7 @@ export default function TaskDetailPage() {
                       try {
                         new URL(formattedUrl);
                       } catch (e) {
-                        alert('Please enter a valid link URL.');
+                        addToast('Please enter a valid link URL.', 'error');
                         return;
                       }
 
@@ -1194,7 +1194,7 @@ export default function TaskDetailPage() {
                       })
 
                       setLinkUrl('')
-                      alert('Attachment link added successfully and synced to Google Sheets!')
+                      addToast('Attachment link added successfully and synced to Google Sheets!', 'success')
                     }}
                     className="w-full bg-primary text-on-primary py-2.5 rounded-lg text-label-sm font-label-sm shadow-sm hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
                   >

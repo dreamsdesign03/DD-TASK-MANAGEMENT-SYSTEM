@@ -4,9 +4,8 @@ import TopNav from '../components/TopNav'
 import TaskTable from '../components/TaskTable'
 import { useApp } from '../context/AppContext'
 
-
 export default function MyTasksPage() {
-  const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients } = useApp()
+  const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients, addToast } = useApp()
   const teamNames = employees ? employees.map(emp => emp.name) : []
 
 
@@ -43,7 +42,7 @@ export default function MyTasksPage() {
   const handleCreateTask = (e) => {
     e.preventDefault()
     if (!title.trim() || !dueDate) {
-      alert('Please fill out all required fields')
+      addToast('Please fill out all required fields', 'error')
       return
     }
 
@@ -316,7 +315,7 @@ export default function MyTasksPage() {
                         if (val) {
                           const selectedDate = new Date(val)
                           if (selectedDate.getUTCDay() === 0) {
-                            alert("Sundays cannot be selected as a due date. Please choose a different day.")
+                            addToast("Sundays cannot be selected as a due date. Please choose a different day.", 'error')
                             return
                           }
                         }

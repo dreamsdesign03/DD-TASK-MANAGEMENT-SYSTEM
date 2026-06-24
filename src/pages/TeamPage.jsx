@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext'
 const INITIAL_EMPLOYEES = []
 
 export default function TeamPage() {
-  const { setSearchQuery, profile, employees: dynamicEmployees, tasks } = useApp()
+  const { setSearchQuery, profile, employees: dynamicEmployees, tasks, addToast } = useApp()
   const navigate = useNavigate()
   const [localEmployees, setLocalEmployees] = useState([])
   const [activeDept, setActiveDept] = useState('All')
@@ -25,7 +25,7 @@ export default function TeamPage() {
   const handleAddMember = (e) => {
     e.preventDefault()
     if (!newName.trim() || !newRole.trim() || !newEmail.trim()) {
-      alert('Please fill out all required fields')
+      addToast('Please fill out all required fields', 'error')
       return
     }
 

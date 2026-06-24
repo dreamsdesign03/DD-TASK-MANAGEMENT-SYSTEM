@@ -20,7 +20,7 @@ const AVAILABLE_SERVICES = [
 ]
 
 export default function ClientsPage() {
-  const { clients, fetchClients, profile } = useApp()
+  const { clients, fetchClients, profile, addToast } = useApp()
   const [isUpdating, setIsUpdating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingClient, setEditingClient] = useState(null)
@@ -83,10 +83,10 @@ export default function ClientsPage() {
           }, 1000)
         }
       } else {
-        alert('Failed to update client: ' + (data.error || 'Unknown error'))
+        addToast('Failed to update client: ' + (data.error || 'Unknown error'), 'error')
       }
     } catch (err) {
-      alert('Error updating client: ' + err.message)
+      addToast('Error updating client: ' + err.message, 'error')
     } finally {
       setIsSubmitting(false)
     }
@@ -117,10 +117,10 @@ export default function ClientsPage() {
           }, 1000)
         }
       } else {
-        alert('Failed to update client status: ' + (data.error || 'Unknown error'))
+        addToast('Failed to update client status: ' + (data.error || 'Unknown error'), 'error')
       }
     } catch (err) {
-      alert('Error updating client status: ' + err.message)
+      addToast('Error updating client status: ' + err.message, 'error')
     } finally {
       setIsUpdating(false)
     }

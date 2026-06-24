@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const navigate = useNavigate()
-  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients, isSidebarOpen, setIsSidebarOpen } = useApp()
+  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
   
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [clientForm, setClientForm] = useState({
@@ -45,7 +45,7 @@ export default function Sidebar() {
   const handleCreateClient = async (e) => {
     e.preventDefault()
     if (!clientForm.projectName) {
-      alert('Project Name is required')
+      addToast('Project Name is required', 'error')
       return
     }
 
@@ -67,7 +67,7 @@ export default function Sidebar() {
       })
       const data = await res.json()
       if (data.ok) {
-        alert('Client added successfully!')
+        addToast('Client added successfully!', 'success')
         setShowNewClientModal(false)
         setClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
         fetchClients()
@@ -77,10 +77,10 @@ export default function Sidebar() {
           }, 1000)
         }
       } else {
-        alert('Failed to add client: ' + (data.error || 'Unknown error'))
+        addToast('Failed to add client: ' + (data.error || 'Unknown error'), 'error')
       }
     } catch (err) {
-      alert('Error adding client: ' + err.message)
+      addToast('Error adding client: ' + err.message, 'error')
     } finally {
       setIsSubmittingClient(false)
     }

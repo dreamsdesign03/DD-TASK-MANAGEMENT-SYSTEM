@@ -8,7 +8,7 @@ import { jsPDF } from 'jspdf'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
-  const { tasks } = useApp()
+  const { tasks, addToast } = useApp()
   const [filterType, setFilterType] = useState('Overall') // 'Overall', 'Company', 'User'
   const [selectedValue, setSelectedValue] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
@@ -147,7 +147,7 @@ export default function MonthlyReportPage() {
       pdf.save(fileName)
     } catch (error) {
       console.error('Failed to generate PDF:', error)
-      alert('Failed to generate PDF. Please try again.')
+      addToast('Failed to generate PDF. Please try again.', 'error')
     } finally {
       setIsDownloading(false)
     }
