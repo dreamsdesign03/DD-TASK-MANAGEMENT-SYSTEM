@@ -300,9 +300,9 @@ export default function LoginPage() {
                     id="systemRole" required value={systemRole} onChange={(e) => setSystemRole(e.target.value)}
                     className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                   >
-                    <option value="Employee">Employee</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Admin">Admin</option>
+                    <option value="Employee" className="bg-surface-container-lowest text-on-surface">Employee</option>
+                    <option value="Manager" className="bg-surface-container-lowest text-on-surface">Manager</option>
+                    <option value="Admin" className="bg-surface-container-lowest text-on-surface">Admin</option>
                   </select>
                   <label htmlFor="systemRole" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-[24px] scale-[0.85] top-1/2 left-4 z-10 bg-surface-container-lowest px-1 pointer-events-none text-primary">System Role</label>
                   <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
