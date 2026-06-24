@@ -3,6 +3,22 @@ import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
 
+const AVAILABLE_SERVICES = [
+  "Business Growth Consulting",
+  "AI SEO & Lead Generation",
+  "D2C Development / Marketing",
+  "Ecommerce Development",
+  "Website Development",
+  "Digital Marketing & Brand Awareness",
+  "Branding & Identity Management",
+  "Mobile Apps and Software Development",
+  "Marketing Automation & Funnel Development",
+  "Films, Videos and UGC content creation",
+  "Software and SAAS development",
+  "Ai Automation and Business Growth",
+  "360 Project"
+]
+
 export default function ClientsPage() {
   const { clients, fetchClients, profile } = useApp()
   const [isUpdating, setIsUpdating] = useState(false)
@@ -14,20 +30,24 @@ export default function ClientsPage() {
     clientName: '',
     emails: [''],
     phones: [''],
-    industry: ''
+    industry: '',
+    services: []
   })
 
   const openEditModal = (client) => {
     if (profile?.systemRole === 'Employee') return
     const emails = client['Contact Email'] ? String(client['Contact Email']).split(',').map(e => e.trim()) : ['']
     const phones = client['Phone'] ? String(client['Phone']).split(',').map(p => p.trim()) : ['']
+    const servicesStr = client['Services'] || client['services'] || ''
+    const servicesList = servicesStr ? String(servicesStr).split(',').map(s => s.trim()) : []
     setEditingClient(client)
     setClientForm({
       projectName: client['Project Name'] || '',
       clientName: client['Client Name'] || client['Company Name'] || '',
       emails: emails.length > 0 && emails[0] ? emails : [''],
       phones: phones.length > 0 && phones[0] ? phones : [''],
-      industry: client['Industry'] || ''
+      industry: client['Industry'] || '',
+      services: servicesList
     })
   }
 
@@ -45,6 +65,7 @@ export default function ClientsPage() {
         contactEmail: clientForm.emails.filter(e => e.trim() !== '').join(', '),
         phone: clientForm.phones.filter(p => p.trim() !== '').join(', '),
         industry: clientForm.industry.trim(),
+        services: clientForm.services.join(', '),
         userEmail: profile?.email
       }
       const res = await fetch('https://script.google.com/macros/s/AKfycbxJXe4c9yDIEtf7UHaXHWBIpMnnc4NxtSwOl3nVzvTsN882GWIDzbMdTm1-cIUueGQo/exec', {
@@ -363,6 +384,31 @@ export default function ClientsPage() {
                 onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
                 className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Services</label>
+              <div className="bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface max-h-[160px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                {AVAILABLE_SERVICES.map(service => (
+                  <label key={service} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={clientForm.services.includes(service)}
+                      onChange={e => {
+                        const isChecked = e.target.checked
+                        setClientForm(prev => ({
+                          ...prev,
+                          services: isChecked 
+                            ? [...prev.services, service]
+                            : prev.services.filter(s => s !== service)
+                        }))
+                      }}
+                      className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface-container-lowest bg-surface-container-lowest"
+                    />
+                    <span className="text-secondary group-hover:text-on-surface transition-colors">{service}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-divider">

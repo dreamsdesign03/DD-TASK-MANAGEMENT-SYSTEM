@@ -2,8 +2,23 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
-const NAV_ITEMS = [
+const AVAILABLE_SERVICES = [
+  "Business Growth Consulting",
+  "AI SEO & Lead Generation",
+  "D2C Development / Marketing",
+  "Ecommerce Development",
+  "Website Development",
+  "Digital Marketing & Brand Awareness",
+  "Branding & Identity Management",
+  "Mobile Apps and Software Development",
+  "Marketing Automation & Funnel Development",
+  "Films, Videos and UGC content creation",
+  "Software and SAAS development",
+  "Ai Automation and Business Growth",
+  "360 Project"
+]
 
+const NAV_ITEMS = [
   { icon: 'assignment_turned_in', label: 'My Tasks', to: '/tasks' },
   { icon: 'notifications', label: 'Notifications', to: '/notifications' },
   { icon: 'chat', label: 'Chat', to: '/chat' },
@@ -22,7 +37,8 @@ export default function Sidebar() {
     clientName: '',
     emails: [''],
     phones: [''],
-    industry: ''
+    industry: '',
+    services: []
   })
   const [isSubmittingClient, setIsSubmittingClient] = useState(false)
 
@@ -45,6 +61,7 @@ export default function Sidebar() {
           contactEmail: clientForm.emails.filter(e => e.trim()).join(', '),
           phone: clientForm.phones.filter(p => p.trim()).join(', '),
           industry: clientForm.industry,
+          services: clientForm.services.join(', '),
           userEmail: profile?.email
         })
       })
@@ -52,7 +69,7 @@ export default function Sidebar() {
       if (data.ok) {
         alert('Client added successfully!')
         setShowNewClientModal(false)
-        setClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '' })
+        setClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
         fetchClients()
       } else {
         alert('Failed to add client: ' + (data.error || 'Unknown error'))
@@ -320,6 +337,31 @@ export default function Sidebar() {
                 className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
                 placeholder="e.g. Technology"
               />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Services</label>
+              <div className="bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface max-h-[160px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                {AVAILABLE_SERVICES.map(service => (
+                  <label key={service} className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={clientForm.services.includes(service)}
+                      onChange={e => {
+                        const isChecked = e.target.checked
+                        setClientForm(prev => ({
+                          ...prev,
+                          services: isChecked 
+                            ? [...prev.services, service]
+                            : prev.services.filter(s => s !== service)
+                        }))
+                      }}
+                      className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface-container-lowest bg-surface-container-lowest"
+                    />
+                    <span className="text-secondary group-hover:text-on-surface transition-colors">{service}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-divider mt-2">

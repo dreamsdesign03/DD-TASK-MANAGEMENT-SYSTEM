@@ -343,6 +343,7 @@ function doPost(e) {
         // Rename the old headers to match the new schema
         sheet.getRange("B1").setValue("Project Name");
         sheet.getRange("C1").setValue("Client Name");
+        sheet.getRange("H1").setValue("Services");
       }
 
       var data = sheet.getDataRange().getValues();
@@ -361,7 +362,8 @@ function doPost(e) {
         payload.contactEmail || "",
         payload.phone || "",
         payload.industry || "",
-        "Yes"
+        "Yes",
+        payload.services || ""
       ]);
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
@@ -391,6 +393,7 @@ function doPost(e) {
           if (payload.phone !== undefined) sheet.getRange(i + 1, 5).setValue(payload.phone);
           if (payload.industry !== undefined) sheet.getRange(i + 1, 6).setValue(payload.industry);
           if (payload.isActive !== undefined) sheet.getRange(i + 1, 7).setValue(payload.isActive);
+          if (payload.services !== undefined) sheet.getRange(i + 1, 8).setValue(payload.services);
           found = true;
           break;
         }
