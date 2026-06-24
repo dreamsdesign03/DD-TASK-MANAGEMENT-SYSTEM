@@ -107,7 +107,7 @@ export default function NotificationsPage() {
                 </div>
 
                 {/* Filter tabs */}
-                <div className="flex items-center gap-4 md:gap-8 border-b border-outline-variant/30 overflow-x-auto w-full custom-scrollbar">
+                <div className="flex items-center gap-4 md:gap-8 border-b border-outline-variant/30 overflow-x-auto md:overflow-x-visible w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {FILTER_TABS.map((tab) => (
                     <button
                       key={tab}

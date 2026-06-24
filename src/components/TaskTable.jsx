@@ -411,7 +411,7 @@ export default function TaskTable() {
           <div className="hidden md:block flex-grow"></div>
 
           {/* View Mode Toggle */}
-          <div className="flex w-full md:w-auto bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm mt-4 md:mt-0 overflow-x-auto custom-scrollbar">
+          <div className="flex w-full md:w-auto bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm mt-4 md:mt-0 overflow-x-auto md:overflow-x-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button
               onClick={() => setViewMode('List')}
               className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
