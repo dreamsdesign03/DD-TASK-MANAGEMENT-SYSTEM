@@ -213,7 +213,7 @@ export default function LoginPage() {
           <h2 className="text-white font-headline-sm text-[20px] font-semibold tracking-wider uppercase opacity-90 mb-4">
             Track. Collaborate. Deliver.
           </h2>
-          <div className="mt-12 p-8 rounded-2xl max-w-md bg-surface-container-lowest/[0.03] border border-white/[0.08] shadow-2xl backdrop-blur-sm">
+          <div className="mt-12 p-4 md:p-8 rounded-2xl max-w-md bg-surface-container-lowest/[0.03] border border-white/[0.08] shadow-2xl backdrop-blur-sm">
             <p className="text-white/[0.85] text-[15px] font-body-md leading-relaxed tracking-wide">
               "Empowering teams to visualize productivity and streamline internal workflows with executive precision."
             </p>

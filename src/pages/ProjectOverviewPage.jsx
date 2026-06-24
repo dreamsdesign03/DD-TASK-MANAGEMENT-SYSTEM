@@ -193,11 +193,11 @@ export default function ProjectOverviewPage() {
     <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
 
-      <main className="ml-[240px] flex-1 flex flex-col h-screen overflow-hidden bg-surface-container-lowest">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden bg-surface-container-lowest">
         <TopNav />
 
         {/* Header Area */}
-        <div className="bg-surface-container-lowest border-b border-outline-variant/50 pt-6 px-8 flex-shrink-0">
+        <div className="bg-surface-container-lowest border-b border-outline-variant/50 pt-6 px-4 md:px-8 flex-shrink-0">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">domain</span>
@@ -256,7 +256,7 @@ export default function ProjectOverviewPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
           <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-8">
             
             {/* Project Progress */}

@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const navigate = useNavigate()
-  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients } = useApp()
+  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients, isSidebarOpen, setIsSidebarOpen } = useApp()
   
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [clientForm, setClientForm] = useState({
@@ -108,7 +108,15 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-6 z-50">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-6 z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
 
       {/* Brand */}
       <div 
@@ -137,6 +145,7 @@ export default function Sidebar() {
                 : 'text-secondary hover:bg-surface-container-low'
               }`
             }
+            onClick={() => setIsSidebarOpen(false)}
           >
             <span className="material-symbols-outlined">{icon}</span>
             <span>{label}</span>

@@ -83,11 +83,11 @@ export default function TeamPage() {
     <div className="bg-background text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
 
-      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         <TopNav />
 
         <main className="flex-1 bg-surface-container-low overflow-y-auto custom-scrollbar pt-0 pb-12">
-          <div className="max-w-[1200px] mx-auto px-8 py-10">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10">
             {/* Header section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
               <div>
@@ -217,7 +217,7 @@ export default function TeamPage() {
         </main>
 
         {/* Footer */}
-        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-8">
+        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-4 md:px-8">
           <p className="font-label-sm text-label-sm text-secondary opacity-95">
             Dreamsdesk
           </p>

@@ -21,20 +21,20 @@ export default function ProfilePage() {
       <Sidebar />
 
       {/* Main Container */}
-      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         {/* TopNavBar */}
         <TopNav />
 
         {/* Main Content */}
         <main className="flex-1 bg-surface-container-low overflow-y-auto custom-scrollbar pt-0 pb-12">
-          <div className="max-w-[1200px] mx-auto px-8 py-10">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10">
             <div className="max-w-4xl mx-auto">
               {/* Profile Form & Info Card */}
               <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm flex flex-col h-full min-h-[600px]">
-                <div className="p-8 flex-grow">
+                <div className="p-4 md:p-8 flex-grow">
                   <div className="space-y-6">
 
-                    <div className="col-span-full mt-8 bg-surface rounded-lg p-8 border border-outline-variant/40">
+                    <div className="col-span-full mt-8 bg-surface rounded-lg p-4 md:p-8 border border-outline-variant/40">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                         {/* Left side: Photo, Name, Designation, Mail */}
                         <div className="flex items-center gap-6">
@@ -169,7 +169,7 @@ export default function ProfilePage() {
         </main>
 
         {/* Footer */}
-        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-8">
+        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-4 md:px-8">
           <p className="font-label-sm text-label-sm text-secondary opacity-90">
             Dreamsdesk
           </p>

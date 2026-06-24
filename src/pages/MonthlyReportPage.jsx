@@ -157,11 +157,11 @@ export default function MonthlyReportPage() {
     <div className="bg-background text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
 
-      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         <TopNav />
 
         <main className="flex-1 bg-surface-container-lowest overflow-y-auto pb-12 custom-scrollbar">
-          <div id="report-content" className="max-w-[1200px] mx-auto p-8 space-y-8">
+          <div id="report-content" className="max-w-[1200px] mx-auto p-4 md:p-8 space-y-8">
             {/* Title & Month Selector */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <h2 className="font-Montserrat font-bold text-[28px] text-primary">Monthly Report Analysis</h2>
@@ -584,7 +584,7 @@ export default function MonthlyReportPage() {
               <button
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
-                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group disabled:opacity-70 disabled:cursor-wait"
+                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-4 md:px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group disabled:opacity-70 disabled:cursor-wait"
               >
                 {isDownloading ? (
                   <span className="material-symbols-outlined animate-spin">sync</span>

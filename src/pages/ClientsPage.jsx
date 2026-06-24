@@ -129,7 +129,7 @@ export default function ClientsPage() {
   return (
     <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
         <TopNav />
         <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-[1450px] mx-auto w-full py-4 space-y-6">
@@ -236,7 +236,7 @@ export default function ClientsPage() {
 
         {/* Footer */}
         <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
-          <div className="flex justify-between items-center px-8 w-full">
+          <div className="flex justify-between items-center px-4 md:px-8 w-full">
             <p className="font-label-sm text-label-sm text-secondary">
               Dreamsdesk
             </p>

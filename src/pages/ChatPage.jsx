@@ -1349,7 +1349,7 @@ export default function ChatPage() {
     <div className="bg-surface text-on-surface overflow-hidden h-screen flex">
       <Sidebar />
 
-      <main className="ml-[240px] flex flex-1 h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex flex-1 h-screen overflow-hidden">
         {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className="w-[280px] bg-surface-container-lowest flex flex-col border-r border-outline-variant flex-shrink-0">
           {/* Panel header with Clear All button */}
@@ -1586,7 +1586,7 @@ export default function ChatPage() {
                 className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 custom-scrollbar chat-wallpaper"
               >
                 {activeMessages.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-outline">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-4 md:p-8 text-outline">
                     <span className="material-symbols-outlined text-[64px] text-primary/40 mb-4">forum</span>
                     <h3 className="font-Montserrat font-bold text-lg text-on-surface mb-1">
                       Start chat with {activeChat?.name || 'this contact'}
@@ -1860,7 +1860,7 @@ export default function ChatPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-surface-container-lowest text-outline">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-surface-container-lowest text-outline">
               <span className="material-symbols-outlined text-[64px] text-primary/30 mb-4 animate-pulse">forum</span>
               <h3 className="font-Montserrat font-bold text-lg text-on-surface mb-1">
                 No Chat Selected

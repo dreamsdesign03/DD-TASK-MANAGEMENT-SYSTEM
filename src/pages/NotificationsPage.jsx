@@ -81,7 +81,7 @@ export default function NotificationsPage() {
     <div className="bg-surface-bright text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
 
-      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         <TopNav />
 
         <main className="flex-1 bg-background overflow-y-auto custom-scrollbar">
@@ -146,7 +146,7 @@ export default function NotificationsPage() {
               {/* Load more */}
               {filtered.length > 0 && (
                 <div className="pt-8 flex justify-center">
-                  <button className="px-8 py-3 rounded-md border border-outline-variant font-medium text-[13px] text-secondary hover:border-primary hover:text-primary transition-colors">
+                  <button className="px-4 md:px-8 py-3 rounded-md border border-outline-variant font-medium text-[13px] text-secondary hover:border-primary hover:text-primary transition-colors">
                     Load previous notifications
                   </button>
                 </div>

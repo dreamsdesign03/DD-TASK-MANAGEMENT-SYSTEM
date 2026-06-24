@@ -241,6 +241,7 @@ export function AppProvider({ children }) {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showNewTaskModal, setShowNewTaskModal] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_profile')
@@ -1858,6 +1859,8 @@ export function AppProvider({ children }) {
         setGroupMembers,
         showNewTaskModal,
         setShowNewTaskModal,
+        isSidebarOpen,
+        setIsSidebarOpen,
         fetchSyncedTasks,
         employees,
         clients,

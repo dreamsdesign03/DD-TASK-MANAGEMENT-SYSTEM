@@ -550,12 +550,12 @@ export default function TaskDetailPage() {
     <div className="bg-background text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
 
-      <div className="ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
         <TopNav />
 
         {/* Main canvas */}
         <main className="pt-0 flex-1 bg-background overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto px-8 py-8 flex gap-8">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 flex gap-8">
             {/* â”€â”€ LEFT COLUMN (65%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className="w-[65%] space-y-8">
               {/* Breadcrumb */}
@@ -1276,7 +1276,7 @@ export default function TaskDetailPage() {
         </main>
 
         {/* Footer */}
-        <footer className="w-full py-4 px-8 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
+        <footer className="w-full py-4 px-4 md:px-8 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
           <p className="text-label-sm font-label-sm text-secondary">Â© 2024 Dreamsdesk Internal Systems</p>
           <div className="flex gap-6">
             <a href="#" className="text-label-sm font-label-sm text-secondary hover:text-primary transition-colors">

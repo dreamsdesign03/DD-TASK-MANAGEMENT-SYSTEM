@@ -115,7 +115,7 @@ export default function MyTasksPage() {
       <Sidebar />
 
       {/* Main */}
-      <main className="ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top nav */}
         <TopNav />
 
