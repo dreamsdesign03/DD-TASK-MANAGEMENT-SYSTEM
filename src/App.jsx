@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useApp } from './context/AppContext'
 import LoginPage from './pages/LoginPage'
 import MyTasksPage from './pages/MyTasksPage'
 import TaskDetailPage from './pages/TaskDetailPage'
@@ -28,6 +29,14 @@ function GlobalNav() {
   return null
 }
 
+function ProtectedRoute({ children }) {
+  const { profile } = useApp()
+  if (!profile) {
+    return <Navigate to="/login" replace />
+  }
+  return children
+}
+
 export default function App() {
   return (
     <HashRouter>
@@ -38,19 +47,19 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
 
         {/* App routes */}
-        <Route path="/tasks" element={<MyTasksPage />} />
-        <Route path="/tasks/:taskId" element={<TaskDetailPage />} />
+        <Route path="/tasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
+        <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
 
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/chat/groups" element={<ChatPage initialTab="groups" />} />
-        <Route path="/dashboard" element={<MyTasksPage />} />
-        <Route path="/projects" element={<MyTasksPage />} />
-        <Route path="/projects/:projectName" element={<ProjectOverviewPage />} />
-        <Route path="/team" element={<TeamPage />} />
-        <Route path="/clients" element={<ClientsPage />} />
-        <Route path="/reports" element={<MonthlyReportPage />} />
-        <Route path="/settings" element={<ProfilePage />} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/chat/groups" element={<ProtectedRoute><ChatPage initialTab="groups" /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
+        <Route path="/projects/:projectName" element={<ProtectedRoute><ProjectOverviewPage /></ProtectedRoute>} />
+        <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+        <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><MonthlyReportPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
