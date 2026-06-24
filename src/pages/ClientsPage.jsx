@@ -7,6 +7,64 @@ export default function ClientsPage() {
   const { clients, fetchClients, profile } = useApp()
   const [isUpdating, setIsUpdating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingClient, setEditingClient] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [clientForm, setClientForm] = useState({
+    projectName: '',
+    clientName: '',
+    emails: [''],
+    phones: [''],
+    industry: ''
+  })
+
+  const openEditModal = (client) => {
+    if (profile?.systemRole === 'Employee') return
+    const emails = client['Contact Email'] ? String(client['Contact Email']).split(',').map(e => e.trim()) : ['']
+    const phones = client['Phone'] ? String(client['Phone']).split(',').map(p => p.trim()) : ['']
+    setEditingClient(client)
+    setClientForm({
+      projectName: client['Project Name'] || '',
+      clientName: client['Client Name'] || client['Company Name'] || '',
+      emails: emails.length > 0 && emails[0] ? emails : [''],
+      phones: phones.length > 0 && phones[0] ? phones : [''],
+      industry: client['Industry'] || ''
+    })
+  }
+
+  const handleUpdateClient = async (e) => {
+    e.preventDefault()
+    if (!editingClient) return
+
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        action: 'update_client',
+        clientId: editingClient['Client ID'],
+        projectName: clientForm.projectName.trim(),
+        clientName: clientForm.clientName.trim(),
+        contactEmail: clientForm.emails.filter(e => e.trim() !== '').join(', '),
+        phone: clientForm.phones.filter(p => p.trim() !== '').join(', '),
+        industry: clientForm.industry.trim(),
+        userEmail: profile?.email
+      }
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      const data = await res.json()
+      if (data.ok) {
+        await fetchClients()
+        setEditingClient(null)
+      } else {
+        alert('Failed to update client: ' + (data.error || 'Unknown error'))
+      }
+    } catch (err) {
+      alert('Error updating client: ' + err.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleToggleStatus = async (client) => {
     const isActive = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
@@ -103,7 +161,10 @@ export default function ClientsPage() {
                           <td className="py-3 px-4 text-body-sm font-bold text-secondary whitespace-nowrap">
                             {client['Client ID']}
                           </td>
-                          <td className="py-3 px-4 text-body-sm font-bold text-primary">
+                          <td 
+                            className={`py-3 px-4 text-body-sm font-bold ${profile?.systemRole !== 'Employee' ? 'text-primary cursor-pointer hover:underline' : 'text-primary'}`}
+                            onClick={() => openEditModal(client)}
+                          >
                             {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
                           </td>
                           <td className="py-3 px-4 text-body-sm text-on-surface">
@@ -169,6 +230,165 @@ export default function ClientsPage() {
           </div>
         </footer>
       </main>
+
+      {/* Edit Client Modal */}
+      {editingClient && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <form
+            onSubmit={handleUpdateClient}
+            className="bg-surface-container-lowest w-full max-w-[480px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar"
+          >
+            <div className="flex justify-between items-center border-b border-divider pb-3">
+              <h2 className="text-headline-sm font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined">edit_square</span>
+                Update Client Profile
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingClient(null)}
+                className="text-secondary hover:text-on-surface transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Project Name *</label>
+              <input
+                type="text"
+                required
+                value={clientForm.projectName}
+                onChange={e => setClientForm({ ...clientForm, projectName: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Client Name</label>
+              <input
+                type="text"
+                value={clientForm.clientName}
+                onChange={e => setClientForm({ ...clientForm, clientName: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Email(s)</label>
+                <button
+                  type="button"
+                  onClick={() => setClientForm({ ...clientForm, emails: [...clientForm.emails, ''] })}
+                  className="text-primary hover:bg-primary/10 rounded-full p-1"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </button>
+              </div>
+              <div className="space-y-2">
+                {clientForm.emails.map((email, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => {
+                        const newEmails = [...clientForm.emails]
+                        newEmails[idx] = e.target.value
+                        setClientForm({ ...clientForm, emails: newEmails })
+                      }}
+                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                    />
+                    {clientForm.emails.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newEmails = clientForm.emails.filter((_, i) => i !== idx)
+                          setClientForm({ ...clientForm, emails: newEmails })
+                        }}
+                        className="text-urgent-red hover:bg-urgent-red/10 rounded-md px-2"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">remove</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone(s)</label>
+                <button
+                  type="button"
+                  onClick={() => setClientForm({ ...clientForm, phones: [...clientForm.phones, ''] })}
+                  className="text-primary hover:bg-primary/10 rounded-full p-1"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                </button>
+              </div>
+              <div className="space-y-2">
+                {clientForm.phones.map((phone, idx) => (
+                  <div key={idx} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={e => {
+                        const newPhones = [...clientForm.phones]
+                        newPhones[idx] = e.target.value
+                        setClientForm({ ...clientForm, phones: newPhones })
+                      }}
+                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                    />
+                    {clientForm.phones.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newPhones = clientForm.phones.filter((_, i) => i !== idx)
+                          setClientForm({ ...clientForm, phones: newPhones })
+                        }}
+                        className="text-urgent-red hover:bg-urgent-red/10 rounded-md px-2"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">remove</span>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-label-sm font-label-sm text-secondary uppercase">Industry</label>
+              <input
+                type="text"
+                value={clientForm.industry}
+                onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-divider">
+              <button
+                type="button"
+                onClick={() => setEditingClient(null)}
+                className="px-4 py-2 rounded-md font-label-lg text-secondary hover:bg-surface-container-high transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2 rounded-md font-label-lg bg-primary text-on-primary hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[20px]">save</span>
+                )}
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

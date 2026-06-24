@@ -385,8 +385,12 @@ function doPost(e) {
       var found = false;
       for (var i = 1; i < data.length; i++) {
         if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
-          // Update Is Active column (Column G)
-          sheet.getRange(i + 1, 7).setValue(payload.isActive);
+          if (payload.projectName !== undefined) sheet.getRange(i + 1, 2).setValue(payload.projectName);
+          if (payload.clientName !== undefined) sheet.getRange(i + 1, 3).setValue(payload.clientName);
+          if (payload.contactEmail !== undefined) sheet.getRange(i + 1, 4).setValue(payload.contactEmail);
+          if (payload.phone !== undefined) sheet.getRange(i + 1, 5).setValue(payload.phone);
+          if (payload.industry !== undefined) sheet.getRange(i + 1, 6).setValue(payload.industry);
+          if (payload.isActive !== undefined) sheet.getRange(i + 1, 7).setValue(payload.isActive);
           found = true;
           break;
         }
