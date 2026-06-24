@@ -47,12 +47,12 @@ export default function ClientsPage() {
   })
 
   return (
-    <div className="flex h-screen bg-surface overflow-hidden">
+    <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <main className="ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
         <TopNav />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-surface">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-surface custom-scrollbar">
+          <div className="max-w-[1450px] mx-auto w-full space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-display-sm font-bold text-on-surface">Clients Database</h1>
@@ -144,8 +144,8 @@ export default function ClientsPage() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }
