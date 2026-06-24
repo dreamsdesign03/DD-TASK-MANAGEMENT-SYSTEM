@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode'
 
 /* â”€â”€â”€ Dreamsdesk Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const LOGO_SRC = '/logo.png'
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
 
 export default function LoginPage() {
   const [isRegisterMode, setIsRegisterMode] = useState(false)
@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('')
   const [department, setDepartment] = useState('')
+  const [systemRole, setSystemRole] = useState('Employee')
 
   const navigate = useNavigate()
   const { setProfile, employees } = useApp()
@@ -48,6 +49,7 @@ export default function LoginPage() {
               department: data.user['Department'],
               phone: data.user['Phone'] || '',
               joined: data.user['Joined Date'] || '',
+              systemRole: data.user['System Role'] || 'Employee',
               avatar: ''
             });
             navigate('/tasks');
@@ -81,7 +83,8 @@ export default function LoginPage() {
             name: name.trim(),
             phone: phone.trim(),
             role: role.trim(),
-            department: department.trim()
+            department: department.trim(),
+            systemRole: systemRole
           })
         })
         const data = await res.json()
@@ -114,6 +117,7 @@ export default function LoginPage() {
             phone: data.user['Phone'] || '',
             joined: data.user['Joined Date'] || '',
             department: data.user['Department'] || '',
+            systemRole: data.user['System Role'] || 'Employee',
             location: 'Remote',
             avatar: '',
           })
@@ -152,6 +156,7 @@ export default function LoginPage() {
           department: data.user['Department'],
           phone: data.user['Phone'] || '',
           joined: data.user['Joined Date'] || '',
+          systemRole: data.user['System Role'] || 'Employee',
           avatar: decoded.picture || ''
         })
         navigate('/tasks')
@@ -289,6 +294,18 @@ export default function LoginPage() {
                     className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
                   />
                   <label htmlFor="phone" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
+                </div>
+                <div className="login-input relative">
+                  <select
+                    id="systemRole" required value={systemRole} onChange={(e) => setSystemRole(e.target.value)}
+                    className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
+                  >
+                    <option value="Employee">Employee</option>
+                    <option value="Manager">Manager</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                  <label htmlFor="systemRole" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-[24px] scale-[0.85] top-1/2 left-4 z-10 bg-surface-container-lowest px-1 pointer-events-none text-primary">System Role</label>
+                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
                 </div>
               </>
             )}

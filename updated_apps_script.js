@@ -4,6 +4,24 @@
 // doGet handles Reads (Tasks, Team, Clients, Chat, and Approvals)
 // ============================================
 
+// Helper to check Authorization
+function isUserAuthorized(email, ss) {
+  if (!email) return false;
+  var teamSheet = ss.getSheetByName("Team");
+  if (!teamSheet) return false;
+  var data = teamSheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
+      var systemRole = String(data[i][9] || "").trim();
+      if (systemRole === "Admin" || systemRole === "Manager") {
+        return true;
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
 function doPost(e) {
   if (!e || !e.postData) {
     return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No payload received." })).setMimeType(ContentService.MimeType.JSON);
@@ -94,6 +112,9 @@ function doPost(e) {
         for (var i = 1; i < data.length; i++) {
           if (data[i][0] == payload.taskId) {
             if (payload.action === 'delete_task') {
+              if (!isUserAuthorized(payload.userEmail, ss)) {
+                return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+              }
               sheet.deleteRow(i + 1);
               return ContentService.createTextOutput(JSON.stringify({ "ok": true, "deleted": true })).setMimeType(ContentService.MimeType.JSON);
             }
@@ -127,7 +148,7 @@ function doPost(e) {
         if (payload.action === 'delete_task') {
           return ContentService.createTextOutput(JSON.stringify({ "ok": true, "error": "not_found" })).setMimeType(ContentService.MimeType.JSON);
         }
-      } // Close the if block here!
+      }
 
       // Find the first empty row to prevent skipping pre-formatted blank rows
       var dataAll = sheet.getDataRange().getValues();
@@ -212,7 +233,8 @@ function doPost(e) {
             "Department": row[5],
             "Phone": row[6],
             "Joined Date": row[7],
-            "Is Active": "Yes"
+            "Is Active": "Yes",
+            "System Role": row[9] || "Employee"
           };
           return ContentService.createTextOutput(JSON.stringify({
             "ok": true, "authenticated": true, "user": userObj
@@ -234,7 +256,7 @@ function doPost(e) {
       var teamSheet = ss.getSheetByName("Team");
       if (!teamSheet) {
         teamSheet = ss.insertSheet("Team");
-        teamSheet.appendRow(["Employee ID", "Full Name", "Email Address", "Password Token", "Role", "Department", "Phone", "Joined Date", "Is Active"]);
+        teamSheet.appendRow(["Employee ID", "Full Name", "Email Address", "Password Token", "Role", "Department", "Phone", "Joined Date", "Is Active", "System Role"]);
       }
 
       var data = teamSheet.getDataRange().getValues();
@@ -258,7 +280,8 @@ function doPost(e) {
         payload.department || "General",
         payload.phone || "",
         joinedDate,
-        "Pending"
+        "Pending",
+        payload.systemRole || "Employee"
       ]);
 
       // Send RICH HTML Approval Email to Admin with a Button
@@ -279,6 +302,7 @@ function doPost(e) {
           "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 100px;'>Name</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.name + "</td></tr>" +
           "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Email</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.email + "</td></tr>" +
           "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Role</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.role + "</td></tr>" +
+          "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>System Role</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + (payload.systemRole || "Employee") + "</td></tr>" +
           "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;'>Department</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.department + "</td></tr>" +
           "<tr><td style='padding: 10px 0; color: #64748b;'>Phone</td><td style='padding: 10px 0; color: #0f172a; font-weight: 600; text-align: right;'>" + payload.phone + "</td></tr>" +
           "</table>" +
@@ -307,6 +331,9 @@ function doPost(e) {
     // 5. ADD CLIENT
     // -------------------------
     if (payload.action === 'add_client') {
+      if (!isUserAuthorized(payload.userEmail, ss)) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+      }
       try {
         var sheet = ss.getSheetByName("Clients");
         if (!sheet) {
@@ -346,6 +373,9 @@ function doPost(e) {
     // 5.5. UPDATE CLIENT
     // -------------------------
     if (payload.action === 'update_client') {
+      if (!isUserAuthorized(payload.userEmail, ss)) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+      }
       try {
         var sheet = ss.getSheetByName("Clients");
         if (!sheet) {

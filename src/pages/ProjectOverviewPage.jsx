@@ -36,7 +36,7 @@ export default function ProjectOverviewPage() {
   useEffect(() => {
     if (!projectName) return
     setIsLoadingDocs(true)
-    const url = `https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec?action=get_project_files&projectName=${encodeURIComponent(projectName)}&t=${Date.now()}`
+    const url = `https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec?action=get_project_files&projectName=${encodeURIComponent(projectName)}&t=${Date.now()}`
     fetch(url)
       .then(res => res.json())
       .then(data => {

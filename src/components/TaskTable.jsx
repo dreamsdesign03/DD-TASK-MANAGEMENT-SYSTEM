@@ -54,6 +54,7 @@ export default function TaskTable() {
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
   const [tasksPerPage, setTasksPerPage] = useState(10)
+  const [taskToDelete, setTaskToDelete] = useState(null)
 
   const navigate = useNavigate()
 
@@ -98,7 +99,7 @@ export default function TaskTable() {
 
       const currentClient = selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || 'General')
 
-      const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -732,6 +733,17 @@ export default function TaskTable() {
                                       >
                                         View
                                       </button>
+                                      {profile?.systemRole !== 'Employee' && (
+                                        <button
+                                          onClick={() => {
+                                            setTaskToDelete(task.id)
+                                          }}
+                                          className="px-2 py-1.5 border border-error text-error rounded-lg hover:bg-error hover:text-white transition-colors flex items-center justify-center"
+                                          title="Delete Task"
+                                        >
+                                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                      )}
                                     </div>
                                   </td>
                                 </tr>
@@ -882,16 +894,32 @@ export default function TaskTable() {
                             className="task-card bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/60 hover:border-primary/50 cursor-pointer shadow-sm hover:shadow-md transition-all group flex flex-col gap-3 relative"
                           >
                             <div className="flex justify-between items-start">
-                              <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                                {task.id}
-                              </span>
-                              <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${task.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
-                                  task.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
-                                    task.priority === 'Medium' ? 'bg-blue-500/10 text-blue-600 border-blue-500/30' :
-                                      'bg-gray-500/10 text-gray-600 border-gray-500/30'
-                                }`}>
-                                {task.priority}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
+                                  {task.id}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${task.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
+                                    task.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
+                                      task.priority === 'Medium' ? 'bg-blue-500/10 text-blue-600 border-blue-500/30' :
+                                        'bg-gray-500/10 text-gray-600 border-gray-500/30'
+                                  }`}>
+                                  {task.priority}
+                                </span>
+                                {profile?.systemRole !== 'Employee' && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setTaskToDelete(task.id)
+                                    }}
+                                    className="text-secondary hover:text-urgent-red transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center p-1 rounded-md hover:bg-urgent-red/10"
+                                    title="Delete Task"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
                             <h4 className="font-bold text-label-md text-on-surface group-hover:text-primary transition-colors leading-snug">

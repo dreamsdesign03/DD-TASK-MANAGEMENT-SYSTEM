@@ -116,6 +116,8 @@ export default function TaskDetailPage() {
   const [newSubtaskDueDate, setNewSubtaskDueDate] = useState('')
   const [newSubtaskPriority, setNewSubtaskPriority] = useState('Medium')
   const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [subtaskToDelete, setSubtaskToDelete] = useState(null)
 
   const handleDueDateChange = (e) => {
     const val = e.target.value;
@@ -273,7 +275,7 @@ export default function TaskDetailPage() {
         })
 
         // Send to Apps Script
-        const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -390,7 +392,7 @@ export default function TaskDetailPage() {
           reader.readAsDataURL(replyAttachment.file)
         })
 
-        const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -455,7 +457,7 @@ export default function TaskDetailPage() {
         }
       })
 
-      const url = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -593,6 +595,16 @@ export default function TaskDetailPage() {
                   </span>
                   {isTracking ? `Tracking: ${formatTimeStr(sessionSecs)}` : `Time: ${task.timeTaken || '0h 0m'}`}
                 </button>
+                {profile?.systemRole !== 'Employee' && (
+                  <button
+                    onClick={() => setTaskToDelete(task.id)}
+                    className="px-3 py-1.5 rounded-full text-label-sm font-label-sm flex items-center gap-1.5 border border-urgent-red/30 text-urgent-red bg-urgent-red/5 hover:bg-urgent-red/10 transition-all cursor-pointer shadow-sm"
+                    title="Delete Task"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    Delete
+                  </button>
+                )}
               </div>
 
               <hr className="border-divider" />
@@ -663,16 +675,15 @@ export default function TaskDetailPage() {
                             <span className="text-[11px] font-bold text-secondary truncate max-w-[100px]">{st.assignedTo}</span>
                           </div>
                         )}
-                        <button 
-                          onClick={() => {
-                            if (!window.confirm('Delete this subtask?')) return;
-                            deleteTask(st.id)
-                          }}
-                          className="p-1 text-secondary hover:text-urgent-red transition-colors shrink-0"
-                          title="Delete Subtask"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
+                        {profile?.systemRole !== 'Employee' && (
+                          <button 
+                            onClick={() => setSubtaskToDelete(st.id)}
+                            className="p-1 text-secondary hover:text-urgent-red transition-colors shrink-0"
+                            title="Delete Subtask"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1344,6 +1355,71 @@ export default function TaskDetailPage() {
                   const updated = (task.attachments || []).filter((_, i) => i !== attachmentToDelete);
                   updateTask(task.id, { attachments: updated });
                   setAttachmentToDelete(null);
+                }}
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Task Confirmation Modal */}
+      {taskToDelete && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
+          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-3 text-error">
+              <span className="material-symbols-outlined text-[28px]">warning</span>
+              <h2 className="text-[18px] font-bold">Delete Task</h2>
+            </div>
+            <p className="text-body-sm text-secondary">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteTask(taskToDelete)
+                  setTaskToDelete(null)
+                  navigate('/tasks')
+                }}
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Subtask Confirmation Modal */}
+      {subtaskToDelete && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
+          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-3 text-error">
+              <span className="material-symbols-outlined text-[28px]">warning</span>
+              <h2 className="text-[18px] font-bold">Delete Subtask</h2>
+            </div>
+            <p className="text-body-sm text-secondary">
+              Are you sure you want to delete this subtask?
+            </p>
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setSubtaskToDelete(null)}
+                className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteTask(subtaskToDelete)
+                  setSubtaskToDelete(null)
                 }}
                 className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
               >

@@ -35,7 +35,7 @@ export default function Sidebar() {
 
     setIsSubmittingClient(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -44,7 +44,8 @@ export default function Sidebar() {
           clientName: clientForm.clientName,
           contactEmail: clientForm.emails.filter(e => e.trim()).join(', '),
           phone: clientForm.phones.filter(p => p.trim()).join(', '),
-          industry: clientForm.industry
+          industry: clientForm.industry,
+          userEmail: profile?.email
         })
       })
       const data = await res.json()
@@ -149,18 +150,20 @@ export default function Sidebar() {
           New Task
         </button>
 
-        <button
-          onClick={() => setShowNewClientModal(true)}
-          className="w-full mb-4 py-3 bg-surface-container border border-primary/20 text-primary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
-        >
-          <span className="material-symbols-outlined">domain_add</span>
-          New Client
-        </button>
+        {profile?.systemRole !== 'Employee' && (
+          <button
+            onClick={() => setShowNewClientModal(true)}
+            className="w-full mb-4 py-3 bg-surface-container border border-primary/20 text-primary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+          >
+            <span className="material-symbols-outlined">domain_add</span>
+            New Client
+          </button>
+        )}
 
         <button
           onClick={() => {
             if (profile?.email) {
-              fetch('https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec', {
+              fetch('https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'logout', email: profile.email })

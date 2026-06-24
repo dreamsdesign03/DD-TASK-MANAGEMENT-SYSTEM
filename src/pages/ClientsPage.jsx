@@ -4,7 +4,7 @@ import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
 
 export default function ClientsPage() {
-  const { clients, fetchClients } = useApp()
+  const { clients, fetchClients, profile } = useApp()
   const [isUpdating, setIsUpdating] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -14,13 +14,14 @@ export default function ClientsPage() {
 
     setIsUpdating(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_client',
           clientId: client['Client ID'],
-          isActive: newStatus
+          isActive: newStatus,
+          userEmail: profile?.email
         })
       })
       const data = await res.json()
@@ -120,8 +121,8 @@ export default function ClientsPage() {
                           <td className="py-3 px-4 text-center">
                             <button
                               onClick={() => handleToggleStatus(client)}
-                              disabled={isUpdating}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isActive ? 'bg-[#25d366]' : 'bg-outline-variant'} ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                              disabled={isUpdating || profile?.systemRole === 'Employee'}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isActive ? 'bg-[#25d366]' : 'bg-outline-variant'} ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                               role="switch"
                               aria-checked={isActive}
                             >

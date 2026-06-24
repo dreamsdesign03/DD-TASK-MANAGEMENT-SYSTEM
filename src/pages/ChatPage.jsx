@@ -667,7 +667,7 @@ export default function ChatPage() {
           })
         }
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNmm8iULiSCRm-6I8CZvHls2WCcL3GEfMGnp8TLjI7qCaRoa5s0wOU0EK9e2pl3ro/exec'
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyC5JZVq1OhnjDboc_qKo10um12xlsSB0I-ouPRNZMv5wDmi6HLnYuvgJY1k1opVEC6/exec'
 
         let success = false
         try {
@@ -721,49 +721,57 @@ export default function ChatPage() {
     setText(rawText)
   }
 
-  const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return
-    const deletePayloadText = `[Delete:${messageId}]`
-    const sender = profile?.name || 'Mansi Shah'
+  const handleDeleteMessage = (messageId) => {
+    setConfirmModal({
+      title: 'Delete Message',
+      message: 'Are you sure you want to delete this message?',
+      icon: 'delete',
+      danger: true,
+      onConfirm: async () => {
+        const deletePayloadText = `[Delete:${messageId}]`
+        const sender = profile?.name || 'Mansi Shah'
 
-    setMessagesByChatId((prev) => {
-      const list = prev[selectedChatId] || []
-      const newDeleteMsg = {
-        id: `temp_${Date.now()}`,
-        text: deletePayloadText,
-        sender: sender,
-        type: 'sent',
-        time: new Date().toLocaleTimeString(),
-        timestamp: new Date().toISOString()
-      }
-      return {
-        ...prev,
-        [selectedChatId]: [...list, newDeleteMsg]
+        setMessagesByChatId((prev) => {
+          const list = prev[selectedChatId] || []
+          const newDeleteMsg = {
+            id: `temp_${Date.now()}`,
+            text: deletePayloadText,
+            sender: sender,
+            type: 'sent',
+            time: new Date().toLocaleTimeString(),
+            timestamp: new Date().toISOString()
+          }
+          return {
+            ...prev,
+            [selectedChatId]: [...list, newDeleteMsg]
+          }
+        })
+
+        const payload = {
+          id: `temp_${Date.now()}`,
+          action: 'send',
+          roomId: String(selectedChatId),
+          senderId: profile?.email || 'mansi@dreamsdesign.in',
+          senderName: profile?.name || 'Mansi Shah',
+          message: deletePayloadText,
+          groupName: activeTab === 'groups' ? (activeChat?.name || 'Unnamed Group') : '',
+          timestamp: new Date().toLocaleString('en-US', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2'),
+          type: activeTab === 'personal' ? 'personal' : 'group'
+        }
+
+        sendWebhookPayload(payload, payload.id)
+        setConfirmModal(null)
       }
     })
-
-    const payload = {
-      id: `temp_${Date.now()}`,
-      action: 'send',
-      roomId: String(selectedChatId),
-      senderId: profile?.email || 'mansi@dreamsdesign.in',
-      senderName: profile?.name || 'Mansi Shah',
-      message: deletePayloadText,
-      groupName: activeTab === 'groups' ? (activeChat?.name || 'Unnamed Group') : '',
-      timestamp: new Date().toLocaleString('en-US', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-      }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2'),
-      type: activeTab === 'personal' ? 'personal' : 'group'
-    }
-
-    sendWebhookPayload(payload, payload.id)
   }
 
   const handleToggleReaction = async (messageId, emoji) => {
@@ -1263,68 +1271,76 @@ export default function ChatPage() {
     await sendWebhookPayload(updatedMetadataPayload)
   }
 
-  const handleRemoveMember = async (memberName) => {
-    if (!window.confirm(`Are you sure you want to remove ${memberName} from this group?`)) return
+  const handleRemoveMember = (memberName) => {
+    setConfirmModal({
+      title: 'Remove Member',
+      message: `Are you sure you want to remove ${memberName} from this group?`,
+      icon: 'person_remove',
+      danger: true,
+      onConfirm: async () => {
+        // 1. Add to groupMembers list
+        const currentMembersList = groupMembers[selectedChatId] || []
+        const updatedMembersList = currentMembersList.filter(m => m.name !== memberName)
+        setGroupMembers((prev) => ({
+          ...prev,
+          [selectedChatId]: updatedMembersList
+        }))
 
-    // 1. Add to groupMembers list
-    const currentMembersList = groupMembers[selectedChatId] || []
-    const updatedMembersList = currentMembersList.filter(m => m.name !== memberName)
-    setGroupMembers((prev) => ({
-      ...prev,
-      [selectedChatId]: updatedMembersList
-    }))
+        // 2. System message
+        const systemMsgId = 'temp_' + String(Date.now())
+        const nowIso = new Date().toISOString()
+        const myName = profile?.name || 'Mansi Shah'
+        const systemMessage = {
+          id: systemMsgId,
+          type: 'system',
+          text: `${myName} removed ${memberName}`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: nowIso
+        }
 
-    // 2. System message
-    const systemMsgId = 'temp_' + String(Date.now())
-    const nowIso = new Date().toISOString()
-    const myName = profile?.name || 'Mansi Shah'
-    const systemMessage = {
-      id: systemMsgId,
-      type: 'system',
-      text: `${myName} removed ${memberName}`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      timestamp: nowIso
-    }
+        setMessagesByChatId((prev) => {
+          const list = prev[selectedChatId] || []
+          return {
+            ...prev,
+            [selectedChatId]: [...list, systemMessage]
+          }
+        })
 
-    setMessagesByChatId((prev) => {
-      const list = prev[selectedChatId] || []
-      return {
-        ...prev,
-        [selectedChatId]: [...list, systemMessage]
+        // Webhooks
+        const currentGroup = groupChats.find(g => String(g.id) === String(selectedChatId))
+        const systemPayload = {
+          action: 'send',
+          roomId: String(selectedChatId),
+          senderId: profile?.email || 'mansi@dreamsdesign.in',
+          senderName: profile?.name || 'Mansi Shah',
+          message: `[System:${myName} removed ${memberName}]`,
+          timestamp: nowIso,
+          type: 'group',
+          groupName: currentGroup?.name || 'Unnamed Group'
+        }
+        await sendWebhookPayload(systemPayload)
+
+        // 3. Send updated group metadata to n8n CHAT_ENGINE
+        const updatedMetadataPayload = {
+          action: 'send',
+          roomId: 'groups_metadata',
+          senderId: profile?.email || 'mansi@dreamsdesign.in',
+          senderName: profile?.name || 'Mansi Shah',
+          message: JSON.stringify({
+            id: String(selectedChatId),
+            name: currentGroup?.name || 'Unnamed Group',
+            members: updatedMembersList.map(m => m.name),
+            creator: currentGroup?.creator || profile?.name || 'Mansi Shah'
+          }),
+          timestamp: nowIso,
+          type: 'group_created',
+          groupName: currentGroup?.name || 'Unnamed Group'
+        }
+        await sendWebhookPayload(updatedMetadataPayload)
+
+        setConfirmModal(null)
       }
     })
-
-    // Webhooks
-    const currentGroup = groupChats.find(g => String(g.id) === String(selectedChatId))
-    const systemPayload = {
-      action: 'send',
-      roomId: String(selectedChatId),
-      senderId: profile?.email || 'mansi@dreamsdesign.in',
-      senderName: profile?.name || 'Mansi Shah',
-      message: `[System:${myName} removed ${memberName}]`,
-      timestamp: nowIso,
-      type: 'group',
-      groupName: currentGroup?.name || 'Unnamed Group'
-    }
-    await sendWebhookPayload(systemPayload)
-
-    // 3. Send updated group metadata to n8n CHAT_ENGINE
-    const updatedMetadataPayload = {
-      action: 'send',
-      roomId: 'groups_metadata',
-      senderId: profile?.email || 'mansi@dreamsdesign.in',
-      senderName: profile?.name || 'Mansi Shah',
-      message: JSON.stringify({
-        id: String(selectedChatId),
-        name: currentGroup?.name || 'Unnamed Group',
-        members: updatedMembersList.map(m => m.name),
-        creator: currentGroup?.creator || profile?.name || 'Mansi Shah'
-      }),
-      timestamp: nowIso,
-      type: 'group_created',
-      groupName: currentGroup?.name || 'Unnamed Group'
-    }
-    await sendWebhookPayload(updatedMetadataPayload)
   }
 
 
