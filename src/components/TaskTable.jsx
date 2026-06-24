@@ -1128,6 +1128,42 @@ export default function TaskTable() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {taskToDelete && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant bg-surface-container-low">
+              <div className="w-9 h-9 rounded-full bg-error/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-error text-[20px]">warning</span>
+              </div>
+              <h2 className="text-label-lg font-bold text-on-surface">Delete Task</h2>
+            </div>
+            <div className="px-6 py-5 bg-surface-container-lowest">
+              <p className="text-body-sm text-secondary leading-relaxed">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-5 py-2 border border-outline-variant text-secondary rounded-lg font-label-md hover:bg-surface-container-high transition-all text-sm font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteTask(taskToDelete)
+                  setTaskToDelete(null)
+                }}
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm font-bold"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

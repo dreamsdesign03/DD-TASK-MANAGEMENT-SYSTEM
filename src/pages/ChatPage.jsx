@@ -2159,7 +2159,7 @@ function ConfirmModal({ title, message, icon, danger, onClose, onConfirm }) {
               onClick={onConfirm}
               className={`flex-1 py-2.5 rounded-xl font-label-md shadow text-white active:scale-95 transition-all ${danger ? 'bg-error hover:bg-error/90' : 'bg-primary hover:opacity-90'}`}
             >
-              {title}
+              Yes
             </button>
           </div>
         </div>

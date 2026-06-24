@@ -1378,19 +1378,23 @@ export default function TaskDetailPage() {
 
       {/* Delete Task Confirmation Modal */}
       {taskToDelete && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3 text-error">
-              <span className="material-symbols-outlined text-[28px]">warning</span>
-              <h2 className="text-[18px] font-bold">Delete Task</h2>
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant bg-surface-container-low">
+              <div className="w-9 h-9 rounded-full bg-error/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-error text-[20px]">warning</span>
+              </div>
+              <h2 className="text-label-lg font-bold text-on-surface">Delete Task</h2>
             </div>
-            <p className="text-body-sm text-secondary">
-              Are you sure you want to delete this task? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="px-6 py-5 bg-surface-container-lowest">
+              <p className="text-body-sm text-secondary leading-relaxed">
+                Are you sure you want to delete this task? This action cannot be undone.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
               <button
                 onClick={() => setTaskToDelete(null)}
-                className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
+                className="px-5 py-2 border border-outline-variant text-secondary rounded-lg font-label-md hover:bg-surface-container-high transition-all text-sm font-bold"
               >
                 Cancel
               </button>
@@ -1400,9 +1404,9 @@ export default function TaskDetailPage() {
                   setTaskToDelete(null)
                   navigate('/tasks')
                 }}
-                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm font-bold"
               >
-                Delete
+                Yes
               </button>
             </div>
           </div>
@@ -1411,19 +1415,23 @@ export default function TaskDetailPage() {
 
       {/* Delete Subtask Confirmation Modal */}
       {subtaskToDelete && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3 text-error">
-              <span className="material-symbols-outlined text-[28px]">warning</span>
-              <h2 className="text-[18px] font-bold">Delete Subtask</h2>
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant bg-surface-container-low">
+              <div className="w-9 h-9 rounded-full bg-error/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-error text-[20px]">warning</span>
+              </div>
+              <h2 className="text-label-lg font-bold text-on-surface">Delete Subtask</h2>
             </div>
-            <p className="text-body-sm text-secondary">
-              Are you sure you want to delete this subtask?
-            </p>
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="px-6 py-5 bg-surface-container-lowest">
+              <p className="text-body-sm text-secondary leading-relaxed">
+                Are you sure you want to delete this subtask? This action cannot be undone.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
               <button
                 onClick={() => setSubtaskToDelete(null)}
-                className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
+                className="px-5 py-2 border border-outline-variant text-secondary rounded-lg font-label-md hover:bg-surface-container-high transition-all text-sm font-bold"
               >
                 Cancel
               </button>
@@ -1432,9 +1440,9 @@ export default function TaskDetailPage() {
                   deleteTask(subtaskToDelete)
                   setSubtaskToDelete(null)
                 }}
-                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm font-bold"
               >
-                Delete
+                Yes
               </button>
             </div>
           </div>
@@ -1443,19 +1451,27 @@ export default function TaskDetailPage() {
 
       {/* Info Modal */}
       {infoModal && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4 animate-scale-in">
-            <div className={`flex items-center gap-3 ${infoModal.color || 'text-primary'}`}>
-              <span className="material-symbols-outlined text-[28px]">{infoModal.icon || 'info'}</span>
-              <h2 className="text-[18px] font-bold">{infoModal.title}</h2>
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant bg-surface-container-low">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                infoModal.color?.includes('error') ? 'bg-error/10 text-error' : 
+                infoModal.color?.includes('warning') || infoModal.color?.includes('f59e0b') ? 'bg-warning/10 text-[#f59e0b]' : 
+                'bg-primary/10 text-primary'
+              }`}>
+                <span className="material-symbols-outlined text-[20px]">{infoModal.icon || 'info'}</span>
+              </div>
+              <h2 className="text-label-lg font-bold text-on-surface">{infoModal.title}</h2>
             </div>
-            <p className="text-body-sm text-secondary">
-              {infoModal.message}
-            </p>
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="px-6 py-5 bg-surface-container-lowest">
+              <p className="text-body-sm text-secondary leading-relaxed">
+                {infoModal.message}
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
               <button
                 onClick={() => setInfoModal(null)}
-                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm font-bold"
               >
                 OK
               </button>
