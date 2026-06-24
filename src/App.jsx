@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useApp } from './context/AppContext'
 import LoginPage from './pages/LoginPage'
@@ -39,7 +39,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <GlobalNav />
       <Routes>
         {/* Default → login */}
@@ -64,7 +64,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 
