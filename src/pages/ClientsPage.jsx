@@ -159,9 +159,9 @@ export default function ClientsPage() {
             </div>
 
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
+              <div className="overflow-hidden w-full">
+                <table className="block md:table w-full text-left border-collapse">
+                  <thead className="hidden md:table-header-group">
                     <tr className="bg-surface-container-low border-b border-outline-variant">
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client ID</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Project Name</th>
@@ -172,56 +172,72 @@ export default function ClientsPage() {
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider text-center">Active Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-outline-variant/60">
+                  <tbody className="block md:table-row-group divide-y md:divide-outline-variant/60 p-4 md:p-0">
                     {filteredClients.map((client, idx) => {
                       const isActiveVal = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
                       const isActive = String(isActiveVal).toLowerCase() === 'yes' || isActiveVal === true
 
                       return (
-                        <tr key={client['Client ID'] || idx} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td className="py-3 px-4 text-body-sm font-bold text-secondary whitespace-nowrap">
-                            {client['Client ID']}
+                        <tr key={client['Client ID'] || idx} className="block md:table-row mb-4 md:mb-0 bg-surface-container-lowest border border-outline-variant md:border-none rounded-lg md:rounded-none hover:bg-surface-container-low/50 transition-colors overflow-hidden">
+                          {/* Client ID */}
+                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm font-bold text-secondary whitespace-nowrap border-b border-outline-variant/30 md:border-none md:border-l-4 md:border-transparent">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Client ID</span>
+                            <div className="text-right">{client['Client ID']}</div>
                           </td>
+                          {/* Project Name */}
                           <td
-                            className={`py-3 px-4 text-body-sm font-bold ${profile?.systemRole !== 'Employee' ? 'text-primary cursor-pointer hover:underline' : 'text-primary'}`}
+                            className={`flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm font-bold border-b border-outline-variant/30 md:border-none ${profile?.systemRole !== 'Employee' ? 'text-primary cursor-pointer hover:underline' : 'text-primary'}`}
                             onClick={() => openEditModal(client)}
                           >
-                            {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Project Name</span>
+                            <div className="text-left w-full md:w-auto">{client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}</div>
                           </td>
-                          <td className="py-3 px-4 text-body-sm text-on-surface">
-                            {client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}
+                          {/* Client Name */}
+                          <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-on-surface border-b border-outline-variant/30 md:border-none">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Client Name</span>
+                            <div className="text-left w-full md:w-auto">{client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}</div>
                           </td>
-                          <td className="py-3 px-4 text-body-sm text-secondary">
-                            {client['Contact Email'] || client['Email'] || '-'}
+                          {/* Email(s) */}
+                          <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none break-all md:break-normal">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1 flex-shrink-0">Email(s)</span>
+                            <div className="text-left w-full md:w-auto">{client['Contact Email'] || client['Email'] || '-'}</div>
                           </td>
-                          <td className="py-3 px-4 text-body-sm text-secondary">
-                            {client['Phone'] || '-'}
+                          {/* Phone */}
+                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Phone</span>
+                            <div className="text-right">{client['Phone'] || '-'}</div>
                           </td>
-                          <td className="py-3 px-4 text-body-sm text-secondary">
-                            {client['Industry'] || '-'}
+                          {/* Industry */}
+                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Industry</span>
+                            <div className="text-right">{client['Industry'] || '-'}</div>
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <button
-                              onClick={() => handleToggleStatus(client)}
-                              disabled={isUpdating || profile?.systemRole === 'Employee'}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isActive ? 'bg-[#25d366]' : 'bg-outline-variant'} ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                              role="switch"
-                              aria-checked={isActive}
-                            >
-                              <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
-                              />
-                            </button>
-                            <span className={`block text-[10px] font-bold mt-1 uppercase tracking-wider ${isActive ? 'text-[#25d366]' : 'text-secondary'}`}>
-                              {isActive ? 'Active' : 'Inactive'}
-                            </span>
+                          {/* Active Status */}
+                          <td className="flex md:table-cell items-center justify-between md:justify-center py-2.5 md:py-3 px-4 text-center bg-surface-container-low/50 md:bg-transparent">
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Active Status</span>
+                            <div className="flex flex-col items-end md:items-center">
+                              <button
+                                onClick={() => handleToggleStatus(client)}
+                                disabled={isUpdating || profile?.systemRole === 'Employee'}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isActive ? 'bg-[#25d366]' : 'bg-outline-variant'} ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                role="switch"
+                                aria-checked={isActive}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
+                                />
+                              </button>
+                              <span className={`block text-[10px] font-bold mt-1 uppercase tracking-wider ${isActive ? 'text-[#25d366]' : 'text-secondary'}`}>
+                                {isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       )
                     })}
                     {filteredClients.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="py-12 text-center text-secondary">
+                      <tr className="block md:table-row">
+                        <td colSpan={7} className="block md:table-cell py-12 text-center text-secondary">
                           <span className="material-symbols-outlined text-4xl mb-2 block opacity-50">search_off</span>
                           <p>No clients found matching your search.</p>
                         </td>

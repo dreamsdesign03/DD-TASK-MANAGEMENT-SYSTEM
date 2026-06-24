@@ -411,16 +411,16 @@ export default function TaskTable() {
           <div className="hidden md:block flex-grow"></div>
 
           {/* View Mode Toggle */}
-          <div className="flex bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm mt-4 md:mt-0">
+          <div className="flex w-full md:w-auto bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm mt-4 md:mt-0 overflow-x-auto custom-scrollbar">
             <button
               onClick={() => setViewMode('List')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
             >
               <span className="material-symbols-outlined text-[18px]">list</span> List
             </button>
             <button
               onClick={() => setViewMode('Board')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'Board' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'Board' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
             >
               <span className="material-symbols-outlined text-[18px]">view_kanban</span> Board
             </button>
@@ -432,7 +432,7 @@ export default function TaskTable() {
                   navigate(`/projects/${encodeURIComponent(selectedClient)}`)
                 }
               }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-md text-label-sm font-bold transition-all text-primary hover:text-primary hover:bg-primary/10 border-l border-outline-variant/50 ml-1 pl-5 bg-primary/5"
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all text-primary hover:text-primary hover:bg-primary/10 md:border-l md:border-outline-variant/50 md:ml-1 md:pl-4 bg-primary/5"
               title="Open Overview"
             >
               <span className="material-symbols-outlined text-[18px]">open_in_new</span> Overview
