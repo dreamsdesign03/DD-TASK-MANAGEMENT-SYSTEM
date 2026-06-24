@@ -110,12 +110,12 @@ export default function MyTasksPage() {
   }
 
   return (
-    <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
+    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main */}
-      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden">
         {/* Top nav */}
         <TopNav />
 

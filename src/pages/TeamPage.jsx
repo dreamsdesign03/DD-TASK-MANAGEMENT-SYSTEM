@@ -80,10 +80,10 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="bg-background text-on-surface flex h-screen overflow-hidden">
+    <div className="bg-background text-on-surface flex h-[100dvh] overflow-hidden">
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
         <TopNav />
 
         <main className="flex-1 bg-surface-container-low overflow-y-auto custom-scrollbar pt-0 pb-12">

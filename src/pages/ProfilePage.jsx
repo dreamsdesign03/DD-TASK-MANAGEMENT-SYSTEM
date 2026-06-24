@@ -16,12 +16,12 @@ export default function ProfilePage() {
   const { profile, setProfile } = useApp()
 
   return (
-    <div className="bg-background text-on-background flex h-screen overflow-hidden">
+    <div className="bg-background text-on-background flex h-[100dvh] overflow-hidden">
       {/* SideNavBar */}
       <Sidebar />
 
       {/* Main Container */}
-      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
         {/* TopNavBar */}
         <TopNav />
 

@@ -127,9 +127,9 @@ export default function ClientsPage() {
   })
 
   return (
-    <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
+    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
       <Sidebar />
-      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden">
         <TopNav />
         <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
           <div className="max-w-[1450px] mx-auto w-full py-4 space-y-6">

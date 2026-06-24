@@ -1350,10 +1350,10 @@ export default function ChatPage() {
 
 
   return (
-    <div className="bg-surface text-on-surface overflow-hidden h-screen flex">
+    <div className="bg-surface text-on-surface overflow-hidden h-[100dvh] flex">
       <Sidebar />
 
-      <main className="md:ml-[240px] flex flex-1 h-screen overflow-hidden">
+      <main className="md:ml-[240px] flex flex-1 h-[100dvh] overflow-hidden">
         {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
           {/* Panel header with Clear All button */}
@@ -1546,7 +1546,7 @@ export default function ChatPage() {
               {/* Header */}
               <div className="h-14 md:h-16 flex items-center justify-between px-2 md:px-6 md:bg-surface-container-lowest bg-primary md:text-on-surface text-white border-b border-outline-variant flex-shrink-0 shadow-sm md:shadow-none z-10">
                 <div className="flex items-center gap-1 md:gap-3">
-                  <button 
+                  <button
                     className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/20 transition-colors -ml-1 text-white"
                     onClick={() => setSelectedChatId(null)}
                   >

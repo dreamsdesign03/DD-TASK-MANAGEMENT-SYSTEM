@@ -190,10 +190,10 @@ export default function ProjectOverviewPage() {
   const progressPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   return (
-    <div className="bg-surface text-on-surface flex h-screen overflow-hidden">
+    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
       <Sidebar />
 
-      <main className="md:ml-[240px] flex-1 flex flex-col h-screen overflow-hidden bg-surface-container-lowest">
+      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden bg-surface-container-lowest">
         <TopNav />
 
         {/* Header Area */}

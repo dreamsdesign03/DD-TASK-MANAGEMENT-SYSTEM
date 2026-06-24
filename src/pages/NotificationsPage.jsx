@@ -78,10 +78,10 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => n.unread).length
 
   return (
-    <div className="bg-surface-bright text-on-surface flex h-screen overflow-hidden">
+    <div className="bg-surface-bright text-on-surface flex h-[100dvh] overflow-hidden">
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-screen overflow-hidden">
+      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
         <TopNav />
 
         <main className="flex-1 bg-background overflow-y-auto custom-scrollbar">

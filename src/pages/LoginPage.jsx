@@ -180,7 +180,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen w-full">
+    <main className="flex min-h-[100dvh] w-full">
       {/* â”€â”€ LEFT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, #1b0a33 0%, #461466 100%)' }}>
         <div className="absolute inset-0 z-0 opacity-10 bg-[url('/noise.png')] mix-blend-overlay"></div>
