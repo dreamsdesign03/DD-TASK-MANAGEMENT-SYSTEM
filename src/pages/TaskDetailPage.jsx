@@ -118,6 +118,7 @@ export default function TaskDetailPage() {
   const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [subtaskToDelete, setSubtaskToDelete] = useState(null)
+  const [infoModal, setInfoModal] = useState(null)
 
   const handleDueDateChange = (e) => {
     const val = e.target.value;
@@ -482,7 +483,12 @@ export default function TaskDetailPage() {
     const file = e.target.files[0]
     if (!file) return
     if (file.size > 4 * 1024 * 1024) {
-      alert('File size should be less than 4MB')
+      setInfoModal({
+        title: 'File Too Large',
+        message: 'File size should be less than 4MB',
+        icon: 'warning',
+        color: 'text-[#f59e0b]'
+      })
       return
     }
     const reader = new FileReader()
@@ -509,7 +515,12 @@ export default function TaskDetailPage() {
       status: localStatus,
       done: localStatus === 'Done',
     })
-    alert(`Status saved: ${localStatus}`)
+    setInfoModal({
+      title: 'Status Updated',
+      message: `Status saved: ${localStatus}`,
+      icon: 'check_circle',
+      color: 'text-[#25d366]'
+    })
   }
 
   const taskMessages = messagesByChatId?.[task.id] || []
@@ -1424,6 +1435,29 @@ export default function TaskDetailPage() {
                 className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Info Modal */}
+      {infoModal && (
+        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
+          <div className="bg-surface-container-lowest w-[350px] rounded-xl shadow-xl p-6 flex flex-col gap-4 animate-scale-in">
+            <div className={`flex items-center gap-3 ${infoModal.color || 'text-primary'}`}>
+              <span className="material-symbols-outlined text-[28px]">{infoModal.icon || 'info'}</span>
+              <h2 className="text-[18px] font-bold">{infoModal.title}</h2>
+            </div>
+            <p className="text-body-sm text-secondary">
+              {infoModal.message}
+            </p>
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setInfoModal(null)}
+                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+              >
+                OK
               </button>
             </div>
           </div>

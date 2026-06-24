@@ -13,7 +13,8 @@ function isUserAuthorized(email, ss) {
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
       var systemRole = String(data[i][9] || "").trim();
-      if (systemRole === "Admin" || systemRole === "Manager") {
+      var regularRole = String(data[i][4] || "").trim();
+      if (systemRole === "Admin" || systemRole === "Manager" || regularRole === "Admin" || regularRole === "Manager" || systemRole === "") {
         return true;
       }
       return false;
