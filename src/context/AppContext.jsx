@@ -567,7 +567,7 @@ export function AppProvider({ children }) {
         timestamp: new Date().toISOString(),
         type: 'personal'
       }
-      fetch('https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(sheetPayload)
@@ -692,7 +692,7 @@ export function AppProvider({ children }) {
   // Fetch messages from n8n CHAT_ENGINE Webhook
   const fetchMessages = async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec'
 
       let res = null;
       try {
@@ -1344,7 +1344,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1424,7 +1424,7 @@ export function AppProvider({ children }) {
     // Prevent this new task from being wiped out by an immediate sync
     recentTaskUpdates.current[newTask.id] = { timestamp: Date.now(), fields: newTask, isNew: true }
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec'
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1466,7 +1466,7 @@ export function AppProvider({ children }) {
 
   const deleteTask = async (id) => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec'
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1648,7 +1648,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec?action=get_tasks&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec?action=get_tasks&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1738,7 +1738,7 @@ export function AppProvider({ children }) {
     let success = false
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec?action=get_team&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec?action=get_team&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -1773,7 +1773,7 @@ export function AppProvider({ children }) {
 
   const fetchClients = async () => {
     try {
-      const url = `https://script.google.com/macros/s/AKfycbx6cG9mSDw0pkVe9fdA3L06RXRst9SH0xa09sNb97zlzdk4D1p-MbWM8NmGXFZqiSc/exec?action=get_clients&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzlhWbVBMLT7C69kORhzWtdo1HlvyMToFpwh1liwri0Oapek3MAYZ9gRenI6gI3U8PX/exec?action=get_clients&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
