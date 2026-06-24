@@ -1824,12 +1824,32 @@ export function AppProvider({ children }) {
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
+    // Listen for realtime sync triggers from other clients
+    mqttClient.subscribe('dd_task_engine_v1/sync')
+    const handleSyncMessage = (topic, message) => {
+      if (topic === 'dd_task_engine_v1/sync') {
+        try {
+          const payload = JSON.parse(message.toString())
+          if (payload.action === 'sync') {
+            fetchSyncedTasks()
+            fetchTeam()
+            fetchClients()
+          }
+        } catch (e) {
+          console.warn('Failed to parse task sync message:', e)
+        }
+      }
+    }
+    mqttClient.on('message', handleSyncMessage)
+
     return () => {
       clearInterval(taskInterval)
       clearInterval(msgInterval)
       clearInterval(teamInterval)
       clearInterval(clientInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      mqttClient.unsubscribe('dd_task_engine_v1/sync')
+      mqttClient.removeListener('message', handleSyncMessage)
     }
   }, [profile])
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
-import { useApp } from '../context/AppContext'
+import { useApp, mqttClient } from '../context/AppContext'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -77,6 +77,11 @@ export default function ClientsPage() {
       if (data.ok) {
         await fetchClients()
         setEditingClient(null)
+        if (mqttClient && mqttClient.connected) {
+          setTimeout(() => {
+            mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
+          }, 1000)
+        }
       } else {
         alert('Failed to update client: ' + (data.error || 'Unknown error'))
       }
@@ -106,6 +111,11 @@ export default function ClientsPage() {
       const data = await res.json()
       if (data.ok) {
         await fetchClients()
+        if (mqttClient && mqttClient.connected) {
+          setTimeout(() => {
+            mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
+          }, 1000)
+        }
       } else {
         alert('Failed to update client status: ' + (data.error || 'Unknown error'))
       }

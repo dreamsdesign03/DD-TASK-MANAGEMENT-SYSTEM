@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
+import { useApp, mqttClient } from '../context/AppContext'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -71,6 +71,11 @@ export default function Sidebar() {
         setShowNewClientModal(false)
         setClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
         fetchClients()
+        if (mqttClient && mqttClient.connected) {
+          setTimeout(() => {
+            mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
+          }, 1000)
+        }
       } else {
         alert('Failed to add client: ' + (data.error || 'Unknown error'))
       }
