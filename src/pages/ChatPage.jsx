@@ -326,6 +326,9 @@ export default function ChatPage() {
 
   const [activeTab, setActiveTab] = useState('personal') // 'personal' | 'groups'
   const [selectedChatId, setSelectedChatId] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return null
+    }
     const savedProfile = (() => {
       try {
         const saved = localStorage.getItem('dd_profile')

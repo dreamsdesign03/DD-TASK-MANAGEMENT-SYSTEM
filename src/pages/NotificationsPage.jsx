@@ -85,29 +85,34 @@ export default function NotificationsPage() {
         <TopNav />
 
         <main className="flex-1 bg-background overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto px-margin_desktop py-10">
+          <div className="max-w-[1200px] mx-auto px-4 md:px-margin_desktop py-6 md:py-10">
             {/* ── Header row ──────────────────────────────────────── */}
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2
-                  className="text-on-surface mb-6"
-                  style={{ fontWeight: 700, fontSize: '28px', fontFamily: 'Montserrat' }}
-                >
-                  Notifications
-                  {unreadCount > 0 && (
-                    <span className="ml-3 text-[16px] font-label-md text-white bg-primary px-2.5 py-0.5 rounded-full">
-                      {unreadCount}
-                    </span>
-                  )}
-                </h2>
+            <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end mb-6 md:mb-8 gap-4 md:gap-0">
+              <div className="w-full md:w-auto">
+                <div className="flex items-center gap-2 mb-4 md:mb-6">
+                  <button className="md:hidden p-1 -ml-1 hover:bg-surface-container rounded-full flex items-center justify-center transition-colors" onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}>
+                    <span className="material-symbols-outlined text-[24px]">menu</span>
+                  </button>
+                  <h2
+                    className="text-on-surface"
+                    style={{ fontWeight: 700, fontSize: '24px', fontFamily: 'Montserrat' }}
+                  >
+                    Notifications
+                    {unreadCount > 0 && (
+                      <span className="ml-3 text-[14px] md:text-[16px] font-label-md text-white bg-primary px-2.5 py-0.5 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </h2>
+                </div>
 
                 {/* Filter tabs */}
-                <div className="flex items-center gap-8 border-b border-outline-variant/30">
+                <div className="flex items-center gap-4 md:gap-8 border-b border-outline-variant/30 overflow-x-auto w-full custom-scrollbar">
                   {FILTER_TABS.map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveFilter(tab)}
-                      className={`pb-3 px-1 font-label-md text-label-md transition-colors ${activeFilter === tab
+                      className={`pb-3 px-1 font-label-md text-label-md transition-colors whitespace-nowrap ${activeFilter === tab
                         ? 'text-primary border-b-2 border-primary -mb-px'
                         : 'text-on-surface-variant hover:text-on-surface'
                         }`}
@@ -124,7 +129,7 @@ export default function NotificationsPage() {
                   e.preventDefault()
                   markAllNotificationsRead()
                 }}
-                className="pb-3 font-label-md text-label-md text-primary hover:underline"
+                className="pb-2 md:pb-3 font-label-md text-label-md text-primary hover:underline w-full md:w-auto text-right md:text-left"
               >
                 Mark all as read
               </a>
