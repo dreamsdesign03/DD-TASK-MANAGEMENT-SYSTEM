@@ -120,22 +120,13 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
-/* Floating label behaviour */
-.login-input:focus-within label,
-.login-input input:not(:placeholder-shown)+label {
-  transform: translateY(-24px) scale(0.85);
-  color: #702c91;
-  background: #ffffff;
-  padding: 0 4px;
-}
-
 /* Fix autofill text color */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px transparent inset !important;
-  -webkit-text-fill-color: #1A1A1A !important;
+  -webkit-text-fill-color: var(--color-on-surface) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
