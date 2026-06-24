@@ -17,20 +17,6 @@ export default defineConfig({
   server: {
     port: 8000,
     strictPort: true,
-    allowedHosts: true,
-    proxy: {
-      '/api-n8n': {
-        target: 'https://improvise-from-elusive.ngrok-free.dev',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api-n8n/, ''),
-      },
-      '/api-local': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api-local/, ''),
-      }
-    }
+    allowedHosts: true
   }
 })
