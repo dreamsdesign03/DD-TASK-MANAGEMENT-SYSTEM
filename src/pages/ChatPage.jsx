@@ -1353,9 +1353,24 @@ export default function ChatPage() {
         {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
           {/* Panel header with Clear All button */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <h2 className="text-label-lg font-bold text-on-surface">Messages</h2>
-
+          <div className="flex items-center justify-between px-4 pt-4 pb-2 md:bg-transparent bg-[#075e54] md:text-on-surface text-white">
+            <div className="flex items-center gap-2">
+              <button className="md:hidden p-1 -ml-1 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" onClick={() => setIsSidebarOpen(true)}>
+                <span className="material-symbols-outlined text-[24px]">menu</span>
+              </button>
+              <h2 className="text-[20px] font-semibold tracking-tight">Messages</h2>
+            </div>
+            <div className="flex items-center gap-4 md:hidden">
+              <button className="hover:opacity-80 transition-opacity">
+                <span className="material-symbols-outlined text-[22px]">camera_alt</span>
+              </button>
+              <button className="hover:opacity-80 transition-opacity">
+                <span className="material-symbols-outlined text-[22px]">search</span>
+              </button>
+              <button className="hover:opacity-80 transition-opacity">
+                <span className="material-symbols-outlined text-[22px]">more_vert</span>
+              </button>
+            </div>
           </div>
 
           {/* Search */}
@@ -1535,54 +1550,54 @@ export default function ChatPage() {
           {activeChat ? (
             <>
               {/* Header */}
-              <div className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-outline-variant flex-shrink-0">
-                <div className="flex items-center gap-3">
+              <div className="h-14 md:h-16 flex items-center justify-between px-2 md:px-6 md:bg-surface-container-lowest bg-[#075e54] md:text-on-surface text-white border-b border-outline-variant flex-shrink-0 shadow-sm md:shadow-none z-10">
+                <div className="flex items-center gap-1 md:gap-3">
                   <button 
-                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container transition-colors -ml-1 text-secondary"
+                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/20 transition-colors -ml-1 text-white"
                     onClick={() => setSelectedChatId(null)}
                   >
-                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                    <span className="material-symbols-outlined text-[24px]">arrow_back</span>
                   </button>
                   {activeTab === 'personal' ? (
-                    <>
-                      {renderAvatar(activeChat?.avatar, activeChat?.name, "w-10 h-10 rounded-full")}
-                      <div>
-                        <h3 className="text-label-lg font-bold">{activeChat?.name}</h3>
-                        <span className="text-label-sm text-[#22c55e] flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-[#22c55e]"></span> Online
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      {renderAvatar(activeChat?.avatar, activeChat?.name, "w-9 h-9 md:w-10 md:h-10 rounded-full border border-white/20 md:border-none")}
+                      <div className="flex flex-col">
+                        <h3 className="text-[15px] md:text-label-lg font-semibold leading-tight truncate max-w-[160px] sm:max-w-[220px]">{activeChat?.name}</h3>
+                        <span className="text-[12px] md:text-label-sm text-white/80 md:text-[#22c55e] flex items-center gap-1 font-medium">
+                          Online
                         </span>
                       </div>
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <div className="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-white">
-                        <span className="material-symbols-outlined">{activeChat?.icon || 'groups'}</span>
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      <div className="w-9 h-9 md:w-10 md:h-10 bg-white/20 md:bg-primary-container rounded-full flex items-center justify-center text-white">
+                        <span className="material-symbols-outlined text-[20px]">{activeChat?.icon || 'groups'}</span>
                       </div>
-                      <div>
-                        <h3 className="text-label-lg font-bold">{activeChat?.name}</h3>
-                        <span className="text-label-sm text-primary">Members ({activeMembersList.length})</span>
+                      <div className="flex flex-col">
+                        <h3 className="text-[15px] md:text-label-lg font-semibold leading-tight truncate max-w-[160px] sm:max-w-[220px]">{activeChat?.name}</h3>
+                        <span className="text-[12px] md:text-label-sm text-white/80 md:text-primary truncate max-w-[160px] font-medium">{activeMembersList.map(m => m.name.split(' ')[0]).join(', ')}</span>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
-                <div className="flex items-center gap-4 text-outline relative" ref={moreDropdownRef}>
-                  <button
-                    onClick={() => setShowSearchModal(true)}
-                    className="hover:text-primary transition-colors"
-                    title="Search messages"
-                  >
-                    <span className="material-symbols-outlined">search</span>
-                  </button>
-
+                <div className="flex items-center gap-4 md:gap-4 text-white md:text-outline relative" ref={moreDropdownRef}>
                   <button
                     onClick={handleCreateMeeting}
-                    className="hover:text-[#25d366] transition-colors flex items-center"
-                    title="Send Meeting Link"
+                    className="hover:text-white/80 md:hover:text-[#25d366] transition-colors flex items-center"
+                    title="Video Call"
                   >
-                    <span className="material-symbols-outlined">videocam</span>
+                    <span className="material-symbols-outlined text-[24px] md:text-[22px]">videocam</span>
                   </button>
-
-
+                  <button
+                    onClick={() => setShowSearchModal(true)}
+                    className="hover:text-white/80 md:hover:text-primary transition-colors hidden md:block"
+                    title="Search messages"
+                  >
+                    <span className="material-symbols-outlined text-[22px]">search</span>
+                  </button>
+                  <button className="md:hidden hover:text-white/80 transition-colors flex items-center">
+                    <span className="material-symbols-outlined text-[24px]">more_vert</span>
+                  </button>
                 </div>
               </div>
 
