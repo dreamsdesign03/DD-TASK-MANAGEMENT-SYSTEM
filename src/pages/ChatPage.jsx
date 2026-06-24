@@ -318,6 +318,7 @@ export default function ChatPage() {
     clearedChatTimestamps,
     readReceiptsByChatId,
     messageStatusByChatId,
+    setIsSidebarOpen,
   } = useApp()
   const ALL_EMPLOYEES = employees || []
   const location = useLocation()
