@@ -68,7 +68,7 @@ export default function ClientsPage() {
         services: clientForm.services.join(', '),
         userEmail: profile?.email
       }
-      const res = await fetch('https://script.google.com/macros/s/AKfycbxPVKFR4TKWe4Mp_6KWwF2p3CUS3qmr3bU69xCmqYpi5g0I1-av2-N2jBCiPljM-HlK/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbxJXe4c9yDIEtf7UHaXHWBIpMnnc4NxtSwOl3nVzvTsN882GWIDzbMdTm1-cIUueGQo/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
@@ -93,7 +93,7 @@ export default function ClientsPage() {
 
     setIsUpdating(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbxPVKFR4TKWe4Mp_6KWwF2p3CUS3qmr3bU69xCmqYpi5g0I1-av2-N2jBCiPljM-HlK/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbxJXe4c9yDIEtf7UHaXHWBIpMnnc4NxtSwOl3nVzvTsN882GWIDzbMdTm1-cIUueGQo/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -135,15 +135,15 @@ export default function ClientsPage() {
           <div className="max-w-[1450px] mx-auto w-full py-4 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
-                <h2 
+                <h2
                   className="mb-1 text-primary"
                   style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
                 >
-                  Clients Database
+                  Clients
                 </h2>
                 <p className="text-secondary text-body-sm">Manage client details and active status.</p>
               </div>
-              
+
               <div className="relative max-w-xs w-full">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none">
                   search
@@ -182,7 +182,7 @@ export default function ClientsPage() {
                           <td className="py-3 px-4 text-body-sm font-bold text-secondary whitespace-nowrap">
                             {client['Client ID']}
                           </td>
-                          <td 
+                          <td
                             className={`py-3 px-4 text-body-sm font-bold ${profile?.systemRole !== 'Employee' ? 'text-primary cursor-pointer hover:underline' : 'text-primary'}`}
                             onClick={() => openEditModal(client)}
                           >
@@ -398,7 +398,7 @@ export default function ClientsPage() {
                         const isChecked = e.target.checked
                         setClientForm(prev => ({
                           ...prev,
-                          services: isChecked 
+                          services: isChecked
                             ? [...prev.services, service]
                             : prev.services.filter(s => s !== service)
                         }))
