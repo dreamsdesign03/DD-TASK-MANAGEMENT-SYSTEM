@@ -1897,7 +1897,7 @@ export default function ChatPage() {
 
         {/* â”€â”€ RIGHT PANEL: Details Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeChat && activeTab === 'personal' && (
-          <div className="w-[240px] bg-surface flex flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
+          <div className="hidden lg:flex w-[240px] bg-surface flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
             <div className="flex flex-col items-center gap-4">
               {renderAvatar(activeChat?.avatar, activeChat?.name, "w-20 h-20 rounded-full shadow-lg border-2 border-white", "text-[24px]")}
               <div className="text-center">
@@ -1917,7 +1917,7 @@ export default function ChatPage() {
         )}
 
         {activeChat && activeTab === 'groups' && (
-          <div className="w-[240px] bg-surface flex flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
+          <div className="hidden lg:flex w-[240px] bg-surface flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
             <div className="flex flex-col items-center gap-4">
               <div className="w-20 h-20 bg-primary-container rounded-2xl flex items-center justify-center shadow-lg border-2 border-white">
                 <span className="material-symbols-outlined text-white text-[40px]">{activeChat?.icon || 'groups'}</span>
