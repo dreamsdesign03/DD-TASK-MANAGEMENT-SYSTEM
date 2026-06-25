@@ -13,7 +13,7 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div className="min-h-[100dvh] bg-[#F8FAFC] text-slate-900 overflow-x-hidden selection:bg-primary/20 selection:text-primary" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-primary/20 selection:text-primary" style={{ fontFamily: "'Montserrat', sans-serif" }}>
       {/* Subtle Grid Background */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" 
            style={{ backgroundImage: 'linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
@@ -44,23 +44,23 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="relative z-10 flex flex-col items-center px-6 pt-28 md:pt-32 pb-12 max-w-7xl mx-auto w-full min-h-[calc(100vh-80px)] justify-center">
+      <main className="relative z-10 flex flex-col items-center px-6 pt-32 md:pt-48 pb-24 max-w-7xl mx-auto w-full">
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12 w-full">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-16 w-full">
           <div className="flex-1 flex flex-col items-start text-left max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 font-semibold text-xs mb-8 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               Dreamsdesk Setup 0.0.0 is live
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-[4rem] font-black tracking-tight leading-[1.1] mb-6 text-slate-900">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6 text-slate-900">
               The ultimate <br />
               <span className="text-primary">
                 workspace
               </span> for teams.
             </h1>
             
-            <p className="text-base md:text-lg text-slate-600 mb-8 leading-relaxed font-medium max-w-lg">
+            <p className="text-base md:text-lg text-slate-600 mb-10 leading-relaxed font-medium max-w-lg">
               Experience unparalleled speed and focus. Native performance, real-time sync, and everything your team needs to ship faster.
             </p>
 
@@ -89,8 +89,8 @@ export default function LandingPage() {
 
           <div className="flex-1 w-full max-w-2xl relative">
             {/* Dreamsdesk Dashboard Realistic Mockup */}
-            <div className="relative rounded-[1.5rem] bg-white p-2 border border-slate-200 shadow-xl shadow-slate-200/50 transform rotate-1 hover:rotate-0 hover:scale-[1.01] transition-all duration-500">
-              <div className="rounded-xl bg-slate-50 overflow-hidden border border-slate-200 flex flex-col h-[380px] relative">
+            <div className="relative rounded-[1.5rem] bg-white p-2 border border-slate-200 shadow-2xl shadow-slate-200/50 transform rotate-1 hover:rotate-0 hover:scale-[1.01] transition-all duration-500">
+              <div className="rounded-xl bg-slate-50 overflow-hidden border border-slate-200 flex flex-col h-[420px] relative">
                 
                 {/* Browser/Window Header */}
                 <div className="h-10 border-b border-slate-200 flex items-center px-4 gap-2 bg-white shrink-0">
@@ -206,7 +206,7 @@ export default function LandingPage() {
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 w-full">
           {[
             {
               title: 'Lightning Fast',
@@ -224,19 +224,19 @@ export default function LandingPage() {
               icon: 'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z'
             }
           ].map((feature, i) => (
-            <div key={i} className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} /></svg>
+            <div key={i} className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} /></svg>
               </div>
-              <h3 className="text-lg font-bold mb-2 tracking-tight text-slate-900">{feature.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed font-normal">{feature.desc}</p>
+              <h3 className="text-xl font-bold mb-3 tracking-tight text-slate-900">{feature.title}</h3>
+              <p className="text-slate-500 leading-relaxed font-normal">{feature.desc}</p>
             </div>
           ))}
         </div>
       </main>
 
-      <footer className="relative z-10 py-8 text-center border-t border-slate-200 bg-white mt-auto">
-        <p className="text-slate-500 text-xs font-medium">&copy; {new Date().getFullYear()} Dreamsdesign. Built for high-performance teams.</p>
+      <footer className="relative z-10 py-10 text-center border-t border-slate-200 bg-white">
+        <p className="text-slate-500 text-sm font-medium">&copy; {new Date().getFullYear()} Dreamsdesign. Built for high-performance teams.</p>
       </footer>
     </div>
   )
