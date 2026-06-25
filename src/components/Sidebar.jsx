@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const navigate = useNavigate()
-  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
+  const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, setProfile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
   
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [clientForm, setClientForm] = useState({
@@ -200,6 +200,8 @@ export default function Sidebar() {
                 body: JSON.stringify({ action: 'logout', email: profile.email })
               }).catch(e => console.warn(e))
             }
+            setProfile(null)
+            localStorage.removeItem('dd_profile')
             navigate('/login')
           }}
           className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container-low transition-colors duration-200"

@@ -78,6 +78,16 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  // Handle deep link if app was opened from a closed state (Windows/Linux)
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (process.platform === 'win32' || process.platform === 'linux') {
+      const url = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`))
+      if (url) {
+        mainWindow.webContents.send('deep-link', url)
+      }
+    }
+  })
 }
 
 function createTray() {

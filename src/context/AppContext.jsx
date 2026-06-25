@@ -256,16 +256,7 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('Failed to parse saved profile:', err)
     }
-    return {
-      name: 'Mansi Shah',
-      role: 'Designer',
-      email: 'mansi@dreamsdesign.in',
-      phone: '+91 98000 10001',
-      joined: '2024-01-15',
-      department: 'Creative',
-      location: 'Remote',
-      avatar: '',
-    }
+    return null
   })
 
   useEffect(() => {

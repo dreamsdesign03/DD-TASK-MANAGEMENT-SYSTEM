@@ -37,8 +37,9 @@ export default function LoginPage() {
         try {
           const urlObj = new URL(url)
           if (urlObj.protocol === 'dreamsdesk:') {
-            const linkEmail = urlObj.searchParams.get('email')
+            let linkEmail = urlObj.searchParams.get('email')
             if (linkEmail) {
+              linkEmail = linkEmail.replace(/\/$/, '')
               setLoading(true)
               const res = await fetch(SCRIPT_URL, {
                 method: 'POST',
@@ -242,13 +243,13 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col items-center text-center px-12">
           <div className="mb-10 group relative cursor-pointer inline-block">
             <div className="absolute inset-0 bg-surface-container-lowest opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700 rounded-full pointer-events-none" />
-            
+
             <img
               alt="Dreamsdesk Logo"
               className="max-w-[280px] h-auto opacity-0"
               src={LOGO_SRC}
             />
-            
+
             <div
               className="absolute inset-0 transition-transform duration-700 hover-bird-fly z-10"
               style={{
