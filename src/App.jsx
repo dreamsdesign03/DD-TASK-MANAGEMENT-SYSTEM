@@ -29,6 +29,38 @@ function GlobalNav() {
   return null
 }
 
+function DesktopLauncher({ profile }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-surface text-primary p-6">
+      <div className="bg-surface-container-lowest p-8 rounded-2xl shadow-xl max-w-md w-full text-center flex flex-col items-center">
+        <div className="w-16 h-16 mb-6">
+          <div className="logo-mask w-full h-full" aria-label="Dreamsdesk Logo" />
+        </div>
+        <h1 className="text-headline-md font-bold mb-3 text-on-surface">Authentication Successful!</h1>
+        <p className="text-body-lg text-secondary mb-8">
+          We are launching the Dreamsdesk desktop application for you. If your browser blocked the automatic popup, please click the button below.
+        </p>
+        
+        <div className="flex flex-col gap-4 w-full">
+          <button 
+            onClick={() => window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`}
+            className="w-full h-12 bg-primary text-white rounded-lg font-label-lg font-bold hover:opacity-90 transition-opacity"
+          >
+            Open Desktop App
+          </button>
+          
+          <button 
+            onClick={() => window.location.href = window.location.pathname + '#/tasks'}
+            className="w-full h-12 bg-surface border border-outline text-on-surface rounded-lg font-label-lg hover:bg-surface-container-low transition-colors"
+          >
+            Continue to Web Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProtectedRoute({ children }) {
   const { profile } = useApp()
   const searchParams = new URLSearchParams(window.location.search)
@@ -39,11 +71,7 @@ function ProtectedRoute({ children }) {
 
   if (searchParams.get('desktop') === 'true' && profile.email) {
     window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
-    return (
-      <div className="flex items-center justify-center min-h-[100dvh] bg-surface text-primary">
-        <p className="font-label-lg">Redirecting to Dreamsdesk App...</p>
-      </div>
-    )
+    return <DesktopLauncher profile={profile} />
   }
 
   return children
@@ -56,11 +84,7 @@ function RootRedirect() {
   if (profile && profile.email) {
     if (searchParams.get('desktop') === 'true') {
       window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
-      return (
-        <div className="flex items-center justify-center min-h-[100dvh] bg-surface text-primary">
-          <p className="font-label-lg">Redirecting to Dreamsdesk App...</p>
-        </div>
-      )
+      return <DesktopLauncher profile={profile} />
     }
     return <Navigate to="/tasks" replace />
   }
