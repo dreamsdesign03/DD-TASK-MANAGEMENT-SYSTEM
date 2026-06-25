@@ -33,7 +33,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (isElectron && window.require) {
       const { ipcRenderer } = window.require('electron')
-      
+
       const processDeepLink = async (url) => {
         try {
           const urlObj = new URL(url)
