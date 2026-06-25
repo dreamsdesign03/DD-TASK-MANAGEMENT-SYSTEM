@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useApp } from './context/AppContext'
 import LoginPage from './pages/LoginPage'
@@ -37,13 +37,21 @@ function ProtectedRoute({ children }) {
   return children
 }
 
+function RootRedirect() {
+  const { profile } = useApp()
+  if (profile && profile.email) {
+    return <Navigate to="/tasks" replace />
+  }
+  return <Navigate to="/login" replace />
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <GlobalNav />
       <Routes>
-        {/* Default → login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Default */}
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* App routes */}
@@ -64,7 +72,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
