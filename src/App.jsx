@@ -39,7 +39,17 @@ function ProtectedRoute({ children }) {
 
 function RootRedirect() {
   const { profile } = useApp()
+  const searchParams = new URLSearchParams(window.location.search)
+
   if (profile && profile.email) {
+    if (searchParams.get('desktop') === 'true') {
+      window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
+      return (
+        <div className="flex items-center justify-center min-h-[100dvh] bg-surface text-primary">
+          <p className="font-label-lg">Redirecting to Dreamsdesk App...</p>
+        </div>
+      )
+    }
     return <Navigate to="/tasks" replace />
   }
   return <Navigate to="/login" replace />

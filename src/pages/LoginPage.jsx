@@ -168,7 +168,8 @@ export default function LoginPage() {
         const data = await res.json()
 
         if (data.ok && data.authenticated && data.user) {
-          if (searchParams.get('desktop') === 'true') {
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get('desktop') === 'true') {
             window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
             return
           }
@@ -211,7 +212,8 @@ export default function LoginPage() {
       setLoading(false)
 
       if (data.ok && data.authenticated && data.user) {
-        if (searchParams.get('desktop') === 'true') {
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('desktop') === 'true') {
           window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
           return
         }
