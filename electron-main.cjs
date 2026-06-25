@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Notification, Tray, Menu, nativeImage } = require('electron')
+const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, ipcMain } = require('electron')
 const path = require('path')
 const fs = require('fs')
 const express = require('express')
@@ -13,6 +13,17 @@ if (process.defaultApp) {
 } else {
   app.setAsDefaultProtocolClient(PROTOCOL)
 }
+
+let initialDeepLinkUrl = null
+if (process.platform === 'win32' || process.platform === 'linux') {
+  initialDeepLinkUrl = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`)) || null
+}
+
+ipcMain.handle('get-initial-deep-link', () => {
+  const url = initialDeepLinkUrl
+  initialDeepLinkUrl = null
+  return url
+})
 
 const gotTheLock = app.requestSingleInstanceLock()
 
@@ -78,16 +89,6 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null
-  })
-
-  // Handle deep link if app was opened from a closed state (Windows/Linux)
-  mainWindow.webContents.on('did-finish-load', () => {
-    if (process.platform === 'win32' || process.platform === 'linux') {
-      const url = process.argv.find(arg => arg.startsWith(`${PROTOCOL}://`))
-      if (url) {
-        mainWindow.webContents.send('deep-link', url)
-      }
-    }
   })
 }
 

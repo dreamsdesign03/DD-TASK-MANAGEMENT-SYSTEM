@@ -28,13 +28,13 @@
       "target": [
         "nsis"
       ],
-      "icon": "public/logo.ico"
+      "icon": "public/logo-square.png"
     },
     "mac": {
-      "icon": "public/logo.ico"
+      "icon": "public/logo-square.png"
     },
     "linux": {
-      "icon": "public/logo.png"
+      "icon": "public/logo-square.png"
     }
   },
   "dependencies": {

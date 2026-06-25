@@ -33,7 +33,8 @@ export default function LoginPage() {
   useEffect(() => {
     if (isElectron && window.require) {
       const { ipcRenderer } = window.require('electron')
-      const handleDeepLink = async (e, url) => {
+      
+      const processDeepLink = async (url) => {
         try {
           const urlObj = new URL(url)
           if (urlObj.protocol === 'dreamsdesk:') {
@@ -71,7 +72,16 @@ export default function LoginPage() {
           setLoading(false)
         }
       }
+
+      // 1. Check if the app was launched by a deep link initially
+      ipcRenderer.invoke('get-initial-deep-link').then((url) => {
+        if (url) processDeepLink(url)
+      }).catch(err => console.warn('IPC invoke error:', err))
+
+      // 2. Listen for deep links while the app is already running
+      const handleDeepLink = (e, url) => processDeepLink(url)
       ipcRenderer.on('deep-link', handleDeepLink)
+
       return () => ipcRenderer.removeListener('deep-link', handleDeepLink)
     }
   }, [isElectron, navigate, setProfile])
