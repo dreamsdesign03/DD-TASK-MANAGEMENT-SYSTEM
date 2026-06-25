@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 export default function LandingPage() {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-  const DOWNLOAD_URL = 'https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.0/Dreamsdesk.Setup.0.0.0.exe'
+  const DOWNLOAD_URL = 'https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -50,7 +50,7 @@ export default function LandingPage() {
           <div className="flex-1 flex flex-col items-start text-left max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 font-semibold text-xs mb-8 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              Dreamsdesk Setup 0.0.0 is live
+              Dreamsdesk Setup 0.0.1 is live
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] mb-6 text-slate-900">

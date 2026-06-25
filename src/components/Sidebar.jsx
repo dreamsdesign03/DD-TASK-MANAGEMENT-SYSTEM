@@ -174,7 +174,7 @@ export default function Sidebar() {
       <div className="px-3 mt-auto pt-6 space-y-1 border-t border-outline-variant">
         {!isElectron && (
           <a
-            href="https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.0/Dreamsdesk.Setup.0.0.0.exe"
+            href="https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe"
             className="w-full mb-4 py-3 bg-[#0f172a] text-white rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-[#1e293b] transition-colors shadow-sm group"
           >
             <span className="material-symbols-outlined group-hover:translate-y-[2px] transition-transform">download</span>
