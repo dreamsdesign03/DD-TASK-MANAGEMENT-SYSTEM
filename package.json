@@ -15,9 +15,9 @@
   },
   "build": {
     "appId": "com.dreamsdesign.taskapp",
-    "productName": "DD Task Management",
+    "productName": "Dreamsdesk",
     "directories": {
-      "output": "release"
+      "output": "release_build"
     },
     "files": [
       "dist/**/*",
@@ -27,7 +27,14 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "public/logo.ico"
+    },
+    "mac": {
+      "icon": "public/logo.ico"
+    },
+    "linux": {
+      "icon": "public/logo.png"
     }
   },
   "dependencies": {
@@ -36,9 +43,11 @@
     "emoji-picker-react": "^4.19.1",
     "express": "^5.2.1",
     "html2canvas": "^1.4.1",
+    "jimp": "^0.16.13",
     "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "mqtt": "^5.15.1",
+    "png-to-ico": "^3.0.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.16.0"

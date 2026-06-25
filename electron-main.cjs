@@ -42,12 +42,13 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
+    title: "Dreamsdesk",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     },
     autoHideMenuBar: true,
-    icon: path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.png')
+    icon: path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.ico')
   })
 
   const isDev = process.env.NODE_ENV === 'development'
@@ -81,7 +82,7 @@ function createWindow() {
 
 function createTray() {
   const isDev = process.env.NODE_ENV === 'development'
-  const iconPath = path.join(__dirname, isDev ? 'public' : 'dist', 'logo.png')
+  const iconPath = path.join(__dirname, isDev ? 'public' : 'dist', 'logo.ico')
   const icon = fs.existsSync(iconPath) ? iconPath : nativeImage.createEmpty()
   tray = new Tray(icon)
   const contextMenu = Menu.buildFromTemplate([
@@ -91,7 +92,7 @@ function createTray() {
       app.quit()
     }}
   ])
-  tray.setToolTip('DD Task Management')
+  tray.setToolTip('Dreamsdesk')
   tray.setContextMenu(contextMenu)
   
   tray.on('click', () => {
