@@ -28,6 +28,7 @@ let isQuitting = false
 app.on('second-instance', (event, commandLine, workingDirectory) => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore()
+    if (!mainWindow.isVisible()) mainWindow.show()
     mainWindow.focus()
     const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL}://`))
     if (url) {
