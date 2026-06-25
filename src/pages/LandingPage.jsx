@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom'
 export default function LandingPage() {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-
-  const DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=1g6pJB6L7tjknDftVk_Nfwfte810V5GKY'
+  const DOWNLOAD_URL = 'https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.0/Dreamsdesk.Setup.0.0.0.exe'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
