@@ -5,8 +5,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
 
   // TODO: The user must replace this with the actual URL where they host the Setup.exe file
-  // (e.g., a Google Drive direct link, Dropbox, or AWS S3 link)
-  const DOWNLOAD_URL = '#'
+  const DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=1g6pJB6L7tjknDftVk_Nfwfte810V5GKY'
 
   return (
     <div className="min-h-[100dvh] bg-surface flex flex-col font-sans">
@@ -50,12 +49,6 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center max-w-md mx-auto">
           <a 
             href={DOWNLOAD_URL}
-            onClick={(e) => {
-              if (DOWNLOAD_URL === '#') {
-                e.preventDefault()
-                alert('Please upload "Dreamsdesk Setup 0.0.1.exe" to Google Drive and paste the link here!')
-              }
-            }}
             className="w-full sm:w-auto px-8 py-4 bg-primary text-white rounded-xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-3"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
