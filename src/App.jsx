@@ -6,6 +6,7 @@ import MyTasksPage from './pages/MyTasksPage'
 import TaskDetailPage from './pages/TaskDetailPage'
 import NotificationsPage from './pages/NotificationsPage'
 import ChatPage from './pages/ChatPage'
+import LandingPage from './pages/LandingPage'
 
 import MonthlyReportPage from './pages/MonthlyReportPage'
 import ProfilePage from './pages/ProfilePage'
@@ -43,7 +44,16 @@ function DesktopLauncher({ profile }) {
         
         <div className="flex flex-col gap-4 w-full">
           <button 
-            onClick={() => window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`}
+            onClick={() => {
+              // 1. Fire the deep link
+              window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
+              
+              // 2. Wait a moment to ensure the browser processes the protocol, 
+              // then redirect to the landing page so they aren't stuck here.
+              setTimeout(() => {
+                window.location.href = window.location.pathname + '#/download'
+              }, 1500)
+            }}
             className="w-full h-12 bg-primary text-white rounded-lg font-label-lg font-bold hover:opacity-90 transition-opacity"
           >
             Open Desktop App
@@ -99,6 +109,7 @@ export default function App() {
         {/* Default */}
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/download" element={<LandingPage />} />
 
         {/* App routes */}
         <Route path="/tasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
