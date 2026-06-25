@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
@@ -26,7 +26,54 @@ export default function LoginPage() {
   const [systemRole, setSystemRole] = useState('Employee')
 
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { setProfile, employees } = useApp()
+  const isElectron = /electron/i.test(navigator.userAgent)
+
+  useEffect(() => {
+    if (isElectron && window.require) {
+      const { ipcRenderer } = window.require('electron')
+      const handleDeepLink = async (e, url) => {
+        try {
+          const urlObj = new URL(url)
+          if (urlObj.protocol === 'dreamsdesk:') {
+            const linkEmail = urlObj.searchParams.get('email')
+            if (linkEmail) {
+              setLoading(true)
+              const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'google_login', email: linkEmail })
+              })
+              const data = await res.json()
+              setLoading(false)
+              if (data.ok && data.authenticated && data.user) {
+                setProfile({
+                  name: data.user['Full Name'],
+                  role: data.user['Role'],
+                  email: data.user['Email Address'],
+                  phone: data.user['Phone'] || '',
+                  joined: data.user['Joined Date'] || '',
+                  department: data.user['Department'] || '',
+                  systemRole: data.user['System Role'] || 'Employee',
+                  location: 'Remote',
+                  avatar: '',
+                })
+                navigate('/tasks')
+              } else {
+                setErrorMsg('Deep link login failed or account not approved.')
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Deep link error:', err)
+          setLoading(false)
+        }
+      }
+      ipcRenderer.on('deep-link', handleDeepLink)
+      return () => ipcRenderer.removeListener('deep-link', handleDeepLink)
+    }
+  }, [isElectron, navigate, setProfile])
 
   useEffect(() => {
     let intervalId = null;
@@ -110,6 +157,10 @@ export default function LoginPage() {
         const data = await res.json()
 
         if (data.ok && data.authenticated && data.user) {
+          if (searchParams.get('desktop') === 'true') {
+            window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
+            return
+          }
           setProfile({
             name: data.user['Full Name'],
             role: data.user['Role'],
@@ -149,6 +200,10 @@ export default function LoginPage() {
       setLoading(false)
 
       if (data.ok && data.authenticated && data.user) {
+        if (searchParams.get('desktop') === 'true') {
+          window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
+          return
+        }
         setProfile({
           name: data.user['Full Name'],
           role: data.user['Role'],
@@ -323,7 +378,7 @@ export default function LoginPage() {
               </button>
             )}
 
-            {!isRegisterMode && (
+            {!isRegisterMode && !isElectron && (
               <div className="flex justify-center w-full google-login-wrapper mt-4">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
@@ -334,6 +389,20 @@ export default function LoginPage() {
                   width="360"
                   text="continue_with"
                 />
+              </div>
+            )}
+
+            {isElectron && !isRegisterMode && (
+              <div className="mt-6 flex flex-col items-center space-y-3">
+                <div className="text-secondary text-sm font-medium">Or</div>
+                <button
+                  type="button"
+                  onClick={() => window.require('electron').shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')}
+                  className="w-full h-[54px] bg-surface border border-outline text-on-surface font-label-lg font-medium tracking-wide rounded-[10px] flex items-center justify-center hover:bg-surface-container-high transition-all shadow-sm"
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-3" />
+                  Sign in instantly via Web Browser
+                </button>
               </div>
             )}
 

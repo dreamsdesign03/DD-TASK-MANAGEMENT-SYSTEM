@@ -1,10 +1,40 @@
 const { app, BrowserWindow, Notification, Tray, Menu, nativeImage } = require('electron')
 const path = require('path')
 const fs = require('fs')
+const express = require('express')
+const http = require('http')
+
+const PROTOCOL = 'dreamsdesk'
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(PROTOCOL, process.execPath, [path.resolve(process.argv[1])])
+  }
+} else {
+  app.setAsDefaultProtocolClient(PROTOCOL)
+}
+
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  app.quit()
+  process.exit(0)
+}
 
 let mainWindow
 let tray = null
 let isQuitting = false
+
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+    const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL}://`))
+    if (url) {
+      mainWindow.webContents.send('deep-link', url)
+    }
+  }
+})
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -16,7 +46,8 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false
     },
-    autoHideMenuBar: true
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.png')
   })
 
   const isDev = process.env.NODE_ENV === 'development'
@@ -25,7 +56,15 @@ function createWindow() {
     // Vite dev server runs on 8000 in this project
     mainWindow.loadURL('http://localhost:8000')
   } else {
-    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'))
+    // Serve files via HTTP to bypass file:// protocol restrictions in Google OAuth
+    const expressApp = express()
+    expressApp.use(express.static(path.join(__dirname, 'dist')))
+    
+    const localServer = http.createServer(expressApp)
+    const PORT = 8000
+    localServer.listen(PORT, 'localhost', () => {
+      mainWindow.loadURL(`http://localhost:${PORT}`)
+    })
   }
 
   mainWindow.on('close', (event) => {
@@ -41,7 +80,8 @@ function createWindow() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, 'public', 'favicon.ico')
+  const isDev = process.env.NODE_ENV === 'development'
+  const iconPath = path.join(__dirname, isDev ? 'public' : 'dist', 'logo.png')
   const icon = fs.existsSync(iconPath) ? iconPath : nativeImage.createEmpty()
   tray = new Tray(icon)
   const contextMenu = Menu.buildFromTemplate([
@@ -79,5 +119,12 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin' && isQuitting) {
     app.quit()
+  }
+})
+
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (mainWindow) {
+    mainWindow.webContents.send('deep-link', url)
   }
 })
