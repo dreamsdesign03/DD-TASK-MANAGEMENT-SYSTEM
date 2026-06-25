@@ -31,9 +31,21 @@ function GlobalNav() {
 
 function ProtectedRoute({ children }) {
   const { profile } = useApp()
+  const searchParams = new URLSearchParams(window.location.search)
+
   if (!profile) {
     return <Navigate to="/login" replace />
   }
+
+  if (searchParams.get('desktop') === 'true' && profile.email) {
+    window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
+    return (
+      <div className="flex items-center justify-center min-h-[100dvh] bg-surface text-primary">
+        <p className="font-label-lg">Redirecting to Dreamsdesk App...</p>
+      </div>
+    )
+  }
+
   return children
 }
 
