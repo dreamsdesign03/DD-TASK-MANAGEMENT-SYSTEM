@@ -1900,9 +1900,9 @@ export default function ChatPage() {
             <div className="space-y-4">
               <h4 className="text-label-md font-bold uppercase tracking-wider text-outline">Details</h4>
               <div className="space-y-2 text-label-sm">
-                <p><span className="text-outline">Email:</span> {activeChat?.email || 'N/A'}</p>
-                <p><span className="text-outline">Department:</span> {activeChat?.department || 'N/A'}</p>
-                <p><span className="text-outline">Location:</span> {activeChat?.location || 'Remote'}</p>
+                <p className="break-words"><span className="text-outline">Email:</span> <br/><span className="break-all">{activeChat?.email || 'N/A'}</span></p>
+                <p><span className="text-outline">Department:</span> <br/>{activeChat?.department || 'N/A'}</p>
+                <p><span className="text-outline">Location:</span> <br/>{activeChat?.location || 'Remote'}</p>
               </div>
             </div>
           </div>
