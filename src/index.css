@@ -228,5 +228,20 @@ input:-webkit-autofill:active {
   mask-position: center;
 }
 
+/* Make date inputs trigger calendar on click anywhere */
+input[type="date"] {
+  position: relative;
+}
 
-
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  color: transparent;
+  background: transparent;
+  cursor: pointer;
+}
