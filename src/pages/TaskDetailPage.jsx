@@ -150,6 +150,30 @@ export default function TaskDetailPage() {
     return secs;
   };
 
+  const parseMultiUserTimeStr = (str) => {
+    if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return {};
+    const data = {};
+    if (!str.includes(':')) {
+      data['legacy'] = parseTimeStr(str);
+      return data;
+    }
+    const parts = str.split(',');
+    parts.forEach(part => {
+      const [name, time] = part.split(':');
+      if (name && time) {
+        data[name.trim()] = parseTimeStr(time.trim());
+      }
+    });
+    return data;
+  }
+
+  const buildMultiUserTimeStr = (data) => {
+    return Object.entries(data).map(([name, secs]) => {
+      if (name === 'legacy') return formatTimeStr(secs);
+      return `${name}: ${formatTimeStr(secs)}`;
+    }).join(', ');
+  }
+
   const formatTimeStr = (totalSecs) => {
     const h = Math.floor(totalSecs / 3600);
     const m = Math.floor((totalSecs % 3600) / 60);
@@ -167,9 +191,17 @@ export default function TaskDetailPage() {
     if (isTracking) {
       clearInterval(timerRef.current);
       setIsTracking(false);
-      const currentTotalSecs = parseTimeStr(task.timeTaken);
-      const newTotalSecs = currentTotalSecs + sessionSecs;
-      updateTask(task.id, { timeTaken: formatTimeStr(newTotalSecs) });
+      
+      const timeData = parseMultiUserTimeStr(task.timeTaken);
+      const myName = profile?.name || 'Mansi Shah';
+      
+      if (timeData[myName]) {
+        timeData[myName] += sessionSecs;
+      } else {
+        timeData[myName] = sessionSecs;
+      }
+      
+      updateTask(task.id, { timeTaken: buildMultiUserTimeStr(timeData) });
       setSessionSecs(0);
     } else {
       setIsTracking(true);
@@ -649,39 +681,64 @@ export default function TaskDetailPage() {
                   </button>
                 )}
               </div>
-
               {/* Timer Component (Full Width) */}
-              <div className="flex items-center justify-between w-full bg-surface-container-lowest border-2 border-primary/20 rounded-xl px-5 py-3 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <span className={`material-symbols-outlined text-[28px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">Time Tracked</span>
-                    <span className={`font-bold font-mono text-[16px] min-w-[75px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
-                      {isTracking ? formatTimeStr(sessionSecs) : (task.timeTaken || '0h 0m')}
-                    </span>
-                  </div>
-                </div>
-                
-                {canManageTimer && (
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => { if (!isTracking) handleToggleTimer() }}
-                      disabled={isTracking}
-                      className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${!isTracking ? 'bg-urgent-red text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">play_arrow</span> Start
-                    </button>
-                    <button 
-                      onClick={() => { if (isTracking) handleToggleTimer() }}
-                      disabled={!isTracking}
-                      className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${isTracking ? 'bg-[#25d366] text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
-                    >
-                      <span className="material-symbols-outlined text-[18px]">stop</span> Stop
-                    </button>
-                  </div>
-                )}
-              </div>
+              <div className="flex flex-col gap-2 w-full mt-2">
+                {/* Individual Time Breakdown */}
+                {(() => {
+                  const timeData = parseMultiUserTimeStr(task.timeTaken);
+                  const entries = Object.entries(timeData);
+                  // Don't show breakdown if it's just legacy time or completely empty
+                  if (entries.length > 0 && !(entries.length === 1 && entries[0][0] === 'legacy')) {
+                    const myName = profile?.name || 'Mansi Shah';
+                    return (
+                      <div className="flex flex-wrap gap-2 mb-1">
+                        {entries.map(([name, secs]) => (
+                          <span key={name} className="text-[11px] font-bold text-secondary bg-surface-container-high px-2.5 py-1 rounded-full border border-outline-variant/30 flex items-center gap-1.5 shadow-sm">
+                            <span className="material-symbols-outlined text-[12px]">person</span>
+                            {name}: <span className="text-primary">{formatTimeStr(name === myName && isTracking ? secs + sessionSecs : secs)}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )
+                  }
+                  return null;
+                })()}
 
+                <div className="flex items-center justify-between w-full bg-surface-container-lowest border-2 border-primary/20 rounded-xl px-5 py-3 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <span className={`material-symbols-outlined text-[28px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">Total Time Tracked</span>
+                      <span className={`font-bold font-mono text-[16px] min-w-[75px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
+                        {(() => {
+                          const timeData = parseMultiUserTimeStr(task.timeTaken);
+                          const totalSecs = Object.values(timeData).reduce((a, b) => a + b, 0);
+                          return isTracking ? formatTimeStr(totalSecs + sessionSecs) : formatTimeStr(totalSecs);
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {canManageTimer && (
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => { if (!isTracking) handleToggleTimer() }}
+                        disabled={isTracking}
+                        className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${!isTracking ? 'bg-urgent-red text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">play_arrow</span> Start
+                      </button>
+                      <button 
+                        onClick={() => { if (isTracking) handleToggleTimer() }}
+                        disabled={!isTracking}
+                        className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${isTracking ? 'bg-[#25d366] text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">stop</span> Stop
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <hr className="border-divider" />
 
               {/* Description */}
