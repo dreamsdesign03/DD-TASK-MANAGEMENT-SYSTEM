@@ -370,33 +370,18 @@ export default function MyTasksPage() {
                 ></textarea>
               </div>
 
-              {/* Remarks and Post */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
-                    Remarks
-                  </label>
-                  <input
-                    type="text"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                    placeholder="Any remarks..."
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
-                    Post
-                  </label>
-                  <select
-                    value={post}
-                    onChange={(e) => setPost(e.target.value)}
-                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none appearance-none transition-colors"
-                  >
-                    <option value="YES">YES</option>
-                    <option value="NO">NO</option>
-                  </select>
-                </div>
+              {/* Remarks */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  Remarks
+                </label>
+                <input
+                  type="text"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  placeholder="Any remarks..."
+                />
               </div>
             </div>
 
