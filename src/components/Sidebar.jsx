@@ -293,7 +293,7 @@ export default function Sidebar() {
                         setClientForm({ ...clientForm, emails: newEmails })
                       }}
                       className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                      placeholder="e.g. client@example.com"
+                      placeholder="Client Email"
                     />
                     {clientForm.emails.length > 1 && (
                       <button
@@ -337,7 +337,7 @@ export default function Sidebar() {
                         setClientForm({ ...clientForm, phones: newPhones })
                       }}
                       className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                      placeholder="+91 98000 00000"
+                      placeholder="Client Phone"
                     />
                     {clientForm.phones.length > 1 && (
                       <button
