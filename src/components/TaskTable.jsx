@@ -635,12 +635,22 @@ export default function TaskTable() {
                                   <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-2.5 md:py-3 border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Task Title</span>
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
-                                      <a
-                                        onClick={() => navigate(`/tasks/${task.id}`)}
-                                        className="font-semibold text-primary hover:underline cursor-pointer"
-                                      >
-                                        {task.title}
-                                      </a>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <a
+                                          onClick={() => navigate(`/tasks/${task.id}`)}
+                                          className="font-semibold text-primary hover:underline cursor-pointer"
+                                        >
+                                          {task.title}
+                                        </a>
+                                        {task.isRecurring && (
+                                          <span 
+                                            className="material-symbols-outlined text-[14px] text-primary" 
+                                            title={`Recurring Task (${task.recurringSchedule})`}
+                                          >
+                                            event_repeat
+                                          </span>
+                                        )}
+                                      </div>
                                       {(() => {
                                         const subtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'))
                                         if (subtasks.length > 0) {
@@ -969,8 +979,16 @@ export default function TaskTable() {
                               </div>
                             </div>
 
-                            <h4 className="font-bold text-label-md text-on-surface group-hover:text-primary transition-colors leading-snug">
+                            <h4 className="font-bold text-label-md text-on-surface group-hover:text-primary transition-colors leading-snug flex items-start gap-1.5">
                               {task.title}
+                              {task.isRecurring && (
+                                <span 
+                                  className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0" 
+                                  title={`Recurring Task (${task.recurringSchedule})`}
+                                >
+                                  event_repeat
+                                </span>
+                              )}
                             </h4>
 
                             <div className="flex flex-col gap-1.5 mt-1 bg-surface-container-low/50 p-2 rounded-lg border border-outline-variant/30">
