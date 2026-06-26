@@ -963,13 +963,13 @@ export default function TaskDetailPage() {
                         </div>
                         
                         {/* Due Date Selector */}
-                        <div className="relative group flex items-center bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 rounded-lg h-[32px] px-2 overflow-hidden transition-colors">
-                           <span className="material-symbols-outlined text-[14px] text-secondary group-hover:text-primary mr-1 transition-colors">calendar_month</span>
+                        <div className="relative group flex items-center bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 rounded-lg h-[32px] overflow-hidden transition-colors w-[120px]">
+                           <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-[14px] text-secondary group-hover:text-primary transition-colors pointer-events-none">calendar_month</span>
                            <input 
                             type="date" 
                             value={newSubtaskDueDate}
                             onChange={handleDueDateChange}
-                            className="bg-transparent text-[12px] font-medium focus:ring-0 border-none outline-none p-0 cursor-pointer text-secondary group-hover:text-primary w-min"
+                            className="bg-transparent text-[12px] font-medium focus:ring-0 border-none outline-none p-0 cursor-pointer text-secondary group-hover:text-primary w-full h-full pl-7 pr-1 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
                             title="Due Date"
                           />
                         </div>

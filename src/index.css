@@ -61,6 +61,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --color-secondary: #c9c5cc;
   --color-primary-fixed: #f7d8ff;
   --color-tertiary-fixed-dim: #cdc3d5;
