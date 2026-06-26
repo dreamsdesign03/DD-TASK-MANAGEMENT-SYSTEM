@@ -123,6 +123,32 @@ export default function TaskDetailPage() {
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editDescriptionContent, setEditDescriptionContent] = useState('')
 
+  // Recurring Task Modal State
+  const [showRecurringModal, setShowRecurringModal] = useState(false)
+  const [recurringSchedule, setRecurringSchedule] = useState('Weekly')
+  const [recurringDay, setRecurringDay] = useState('Monday')
+  const [recurringMonths, setRecurringMonths] = useState([])
+  const [isRecurringSubmitting, setIsRecurringSubmitting] = useState(false)
+
+  const handleMakeRecurring = async (e) => {
+    e.preventDefault()
+    setIsRecurringSubmitting(true)
+    try {
+      await updateTask(task.id, {
+        isRecurring: true,
+        recurringSchedule,
+        recurringDay: recurringSchedule === 'Weekly' ? recurringDay : '',
+        recurringMonths: recurringSchedule === 'Monthly' ? recurringMonths.join(', ') : ''
+      })
+      addToast('Task successfully set as recurring!', 'success')
+      setShowRecurringModal(false)
+    } catch (err) {
+      addToast('Failed to set task as recurring', 'error')
+    } finally {
+      setIsRecurringSubmitting(false)
+    }
+  }
+
   const handleDueDateChange = (e) => {
     const val = e.target.value;
     if (!val) {
@@ -648,7 +674,26 @@ export default function TaskDetailPage() {
                 <span className="font-mono text-[13px] bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-bold">
                   {task.id}
                 </span>
-                <h2 className="text-[26px] font-bold text-on-surface leading-tight">{task.title}</h2>
+                <h2 className="text-[26px] font-bold text-on-surface leading-tight flex items-center gap-2">
+                  {task.title}
+                  {task.isRecurring && (
+                    <span 
+                      className="material-symbols-outlined text-[24px] text-primary bg-primary/10 rounded-full p-1" 
+                      title={`Recurring Task (${task.recurringSchedule})`}
+                    >
+                      event_repeat
+                    </span>
+                  )}
+                  {!task.isRecurring && (
+                    <button 
+                      onClick={() => setShowRecurringModal(true)}
+                      className="material-symbols-outlined text-[24px] text-outline hover:text-primary transition-colors focus:outline-none" 
+                      title="Make this a recurring task"
+                    >
+                      event_repeat
+                    </button>
+                  )}
+                </h2>
               </div>
 
               {/* Meta row */}
@@ -1515,12 +1560,7 @@ export default function TaskDetailPage() {
                 onClick={() => setAttachmentToDelete(null)}
                 className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const updated = (task.attachments || []).filter((_, i) => i !== attachmentToDelete);
-                  updateTask(task.id, { attachments: updated });
+updateTask(task.id, { attachments: updated });
                   setAttachmentToDelete(null);
                 }}
                 className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
@@ -1532,7 +1572,7 @@ export default function TaskDetailPage() {
         </div>
       )}
 
-      {/* Delete Task Confirmation Modal */}
+      {/* Delete Confirmation Modal for Task */}
       {taskToDelete && (
         <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
@@ -1568,7 +1608,6 @@ export default function TaskDetailPage() {
           </div>
         </div>
       )}
-
       {/* Delete Subtask Confirmation Modal */}
       {subtaskToDelete && (
         <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1602,6 +1641,122 @@ export default function TaskDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Make Recurring Modal */}
+      {showRecurringModal && (
+        <div className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <form 
+            onSubmit={handleMakeRecurring}
+            className="bg-surface-container-lowest w-full max-w-[500px] rounded-xl shadow-2xl p-6 flex flex-col gap-6 animate-scaleIn border border-outline-variant"
+          >
+            <div className="flex justify-between items-center border-b border-divider pb-3">
+              <h3 className="text-title-lg font-bold text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined">event_repeat</span>
+                Make Task Recurring
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowRecurringModal(false)}
+                className="text-outline hover:text-on-surface transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* Schedule Type */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  Recurring Schedule
+                </label>
+                <select
+                  value={recurringSchedule}
+                  onChange={(e) => {
+                    setRecurringSchedule(e.target.value)
+                    setRecurringDay('Monday')
+                    setRecurringMonths([])
+                  }}
+                  className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2.5 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+                >
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Yearly">Yearly</option>
+                </select>
+              </div>
+
+              {/* Dependent Fields */}
+              {recurringSchedule === 'Weekly' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                    Day of the Week
+                  </label>
+                  <select
+                    value={recurringDay}
+                    onChange={(e) => setRecurringDay(e.target.value)}
+                    className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2.5 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
+                  >
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {recurringSchedule === 'Monthly' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                    Select Months (task created on 1st of month)
+                  </label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((mon) => (
+                      <label key={mon} className="flex items-center gap-1.5 bg-surface border border-outline-variant px-3 py-1.5 rounded-md text-[13px] cursor-pointer hover:border-primary transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={recurringMonths.includes(mon)}
+                          onChange={(e) => {
+                            if (e.target.checked) setRecurringMonths([...recurringMonths, mon])
+                            else setRecurringMonths(recurringMonths.filter(m => m !== mon))
+                          }}
+                          className="accent-primary w-4 h-4 cursor-pointer"
+                        />
+                        {mon}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {recurringSchedule === 'Yearly' && (
+                <div className="flex flex-col justify-center text-[13px] text-secondary italic bg-surface-container-low p-3 rounded-lg border border-outline-variant/50">
+                  This task will be automatically created every January 1st.
+                </div>
+              )}
+
+              <div className="text-[12px] text-primary font-medium flex items-center gap-1.5 bg-primary/10 p-3 rounded-lg mt-2">
+                <span className="material-symbols-outlined text-[16px]">info</span>
+                If the creation date falls on a Sunday, the task will be safely shifted to Monday.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 mt-2 border-t border-divider">
+              <button
+                type="button"
+                onClick={() => setShowRecurringModal(false)}
+                className="px-5 py-2 border border-outline-variant text-secondary rounded-lg font-label-md hover:bg-surface-container-high transition-all text-sm font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isRecurringSubmitting || (recurringSchedule === 'Monthly' && recurringMonths.length === 0)}
+                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-bold"
+              >
+                {isRecurringSubmitting ? 'Saving...' : 'Save Schedule'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

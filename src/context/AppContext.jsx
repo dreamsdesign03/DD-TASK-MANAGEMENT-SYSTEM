@@ -141,6 +141,10 @@ const mapWebhookTaskToApp = (item) => {
     assignedBy: data["Assigned By"] || data.assignedBy || 'Mansi Shah',
     timeTaken: data["Time Taken"] || data.timeTaken || '0h 0m',
     daysOverdue: daysOverdueStr,
+    isRecurring: String(data["Is Recurring"] || data.isRecurring).toUpperCase() === 'TRUE',
+    recurringSchedule: data["Recurring Schedule"] || data.recurringSchedule || '',
+    recurringDay: data["Recurring Day"] || data.recurringDay || '',
+    recurringMonths: data["Recurring Months"] || data.recurringMonths || '',
     description: {
       intro: getIntroDescription(descObj),
       bullets: Array.isArray(descObj?.bullets) ? descObj.bullets : [],
@@ -1382,7 +1386,11 @@ export function AppProvider({ children }) {
           daysOverdue: mergedTask.daysOverdue || 'No',
           remarks: mergedTask.comments && mergedTask.comments.length > 0 ? mergedTask.comments[mergedTask.comments.length - 1].text : '',
           post: mergedTask.post || 'YES',
-          attachment: (mergedTask.attachments && mergedTask.attachments.length > 0) ? mergedTask.attachments.map(a => a.url).join(', \n') : ''
+          attachment: (mergedTask.attachments && mergedTask.attachments.length > 0) ? mergedTask.attachments.map(a => a.url).join(', \n') : '',
+          isRecurring: mergedTask.isRecurring || false,
+          recurringSchedule: mergedTask.recurringSchedule || '',
+          recurringDay: mergedTask.recurringDay || '',
+          recurringMonths: mergedTask.recurringMonths || ''
         })
       })
       const data = await res.json()
@@ -1450,7 +1458,11 @@ export function AppProvider({ children }) {
           daysOverdue: newTask.daysOverdue || 'No',
           remarks: newTask.remarks || '',
           post: newTask.post || 'YES',
-          attachment: (newTask.attachments && newTask.attachments.length > 0) ? newTask.attachments.map(a => a.url).join(', \n') : ''
+          attachment: (newTask.attachments && newTask.attachments.length > 0) ? newTask.attachments.map(a => a.url).join(', \n') : '',
+          isRecurring: newTask.isRecurring || false,
+          recurringSchedule: newTask.recurringSchedule || '',
+          recurringDay: newTask.recurringDay || '',
+          recurringMonths: newTask.recurringMonths || ''
         })
       })
       if (mqttClient && mqttClient.connected) {
