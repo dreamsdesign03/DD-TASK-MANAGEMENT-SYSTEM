@@ -672,7 +672,7 @@ export default function ChatPage() {
           })
         }
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxI2hZPezLJMafTXNe6rGa6uoH8yUbUchVBXz59IDaimFnB6BnfkgaYu8Y847gDdfrp/exec'
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec'
 
         let success = false
         try {
