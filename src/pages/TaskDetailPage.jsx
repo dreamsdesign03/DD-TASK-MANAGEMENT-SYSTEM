@@ -708,12 +708,13 @@ export default function TaskDetailPage() {
                   <div className="flex items-center gap-3">
                     <span className={`material-symbols-outlined text-[28px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">Total Time Tracked</span>
+                      <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">Your Tracked Time</span>
                       <span className={`font-bold font-mono text-[16px] min-w-[75px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
                         {(() => {
                           const timeData = parseMultiUserTimeStr(task.timeTaken);
-                          const totalSecs = Object.values(timeData).reduce((a, b) => a + b, 0);
-                          return isTracking ? formatTimeStr(totalSecs + sessionSecs) : formatTimeStr(totalSecs);
+                          const myName = profile?.name || 'Mansi Shah';
+                          const mySecs = timeData[myName] || 0;
+                          return isTracking ? formatTimeStr(mySecs + sessionSecs) : formatTimeStr(mySecs);
                         })()}
                       </span>
                     </div>
