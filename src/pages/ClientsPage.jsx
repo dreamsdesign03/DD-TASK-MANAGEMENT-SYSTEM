@@ -176,7 +176,7 @@ export default function ClientsPage() {
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client ID</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Project Name</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client Name</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Email(s)</th>
+                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client Email(s)</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Phone</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Industry</th>
                       <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider text-center">Active Status</th>
@@ -207,9 +207,9 @@ export default function ClientsPage() {
                             <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Client Name</span>
                             <div className="text-left w-full md:w-auto">{client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}</div>
                           </td>
-                          {/* Email(s) */}
+                          {/* Client Email(s) */}
                           <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none break-all md:break-normal">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1 flex-shrink-0">Email(s)</span>
+                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1 flex-shrink-0">Client Email(s)</span>
                             <div className="text-left w-full md:w-auto">{client['Contact Email'] || client['Email'] || '-'}</div>
                           </td>
                           {/* Phone */}
@@ -322,7 +322,7 @@ export default function ClientsPage() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Email(s)</label>
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Email(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, emails: [...clientForm.emails, ''] })}
@@ -363,7 +363,7 @@ export default function ClientsPage() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone(s)</label>
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Phone(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, phones: [...clientForm.phones, ''] })}

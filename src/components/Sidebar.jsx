@@ -271,7 +271,7 @@ export default function Sidebar() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Email(s)</label>
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Email(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, emails: [...clientForm.emails, ''] })}
@@ -293,7 +293,7 @@ export default function Sidebar() {
                         setClientForm({ ...clientForm, emails: newEmails })
                       }}
                       className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                      placeholder="Client Email"
+                      placeholder="e.g. client@example.com"
                     />
                     {clientForm.emails.length > 1 && (
                       <button
@@ -315,7 +315,7 @@ export default function Sidebar() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Phone(s)</label>
+                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Phone(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, phones: [...clientForm.phones, ''] })}
@@ -337,7 +337,7 @@ export default function Sidebar() {
                         setClientForm({ ...clientForm, phones: newPhones })
                       }}
                       className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
-                      placeholder="Client Phone"
+                      placeholder="+91 98000 00000"
                     />
                     {clientForm.phones.length > 1 && (
                       <button
