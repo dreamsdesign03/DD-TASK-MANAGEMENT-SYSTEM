@@ -1553,8 +1553,20 @@ export function AppProvider({ children }) {
               const oldData = initialTaskData.current[nt.id] || {}
               let updatedFields = []
 
+              const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
+              const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
+              const oldAssigneesArr = (oldData.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
+              const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
+              const isRelated = assigneesArr.includes(myName) || assignedByStr === myName
+
+              const justAssignedToMe = assigneesArr.includes(myName) && !oldAssigneesArr.includes(myName) && oldData.assignedTo !== undefined
+
               if (oldData.status && oldData.status !== nt.status) updatedFields.push(`status to ${nt.status}`)
-              if (oldData.assignedTo && oldData.assignedTo !== nt.assignedTo) updatedFields.push(`assigned to ${nt.assignedTo}`)
+              if (oldData.assignedTo && oldData.assignedTo !== nt.assignedTo) {
+                if (!justAssignedToMe) {
+                  updatedFields.push(`assigned to ${nt.assignedTo}`)
+                }
+              }
               if (oldData.priority && oldData.priority !== nt.priority) updatedFields.push(`priority to ${nt.priority}`)
               if (oldData.dueDate && oldData.dueDate !== nt.dueDate) updatedFields.push(`due date to ${nt.dueDate}`)
               if (oldData.title && oldData.title !== nt.title) updatedFields.push(`title changed`)
@@ -1569,7 +1581,6 @@ export function AppProvider({ children }) {
               const newCommentsLen = nt.comments ? nt.comments.length : 0
               if (newCommentsLen > oldCommentsLen) {
                 const latestComment = nt.comments[nt.comments.length - 1]
-                const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
                 const cAuthor = String(latestComment?.author || '').trim().toLowerCase()
 
                 if (cAuthor !== myName) {
@@ -1577,12 +1588,16 @@ export function AppProvider({ children }) {
                 }
               }
 
-              const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
-              const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
-              const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
-              const isRelated = assigneesArr.includes(myName) || assignedByStr === myName
-
-              if (updatedFields.length > 0 && isRelated) {
+              if (justAssignedToMe) {
+                initialTaskStatuses.current[nt.id] = nt.status
+                initialTaskData.current[nt.id] = { ...nt }
+                addSystemAndWebNotification(
+                  'Task Reminders',
+                  `New Task Assigned to You`,
+                  `${nt.assignedBy} assigned you to: ${nt.title}`,
+                  nt.id
+                )
+              } else if (updatedFields.length > 0 && isRelated) {
                 initialTaskStatuses.current[nt.id] = nt.status
                 initialTaskData.current[nt.id] = { ...nt }
                 addSystemAndWebNotification(
