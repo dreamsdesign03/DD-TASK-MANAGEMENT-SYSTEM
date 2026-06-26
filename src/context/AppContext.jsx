@@ -145,7 +145,8 @@ const mapWebhookTaskToApp = (item) => {
       intro: getIntroDescription(descObj),
       bullets: Array.isArray(descObj?.bullets) ? descObj.bullets : [],
       outro: descObj?.outro || (remarks ? `Remarks: ${remarks}` : ''),
-      subtasks: Array.isArray(descObj?.subtasks) ? descObj.subtasks : []
+      subtasks: Array.isArray(descObj?.subtasks) ? descObj.subtasks : [],
+      editedAt: descObj?.editedAt || null
     },
     comments: comments,
     attachments: (() => {
@@ -469,7 +470,14 @@ export function AppProvider({ children }) {
     // Don't show toast if it's just a general system sync unless important
     addToast(`${title} - ${subtitle}`, toastType)
 
-    if ('Notification' in window && Notification.permission === 'granted') {
+    if (window.require) {
+      try {
+        const { ipcRenderer } = window.require('electron')
+        ipcRenderer.send('show-notification', { title, body: subtitle })
+      } catch (e) {
+        // Fallback
+      }
+    } else if ('Notification' in window && Notification.permission === 'granted') {
       const n = new Notification(title, {
         body: subtitle,
         icon: '/favicon.ico'
@@ -1281,8 +1289,9 @@ export function AppProvider({ children }) {
     const hasBullets = desc.bullets && desc.bullets.length > 0;
     const hasOutro = desc.outro && String(desc.outro).trim() !== '';
     const hasSubtasks = desc.subtasks && desc.subtasks.length > 0;
+    const hasEditedAt = !!desc.editedAt;
 
-    if (isIntroEmpty && !hasBullets && !hasOutro && !hasSubtasks) {
+    if (isIntroEmpty && !hasBullets && !hasOutro && !hasSubtasks && !hasEditedAt) {
       return '';
     }
 
@@ -1342,12 +1351,7 @@ export function AppProvider({ children }) {
     const isRelated = assigneesArr.includes(myNameStr) || assignedByStr === myNameStr
 
     if (shouldNotify && isRelated) {
-      addSystemAndWebNotification(
-        updateType,
-        updateTitle,
-        updateSubtitle,
-        id
-      )
+      addToast(`${updateTitle}`, 'success')
     }
 
     try {

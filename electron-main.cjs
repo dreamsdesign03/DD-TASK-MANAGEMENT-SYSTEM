@@ -57,10 +57,18 @@ function createWindow() {
     title: "Dreamsdesk",
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      backgroundThrottling: false
     },
     autoHideMenuBar: true,
     icon: path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.ico')
+  })
+
+  // Set App User Model ID for Windows Notifications
+  app.setAppUserModelId('com.dreamsdesign.taskapp')
+
+  ipcMain.on('show-notification', (event, { title, body, icon }) => {
+    new Notification({ title, body, icon: icon || path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.ico') }).show()
   })
 
   const isDev = process.env.NODE_ENV === 'development'
