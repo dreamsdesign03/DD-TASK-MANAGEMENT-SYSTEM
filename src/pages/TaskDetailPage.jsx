@@ -185,11 +185,7 @@ export default function TaskDetailPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (task) {
-      setSelectedAssignees((task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean))
-    }
-  }, [task])
+
 
   const handleSaveAssignees = () => {
     updateTask(task.id, { assignedTo: selectedAssignees.join(', ') })
@@ -1077,7 +1073,10 @@ export default function TaskDetailPage() {
                         )
                       })}
                       <button
-                        onClick={() => setIsAssigneeModalOpen(true)}
+                        onClick={() => {
+                          setSelectedAssignees((task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean))
+                          setIsAssigneeModalOpen(true)
+                        }}
                         className="text-[11px] font-bold text-primary flex items-center gap-1 hover:underline mt-1 bg-primary/10 px-2 py-1 rounded transition-all hover:bg-primary/20"
                       >
                         <span className="material-symbols-outlined text-[14px]">person_add</span> Manage Assignees
