@@ -1560,7 +1560,12 @@ export default function TaskDetailPage() {
                 onClick={() => setAttachmentToDelete(null)}
                 className="px-5 py-2 border border-outline text-secondary rounded-lg font-label-md hover:bg-surface-container-low transition-all text-sm"
               >
-updateTask(task.id, { attachments: updated });
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const updated = (task.attachments || []).filter((_, i) => i !== attachmentToDelete);
+                  updateTask(task.id, { attachments: updated });
                   setAttachmentToDelete(null);
                 }}
                 className="px-5 py-2 bg-error text-on-error rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
