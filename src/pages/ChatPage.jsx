@@ -1118,13 +1118,27 @@ export default function ChatPage() {
   const unreadPersonal = personalChats.reduce((acc, c) => acc + (c.unread || 0), 0)
   const unreadGroups = groupChats.reduce((acc, g) => acc + (g.unread || 0), 0)
 
-  // Filter conversation list based on search term
-  const filteredPersonal = personalChats.filter((c) =>
-    c.name.toLowerCase().includes(searchFilter.toLowerCase())
-  )
-  const filteredGroups = groupChats.filter((g) =>
-    g.name.toLowerCase().includes(searchFilter.toLowerCase())
-  )
+  // Helper to get latest message timestamp for sorting
+  const getLatestTimestamp = (chatId) => {
+    const msgs = messagesByChatId[chatId]
+    if (!msgs || msgs.length === 0) return 0
+    // Try to find the latest valid timestamp
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      if (msgs[i].timestamp) {
+        return new Date(msgs[i].timestamp).getTime() || 0
+      }
+    }
+    return 0
+  }
+
+  // Filter conversation list based on search term and sort by latest message timestamp (WhatsApp style)
+  const filteredPersonal = personalChats
+    .filter((c) => c.name.toLowerCase().includes(searchFilter.toLowerCase()))
+    .sort((a, b) => getLatestTimestamp(b.id) - getLatestTimestamp(a.id))
+    
+  const filteredGroups = groupChats
+    .filter((g) => g.name.toLowerCase().includes(searchFilter.toLowerCase()))
+    .sort((a, b) => getLatestTimestamp(b.id) - getLatestTimestamp(a.id))
 
   // Apply clear-chat filter at render time so locally-sent messages always show immediately
   const clearTs = clearedChatTimestamps?.[String(selectedChatId)]
