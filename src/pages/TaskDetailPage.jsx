@@ -583,6 +583,11 @@ export default function TaskDetailPage() {
     (task.assignedBy || '').trim()
   ].filter(Boolean)))
 
+  const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
+  const isAssignee = (task.assignedTo || '').toLowerCase().includes(myNameStr)
+  const isAssigner = (task.assignedBy || '').toLowerCase() === myNameStr
+  const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
+
   return (
     <div className="bg-background text-on-surface flex h-[100dvh] overflow-hidden">
       <Sidebar />
@@ -633,16 +638,34 @@ export default function TaskDetailPage() {
                   <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
                   Assigned by: {task.assignedBy || 'Mansi Shah'}
                 </span>
-                <button
-                  onClick={handleToggleTimer}
-                  title="Track Time"
-                  className={`px-3 py-1.5 rounded-full text-label-sm font-label-sm flex items-center gap-1.5 border transition-all cursor-pointer ${isTracking ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30 shadow-sm' : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30 hover:bg-surface-container'}`}
-                >
-                  <span className={`material-symbols-outlined text-[18px] ${isTracking ? 'animate-pulse' : ''}`}>
-                    {isTracking ? 'stop_circle' : 'play_circle'}
-                  </span>
-                  {isTracking ? `Tracking: ${formatTimeStr(sessionSecs)}` : `Time: ${task.timeTaken || '0h 0m'}`}
-                </button>
+                {/* Timer Component */}
+                <div className="flex items-center gap-3 bg-surface-container-lowest border-2 border-primary/20 rounded-xl px-4 py-1.5 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-[20px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
+                    <span className={`font-bold font-mono text-[14px] min-w-[65px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
+                      {isTracking ? formatTimeStr(sessionSecs) : (task.timeTaken || '0h 0m')}
+                    </span>
+                  </div>
+                  
+                  {canManageTimer && (
+                    <div className="flex items-center gap-2 border-l border-divider pl-3">
+                      <button 
+                        onClick={() => { if (!isTracking) handleToggleTimer() }}
+                        disabled={isTracking}
+                        className={`px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-bold transition-all shadow-sm ${!isTracking ? 'bg-urgent-red text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">play_arrow</span> Start
+                      </button>
+                      <button 
+                        onClick={() => { if (isTracking) handleToggleTimer() }}
+                        disabled={!isTracking}
+                        className={`px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-bold transition-all shadow-sm ${isTracking ? 'bg-[#25d366] text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                      >
+                        <span className="material-symbols-outlined text-[14px]">stop</span> Stop
+                      </button>
+                    </div>
+                  )}
+                </div>
                 {profile?.systemRole !== 'Employee' && (
                   <button
                     onClick={() => setTaskToDelete(task.id)}
