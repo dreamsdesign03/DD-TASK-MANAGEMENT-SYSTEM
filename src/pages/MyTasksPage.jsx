@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import TaskTable from '../components/TaskTable'
 import { useApp } from '../context/AppContext'
 
 export default function MyTasksPage() {
+  const location = useLocation()
   const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients, addToast } = useApp()
   const teamNames = employees ? employees.map(emp => emp.name) : []
 
@@ -127,7 +129,7 @@ export default function MyTasksPage() {
                 className="mb-4 text-primary"
                 style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
               >
-                My Tasks
+                {location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'}
               </h2>
 
               {/* Task table + filters */}

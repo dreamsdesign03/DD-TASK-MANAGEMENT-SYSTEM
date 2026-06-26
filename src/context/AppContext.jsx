@@ -1402,20 +1402,8 @@ export function AppProvider({ children }) {
   const addTask = async (newTask) => {
     setTasks((prev) => [newTask, ...prev])
 
-    // Dispatch instant notification for new assignments
-    if (newTask.assignedTo) {
-      const assignees = newTask.assignedTo.split(',').map(s => s.trim()).filter(Boolean);
-      assignees.forEach(assignee => {
-        if (assignee !== profile?.name) {
-          addSystemAndWebNotification(
-            'Task Reminders',
-            newTask.taskType === 'Sub Task' || newTask.taskType === 'Subtask' ? 'New Subtask Assigned' : 'New Task Assigned',
-            `${profile?.name || 'Mansi Shah'} assigned you: ${newTask.title}`,
-            newTask.mainTaskId || newTask.id
-          );
-        }
-      });
-    }
+    // Notifications for newly created tasks will be handled by fetchTasks via MQTT sync
+    // for the relevant assignees. No need to show local notifications here to the creator.
 
     if (!initialTaskIds.current) {
       initialTaskIds.current = new Set()
@@ -1527,24 +1515,31 @@ export function AppProvider({ children }) {
               initialTaskStatuses.current[nt.id] = nt.status
               initialTaskData.current[nt.id] = { ...nt }
 
-              let title = `New Task Created: ${nt.title}`
-              let subtitle = `Assigned to: ${nt.assignedTo} by ${nt.assignedBy}`
-              let category = 'Task Reminders'
+              const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
+              const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
+              const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
+              const isRelated = assigneesArr.includes(myName) || assignedByStr === myName
 
-              if (nt.assignedTo.toLowerCase().includes((profile?.name || '').toLowerCase())) {
-                title = `New Task Assigned to You`
-                subtitle = `${nt.assignedBy} assigned you: ${nt.title}`
-              } else {
-                title = `New Task for ${nt.assignedTo}`
-                subtitle = `${nt.assignedBy} assigned a task to ${nt.assignedTo}`
+              if (isRelated) {
+                let title = `New Task Created: ${nt.title}`
+                let subtitle = `Assigned to: ${nt.assignedTo} by ${nt.assignedBy}`
+                let category = 'Task Reminders'
+
+                if (assigneesArr.includes(myName)) {
+                  title = `New Task Assigned to You`
+                  subtitle = `${nt.assignedBy} assigned you: ${nt.title}`
+                } else {
+                  title = `New Task for ${nt.assignedTo}`
+                  subtitle = `${nt.assignedBy} assigned a task to ${nt.assignedTo}`
+                }
+
+                addSystemAndWebNotification(
+                  category,
+                  title,
+                  subtitle,
+                  nt.id
+                )
               }
-
-              addSystemAndWebNotification(
-                category,
-                title,
-                subtitle,
-                nt.id
-              )
             } else {
               const oldData = initialTaskData.current[nt.id] || {}
               let updatedFields = []
@@ -1567,7 +1562,12 @@ export function AppProvider({ children }) {
                 }
               }
 
-              if (updatedFields.length > 0) {
+              const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
+              const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
+              const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
+              const isRelated = assigneesArr.includes(myName) || assignedByStr === myName
+
+              if (updatedFields.length > 0 && isRelated) {
                 initialTaskStatuses.current[nt.id] = nt.status
                 initialTaskData.current[nt.id] = { ...nt }
                 addSystemAndWebNotification(
@@ -1587,7 +1587,7 @@ export function AppProvider({ children }) {
               const isCompletedOrBlocked = nt.status === 'Done' || nt.status === 'Blocked'
 
               if (nt.overdue && !isCompletedOrBlocked) {
-                if (notifiedHistory[nt.id] !== todayStr) {
+                if (notifiedHistory[nt.id] !== todayStr && isRelated) {
                   notifiedHistory[nt.id] = todayStr
                   localStorage.setItem('dd_overdue_notified', JSON.stringify(notifiedHistory))
 
@@ -1608,7 +1608,7 @@ export function AppProvider({ children }) {
                 // Check if due today
                 if (nt.dueDate && !isCompletedOrBlocked) {
                   const dueD = new Date(nt.dueDate).toDateString()
-                  if (dueD === todayStr && notifiedHistory[`${nt.id}_due_today`] !== todayStr) {
+                  if (dueD === todayStr && notifiedHistory[`${nt.id}_due_today`] !== todayStr && isRelated) {
                     notifiedHistory[`${nt.id}_due_today`] = todayStr
                     localStorage.setItem('dd_overdue_notified', JSON.stringify(notifiedHistory))
 

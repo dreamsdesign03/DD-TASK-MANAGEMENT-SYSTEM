@@ -19,7 +19,8 @@ const AVAILABLE_SERVICES = [
 ]
 
 const NAV_ITEMS = [
-  { icon: 'assignment_turned_in', label: 'My Tasks', to: '/tasks' },
+  { icon: 'assignment_ind', label: 'My Tasks', to: '/my-tasks' },
+  { icon: 'assignment_turned_in', label: 'All Tasks', to: '/tasks' },
   { icon: 'notifications', label: 'Notifications', to: '/notifications' },
   { icon: 'chat', label: 'Chat', to: '/chat' },
   { icon: 'group', label: 'Team', to: '/team' },
@@ -161,7 +162,7 @@ export default function Sidebar() {
                 {totalUnreadChat}
               </span>
             )}
-            {label === 'My Tasks' && totalUnreadTasks > 0 && (
+            {label === 'All Tasks' && totalUnreadTasks > 0 && (
               <span className="ml-auto min-w-[18px] h-[18px] px-1.5 bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-scale-in">
                 {totalUnreadTasks}
               </span>

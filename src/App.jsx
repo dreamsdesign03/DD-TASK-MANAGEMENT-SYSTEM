@@ -113,6 +113,7 @@ export default function App() {
 
         {/* App routes */}
         <Route path="/tasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
+        <Route path="/my-tasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
         <Route path="/tasks/:taskId" element={<ProtectedRoute><TaskDetailPage /></ProtectedRoute>} />
 
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />

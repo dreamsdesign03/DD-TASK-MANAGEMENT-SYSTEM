@@ -46,10 +46,18 @@ export default function TaskTable() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
   const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || 'All Clients')
-  const [selectedUser, setSelectedUser] = useState('All Users')
+  const [selectedUser, setSelectedUser] = useState(location.pathname === '/my-tasks' ? (profile?.name || 'All Users') : 'All Users')
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || 'List') // 'List' | 'Board'
+
+  useEffect(() => {
+    if (location.pathname === '/my-tasks') {
+      setSelectedUser(profile?.name || 'All Users')
+    } else {
+      setSelectedUser('All Users')
+    }
+  }, [location.pathname, profile?.name])
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
