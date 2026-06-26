@@ -119,6 +119,9 @@ export default function TaskDetailPage() {
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [subtaskToDelete, setSubtaskToDelete] = useState(null)
   const [infoModal, setInfoModal] = useState(null)
+  
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [editDescriptionContent, setEditDescriptionContent] = useState('')
 
   const handleDueDateChange = (e) => {
     const val = e.target.value;
@@ -191,6 +194,28 @@ export default function TaskDetailPage() {
   const handleSaveAssignees = () => {
     updateTask(task.id, { assignedTo: selectedAssignees.join(', ') })
     setIsAssigneeModalOpen(false)
+  }
+
+  const handleEditDescriptionClick = () => {
+    const text = [
+      task.description?.intro,
+      task.description?.bullets?.length ? task.description.bullets.map(b => '- ' + b).join('\n') : '',
+      task.description?.outro
+    ].filter(Boolean).join('\n\n');
+    setEditDescriptionContent(text);
+    setIsEditingDescription(true);
+  }
+
+  const handleSaveDescription = () => {
+    updateTask(task.id, {
+      description: {
+        intro: editDescriptionContent,
+        bullets: [],
+        outro: '',
+        editedAt: new Date().toISOString()
+      }
+    })
+    setIsEditingDescription(false)
   }
 
   const handleAddSubtask = () => {
@@ -638,18 +663,62 @@ export default function TaskDetailPage() {
 
               {/* Description */}
               <section className="space-y-4">
-                <h3 className="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">
-                  Description
-                </h3>
-                <div className="text-[15px] leading-relaxed text-[#3D3D3D] space-y-4">
-                  <p>{task.description.intro}</p>
-                  <ul className="list-disc pl-6 space-y-2">
-                    {task.description.bullets.map((b, i) => (
-                      <li key={i}>{b}</li>
-                    ))}
-                  </ul>
-                  <p>{task.description.outro}</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-label-lg font-label-lg text-on-surface-variant uppercase tracking-wider">
+                    Description
+                  </h3>
+                  {profile?.name === task.assignedBy && !isEditingDescription && (
+                    <button 
+                      onClick={handleEditDescriptionClick}
+                      className="text-secondary hover:text-primary transition-colors flex items-center justify-center rounded-full p-1 hover:bg-surface-container-low"
+                      title="Edit Description"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">edit</span>
+                    </button>
+                  )}
+                  {task.description?.editedAt && !isEditingDescription && (
+                    <span className="text-[10px] text-secondary italic ml-auto">
+                      Edited: {new Date(task.description.editedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
                 </div>
+
+                {isEditingDescription ? (
+                  <div className="flex flex-col gap-2">
+                    <textarea 
+                      value={editDescriptionContent}
+                      onChange={e => setEditDescriptionContent(e.target.value)}
+                      className="w-full min-h-[150px] p-3 bg-surface border border-primary/40 focus:border-primary rounded-lg text-[14px] text-on-surface outline-none resize-y transition-colors custom-scrollbar shadow-sm"
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => setIsEditingDescription(false)}
+                        className="px-3 py-1.5 text-[12px] font-medium text-secondary hover:bg-surface-container-low rounded-md transition-colors border border-transparent"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={handleSaveDescription}
+                        className="px-3 py-1.5 text-[12px] font-medium bg-primary text-white hover:opacity-90 rounded-md transition-opacity shadow-sm"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-[15px] leading-relaxed text-[#3D3D3D] space-y-4 whitespace-pre-wrap">
+                    <p>{task.description.intro}</p>
+                    {task.description.bullets && task.description.bullets.length > 0 && (
+                      <ul className="list-disc pl-6 space-y-2">
+                        {task.description.bullets.map((b, i) => (
+                          <li key={i}>{b}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {task.description.outro && <p>{task.description.outro}</p>}
+                  </div>
+                )}
               </section>
 
               <hr className="border-divider" />

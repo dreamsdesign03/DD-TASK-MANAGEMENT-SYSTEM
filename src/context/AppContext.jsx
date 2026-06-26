@@ -1336,7 +1336,12 @@ export function AppProvider({ children }) {
       updateTitle = `Task ${id} description updated`
     }
 
-    if (shouldNotify) {
+    const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
+    const assigneesArr = (mergedTask.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
+    const assignedByStr = String(mergedTask.assignedBy || '').trim().toLowerCase()
+    const isRelated = assigneesArr.includes(myNameStr) || assignedByStr === myNameStr
+
+    if (shouldNotify && isRelated) {
       addSystemAndWebNotification(
         updateType,
         updateTitle,
@@ -1549,6 +1554,12 @@ export function AppProvider({ children }) {
               if (oldData.priority && oldData.priority !== nt.priority) updatedFields.push(`priority to ${nt.priority}`)
               if (oldData.dueDate && oldData.dueDate !== nt.dueDate) updatedFields.push(`due date to ${nt.dueDate}`)
               if (oldData.title && oldData.title !== nt.title) updatedFields.push(`title changed`)
+              
+              const oldEditedAt = oldData.description?.editedAt || ''
+              const newEditedAt = nt.description?.editedAt || ''
+              if (newEditedAt && newEditedAt !== oldEditedAt) {
+                updatedFields.push(`description updated`)
+              }
 
               const oldCommentsLen = oldData.comments ? oldData.comments.length : 0
               const newCommentsLen = nt.comments ? nt.comments.length : 0

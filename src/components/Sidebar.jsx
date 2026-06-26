@@ -19,8 +19,8 @@ const AVAILABLE_SERVICES = [
 ]
 
 const NAV_ITEMS = [
-  { icon: 'assignment_ind', label: 'My Tasks', to: '/my-tasks' },
   { icon: 'assignment_turned_in', label: 'All Tasks', to: '/tasks' },
+  { icon: 'assignment_ind', label: 'My Tasks', to: '/my-tasks' },
   { icon: 'notifications', label: 'Notifications', to: '/notifications' },
   { icon: 'chat', label: 'Chat', to: '/chat' },
   { icon: 'group', label: 'Team', to: '/team' },
