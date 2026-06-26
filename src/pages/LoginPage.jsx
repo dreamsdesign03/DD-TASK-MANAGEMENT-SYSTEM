@@ -377,9 +377,6 @@ export default function LoginPage() {
                 </div>
               </>
             )}
-
-
-
             {isRegisterMode && (
               <button
                 id="login-btn"

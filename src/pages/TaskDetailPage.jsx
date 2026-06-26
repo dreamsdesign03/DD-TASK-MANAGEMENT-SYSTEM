@@ -1099,20 +1099,7 @@ export default function TaskDetailPage() {
                           expand_more
                         </span>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <button
-                          onClick={() => setLocalStatus('Done')}
-                          className="bg-success-green text-white py-2.5 rounded-lg text-label-sm font-label-sm flex items-center justify-center gap-1 hover:brightness-105 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">check_circle</span> Done
-                        </button>
-                        <button
-                          onClick={() => setLocalStatus('Pending')}
-                          className="border border-urgent-red text-urgent-red py-2.5 rounded-lg text-label-sm font-label-sm flex items-center justify-center gap-1 hover:bg-urgent-red/5 transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">cancel</span> Not Done
-                        </button>
-                      </div>
+
                       <button
                         onClick={handleSaveStatus}
                         className="w-full bg-primary text-on-primary py-3 rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all mt-2 text-[13px]"
