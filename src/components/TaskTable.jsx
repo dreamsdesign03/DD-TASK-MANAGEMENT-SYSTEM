@@ -49,7 +49,7 @@ export default function TaskTable() {
   const [selectedUser, setSelectedUser] = useState('All Users')
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
 
-  const [viewMode, setViewMode] = useState('List') // 'List' | 'Board'
+  const [viewMode, setViewMode] = useState(location.state?.viewMode || 'List') // 'List' | 'Board'
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
@@ -236,6 +236,16 @@ export default function TaskTable() {
     if (colName === 'COMPLETE') {
       if (task.status !== 'Done') {
         updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
+        
+        // Celebration Effect Check
+        const due = new Date(task.dueDate)
+        const today = new Date()
+        today.setHours(0,0,0,0)
+        if (!task.dueDate || today <= due) {
+          import('canvas-confetti').then((confetti) => {
+            confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+          })
+        }
       }
     } else {
       if (task.department !== colName || task.status === 'Done') {
@@ -719,7 +729,22 @@ export default function TaskTable() {
                                     <div className="relative inline-block text-right">
                                       <select
                                         value={task.status}
-                                        onChange={(e) => updateTask(task.id, { status: e.target.value })}
+                                        onChange={(e) => {
+                                          const newStatus = e.target.value
+                                          updateTask(task.id, { status: newStatus })
+                                          
+                                          if (newStatus === 'Done') {
+                                            const due = new Date(task.dueDate)
+                                            const today = new Date()
+                                            today.setHours(0,0,0,0)
+                                            if (!task.dueDate || today <= due) {
+                                              import('canvas-confetti').then((confetti) => {
+                                                confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+                                              })
+                                              setViewMode('Board')
+                                            }
+                                          }
+                                        }}
                                         disabled={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name)}
                                         className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'
                                           } appearance-none px-4 py-1.5 pr-8 rounded-full text-label-sm font-label-sm font-bold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed outline-none border-none ring-0`}

@@ -515,6 +515,22 @@ export default function TaskDetailPage() {
       status: localStatus,
       done: localStatus === 'Done',
     })
+    
+    if (localStatus === 'Done') {
+      const due = new Date(task.dueDate)
+      const today = new Date()
+      today.setHours(0,0,0,0)
+      if (!task.dueDate || today <= due) {
+        import('canvas-confetti').then((confetti) => {
+          confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+        })
+        setTimeout(() => {
+          navigate('/tasks', { state: { viewMode: 'Board' } })
+        }, 1500)
+        return
+      }
+    }
+
     setInfoModal({
       title: 'Status Updated',
       message: `Status saved: ${localStatus}`,
