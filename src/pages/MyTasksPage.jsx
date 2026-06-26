@@ -41,18 +41,26 @@ export default function MyTasksPage() {
   const [remarks, setRemarks] = useState('')
   const [post, setPost] = useState('YES')
 
+  // Recurring task states
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringSchedule, setRecurringSchedule] = useState('Weekly')
+  const [recurringDay, setRecurringDay] = useState('Monday')
+  const [recurringMonths, setRecurringMonths] = useState([])
   const handleCreateTask = (e) => {
     e.preventDefault()
-    if (!title.trim() || !dueDate) {
+    if (!title.trim()) {
       addToast('Please fill out all required fields', 'error')
       return
     }
 
-    const formattedDate = new Date(dueDate).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
+    let formattedDate = ''
+    if (dueDate) {
+      formattedDate = new Date(dueDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    }
 
     let maxIdNum = 0
     tasks.forEach(t => {
@@ -96,6 +104,10 @@ export default function MyTasksPage() {
       attachments: [],
       remarks,
       post,
+      isRecurring,
+      recurringSchedule: isRecurring ? recurringSchedule : '',
+      recurringDay: isRecurring && recurringSchedule === 'Weekly' ? recurringDay : '',
+      recurringMonths: isRecurring && recurringSchedule === 'Monthly' ? recurringMonths.join(', ') : '',
     }
 
     addTask(newTask)
@@ -108,6 +120,10 @@ export default function MyTasksPage() {
     setPost('YES')
     setDepartment('COMMON')
     setAssignedTo([profile?.name])
+    setIsRecurring(false)
+    setRecurringSchedule('Weekly')
+    setRecurringDay('Monday')
+    setRecurringMonths([])
   }
 
   return (
@@ -301,15 +317,14 @@ export default function MyTasksPage() {
                   </div>
                 </div>
 
-                {/* Due Date â€” calendar picker */}
+                {/* Due Date - calendar picker */}
                 <div className="flex flex-col gap-1">
                   <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                    Due Date *
+                    Due Date
                   </label>
                   <div className="relative">
                     <input
                       type="date"
-                      required
                       value={dueDate}
                       min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => {
@@ -355,6 +370,99 @@ export default function MyTasksPage() {
                     )
                   })}
                 </div>
+              </div>
+
+              {/* Recurring Task */}
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer w-fit group">
+                  <input
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <span className="text-[13px] font-bold text-on-surface group-hover:text-primary transition-colors">
+                    Make this a recurring task
+                  </span>
+                </label>
+
+                {isRecurring && (
+                  <div className="p-4 bg-surface-container-lowest rounded-lg border border-primary/20 shadow-sm flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Schedule Type */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                          Recurring Schedule
+                        </label>
+                        <select
+                          value={recurringSchedule}
+                          onChange={(e) => {
+                            setRecurringSchedule(e.target.value)
+                            setRecurringDay('Monday')
+                            setRecurringMonths([])
+                          }}
+                          className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2 text-body-sm focus:border-primary outline-none cursor-pointer"
+                        >
+                          <option value="Weekly">Weekly</option>
+                          <option value="Monthly">Monthly</option>
+                          <option value="Yearly">Yearly</option>
+                        </select>
+                      </div>
+
+                      {/* Dependent Fields */}
+                      {recurringSchedule === 'Weekly' && (
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                            Day of the Week
+                          </label>
+                          <select
+                            value={recurringDay}
+                            onChange={(e) => setRecurringDay(e.target.value)}
+                            className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2 text-body-sm focus:border-primary outline-none cursor-pointer"
+                          >
+                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                              <option key={day} value={day}>{day}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {recurringSchedule === 'Monthly' && (
+                        <div className="flex flex-col gap-1 sm:col-span-2">
+                          <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                            Select Months (task created on 1st of month)
+                          </label>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((mon) => (
+                              <label key={mon} className="flex items-center gap-1.5 bg-surface border border-outline-variant px-2.5 py-1.5 rounded text-[12px] cursor-pointer hover:border-primary transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={recurringMonths.includes(mon)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setRecurringMonths([...recurringMonths, mon])
+                                    else setRecurringMonths(recurringMonths.filter(m => m !== mon))
+                                  }}
+                                  className="accent-primary"
+                                />
+                                {mon}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {recurringSchedule === 'Yearly' && (
+                        <div className="flex flex-col justify-center sm:col-span-2 text-[12px] text-secondary italic">
+                          Task will be created automatically every January 1st.
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-primary font-medium flex items-center gap-1 bg-primary/10 p-2 rounded">
+                      <span className="material-symbols-outlined text-[14px]">info</span>
+                      If the creation date falls on a Sunday, the task will be shifted to Monday.
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
