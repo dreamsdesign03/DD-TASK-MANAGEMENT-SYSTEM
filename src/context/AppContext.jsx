@@ -1821,9 +1821,12 @@ export function AppProvider({ children }) {
     fetchClients()
     fetchMessages()
 
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission()
+    const handleFirstClick = () => {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission()
+      }
     }
+    document.addEventListener('click', handleFirstClick, { once: true })
 
     const taskInterval = setInterval(fetchSyncedTasks, 5000)
     const msgInterval = setInterval(fetchMessages, 5000)
