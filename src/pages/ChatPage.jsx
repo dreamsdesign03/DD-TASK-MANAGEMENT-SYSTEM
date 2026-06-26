@@ -326,21 +326,7 @@ export default function ChatPage() {
   const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState('personal') // 'personal' | 'groups'
-  const [selectedChatId, setSelectedChatId] = useState(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return null
-    }
-    const savedProfile = (() => {
-      try {
-        const saved = localStorage.getItem('dd_profile')
-        return saved ? JSON.parse(saved) : null
-      } catch { return null }
-    })()
-    if (savedProfile) {
-      return getPersonalChatRoomId(savedProfile, { email: 'riya@dreamsdesign.in' })
-    }
-    return 1
-  }) // Matches active personal chat initially
+  const [selectedChatId, setSelectedChatId] = useState(null) // Do not auto-select initially
   const [searchFilter, setSearchFilter] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -474,10 +460,11 @@ export default function ChatPage() {
   const bottomRef = useRef(null)
 
   // Retrieve current active chat object details
-  const activeChat =
-    activeTab === 'personal'
-      ? personalChats.find((c) => c.id === selectedChatId) || personalChats[0]
-      : groupChats.find((g) => g.id === selectedChatId) || groupChats[0]
+  const activeChat = selectedChatId
+    ? (activeTab === 'personal'
+      ? personalChats.find((c) => String(c.id) === String(selectedChatId))
+      : groupChats.find((g) => String(g.id) === String(selectedChatId)))
+    : null
 
   const getMessageTicks = (msg) => {
     if (msg.isFailed) {
@@ -555,31 +542,20 @@ export default function ChatPage() {
     return <span className="material-symbols-outlined text-[14px] ml-1 opacity-70" title={`Stored | ${msg._debugInfo || ''}`}>done_all</span>
   }
 
-  // Sync selectedChatId when chat lists first load from network
+  // Clear selectedChatId if the currently selected chat is deleted or no longer valid
   useEffect(() => {
-    if (personalChats.length > 0 && activeTab === 'personal') {
+    if (activeTab === 'personal' && selectedChatId) {
       const valid = personalChats.find(c => String(c.id) === String(selectedChatId))
-      if (!valid) setSelectedChatId(personalChats[0].id)
+      if (!valid) setSelectedChatId(null)
     }
-  }, [personalChats.length])
+  }, [personalChats.length, activeTab, selectedChatId])
 
   useEffect(() => {
-    if (groupChats.length > 0 && activeTab === 'groups') {
+    if (activeTab === 'groups' && selectedChatId) {
       const valid = groupChats.find(g => String(g.id) === String(selectedChatId))
-      if (!valid) setSelectedChatId(groupChats[0].id)
+      if (!valid) setSelectedChatId(null)
     }
-  }, [groupChats.length])
-
-  useEffect(() => {
-    // Keep selected chat ID valid when switching tabs
-    if (activeTab === 'personal') {
-      const valid = personalChats.find(c => String(c.id) === String(selectedChatId))
-      if (!valid) setSelectedChatId(personalChats[0]?.id || personalChats[0]?.id)
-    } else {
-      const valid = groupChats.find(g => String(g.id) === String(selectedChatId))
-      if (!valid) setSelectedChatId(groupChats[0]?.id)
-    }
-  }, [activeTab])
+  }, [groupChats.length, activeTab, selectedChatId])
 
   useEffect(() => {
     markChatAsRead(selectedChatId)
