@@ -638,34 +638,6 @@ export default function TaskDetailPage() {
                   <span className="material-symbols-outlined text-[16px]">assignment_ind</span>
                   Assigned by: {task.assignedBy || 'Mansi Shah'}
                 </span>
-                {/* Timer Component */}
-                <div className="flex items-center gap-3 bg-surface-container-lowest border-2 border-primary/20 rounded-xl px-4 py-1.5 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className={`material-symbols-outlined text-[20px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
-                    <span className={`font-bold font-mono text-[14px] min-w-[65px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
-                      {isTracking ? formatTimeStr(sessionSecs) : (task.timeTaken || '0h 0m')}
-                    </span>
-                  </div>
-                  
-                  {canManageTimer && (
-                    <div className="flex items-center gap-2 border-l border-divider pl-3">
-                      <button 
-                        onClick={() => { if (!isTracking) handleToggleTimer() }}
-                        disabled={isTracking}
-                        className={`px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-bold transition-all shadow-sm ${!isTracking ? 'bg-urgent-red text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">play_arrow</span> Start
-                      </button>
-                      <button 
-                        onClick={() => { if (isTracking) handleToggleTimer() }}
-                        disabled={!isTracking}
-                        className={`px-3 py-1.5 rounded-lg flex items-center gap-1 text-[12px] font-bold transition-all shadow-sm ${isTracking ? 'bg-[#25d366] text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">stop</span> Stop
-                      </button>
-                    </div>
-                  )}
-                </div>
                 {profile?.systemRole !== 'Employee' && (
                   <button
                     onClick={() => setTaskToDelete(task.id)}
@@ -675,6 +647,38 @@ export default function TaskDetailPage() {
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                     Delete
                   </button>
+                )}
+              </div>
+
+              {/* Timer Component (Full Width) */}
+              <div className="flex items-center justify-between w-full bg-surface-container-lowest border-2 border-primary/20 rounded-xl px-5 py-3 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-[28px] ${isTracking ? 'text-[#25d366] animate-pulse' : 'text-secondary'}`}>timer</span>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-secondary uppercase tracking-wider">Time Tracked</span>
+                    <span className={`font-bold font-mono text-[16px] min-w-[75px] ${isTracking ? 'text-[#25d366]' : 'text-on-surface'}`}>
+                      {isTracking ? formatTimeStr(sessionSecs) : (task.timeTaken || '0h 0m')}
+                    </span>
+                  </div>
+                </div>
+                
+                {canManageTimer && (
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => { if (!isTracking) handleToggleTimer() }}
+                      disabled={isTracking}
+                      className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${!isTracking ? 'bg-urgent-red text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">play_arrow</span> Start
+                    </button>
+                    <button 
+                      onClick={() => { if (isTracking) handleToggleTimer() }}
+                      disabled={!isTracking}
+                      className={`px-5 py-2 rounded-lg flex items-center gap-2 text-[13px] font-bold transition-all shadow-sm ${isTracking ? 'bg-[#25d366] text-white hover:brightness-110 active:scale-95' : 'bg-surface-container-high text-secondary opacity-50 cursor-not-allowed'}`}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">stop</span> Stop
+                    </button>
+                  </div>
                 )}
               </div>
 
