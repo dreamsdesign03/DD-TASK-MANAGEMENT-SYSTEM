@@ -1,9 +1,12 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
 export default function TopNav() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen } = useApp()
+
+  const showSearch = location.pathname === '/tasks' || location.pathname === '/my-tasks'
 
   const unreadCount = notifications.filter((n) => n.unread).length
 
@@ -19,16 +22,18 @@ export default function TopNav() {
         </button>
 
         {/* Search */}
-        <div className="flex flex-1 md:flex-none items-center gap-2 bg-surface px-2 sm:px-3 py-2 rounded-md border border-outline-variant w-full max-w-[120px] sm:max-w-[200px] md:max-w-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
-          <span className="material-symbols-outlined text-outline text-[18px] sm:text-[20px]">search</span>
-          <input
-            className="bg-transparent border-none focus:ring-0 w-full text-[12px] sm:text-[13px] md:text-label-md font-label-md placeholder:text-outline outline-none min-w-0"
-            placeholder="Search tasks..."
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        {showSearch && (
+          <div className="flex flex-1 md:flex-none items-center gap-2 bg-surface px-2 sm:px-3 py-2 rounded-md border border-outline-variant w-full max-w-[120px] sm:max-w-[200px] md:max-w-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
+            <span className="material-symbols-outlined text-outline text-[18px] sm:text-[20px]">search</span>
+            <input
+              className="bg-transparent border-none focus:ring-0 w-full text-[12px] sm:text-[13px] md:text-label-md font-label-md placeholder:text-outline outline-none min-w-0"
+              placeholder="Search tasks..."
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right actions */}
