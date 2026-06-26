@@ -1157,7 +1157,7 @@ export function AppProvider({ children }) {
   // Also re-fetch immediately when the user returns to this tab
   useEffect(() => {
     fetchMessages()
-    const interval = setInterval(fetchMessages, 5000) // 5 seconds
+    const interval = setInterval(fetchMessages, 60000) // 60 seconds (MQTT handles realtime)
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -1856,9 +1856,9 @@ export function AppProvider({ children }) {
     }
     document.addEventListener('click', handleFirstClick, { once: true })
 
-    const taskInterval = setInterval(fetchSyncedTasks, 5000)
-    const msgInterval = setInterval(fetchMessages, 5000)
-    const teamInterval = setInterval(fetchTeam, 30000)
+    const taskInterval = setInterval(fetchSyncedTasks, 60000) // 60 seconds
+    const msgInterval = setInterval(fetchMessages, 60000) // 60 seconds
+    const teamInterval = setInterval(fetchTeam, 60000) // 60 seconds
     const clientInterval = setInterval(fetchClients, 60000)
 
     const handleVisibilityChange = () => {
