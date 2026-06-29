@@ -714,7 +714,7 @@ export default function ChatPage() {
             text: deletePayloadText,
             sender: sender,
             type: 'sent',
-            time: new Date().toLocaleTimeString(),
+            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
             timestamp: new Date().toISOString()
           }
           return {
@@ -763,7 +763,7 @@ export default function ChatPage() {
         text: reactPayloadText,
         sender,
         type: 'sent',
-        time: new Date().toLocaleTimeString(),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
         timestamp: new Date().toISOString(),
       }
       return {
@@ -869,7 +869,7 @@ export default function ChatPage() {
 
     const tempId = String(Date.now())
     const isoTimestamp = new Date().toISOString()
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
 
     const newMessage = {
       id: tempId,
@@ -925,7 +925,7 @@ export default function ChatPage() {
       isSendingRef.current = false
     }, 100)
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
     const tempId = String(Date.now())
 
     let finalMessageText = text.trim()
@@ -1153,7 +1153,7 @@ export default function ChatPage() {
     const newGroup = {
       id: newId,
       name: groupName || 'Unnamed Group',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
       preview: 'Group created.',
       icon: 'groups',
       bg: 'bg-primary-container',
@@ -1216,7 +1216,7 @@ export default function ChatPage() {
       id: systemMsgId,
       type: 'system',
       text: `${myName} added ${member.name}`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
       timestamp: nowIso
     }
 
@@ -1284,7 +1284,7 @@ export default function ChatPage() {
           id: systemMsgId,
           type: 'system',
           text: `${myName} removed ${memberName}`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
           timestamp: nowIso
         }
 

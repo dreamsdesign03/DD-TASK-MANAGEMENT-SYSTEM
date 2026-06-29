@@ -621,7 +621,7 @@ export function AppProvider({ children }) {
     try {
       const d = new Date(timestamp)
       if (isNaN(d.getTime())) throw new Error('Invalid date')
-      timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
     } catch (err) {
       timeStr = timestamp || ''
     }
@@ -911,7 +911,7 @@ export function AppProvider({ children }) {
                   newGroups.push({
                     id: fg.id,
                     name: fg.name,
-                    time: new Date(fg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    time: new Date(fg.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }),
                     preview: 'Group created.',
                     icon: 'groups',
                     bg: 'bg-primary-container',
@@ -1230,7 +1230,7 @@ export function AppProvider({ children }) {
 
         const cleanText = cleanPreviewText(payload.message || '') || payload.message || ''
         const shortText = cleanText.length > 50 ? cleanText.substring(0, 50) + '...' : cleanText
-        const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        const nowTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
 
         // 1. Instantly update the sidebar preview (for both sent and received)
         if (payload.type === 'personal') {
