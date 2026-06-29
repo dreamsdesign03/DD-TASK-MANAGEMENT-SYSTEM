@@ -1153,11 +1153,12 @@ export function AppProvider({ children }) {
     }
   }
 
-  // Poll for new messages every 5 seconds so notifications and unread badges work for other users!
+  // Poll for new messages every 5 minutes as a fallback.
+  // Real-time updates are handled entirely by MQTT now.
   // Also re-fetch immediately when the user returns to this tab
   useEffect(() => {
     fetchMessages()
-    const interval = setInterval(fetchMessages, 5000) // 5 seconds
+    const interval = setInterval(fetchMessages, 300000) // 5 minutes
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -1856,10 +1857,10 @@ export function AppProvider({ children }) {
     }
     document.addEventListener('click', handleFirstClick, { once: true })
 
-    const taskInterval = setInterval(fetchSyncedTasks, 5000)
-    const msgInterval = setInterval(fetchMessages, 5000)
-    const teamInterval = setInterval(fetchTeam, 30000)
-    const clientInterval = setInterval(fetchClients, 60000)
+    // Background polling fallback (real-time is handled by MQTT)
+    const taskInterval = setInterval(fetchSyncedTasks, 300000) // 5 minutes
+    const teamInterval = setInterval(fetchTeam, 300000) // 5 minutes
+    const clientInterval = setInterval(fetchClients, 300000) // 5 minutes
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
