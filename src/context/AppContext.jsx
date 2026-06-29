@@ -1207,7 +1207,13 @@ export function AppProvider({ children }) {
             if (!isNaN(newTime) && newTime > room.maxReadTime) {
               newMaxReadTime = newTime
             }
-            return { ...prev, [roomId]: { ...room, maxReadTime: newMaxReadTime, maxReadTimeByEmail: updatedMaxReadTimeByEmail } }
+            
+            const updatedReadIds = { ...(room.readIds || {}) }
+            if (payload.messageId) {
+              updatedReadIds[payload.messageId] = true
+            }
+
+            return { ...prev, [roomId]: { ...room, maxReadTime: newMaxReadTime, maxReadTimeByEmail: updatedMaxReadTimeByEmail, readIds: updatedReadIds } }
           })
           return
         }

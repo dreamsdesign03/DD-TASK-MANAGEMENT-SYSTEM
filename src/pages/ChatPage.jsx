@@ -533,6 +533,13 @@ export default function ChatPage() {
       }
     }
 
+    // STRICT FIX FOR CLOCK DRIFT: 
+    // Temp messages should NEVER be evaluated as read by watermark timestamps from the server.
+    // They can ONLY be read if we explicitly received an MQTT read_receipt for their temp_id.
+    if (isTemp) {
+      isRead = !!(roomStatus.readIds && roomStatus.readIds[msg.id])
+    }
+
     if (isRead) {
       return <span className="material-symbols-outlined text-[14px] ml-1 text-blue-400 font-bold" title="Read">done_all</span>
     }
