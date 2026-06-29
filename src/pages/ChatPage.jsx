@@ -501,7 +501,7 @@ export default function ChatPage() {
           if (t > maxPersistedReadTime) maxPersistedReadTime = t
         }
       })
-      if (!isNaN(msgTime) && msgTime <= maxPersistedReadTime) {
+      if (!isTemp && !isNaN(msgTime) && msgTime <= maxPersistedReadTime) {
         isRead = true
       }
     } else {
@@ -520,7 +520,7 @@ export default function ChatPage() {
         for (const email of otherMemberEmails) {
           let pt = persistedReceipts[email] || 0
           if (typeof pt === 'string' && /^\d+$/.test(pt)) pt = parseInt(pt, 10)
-          const persistedTime = new Date(pt).getTime()
+          const persistedTime = isTemp ? 0 : new Date(pt).getTime()
           const mqttTime = roomStatus.maxReadTimeByEmail?.[email] || 0
           const rTime = Math.max(isNaN(persistedTime) ? 0 : persistedTime, isNaN(mqttTime) ? 0 : mqttTime)
           debugTimes.push(`${email.split('@')[0]}:${rTime}`)
@@ -533,12 +533,7 @@ export default function ChatPage() {
       }
     }
 
-    // STRICT FIX FOR CLOCK DRIFT: 
-    // Temp messages should NEVER be evaluated as read by watermark timestamps from the server.
-    // They can ONLY be read if we explicitly received an MQTT read_receipt for their temp_id.
-    if (isTemp) {
-      isRead = !!(roomStatus.readIds && (roomStatus.readIds[msg.id] || roomStatus.readIds[`sheet_msg_${msg.id}`]))
-    }
+    // (Removed strict readIds check to restore MQTT watermark logic for temp messages)
 
     if (isRead) {
       return <span className="material-symbols-outlined text-[14px] ml-1 text-blue-400 font-bold" title="Read">done_all</span>
