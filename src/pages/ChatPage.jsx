@@ -477,12 +477,7 @@ export default function ChatPage() {
         </span>
       )
     }
-    // Strictly verify if the message is in the Google Sheet (it has a sheet_msg_ prefix)
     const isTemp = !msg.timestamp || String(msg.id).startsWith('temp_') || /^\d{13,}$/.test(String(msg.id))
-
-    if (isTemp) {
-      return <span className="material-symbols-outlined text-[14px] ml-1 opacity-50" title="Sent">done</span>
-    }
 
     const roomStatus = messageStatusByChatId?.[selectedChatId] || { deliveredIds: {}, maxReadTime: 0 }
 
@@ -544,6 +539,10 @@ export default function ChatPage() {
 
     if (roomStatus.deliveredIds[msg.id]) {
       return <span className="material-symbols-outlined text-[14px] ml-1 opacity-70" title={`Delivered | ${msg._debugInfo || ''}`}>done_all</span>
+    }
+
+    if (isTemp) {
+      return <span className="material-symbols-outlined text-[14px] ml-1 opacity-50" title="Sent">done</span>
     }
 
     return <span className="material-symbols-outlined text-[14px] ml-1 opacity-70" title={`Stored | ${msg._debugInfo || ''}`}>done_all</span>
