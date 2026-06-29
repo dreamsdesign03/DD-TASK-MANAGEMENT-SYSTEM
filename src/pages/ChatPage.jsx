@@ -537,7 +537,7 @@ export default function ChatPage() {
     // Temp messages should NEVER be evaluated as read by watermark timestamps from the server.
     // They can ONLY be read if we explicitly received an MQTT read_receipt for their temp_id.
     if (isTemp) {
-      isRead = !!(roomStatus.readIds && roomStatus.readIds[msg.id])
+      isRead = !!(roomStatus.readIds && (roomStatus.readIds[msg.id] || roomStatus.readIds[`sheet_msg_${msg.id}`]))
     }
 
     if (isRead) {
