@@ -1191,7 +1191,11 @@ export function AppProvider({ children }) {
         if (payload.action === 'read_receipt') {
           setMessageStatusByChatId(prev => {
             const room = prev[roomId] || { deliveredIds: {}, maxReadTime: 0, maxReadTimeByEmail: {} }
-            const newTime = new Date(payload.timestamp).getTime()
+            let parsedTime = payload.timestamp
+            if (typeof parsedTime === 'string' && /^\d+$/.test(parsedTime)) {
+              parsedTime = parseInt(parsedTime, 10)
+            }
+            const newTime = new Date(parsedTime).getTime()
             const email = payload.senderEmail
 
             const updatedMaxReadTimeByEmail = { ...(room.maxReadTimeByEmail || {}) }
@@ -1218,6 +1222,17 @@ export function AppProvider({ children }) {
 
         const isMe = (pSender !== '' && pSender === myName) || (pEmail !== '' && pEmail === myEmail)
 
+        const cleanText = cleanPreviewText(payload.message || '') || payload.message || ''
+        const shortText = cleanText.length > 50 ? cleanText.substring(0, 50) + '...' : cleanText
+        const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+        // 1. Instantly update the sidebar preview (for both sent and received)
+        if (payload.type === 'personal') {
+          setPersonalChats(prev => prev.map(c => String(c.id) === String(roomId) ? { ...c, preview: shortText, time: nowTime } : c))
+        } else if (payload.type === 'group') {
+          setGroupChats(prev => prev.map(g => String(g.id) === String(roomId) ? { ...g, preview: shortText, time: nowTime } : g))
+        }
+
         if (payload.action === 'send' && !isMe) {
           if (mqttClient && mqttClient.connected) {
             mqttClient.publish('dd_chat_engine_v1/' + roomId, JSON.stringify({
@@ -1228,7 +1243,7 @@ export function AppProvider({ children }) {
             }))
           }
 
-          // Instant Notification for Task Chats
+          // 2. Instant Notification for Task Chats
           if (payload.type === 'task_reply') {
             const taskId = payload.roomId
             const taskObj = tasksRef.current.find(t => t.id === taskId)
@@ -1237,21 +1252,44 @@ export function AppProvider({ children }) {
               const participants = [...assignees, taskObj.assignedBy].filter(Boolean)
 
               if (participants.includes(profileRef.current?.name)) {
-                let cleanText = payload.message || ''
-                cleanText = cleanText.replace(/\[Attachment:[^\]]+\]/g, '📎 Attachment').replace(/\[Reply:[^\]]+\]/g, '')
-                if (cleanText.length > 50) cleanText = cleanText.substring(0, 50) + '...'
+                let cleanTextTask = payload.message || ''
+                cleanTextTask = cleanTextTask.replace(/\[Attachment:[^\]]+\]/g, '📎 Attachment').replace(/\[Reply:[^\]]+\]/g, '')
+                if (cleanTextTask.length > 50) cleanTextTask = cleanTextTask.substring(0, 50) + '...'
 
                 addSystemAndWebNotification(
                   'Task Chat',
                   `New reply on ${taskId}`,
-                  `${payload.senderName}: ${cleanText}`,
+                  `${payload.senderName}: ${cleanTextTask}`,
                   taskId
+                )
+              }
+            }
+          } 
+          // 3. Instant Notification & Unread Badge for Personal/Group Chats
+          else if (payload.type === 'personal' || payload.type === 'group') {
+            const isActiveAndFocused = String(roomId) === String(chatsRef.current.activeChatSession?.id) && document.visibilityState === 'visible'
+            
+            if (!isActiveAndFocused) {
+              // Update unread badges instantly
+              if (payload.type === 'personal') {
+                setPersonalChats(prev => prev.map(c => String(c.id) === String(roomId) ? { ...c, unread: (c.unread || 0) + 1 } : c))
+              } else {
+                setGroupChats(prev => prev.map(g => String(g.id) === String(roomId) ? { ...g, unread: (g.unread || 0) + 1 } : g))
+              }
+
+              // Trigger push notification instantly
+              if (!notifiedMessageIds.current.has(payload.id)) {
+                notifiedMessageIds.current.add(payload.id)
+                addSystemAndWebNotification(
+                  payload.type === 'group' ? 'New Group Message' : 'New Message',
+                  payload.type === 'group' ? `Message in ${payload.groupName || 'Group'}` : `Message from ${payload.senderName}`,
+                  shortText,
+                  roomId
                 )
               }
             }
           }
         }
-
 
         setMessagesByChatId(prev => {
           const existing = prev[roomId] || []
