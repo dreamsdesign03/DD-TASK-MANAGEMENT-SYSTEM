@@ -487,7 +487,10 @@ export default function ChatPage() {
     const roomStatus = messageStatusByChatId?.[selectedChatId] || { deliveredIds: {}, maxReadTime: 0 }
 
     let isRead = false
-    const msgTime = new Date(msg.timestamp).getTime()
+    let parsedMsgTime = msg.timestamp
+    if (typeof parsedMsgTime === 'string' && /^\d+$/.test(parsedMsgTime)) parsedMsgTime = parseInt(parsedMsgTime, 10)
+    const msgTime = new Date(parsedMsgTime).getTime()
+    
     const persistedReceipts = readReceiptsByChatId?.[selectedChatId] || {}
 
     if (activeTab === 'personal') {
@@ -497,7 +500,9 @@ export default function ChatPage() {
       let maxPersistedReadTime = 0
       Object.keys(persistedReceipts).forEach(email => {
         if (email !== profile?.email) {
-          const t = new Date(persistedReceipts[email]).getTime()
+          let pt = persistedReceipts[email]
+          if (typeof pt === 'string' && /^\d+$/.test(pt)) pt = parseInt(pt, 10)
+          const t = new Date(pt).getTime()
           if (t > maxPersistedReadTime) maxPersistedReadTime = t
         }
       })
@@ -518,7 +523,9 @@ export default function ChatPage() {
         let allRead = true
         let debugTimes = []
         for (const email of otherMemberEmails) {
-          const persistedTime = new Date(persistedReceipts[email] || 0).getTime()
+          let pt = persistedReceipts[email] || 0
+          if (typeof pt === 'string' && /^\d+$/.test(pt)) pt = parseInt(pt, 10)
+          const persistedTime = new Date(pt).getTime()
           const mqttTime = roomStatus.maxReadTimeByEmail?.[email] || 0
           const rTime = Math.max(isNaN(persistedTime) ? 0 : persistedTime, isNaN(mqttTime) ? 0 : mqttTime)
           debugTimes.push(`${email.split('@')[0]}:${rTime}`)
