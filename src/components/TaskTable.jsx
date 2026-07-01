@@ -2,6 +2,78 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
+function SelectDropdown({ value, onChange, options, style }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={selectRef} style={{ position: 'relative', width: style.width }}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ 
+          ...style, width: '100%', 
+          borderColor: isOpen ? '#ec008c' : '#E5E7EB',
+          boxShadow: isOpen ? '0 0 0 3px rgba(139,92,246,0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
+          userSelect: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+        }}
+        onMouseEnter={e => {
+          if (!isOpen) {
+            e.currentTarget.style.borderColor = '#ec008c';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139,92,246,0.1)';
+          }
+        }}
+        onMouseLeave={e => {
+          if (!isOpen) {
+             e.currentTarget.style.borderColor = '#E5E7EB';
+             e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+          }
+        }}
+      >
+        <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 8 }}>{value}</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6B7280' }}>expand_more</span>
+      </div>
+      {isOpen && (
+        <div className="animate-fade-in-up hide-scrollbar" style={{
+          position: 'absolute', top: '100%', left: 0, width: '100%', marginTop: 8,
+          background: 'white', borderRadius: 12, boxShadow: '0 12px 32px rgba(91,33,182,0.15)',
+          border: '1px solid #F5F3FF', zIndex: 100, overflow: 'hidden',
+          display: 'flex', flexDirection: 'column', padding: 8, gap: 4,
+          maxHeight: 250, overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none'
+        }}>
+          {options.map(opt => (
+            <div 
+              key={opt}
+              onClick={() => { onChange(opt); setIsOpen(false); }}
+              style={{
+                padding: '10px 12px', fontSize: 13, fontWeight: 600, 
+                color: opt === value ? '#702c91' : '#4B5563',
+                background: opt === value ? '#F5F3FF' : 'transparent',
+                borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+              }}
+              onMouseEnter={e => { if(opt !== value) e.currentTarget.style.background = '#F9FAFB'; }}
+              onMouseLeave={e => { if(opt !== value) e.currentTarget.style.background = 'transparent'; }}
+            >
+              {opt}
+              {opt === value && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 /* ─── Priority badge config ─────────────────────────────────────────────── */
 const PRIORITY_STYLES = {
   Urgent: 'bg-[#E74C3C] text-white',
@@ -529,56 +601,54 @@ export default function TaskTable() {
           {(() => {
             const selectBaseStyle = { 
               padding: '10px 16px', borderRadius: 12, border: '1px solid #E5E7EB',
-              background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 12px center`, 
-              fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none', appearance: 'none'
+              background: 'white', 
+              fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none'
             };
             return (
               <React.Fragment>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Client</label>
-                    <select
-                      value={selectedClient} onChange={e => setSelectedClient(e.target.value)}
+                    <SelectDropdown
+                      value={selectedClient} onChange={setSelectedClient}
+                      options={uniqueClients}
                       style={{ ...selectBaseStyle, width: 160 }}
-                    >
-                      {uniqueClients.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by User</label>
-                    <select
-                      value={selectedUser} onChange={e => setSelectedUser(e.target.value)}
+                    <SelectDropdown
+                      value={selectedUser} onChange={setSelectedUser}
+                      options={uniqueUsers}
                       style={{ ...selectBaseStyle, width: 160 }}
-                    >
-                      {uniqueUsers.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Dept</label>
-                    <select
-                      value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}
+                    <SelectDropdown
+                      value={selectedDepartment} onChange={setSelectedDepartment}
+                      options={deduplicatedDepartments}
                       style={{ ...selectBaseStyle, width: 160 }}
-                    >
-                      {deduplicatedDepartments.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    />
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
-                    <select 
+                    <SelectDropdown 
                       value={`Sort by: ${sortBy}`}
-                      onChange={e => setSortBy(e.target.value.replace('Sort by: ', ''))}
+                      onChange={val => setSortBy(val.replace('Sort by: ', ''))}
+                      options={[
+                        'Sort by: Task ID (Descending)',
+                        'Sort by: Task ID (Ascending)',
+                        'Sort by: Due Date',
+                        'Sort by: Priority',
+                        'Sort by: Status',
+                        'Sort by: Task Title'
+                      ]}
                       style={{ ...selectBaseStyle, width: 230 }}
-                    >
-                      <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
-                      <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
-                      <option value="Sort by: Due Date">Sort by: Due Date</option>
-                      <option value="Sort by: Priority">Sort by: Priority</option>
-                      <option value="Sort by: Status">Sort by: Status</option>
-                      <option value="Sort by: Task Title">Sort by: Task Title</option>
-                    </select>
+                    />
                   </div>
                 </div>
               </React.Fragment>
@@ -588,7 +658,7 @@ export default function TaskTable() {
 
       {/* ──────────────────────────────────────────────────────────── */}
       {viewMode === 'List' ? (
-        <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 16 }}>
+        <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 24 }}>
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
                 <thead className="hidden md:table-header-group bg-white border-b border-[#E5E7EB]">
