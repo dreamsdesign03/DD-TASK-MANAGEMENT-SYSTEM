@@ -80,22 +80,14 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="bg-background text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Team Directory" showSearch={false} />
 
-        <main className="flex-1 bg-surface-container-low overflow-y-auto custom-scrollbar pt-0 pb-12">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10">
-            {/* Header section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-              <div>
-                <h2 className="font-Montserrat font-bold text-[28px] text-primary">Team Directory</h2>
-                <p className="text-secondary text-body-sm mt-1">Manage and collaborate with team members.</p>
-              </div>
-
-            </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div className="max-w-[1200px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8">
 
             {/* Filter and Search controls */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface-container-lowest p-4 rounded-lg border border-outline-variant/40 shadow-sm">
@@ -213,26 +205,9 @@ export default function TeamPage() {
                 ))
               )}
             </div>
+            </div>
           </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-4 md:px-8">
-          <p className="font-label-sm text-label-sm text-secondary opacity-95">
-            Dreamsdesk
-          </p>
-          <div className="flex gap-6">
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Support
-            </a>
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Privacy Policy
-            </a>
-          </div>
-        </footer>
-      </div>
-
-
+      </main>
     </div>
   )
 }

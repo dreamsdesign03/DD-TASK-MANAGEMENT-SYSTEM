@@ -127,49 +127,21 @@ export default function MyTasksPage() {
   }
 
   return (
-    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main */}
-      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden">
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
         {/* Top nav */}
-        <TopNav />
+        <TopNav title={location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'} showSearch={true} />
 
         {/* Page content */}
-        <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1450px] mx-auto w-full py-4">
-            <div className="mb-4">
-              {/* Page title */}
-              <h2
-                className="mb-4 text-primary"
-                style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
-              >
-                {location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'}
-              </h2>
-
-              {/* Task table + filters */}
-              <TaskTable />
-            </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6">
+            <TaskTable />
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
-          <div className="flex justify-between items-center px-gutter w-full">
-            <p className="font-label-sm text-label-sm text-secondary">
-              Dreamsdesk
-            </p>
-            <div className="flex gap-6">
-              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-                Support
-              </a>
-              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-                Privacy Policy
-              </a>
-            </div>
-          </div>
-        </footer>
       </main>
 
       {/* New Task Modal */}

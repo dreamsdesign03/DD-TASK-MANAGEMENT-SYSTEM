@@ -154,14 +154,14 @@ export default function MonthlyReportPage() {
   }
 
   return (
-    <div className="bg-background text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Monthly Report" showSearch={true} />
 
-        <main className="flex-1 bg-surface-container-lowest overflow-y-auto pb-12 custom-scrollbar">
-          <div id="report-content" className="max-w-[1200px] mx-auto p-4 md:p-8 space-y-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div id="report-content" className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8 space-y-8">
             {/* Title & Month Selector */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <h2 className="font-Montserrat font-bold text-[28px] text-primary">Monthly Report Analysis</h2>
@@ -595,8 +595,8 @@ export default function MonthlyReportPage() {
               </button>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

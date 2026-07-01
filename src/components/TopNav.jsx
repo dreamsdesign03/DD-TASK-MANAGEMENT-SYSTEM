@@ -1,87 +1,104 @@
+import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 
-export default function TopNav() {
+export default function TopNav({ title, badgeCount, showSearch = true }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen } = useApp()
 
-  const showSearch = location.pathname === '/tasks' || location.pathname === '/my-tasks'
-
-  const unreadCount = notifications.filter((n) => n.unread).length
+  const unreadCount = notifications?.filter((n) => n.unread).length || 0
+  const isSearchVisible = showSearch && (location.pathname === '/tasks' || location.pathname === '/my-tasks' || location.pathname === '/team' || location.pathname === '/clients')
 
   return (
-    <header className="sticky top-0 right-0 w-full h-16 bg-surface border-b border-outline-variant flex justify-between items-center px-4 md:px-gutter z-40 gap-3">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Hamburger Menu (Mobile) */}
+    <header style={{
+      height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
+      borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '0 24px', flexShrink: 0,
+      zIndex: 40,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Mobile menu button */}
         <button 
-          className="md:hidden text-on-surface-variant hover:text-primary transition-colors flex-shrink-0 p-1 -ml-1"
+          className="md:hidden"
           onClick={() => setIsSidebarOpen(true)}
+          style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 0, display: 'flex' }}
         >
-          <span className="material-symbols-outlined text-[24px]">menu</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>menu</span>
         </button>
 
-        {/* Search */}
-        {showSearch && (
-          <div className="flex flex-1 md:flex-none items-center gap-2 bg-surface px-2 sm:px-3 py-2 rounded-md border border-outline-variant w-full max-w-[120px] sm:max-w-[200px] md:max-w-xs focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all shadow-sm">
-            <span className="material-symbols-outlined text-outline text-[18px] sm:text-[20px]">search</span>
-            <input
-              className="bg-transparent border-none focus:ring-0 w-full text-[12px] sm:text-[13px] md:text-label-md font-label-md placeholder:text-outline outline-none min-w-0"
-              placeholder="Search tasks..."
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
+          {title || 'Dashboard'}
+        </h1>
+        {badgeCount !== undefined && (
+          <span style={{ padding: '4px 12px', background: '#F5F3FF', color: '#702c91', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
+            {badgeCount}
+          </span>
         )}
       </div>
 
-      {/* Right actions */}
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-6 flex-shrink-0">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        {isSearchVisible && (
+          <div style={{ position: 'relative', width: 300 }} className="hidden md:block">
+            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 20 }}>search</span>
+            <input 
+              type="text" 
+              placeholder="Search tasks..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%', height: 42, background: isDarkMode ? '#2d2a3d' : '#F8F7FC', border: 'none', borderRadius: 999,
+                paddingLeft: 44, paddingRight: 16, fontSize: 14, outline: 'none', color: isDarkMode ? '#fff' : '#1E1B2E',
+                fontFamily: 'Inter,sans-serif',
+              }} 
+            />
+          </div>
+        )}
 
-        {/* Theme Toggle */}
-        <button
+        <button 
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className="text-on-surface-variant hover:text-primary transition-all duration-150 flex items-center justify-center"
-          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          style={{ width: 40, height: 40, background: isDarkMode ? '#3b384d' : '#F3F4F6', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          title="Toggle Theme"
         >
-          <span className="material-symbols-outlined">
+          <span className="material-symbols-outlined" style={{ color: isDarkMode ? '#FBBF24' : '#4B5563', fontSize: 20 }}>
             {isDarkMode ? 'light_mode' : 'dark_mode'}
           </span>
         </button>
-
-        {/* Notifications */}
-        <div className="relative flex items-center justify-center">
-          <button
-            onClick={() => navigate('/notifications')}
-            className="text-on-surface-variant hover:text-primary transition-all duration-150 flex items-center justify-center"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full" />
-          )}
-        </div>
-
-        <div className="h-8 w-[1px] bg-outline-variant" />
-
-        {/* User */}
-        <div
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
-          onClick={() => navigate('/settings')}
+        
+        <button 
+          onClick={() => navigate('/notifications')}
+          style={{ position: 'relative', width: 40, height: 40, background: '#FEF2F2', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <div className="hidden md:block text-right">
-            <p className="text-label-md font-bold text-primary">{profile.name}</p>
-            <p className="text-[11px] text-secondary font-medium tracking-wide">{profile.role}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-surface-container text-primary flex items-center justify-center text-[14px] font-semibold border border-outline-variant/50 shadow-sm flex-shrink-0">
-            {(() => {
-              const name = profile.name || 'User'
-              const parts = name.split(' ')
-              if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-              return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-            })()}
-          </div>
+          <span className="material-symbols-outlined" style={{ color: '#DC2626', fontSize: 20 }}>notifications</span>
+          {unreadCount > 0 && (
+            <span style={{ position: 'absolute', top: 0, right: 0, width: 10, height: 10, background: '#EF4444', border: '2px solid #FEF2F2', borderRadius: '50%' }} />
+          )}
+        </button>
+
+        <button 
+          onClick={() => navigate('/chat')}
+          style={{ width: 40, height: 40, background: '#EFF6FF', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <span className="material-symbols-outlined" style={{ color: '#2563EB', fontSize: 20 }}>chat_bubble</span>
+        </button>
+
+        <div 
+          onClick={() => navigate('/settings')}
+          style={{ 
+            width: 40, height: 40, borderRadius: '50%', 
+            background: 'linear-gradient(135deg, #702c91 0%, #ec008c 100%)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer' 
+          }}
+          title={profile?.name}
+        >
+          {(() => {
+            const name = profile?.name || 'User'
+            const parts = name.split(' ')
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+          })()}
         </div>
       </div>
     </header>

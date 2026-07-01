@@ -78,31 +78,23 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => n.unread).length
 
   return (
-    <div className="bg-surface-bright text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Notifications" badgeCount={unreadCount > 0 ? unreadCount : undefined} showSearch={false} />
 
-        <main className="flex-1 bg-background overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-margin_desktop py-6 md:py-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div className="max-w-[1200px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8">
             {/* ── Header row ──────────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end mb-6 md:mb-8 gap-4 md:gap-0">
               <div className="w-full md:w-auto">
                 <div className="flex items-center gap-2 mb-4 md:mb-6">
-                  <button className="md:hidden p-1 -ml-1 hover:bg-surface-container rounded-full flex items-center justify-center transition-colors" onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}>
-                    <span className="material-symbols-outlined text-[24px]">menu</span>
-                  </button>
                   <h2
-                    className="text-on-surface"
-                    style={{ fontWeight: 700, fontSize: '24px', fontFamily: 'Montserrat' }}
+                    className="text-primary"
+                    style={{ fontWeight: 700, fontSize: '24px', fontFamily: 'Inter' }}
                   >
-                    Notifications
-                    {unreadCount > 0 && (
-                      <span className="ml-3 text-[14px] md:text-[16px] font-label-md text-white bg-primary px-2.5 py-0.5 rounded-full">
-                        {unreadCount}
-                      </span>
-                    )}
+                    Your Notifications
                   </h2>
                 </div>
 
@@ -160,23 +152,8 @@ export default function NotificationsPage() {
 
             {/* ── Bento insights ───────────────────────────────────── */}
           </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="w-full py-4 px-margin_desktop bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
-          <p className="font-label-sm text-label-sm text-secondary">
-            Dreamsdesk
-          </p>
-          <div className="flex gap-6">
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Support
-            </a>
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Privacy Policy
-            </a>
-          </div>
-        </footer>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

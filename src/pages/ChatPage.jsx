@@ -1336,12 +1336,16 @@ export default function ChatPage() {
 
 
   return (
-    <div className="bg-surface text-on-surface overflow-hidden h-[100dvh] flex">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <main className="md:ml-[240px] flex flex-1 h-[100dvh] overflow-hidden">
-        {/* â”€â”€ LEFT PANEL: Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Chat" showSearch={false} />
+
+        <div className="flex-1 flex overflow-hidden p-4 md:p-6 pb-6">
+          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] flex overflow-hidden">
+            {/* LEFT PANEL: Conversation List */}
+            <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
           {/* Panel header with Clear All button */}
           <div className="flex items-center justify-between px-4 pt-4 pb-2 md:bg-transparent bg-primary md:text-on-surface text-white">
             <div className="flex items-center gap-2">
@@ -2000,6 +2004,8 @@ export default function ChatPage() {
             </div>
           </div>
         )}
+          </div>
+        </div>
       </main>
 
       {/* Group Creation Modal */}

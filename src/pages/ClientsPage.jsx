@@ -137,21 +137,15 @@ export default function ClientsPage() {
   })
 
   return (
-    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
-      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden">
-        <TopNav />
-        <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1450px] mx-auto w-full py-4 space-y-6">
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Clients" showSearch={true} />
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <div>
-                <h2
-                  className="mb-1 text-primary"
-                  style={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: '28px' }}
-                >
-                  Clients
-                </h2>
-                <p className="text-secondary text-body-sm">Manage client details and active status.</p>
+                <p className="text-secondary text-body-sm mt-1">Manage client details and active status.</p>
               </div>
 
               <div className="relative max-w-xs w-full">
@@ -259,23 +253,6 @@ export default function ClientsPage() {
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="w-full py-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0">
-          <div className="flex justify-between items-center px-4 md:px-8 w-full">
-            <p className="font-label-sm text-label-sm text-secondary">
-              Dreamsdesk
-            </p>
-            <div className="flex gap-6">
-              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-                Support
-              </a>
-              <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-                Privacy Policy
-              </a>
-            </div>
-          </div>
-        </footer>
       </main>
 
       {/* Edit Client Modal */}

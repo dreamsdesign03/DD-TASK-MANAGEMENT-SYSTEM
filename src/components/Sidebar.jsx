@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp, mqttClient } from '../context/AppContext'
 
 const AVAILABLE_SERVICES = [
@@ -18,21 +18,16 @@ const AVAILABLE_SERVICES = [
   "360 Project"
 ]
 
-const NAV_ITEMS = [
-  { icon: 'assignment_turned_in', label: 'All Tasks', to: '/tasks' },
-  { icon: 'assignment_ind', label: 'My Tasks', to: '/my-tasks' },
-  { icon: 'notifications', label: 'Notifications', to: '/notifications' },
-  { icon: 'chat', label: 'Chat', to: '/chat' },
-  { icon: 'group', label: 'Team', to: '/team' },
-  { icon: 'domain', label: 'Clients', to: '/clients' },
-  { icon: 'assessment', label: 'Monthly Reports', to: '/reports' },
-]
+const COLLAPSED_W = 88;
+const EXPANDED_W  = 240;
 
 export default function Sidebar() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, setProfile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
   
   const isElectron = window && window.process && window.process.type
+  const [expanded, setExpanded] = useState(false)
   
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [clientForm, setClientForm] = useState({
@@ -114,8 +109,53 @@ export default function Sidebar() {
     })
   }
 
+  const NAV_ITEMS = [
+    { icon: 'grid_view',       label: 'All Tasks',     path: '/tasks',          count: totalUnreadTasks, countBg: '#EF4444' },
+    { icon: 'check_box',       label: 'My Tasks',      path: '/my-tasks'                },
+    { icon: 'notifications',   label: 'Notifications', path: '/notifications' },
+    { icon: 'chat_bubble',     label: 'Chat',          path: '/chat',           count: totalUnreadChat, countBg: '#A78BFA' },
+    { icon: 'group',           label: 'Team',          path: '/team'                    },
+    { icon: 'business_center', label: 'Clients',       path: '/clients'                 },
+    { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
+  ];
+
   return (
     <>
+      <style>{`
+        /* ── Nav item base ── */
+        .dd-item {
+          position: relative;
+          display: flex;
+          align-items: center;
+          height: 48px;
+          border: none;
+          cursor: pointer;
+          font-family: Inter, sans-serif;
+          font-size: 15px;
+          text-align: left;
+          transition: background-color 0.3s ease, color 0.3s ease;
+          border-radius: 16px;
+          color: rgba(255,255,255,0.65);
+          background: transparent;
+          overflow: hidden;
+        }
+        .dd-item:not(.dd-active):hover {
+          background: rgba(255,255,255,0.12);
+          color: #fff;
+        }
+        .dd-item.dd-active {
+          background: rgba(255, 255, 255, 0.15) !important;
+          color: #fff !important;
+          font-weight: 700;
+          box-shadow: none;
+          border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* ── Hide scrollbar in Nav ── */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
@@ -124,106 +164,250 @@ export default function Sidebar() {
         />
       )}
 
-      <aside className={`fixed left-0 top-0 h-full w-[240px] bg-surface border-r border-outline-variant flex flex-col py-6 z-50 transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
-
-      {/* Brand */}
-      <div 
-        className="px-6 mb-8 flex items-center gap-3 min-h-0 cursor-pointer hover:opacity-80 transition-opacity"
-        onClick={() => navigate('/tasks')}
+      <aside
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+        className={`md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[200%]'}`}
+        style={{
+          position: 'fixed',
+          top: 12, left: 12, bottom: 12,
+          width: expanded ? EXPANDED_W : COLLAPSED_W,
+          background: 'linear-gradient(to top, #702c91 0%, #ec008c 0%, #702c91 100%)',
+          borderRadius: 24,
+          boxShadow: '0 12px 32px rgba(112, 44, 145, 0.3)',
+          display: 'flex',
+          flexDirection: 'column',
+          zIndex: 50,
+          overflow: 'hidden',
+          transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 1s ease, transform 0.3s ease',
+        }}
       >
-        <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-          <div className="logo-mask w-full h-full" aria-label="Dreamsdesk Logo" />
+        {/* ── LOGO SECTION ── */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          padding: expanded ? '32px 0 32px 28px' : '32px 0 32px 24px',
+          flexShrink: 0, overflow: 'hidden',
+          transition: 'padding 1s cubic-bezier(0.25, 1, 0.5, 1)',
+        }}>
+          <div style={{
+            minWidth: 48, height: 48, borderRadius: '50%',
+            background: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <div className="logo-mask" style={{ width: 32, height: 32, backgroundColor: '#702c91' }} />
+          </div>
+          <div style={{
+            opacity: expanded ? 1 : 0,
+            transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+            whiteSpace: 'nowrap', overflow: 'hidden',
+          }}>
+            <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: 22, letterSpacing: '-0.02em' }}>Dreamsdesk</p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <h1 className="font-headline-md text-[18px] font-bold text-primary leading-tight truncate">
-            Dreamsdesk
-          </h1>
-        </div>
-      </div>
 
-      {/* Nav links */}
-      <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map(({ icon, label, to }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-3 rounded-lg font-label-lg text-label-lg transition-colors duration-200 ${isActive
-                ? 'bg-surface-container text-primary border-l-4 border-primary'
-                : 'text-secondary hover:bg-surface-container-low'
-              }`
-            }
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <span className="material-symbols-outlined">{icon}</span>
-            <span>{label}</span>
-            {label === 'Chat' && totalUnreadChat > 0 && (
-              <span className="ml-auto min-w-[18px] h-[18px] px-1.5 bg-[#25d366] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
-                {totalUnreadChat}
-              </span>
-            )}
-            {label === 'All Tasks' && totalUnreadTasks > 0 && (
-              <span className="ml-auto min-w-[18px] h-[18px] px-1.5 bg-error text-on-error text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-scale-in">
-                {totalUnreadTasks}
-              </span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Bottom actions */}
-      <div className="px-3 mt-auto pt-6 space-y-1 border-t border-outline-variant">
-        {!isElectron && (
-          <a
-            href="https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe"
-            className="w-full mb-4 py-3 bg-[#0f172a] text-white rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-[#1e293b] transition-colors shadow-sm group"
-          >
-            <span className="material-symbols-outlined group-hover:translate-y-[2px] transition-transform">download</span>
-            Get Desktop App
-          </a>
-        )}
-
-        <button
-          onClick={() => {
-            setShowNewTaskModal(true)
-            navigate('/tasks')
+        {/* ── NAV ── */}
+        <nav
+          className="hide-scrollbar"
+          style={{
+            flex: 1,
+            padding: '10px 0 22px 0',
+            display: 'flex', flexDirection: 'column', gap: 8,
+            overflowY: 'auto', overflowX: 'visible',
           }}
-          className="w-full mb-2 py-3 bg-primary-container text-white rounded-lg font-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
         >
-          <span className="material-symbols-outlined">add</span>
-          New Task
-        </button>
+          {NAV_ITEMS.map(item => {
+            const active = pathname === item.path || (pathname === '/dashboard' && item.path === '/tasks');
+            return (
+              <button
+                key={item.path}
+                className={`dd-item${active ? ' dd-active' : ''}`}
+                onClick={() => {
+                  navigate(item.path);
+                  setIsSidebarOpen(false);
+                }}
+                style={{
+                  margin: '0 20px',
+                  width: expanded ? 'calc(100% - 40px)' : '48px',
+                  padding: '0 14px',
+                  justifyContent: 'flex-start',
+                  transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1)',
+                }}
+              >
+                {/* Icon */}
+                <span style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: 20,
+                      color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                      fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                      transition: 'color 0.2s',
+                    }}
+                  >
+                    {item.icon}
+                  </span>
+                </span>
 
-        {profile?.systemRole !== 'Employee' && (
+                {/* Label — fades in on expand */}
+                <span style={{
+                  opacity: expanded ? 1 : 0,
+                  marginLeft: 12,
+                  transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+                  whiteSpace: 'nowrap',
+                  fontWeight: active ? 700 : 500,
+                  flex: 1,
+                  textAlign: 'left'
+                }}>
+                  {item.label}
+                </span>
+
+                {item.count > 0 && expanded && (
+                  <span style={{
+                    minWidth: 20, height: 20, padding: '0 6px',
+                    background: item.countBg, color: '#fff',
+                    borderRadius: 999, fontSize: 11, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginLeft: 8
+                  }}>
+                    {item.count}
+                  </span>
+                )}
+                {item.count > 0 && !expanded && (
+                  <span style={{
+                    position: 'absolute', top: 12, right: 12,
+                    width: 8, height: 8, borderRadius: '50%',
+                    background: item.countBg, border: '2px solid #702c91'
+                  }} />
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── BOTTOM ACTIONS ── */}
+        <div style={{
+          padding: '24px 0 32px 0',
+          display: 'flex', flexDirection: 'column', gap: 10,
+          flexShrink: 0, overflow: 'hidden',
+          borderTop: '1px solid rgba(255,255,255,0.08)'
+        }}>
+          {!isElectron && (
+            <button
+              onClick={() => window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe', '_blank')}
+              style={{
+                display: 'flex', alignItems: 'center',
+                height: 48, margin: '0 20px', width: expanded ? 'calc(100% - 40px)' : '48px',
+                padding: '0 14px', justifyContent: 'flex-start',
+                borderRadius: 14, cursor: 'pointer',
+                background: '#fff', color: '#702c91',
+                transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>get_app</span>
+              <span style={{
+                opacity: expanded ? 1 : 0, marginLeft: 12,
+                transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+                whiteSpace: 'nowrap', fontSize: 14, fontWeight: 700
+              }}>
+                Get Desktop App
+              </span>
+            </button>
+          )}
+
           <button
-            onClick={() => setShowNewClientModal(true)}
-            className="w-full mb-4 py-3 bg-surface-container border border-primary/20 text-primary rounded-lg font-label-lg flex items-center justify-center gap-2 hover:bg-primary/5 transition-colors"
+            onClick={() => {
+              setShowNewTaskModal(true);
+              navigate('/tasks');
+            }}
+            style={{
+              display: 'flex', alignItems: 'center',
+              height: 48, margin: '0 20px', width: expanded ? 'calc(100% - 40px)' : '48px',
+              padding: '0 14px', justifyContent: 'flex-start',
+              borderRadius: 14, cursor: 'pointer',
+              background: 'rgba(255,255,255,0.2)', color: '#fff',
+              border: '1px solid rgba(255,255,255,0.3)',
+              transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
           >
-            <span className="material-symbols-outlined">domain_add</span>
-            New Client
+            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
+            <span style={{
+              opacity: expanded ? 1 : 0, marginLeft: 12,
+              transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+              whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600
+            }}>
+              New Task
+            </span>
           </button>
-        )}
 
-        <button
-          onClick={() => {
-            if (profile?.email) {
-              fetch('https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'logout', email: profile.email })
-              }).catch(e => console.warn(e))
-            }
-            setProfile(null)
-            localStorage.removeItem('dd_profile')
-            navigate('/login')
-          }}
-          className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-secondary font-label-lg text-label-lg hover:bg-surface-container-low transition-colors duration-200"
-        >
-          <span className="material-symbols-outlined">logout</span>
-          <span>Logout</span>
-        </button>
-      </div>
-    </aside>
+          {profile?.systemRole !== 'Employee' && (
+            <button
+              onClick={() => setIsAddClientModalOpen(true)}
+              style={{
+                display: 'flex', alignItems: 'center',
+                height: 48, margin: '0 20px', width: expanded ? 'calc(100% - 40px)' : '48px',
+                padding: '0 14px', justifyContent: 'flex-start',
+                borderRadius: 14, cursor: 'pointer',
+                background: 'transparent', color: 'rgba(255,255,255,0.9)',
+                transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>domain_add</span>
+              <span style={{
+                opacity: expanded ? 1 : 0, marginLeft: 12,
+                transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+                whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600
+              }}>
+                New Client
+              </span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              if (profile?.email) {
+                fetch('https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                  body: JSON.stringify({ action: 'logout', email: profile.email })
+                }).catch(e => console.warn(e))
+              }
+              setProfile(null)
+              localStorage.removeItem('dd_profile')
+              navigate('/login')
+            }}
+            style={{
+              display: 'flex', alignItems: 'center',
+              height: 48, margin: '0 20px', width: expanded ? 'calc(100% - 40px)' : '48px',
+              padding: '0 14px', justifyContent: 'flex-start',
+              borderRadius: 14, cursor: 'pointer',
+              background: 'transparent', color: 'rgba(255,255,255,0.7)',
+              transition: 'width 1s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s',
+              overflow: 'hidden'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>logout</span>
+            <span style={{
+              opacity: expanded ? 1 : 0, marginLeft: 12,
+              transition: expanded ? 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1) 0.3s' : 'opacity 0.3s ease 0s',
+              whiteSpace: 'nowrap', fontSize: 14, fontWeight: 600
+            }}>
+              Logout
+            </span>
+          </button>
+        </div>
+      </aside>
 
       {/* New Client Modal */}
       {showNewClientModal && (
@@ -422,4 +606,3 @@ export default function Sidebar() {
     </>
   )
 }
-

@@ -16,19 +16,15 @@ export default function ProfilePage() {
   const { profile, setProfile } = useApp()
 
   return (
-    <div className="bg-background text-on-background flex h-[100dvh] overflow-hidden">
-      {/* SideNavBar */}
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      {/* Main Container */}
-      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
-        {/* TopNavBar */}
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Profile" showSearch={false} />
 
-        {/* Main Content */}
-        <main className="flex-1 bg-surface-container-low overflow-y-auto custom-scrollbar pt-0 pb-12">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-10">
-            <div className="max-w-4xl mx-auto">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pb-6">
+          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8 flex flex-col min-h-[600px]">
+            <div className="max-w-4xl mx-auto w-full">
               {/* Profile Form & Info Card */}
               <div className="bg-surface-container-lowest rounded-lg border border-outline-variant/40 shadow-sm flex flex-col h-full min-h-[600px]">
                 <div className="p-4 md:p-8 flex-grow">
@@ -166,23 +162,8 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="w-full py-4 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-4 md:px-8">
-          <p className="font-label-sm text-label-sm text-secondary opacity-90">
-            Dreamsdesk
-          </p>
-          <div className="flex gap-6">
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Support
-            </a>
-            <a href="#" className="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors">
-              Privacy Policy
-            </a>
-          </div>
-        </footer>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

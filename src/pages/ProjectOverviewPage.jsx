@@ -190,14 +190,14 @@ export default function ProjectOverviewPage() {
   const progressPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   return (
-    <div className="bg-surface text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <main className="md:ml-[240px] flex-1 flex flex-col h-[100dvh] overflow-hidden bg-surface-container-lowest">
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title={projectName} showSearch={true} />
 
         {/* Header Area */}
-        <div className="bg-surface-container-lowest border-b border-outline-variant/50 pt-6 px-4 md:px-8 flex-shrink-0">
+        <div className="bg-white dark:bg-[#1e1b2e] border-b border-outline-variant/50 pt-4 px-4 md:px-8 flex-shrink-0 shadow-[0_2px_12px_rgba(91,33,182,0.04)] z-10">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-[18px]">domain</span>
@@ -255,9 +255,10 @@ export default function ProjectOverviewPage() {
           </div>
         </div>
 
+
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+          <div className="max-w-[1450px] mx-auto w-full flex flex-col gap-6">
             
             {/* Project Progress */}
             <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-sm flex flex-col md:flex-row md:items-center gap-6 justify-between">

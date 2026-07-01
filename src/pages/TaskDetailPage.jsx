@@ -647,16 +647,16 @@ export default function TaskDetailPage() {
   const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
 
   return (
-    <div className="bg-background text-on-surface flex h-[100dvh] overflow-hidden">
+    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <div className="md:ml-[240px] flex flex-col flex-1 h-[100dvh] overflow-hidden">
-        <TopNav />
+      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title={task.title} showSearch={true} />
 
         {/* Main canvas */}
-        <main className="pt-0 flex-1 bg-background overflow-y-auto custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8">
-            {/* â”€â”€ LEFT COLUMN (65%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pb-6">
+          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] flex flex-col lg:flex-row p-6 md:p-8 gap-8">
+            {/* LEFT COLUMN (65%) */}
             <div className="w-full lg:w-[65%] space-y-8">
               {/* Breadcrumb */}
               <button
@@ -1480,22 +1480,8 @@ export default function TaskDetailPage() {
               </div>
             </div>
           </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="w-full py-4 px-4 md:px-8 bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center">
-          <p className="text-label-sm font-label-sm text-secondary">Â© 2024 Dreamsdesk Internal Systems</p>
-          <div className="flex gap-6">
-            <a href="#" className="text-label-sm font-label-sm text-secondary hover:text-primary transition-colors">
-              Support
-            </a>
-            <a href="#" className="text-label-sm font-label-sm text-secondary hover:text-primary transition-colors">
-              Privacy Policy
-            </a>
-          </div>
-        </footer>
-      </div>
-
+        </div>
+      </main>
       {/* Assignee Modal */}
       {isAssigneeModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
