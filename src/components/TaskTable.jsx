@@ -600,13 +600,13 @@ export default function TaskTable() {
           >
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
-                <thead className="hidden md:table-header-group bg-surface-container-low border-b border-outline-variant">
+                <thead className="hidden md:table-header-group bg-white border-b border-[#E5E7EB]">
                   <tr>
                     {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
                       (h) => (
                         <th
                           key={h}
-                          className={`px-4 py-3 font-label-md text-label-md text-secondary uppercase tracking-wider ${h === 'Action' ? 'text-center' : ''
+                          className={`p-[16px] text-left text-[11px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap ${h === 'Action' ? 'text-center' : ''
                             }`}
                         >
                           {h}
@@ -643,12 +643,12 @@ export default function TaskTable() {
                         return (
                           <React.Fragment key={dept}>
                             {/* Department Header Row */}
-                            <tr className="block md:table-row bg-surface-container-high border-y border-outline-variant rounded-lg md:rounded-none mb-4 md:mb-0">
-                              <td colSpan="9" className="block md:table-cell px-4 py-3">
-                                <div className="flex items-center gap-2 font-bold text-primary text-[13px] tracking-wider uppercase">
-                                  <span className="material-symbols-outlined text-[18px]">folder_open</span>
+                            <tr className="block md:table-row bg-[#F3F4F6] border-b border-[#E5E7EB] rounded-lg md:rounded-none mb-4 md:mb-0">
+                              <td colSpan="9" className="block md:table-cell px-6 py-3">
+                                <div className="flex items-center gap-3 font-bold text-[#702c91] text-[13px] tracking-[0.05em] uppercase">
+                                  <span className="material-symbols-outlined text-[20px]">folder_open</span>
                                   {dept}
-                                  <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[11px]">{deptTasks.length}</span>
+                                  <span className="text-[12px]">{deptTasks.length}</span>
                                   
                                   <button 
                                     onClick={(e) => handleDeptUploadClick(e, dept)}
@@ -692,26 +692,31 @@ export default function TaskTable() {
                               return (
                                 <tr
                                   key={task.id}
-                                  className={`block md:table-row ${rowClass} mb-4 md:mb-0 border border-outline-variant md:border-none rounded-lg md:rounded-none bg-surface-container-lowest hover:bg-surface-container-lowest transition-colors group overflow-hidden`}
+                                  className={`block md:table-row ${rowClass} mb-4 md:mb-0 border-b border-[#F9F9FF] md:border-none rounded-lg md:rounded-none transition-all cursor-pointer relative group overflow-hidden`}
+                                  style={{ opacity: task.status === 'Done' ? 0.4 : 1 }}
                                   onMouseEnter={(e) => {
-                                    if (!task.done && window.innerWidth >= 768) {
-                                      e.currentTarget.style.transform = 'translateY(-1px)'
-                                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'
+                                    if (window.innerWidth >= 768) {
+                                      e.currentTarget.style.background = 'white'
+                                      e.currentTarget.style.transform = 'scale(1.01)'
+                                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)'
+                                      e.currentTarget.style.zIndex = 10
                                     }
                                   }}
                                   onMouseLeave={(e) => {
                                     if (window.innerWidth >= 768) {
-                                      e.currentTarget.style.transform = 'none'
+                                      e.currentTarget.style.background = 'transparent'
+                                      e.currentTarget.style.transform = 'scale(1)'
                                       e.currentTarget.style.boxShadow = 'none'
+                                      e.currentTarget.style.zIndex = 1
                                     }
                                   }}
                                 >
                                   {/* ID & Unread Badge */}
-                                  <td className={`flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 border-b border-outline-variant/30 md:border-none md:border-l-4 ${firstTdClass}`}>
+                                  <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 ${firstTdClass}`}>
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Task ID</span>
                                     <div className="flex items-center gap-2">
-                                      <span className="bg-surface-container px-2 py-1 rounded text-[12px] font-mono text-secondary font-bold whitespace-nowrap inline-block">
-                                        {task.id}
+                                      <span className="bg-[#F3F4F6] px-2 py-1 rounded-md text-[12px] font-bold text-[#6B7280] whitespace-nowrap inline-block">
+                                        {task.id.replace('#DD-', 'T-00')}
                                       </span>
                                       {(() => {
                                         const msgs = messagesByChatId?.[task.id]
@@ -740,13 +745,13 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Title */}
-                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-2.5 md:py-3 border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none min-w-[220px]">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Task Title</span>
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                      <div className="flex items-center gap-2 flex-wrap">
                                         <a
                                           onClick={() => navigate(`/tasks/${task.id}`)}
-                                          className="font-semibold text-primary hover:underline cursor-pointer"
+                                          className="text-[14px] font-bold text-[#702c91] hover:underline cursor-pointer transition-all"
                                         >
                                           {task.title}
                                         </a>
@@ -796,23 +801,23 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Client */}
-                                  <td className="flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 font-semibold text-secondary md:whitespace-nowrap border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell items-center justify-between px-4 py-5 text-[14px] font-normal text-[#6B7280] md:whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Client</span>
                                     <span
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         navigate(`/projects/${encodeURIComponent(task.client)}`);
                                       }}
-                                      className="flex items-center gap-1.5 hover:text-primary hover:underline cursor-pointer transition-colors group/client w-fit"
+                                      className="flex items-center gap-1.5 hover:text-[#702c91] hover:underline cursor-pointer transition-colors group/client w-fit"
                                       title={`View ${task.client} Overview`}
                                     >
-                                      <span className="material-symbols-outlined text-[16px] group-hover/client:text-primary transition-colors text-primary/70">domain</span>
+                                      <span className="material-symbols-outlined text-[16px] group-hover/client:text-[#702c91] transition-colors text-[#9CA3AF]">domain</span>
                                       {task.client}
                                     </span>
                                   </td>
 
                                   {/* Assigned */}
-                                  <td className="flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 text-body-sm text-secondary font-medium whitespace-nowrap border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell items-center justify-between px-4 py-5 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Assigned To</span>
                                     <div className="flex items-center gap-2 text-right">
                                       {(() => {
@@ -820,7 +825,7 @@ export default function TaskTable() {
                                         return (
                                           <div className="flex items-center">
                                             {assignees.map((a, idx) => (
-                                              <div key={idx} className="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border border-white" title={a}>
+                                              <div key={idx} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#702c91] to-[#ec008c] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" title={a}>
                                                 {getInitials(a)}
                                               </div>
                                             ))}
@@ -831,14 +836,14 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Assigned By */}
-                                  <td className="flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 text-body-sm text-secondary font-medium whitespace-nowrap border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell items-center justify-between px-4 py-5 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Assigned By</span>
                                     <div className="flex items-center gap-2 text-right">
                                       {(() => {
                                         const rawName = task.assignedBy || 'Mansi Shah'
                                         const cleanName = String(rawName).replace(/[^\w\s-]/g, '').trim()
                                         return (
-                                          <div className="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0" title={cleanName}>
+                                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ec008c] to-[#702c91] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" title={cleanName}>
                                             {getInitials(cleanName)}
                                           </div>
                                         )
@@ -848,11 +853,9 @@ export default function TaskTable() {
 
                                   {/* Due date */}
                                   <td
-                                    className={`flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 text-body-sm font-bold whitespace-nowrap border-b border-outline-variant/30 md:border-none ${isTaskOverdue
-                                      ? 'text-error'
-                                      : task.status === 'Done'
-                                        ? 'text-secondary line-through'
-                                        : 'text-on-surface'
+                                    className={`flex md:table-cell items-center justify-between px-4 py-5 text-[13px] font-bold whitespace-nowrap border-b border-outline-variant/30 md:border-none ${isTaskOverdue
+                                      ? 'text-[#DC2626]'
+                                      : 'text-[#6B7280]'
                                       }`}
                                   >
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Due Date</span>
@@ -860,18 +863,18 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Priority */}
-                                  <td className="flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell items-center justify-between px-4 py-5 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Priority</span>
                                     <span
                                       className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'
-                                        } inline-block whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-tighter`}
+                                        } inline-block whitespace-nowrap px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest`}
                                     >
                                       {task.priority}
                                     </span>
                                   </td>
 
                                   {/* Status */}
-                                  <td className="flex md:table-cell items-center justify-between px-4 py-2.5 md:py-3 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
+                                  <td className="flex md:table-cell items-center justify-between px-4 py-5 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <div className="relative inline-block text-right">
                                       <select
@@ -910,24 +913,19 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Actions */}
-                                  <td className="flex md:table-cell items-center justify-between md:justify-center px-4 py-3 text-center whitespace-nowrap bg-surface-container-lowest md:bg-transparent">
+                                  <td className="flex md:table-cell items-center justify-between md:justify-end px-4 py-5 text-right whitespace-nowrap md:bg-transparent">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Actions</span>
-                                    <div className="flex items-center justify-end md:justify-center gap-2">
-                                      <button
-                                        onClick={() => navigate(`/tasks/${task.id}`)}
-                                        className="px-3 py-1.5 border border-primary text-primary rounded-lg font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors whitespace-nowrap"
-                                      >
-                                        View
-                                      </button>
+                                    <div className="flex items-center justify-end gap-2 pr-2">
                                       {profile?.systemRole !== 'Employee' && (
                                         <button
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation()
                                             setTaskToDelete(task.id)
                                           }}
-                                          className="px-2 py-1.5 border border-error text-error rounded-lg hover:bg-error hover:text-white transition-colors flex items-center justify-center"
+                                          className="w-8 h-8 rounded-lg border border-error/40 bg-white text-error flex items-center justify-center cursor-pointer transition-all hover:bg-error-container"
                                           title="Delete Task"
                                         >
-                                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                                          <span className="material-symbols-outlined text-[18px]">delete_outline</span>
                                         </button>
                                       )}
                                     </div>
