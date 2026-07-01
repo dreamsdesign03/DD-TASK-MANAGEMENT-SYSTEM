@@ -384,220 +384,211 @@ export default function TaskTable() {
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Total Tasks */}
-        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
-          <div>
-            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Total Tasks</p>
-            <h3 className="text-4xl font-black text-on-surface">{String(totalTasks).padStart(2, '0')}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+        {[
+          { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
+          { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB' },
+          { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A' },
+          { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true },
+        ].map(s => (
+          <div key={s.label} style={{
+            background: 'white', borderRadius: 20, padding: '20px 20px',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+            border: `1px solid ${s.color}40`,
+            boxShadow: '0 8px 24px rgba(91,33,182,0.05)',
+            transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={e => { 
+            e.currentTarget.style.transform = 'translateY(-2px)'; 
+            e.currentTarget.style.boxShadow = `0 12px 28px rgba(91,33,182,0.1)`; 
+            e.currentTarget.style.borderColor = `${s.color}80`;
+          }}
+          onMouseLeave={e => { 
+            e.currentTarget.style.transform = 'translateY(0)'; 
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.05)'; 
+            e.currentTarget.style.borderColor = `${s.color}40`;
+          }}
+          >
+            <div>
+              <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</p>
+              <h2 style={{ fontSize: 28, fontWeight: 800, color: s.overdue ? '#DC2626' : '#1E1B2E', margin: 0 }}>{String(s.value).padStart(2, '0')}</h2>
+            </div>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-            <span className="material-symbols-outlined text-[24px]">layers</span>
-          </div>
-        </div>
-
-        {/* In Progress */}
-        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
-          <div>
-            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">In Progress</p>
-            <h3 className="text-4xl font-black text-on-surface">{String(inProgressTasks).padStart(2, '0')}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
-            <span className="material-symbols-outlined text-[24px]">schedule</span>
-          </div>
-        </div>
-
-        {/* Completed */}
-        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
-          <div>
-            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Completed</p>
-            <h3 className="text-4xl font-black text-on-surface">{String(completedTasks).padStart(2, '0')}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 border border-green-500/20">
-            <span className="material-symbols-outlined text-[24px]">check_circle</span>
-          </div>
-        </div>
-
-        {/* Overdue */}
-        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
-          <div>
-            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Overdue</p>
-            <h3 className="text-4xl font-black text-urgent-red">{String(overdueTasks).padStart(2, '0')}</h3>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-urgent-red/10 flex items-center justify-center text-urgent-red border border-urgent-red/20">
-            <span className="material-symbols-outlined text-[24px]">error</span>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-6">
-        {/* Top tab filter */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`px-6 py-2.5 rounded-full font-label-md text-label-md transition-all ${activeFilter === f
-                  ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-md border-transparent'
-                  : 'bg-white dark:bg-[#1e1b2e] text-secondary hover:text-on-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-transparent'
-                  }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-2">
-            <div className="flex bg-white dark:bg-[#1e1b2e] rounded-full p-1 shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-transparent">
-              <button
-                onClick={() => setViewMode('List')}
-                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
-                title="List View"
-              >
-                <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
-              </button>
-              <button
-                onClick={() => setViewMode('Board')}
-                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all ${viewMode === 'Board' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
-                title="Board View"
-              >
-                <span className="material-symbols-outlined text-[18px]">grid_view</span>
-              </button>
-              <button
-                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all text-secondary hover:text-on-surface hover:bg-surface-container`}
-                title="Timeline View"
-              >
-                <span className="material-symbols-outlined text-[18px]">timeline</span>
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                if (selectedClient === 'All Clients') {
-                  addToast('Please select the client from the filter first.', 'error')
-                } else {
-                  navigate(`/projects/${encodeURIComponent(selectedClient)}`)
-                }
-              }}
-              className="flex items-center justify-center w-10 h-10 rounded-full transition-all text-primary hover:text-white hover:bg-primary border border-primary/20 bg-primary/5 shadow-[0_4px_12px_rgba(0,0,0,0.03)]"
-              title="Open Overview"
+      {/* FILTERS + VIEW TOGGLE */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {FILTERS.map(f => (
+            <button key={f} onClick={() => setActiveFilter(f)} style={{
+              padding: '8px 24px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+              background: f === activeFilter ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
+              backgroundSize: f === activeFilter ? '200% auto' : 'auto',
+              backgroundPosition: 'left center',
+              color: f === activeFilter ? 'white' : '#6B7280',
+              boxShadow: f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              fontFamily: 'Inter,sans-serif',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = f === activeFilter ? '0 6px 16px rgba(91,33,182,0.4)' : '0 6px 16px rgba(0,0,0,0.08)';
+              if (f !== activeFilter) {
+                e.currentTarget.style.color = '#1E1B2E';
+              } else {
+                e.currentTarget.style.backgroundPosition = 'right center';
+              }
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)';
+              if (f !== activeFilter) {
+                e.currentTarget.style.color = '#6B7280';
+              } else {
+                e.currentTarget.style.backgroundPosition = 'left center';
+              }
+            }}
             >
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+              {f}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ background: 'white', borderRadius: 999, padding: 4, display: 'flex', gap: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <button onClick={() => setViewMode('List')} style={{
+              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: viewMode === 'List' ? '#F5F3FF' : 'transparent',
+              color: viewMode === 'List' ? '#702c91' : '#9CA3AF',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>view_list</span>
+            </button>
+            <button onClick={() => setViewMode('Board')} style={{
+              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: viewMode === 'Board' ? '#F5F3FF' : 'transparent',
+              color: viewMode === 'Board' ? '#702c91' : '#9CA3AF',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
+            </button>
+            <button onClick={() => setViewMode('Timeline')} style={{
+              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: viewMode === 'Timeline' ? '#F5F3FF' : 'transparent',
+              color: viewMode === 'Timeline' ? '#702c91' : '#9CA3AF',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>insights</span>
             </button>
           </div>
+          <button
+            onClick={() => {
+              if (selectedClient === 'All Clients') {
+                addToast('Please select the client from the filter first.', 'error')
+              } else {
+                navigate(`/projects/${encodeURIComponent(selectedClient)}`)
+              }
+            }}
+            style={{
+              width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#F5F3FF', color: '#702c91', boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#702c91';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = '#F5F3FF';
+              e.currentTarget.style.color = '#702c91';
+            }}
+            title="Open Overview"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
+          </button>
         </div>
-
-        {/* ─── Main White Card ──────────────────────────────────────────────────────── */}
-        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 flex flex-col gap-6 border border-outline-variant/30">
-          {/* Multi-Dimensional Dropdowns Row */}
-          <div className="flex flex-wrap items-end gap-4">
-            {/* Client Filter */}
-            <div className="flex flex-col gap-1 min-w-[200px] flex-1 md:flex-initial">
-              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                Filter by Client
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedClient}
-                  onChange={(e) => setSelectedClient(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-                >
-                  {uniqueClients.map((client) => (
-                    <option key={client} value={client}>
-                      {client}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
-                  expand_more
-                </span>
-              </div>
-            </div>
-
-            {/* User Filter */}
-            <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
-              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                Filter by User
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedUser}
-                  onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-                >
-                  {uniqueUsers.map((user) => (
-                    <option key={user} value={user}>
-                      {user}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
-                  expand_more
-                </span>
-              </div>
-            </div>
-
-            {/* Department Filter */}
-            <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
-              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                Filter by Dept
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-                >
-                  {deduplicatedDepartments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
-                  expand_more
-                </span>
-              </div>
-            </div>
-
-            {/* Spacer */}
-            <div className="hidden md:block flex-grow"></div>
-
-            {/* Sort selector */}
-            <div className="flex flex-col gap-1 min-w-[180px] flex-1 md:flex-initial mt-4 md:mt-0">
-              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-                Sort Order
-              </label>
-              <div className="relative">
-                <select
-                  value={`Sort by: ${sortBy}`}
-                  onChange={(e) => setSortBy(e.target.value.replace('Sort by: ', ''))}
-                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] text-secondary focus:border-primary focus:ring-0 outline-none cursor-pointer font-bold"
-                >
-                  <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
-                  <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
-                  <option value="Sort by: Due Date">Sort by: Due Date</option>
-                  <option value="Sort by: Priority">Sort by: Priority</option>
-                  <option value="Sort by: Status">Sort by: Status</option>
-                  <option value="Sort by: Task Title">Sort by: Task Title</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
-                  expand_more
-                </span>
-              </div>
-            </div>
-          </div>
       </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div 
+        className="animate-fade-in-up"
+        style={
+        viewMode === 'List'
+          ? { background: 'white', borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }
+          : { display: 'flex', flexDirection: 'column', flexShrink: 0 }
+      }>
+        {/* ADVANCED FILTER BAR */}
+        <div style={{
+          background: viewMode === 'List' ? '#F8F9FA' : 'white',
+          borderRadius: viewMode === 'List' ? 0 : 20,
+          boxShadow: viewMode === 'List' ? 'none' : '0 8px 24px rgba(91,33,182,0.08)',
+          padding: '16px 24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+          borderBottom: viewMode === 'List' ? '1px solid #F5F3FF' : 'none'
+        }}>
+          {(() => {
+            const selectBaseStyle = { 
+              padding: '10px 16px', borderRadius: 12, border: '1px solid #E5E7EB',
+              background: `white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 12px center`, 
+              fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none', appearance: 'none'
+            };
+            return (
+              <React.Fragment>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Client</label>
+                    <select
+                      value={selectedClient} onChange={e => setSelectedClient(e.target.value)}
+                      style={{ ...selectBaseStyle, width: 160 }}
+                    >
+                      {uniqueClients.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by User</label>
+                    <select
+                      value={selectedUser} onChange={e => setSelectedUser(e.target.value)}
+                      style={{ ...selectBaseStyle, width: 160 }}
+                    >
+                      {uniqueUsers.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Dept</label>
+                    <select
+                      value={selectedDepartment} onChange={e => setSelectedDepartment(e.target.value)}
+                      style={{ ...selectBaseStyle, width: 160 }}
+                    >
+                      {deduplicatedDepartments.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
+                    <select 
+                      value={`Sort by: ${sortBy}`}
+                      onChange={e => setSortBy(e.target.value.replace('Sort by: ', ''))}
+                      style={{ ...selectBaseStyle, width: 230 }}
+                    >
+                      <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
+                      <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
+                      <option value="Sort by: Due Date">Sort by: Due Date</option>
+                      <option value="Sort by: Priority">Sort by: Priority</option>
+                      <option value="Sort by: Status">Sort by: Status</option>
+                      <option value="Sort by: Task Title">Sort by: Task Title</option>
+                    </select>
+                  </div>
+                </div>
+              </React.Fragment>
+            );
+          })()}
+        </div>
 
       {/* ──────────────────────────────────────────────────────────── */}
       {viewMode === 'List' ? (
-        <>
-          <div
-            className="bg-surface-container-lowest rounded-xl border border-outline-variant mt-4"
-            style={{ boxShadow: '0px 2px 12px rgba(112, 44, 145, 0.08)' }}
-          >
+        <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 16 }}>
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
                 <thead className="hidden md:table-header-group bg-white border-b border-[#E5E7EB]">
@@ -984,8 +975,7 @@ export default function TaskTable() {
                 </div>
               </div>
             </div>
-          </div>
-        </>
+        </div>
       ) : (
         <div
           ref={boardRef}
@@ -1034,29 +1024,13 @@ export default function TaskTable() {
                   key={colName}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, colName)}
-                  className="w-[340px] flex flex-col bg-surface-container-low rounded-xl border border-outline-variant/60 shadow-sm overflow-hidden h-[calc(100vh-280px)]"
+                  style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: colName === 'COMPLETE' ? '#F9FAFB' : 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
                 >
-                  {/* Column Header */}
-                  <div className={`p-4 border-b flex justify-between items-center ${headerClass}`}>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-label-lg flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${dotClass}`} />
-                        {displayColName}
-                      </h3>
-                      <button 
-                        onClick={(e) => handleDeptUploadClick(e, colName)}
-                        disabled={isUploading && uploadDept === colName}
-                        title="Upload file to Drive"
-                        className="flex items-center justify-center w-6 h-6 rounded bg-black/5 hover:bg-black/10 transition-colors disabled:opacity-50"
-                      >
-                        <span className={`material-symbols-outlined text-[16px] ${isUploading && uploadDept === colName ? 'animate-spin' : ''}`}>
-                          {isUploading && uploadDept === colName ? 'refresh' : 'add'}
-                        </span>
-                      </button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
+                      <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
                     </div>
-                    <span className="bg-surface-container-high px-2.5 py-0.5 rounded-full text-xs font-bold text-secondary border border-outline-variant/50">
-                      {columnTasks.length}
-                    </span>
                   </div>
 
                   {/* Column Body */}
@@ -1068,119 +1042,83 @@ export default function TaskTable() {
                       </div>
                     ) : (
                       <>
-                        {columnTasks.map(task => (
-                          <div
-                            key={task.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, task.id)}
-                            onDragEnd={handleDragEnd}
-                            onClick={() => navigate(`/tasks/${task.id}`)}
-                            className="task-card bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/60 hover:border-primary/50 cursor-pointer shadow-sm hover:shadow-md transition-all group flex flex-col gap-3 relative"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                                  {task.id}
-                                </span>
+                        {columnTasks.map(task => {
+                          const priorityColors = {
+                            urgent: { bg: '#EF4444', color: 'white' },
+                            high: { bg: '#F59E0B', color: 'white' },
+                            medium: { bg: '#3B82F6', color: 'white' },
+                            low: { bg: '#10B981', color: 'white' },
+                          };
+                          const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
+                          
+                          return (
+                            <div
+                              key={task.id}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, task.id)}
+                              onDragEnd={handleDragEnd}
+                              onClick={() => navigate(`/tasks/${task.id}`)}
+                              style={{
+                                background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
+                                boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
+                                borderLeft: `4px solid ${pStyle.bg}`, cursor: 'grab', position: 'relative', zIndex: 1,
+                                transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s'
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-4px) rotate(-1deg)';
+                                e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,33,182,0.15)';
+                                e.currentTarget.style.zIndex = 100;
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0) rotate(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.06)';
+                                e.currentTarget.style.zIndex = 1;
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                <span style={{ background: '#F0F3FF', color: '#702c91', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.department || 'COMMON'}</span>
+                                <span style={{ background: pStyle.bg, color: pStyle.color, fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.priority || 'Medium'}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${task.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
-                                    task.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
-                                      task.priority === 'Medium' ? 'bg-blue-500/10 text-blue-600 border-blue-500/30' :
-                                        'bg-gray-500/10 text-gray-600 border-gray-500/30'
-                                  }`}>
-                                  {task.priority}
-                                </span>
-                                {profile?.systemRole !== 'Employee' && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setTaskToDelete(task.id)
-                                    }}
-                                    className="text-secondary hover:text-urgent-red transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center p-1 rounded-md hover:bg-urgent-red/10"
-                                    title="Delete Task"
-                                  >
-                                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
+                              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1E1B2E', margin: '0 0 8px 0', lineHeight: 1.2, transition: 'color 0.2s' }}
+                                onMouseEnter={(e) => { e.currentTarget.style.color = '#702c91'; e.currentTarget.style.textDecoration = 'underline'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.color = '#1E1B2E'; e.currentTarget.style.textDecoration = 'none'; }}
+                              >
+                                {task.title}
+                              </h3>
+                              <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.client}</p>
 
-                            <h4 className="font-bold text-label-md text-on-surface group-hover:text-primary transition-colors leading-snug flex items-start gap-1.5">
-                              {task.title}
-                              {task.isRecurring ? (
-                                <span 
-                                  className="material-symbols-outlined text-[14px] text-primary mt-0.5 shrink-0" 
-                                  title={`Recurring Task (${task.recurringSchedule})`}
-                                >
-                                  event_repeat
-                                </span>
-                              ) : task.isAutoGenerated ? (
-                                <span 
-                                  className="material-symbols-outlined text-[14px] text-primary/70 mt-0.5 shrink-0" 
-                                  title={`Auto-generated from recurring task`}
-                                >
-                                  event_repeat
-                                </span>
-                              ) : (
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setRecurringTaskObj(task)
-                                    setRecurringSchedule('Weekly')
-                                    setRecurringDay('Monday')
-                                    setRecurringMonths([])
-                                  }}
-                                  className="material-symbols-outlined text-[14px] text-outline hover:text-primary transition-colors focus:outline-none mt-0.5 shrink-0" 
-                                  title="Make this a recurring task"
-                                >
-                                  repeat
-                                </button>
-                              )}
-                            </h4>
-
-                            <div className="flex flex-col gap-1.5 mt-1 bg-surface-container-low/50 p-2 rounded-lg border border-outline-variant/30">
-                              <div className="flex items-center gap-2 text-secondary text-[12px] group/client w-fit max-w-full">
-                                <span className="material-symbols-outlined text-[14px] group-hover/client:text-primary transition-colors">domain</span>
-                                <span
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/projects/${encodeURIComponent(task.client)}`);
-                                  }}
-                                  className="truncate font-medium hover:text-primary hover:underline cursor-pointer transition-colors"
-                                >
-                                  {task.client}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-secondary text-[12px]">
-                                <span className="material-symbols-outlined text-[14px]">category</span>
-                                <span className="truncate font-medium">{task.department || 'COMMON'}</span>
-                              </div>
-                              <div className="flex items-center justify-between text-secondary text-[12px] mt-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                                  <span className={(!task.daysOverdue || task.daysOverdue === 'No') ? '' : 'text-urgent-red font-bold'}>
-                                    {task.dueDate}
-                                  </span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
+                                <div style={{ display: 'flex' }}>
+                                  {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
+                                    <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: i % 2 === 0 ? '#60A5FA' : '#ec008c', border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
+                                      {getInitials(a)}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
+                                  <span style={{ fontSize: 11, fontWeight: 600, color: (!task.dueDate || task.dueDate === 'No') ? '#6B7280' : '#DC2626' }}>{task.dueDate}</span>
                                 </div>
                               </div>
+                              
+                              {profile?.systemRole !== 'Employee' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setTaskToDelete(task.id)
+                                  }}
+                                  style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0, transition: 'opacity 0.2s', color: '#EF4444' }}
+                                  className="group-hover/card:opacity-100"
+                                  onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                                  onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+                                  title="Delete Task"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete_outline</span>
+                                </button>
+                              )}
                             </div>
-
-                            {/* Assignee Avatar/Name */}
-                            <div className="flex items-center gap-2 mt-2">
-                              <div className="flex items-center">
-                                {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, idx) => (
-                                  <div key={idx} className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[9px] font-bold border-[1.5px] border-surface-container-lowest shrink-0 -ml-2 first:ml-0 relative z-10" title={a}>
-                                    {getInitials(a)}
-                                  </div>
-                                ))}
-                              </div>
-                              <span className="text-[11px] text-secondary truncate flex-1">
-                                {task.assignedTo || 'Unassigned'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
 
                         {/* Quick Add Input */}
                         {quickAddCol === colName && (
