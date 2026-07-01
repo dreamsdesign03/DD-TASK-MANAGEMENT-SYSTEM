@@ -117,7 +117,7 @@ function getInitials(name) {
 }
 
 export default function TaskTable() {
-  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast } = useApp()
+  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal } = useApp()
   const location = useLocation()
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
@@ -1407,6 +1407,16 @@ export default function TaskTable() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Action Button for List View */}
+      {viewMode === 'List' && (
+        <button 
+          onClick={() => setShowNewTaskModal(true)}
+          className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
+        >
+          <span className="material-symbols-outlined text-[28px]">add</span>
+        </button>
       )}
       </div>
 
