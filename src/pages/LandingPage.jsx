@@ -13,7 +13,7 @@ export default function LandingPage() {
   }, [])
 
   return (
-    <div className="h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-primary/20 selection:text-primary" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className="h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#F8FAFC] text-slate-900 selection:bg-primary/20 selection:text-primary" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Subtle Grid Background */}
       <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" 
            style={{ backgroundImage: 'linear-gradient(to right, #000 1px, transparent 1px), linear-gradient(to bottom, #000 1px, transparent 1px)', backgroundSize: '40px 40px' }} 

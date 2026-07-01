@@ -1070,7 +1070,7 @@ export default function TaskDetailPage() {
                             <div className="w-full border-t border-divider"></div>
                           </div>
                           <div className="relative bg-background px-4">
-                            <p className={`text-[12px] text-[#6B6B6B] ${m.type === 'system' ? 'italic' : 'font-bold'} font-['Montserrat']`}>
+                            <p className={`text-[12px] text-[#6B6B6B] ${m.type === 'system' ? 'italic' : 'font-bold'} font-['Inter']`}>
                               {m.label || m.text}
                             </p>
                           </div>
@@ -1084,10 +1084,10 @@ export default function TaskDetailPage() {
                           {renderAvatar(null, m.sender, "w-9 h-9 rounded-full mt-1")}
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-[14px] font-semibold font-['Montserrat'] text-on-surface">
+                              <span className="text-[14px] font-semibold font-['Inter'] text-on-surface">
                                 {m.sender}
                               </span>
-                              <span className="text-[11px] font-normal font-['Montserrat'] text-[#6B6B6B]">
+                              <span className="text-[11px] font-normal font-['Inter'] text-[#6B6B6B]">
                                 {m.time}
                               </span>
                             </div>
@@ -1103,10 +1103,10 @@ export default function TaskDetailPage() {
                     return (
                       <div key={index} className="flex flex-col items-end gap-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[11px] font-normal font-['Montserrat'] text-[#6B6B6B]">
+                          <span className="text-[11px] font-normal font-['Inter'] text-[#6B6B6B]">
                             {m.time}
                           </span>
-                          <span className="text-[14px] font-semibold font-['Montserrat'] text-on-surface">
+                          <span className="text-[14px] font-semibold font-['Inter'] text-on-surface">
                             {m.sender || profile?.name}
                           </span>
                           {renderAvatar(profile?.avatar, profile?.name, "w-9 h-9 rounded-full")}
