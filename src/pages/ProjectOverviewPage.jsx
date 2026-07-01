@@ -89,19 +89,19 @@ export default function ProjectOverviewPage() {
             taskTitle: t.title,
             ...att
           }
-          
+
           // Try to enrich from driveDocs if possible to get real name and type
           const fileId = getDriveFileId(att.url)
           if (fileId && driveDocs) {
-             const driveMatch = driveDocs.find(d => getDriveFileId(d.url) === fileId)
-             if (driveMatch) {
-               docToPush.name = driveMatch.name
-               let typeStr = driveMatch.type
-               if (typeStr.includes('pdf')) typeStr = 'pdf'
-               else if (typeStr.includes('image')) typeStr = 'image'
-               else typeStr = 'document'
-               docToPush.type = typeStr
-             }
+            const driveMatch = driveDocs.find(d => getDriveFileId(d.url) === fileId)
+            if (driveMatch) {
+              docToPush.name = driveMatch.name
+              let typeStr = driveMatch.type
+              if (typeStr.includes('pdf')) typeStr = 'pdf'
+              else if (typeStr.includes('image')) typeStr = 'image'
+              else typeStr = 'document'
+              docToPush.type = typeStr
+            }
           }
           docs.push(docToPush)
         })
@@ -118,7 +118,7 @@ export default function ProjectOverviewPage() {
             if (typeStr.includes('pdf')) typeStr = 'pdf'
             else if (typeStr.includes('image')) typeStr = 'image'
             else typeStr = 'document'
-            
+
             docs.push({
               taskId: t.id,
               taskTitle: t.title,
@@ -136,8 +136,8 @@ export default function ProjectOverviewPage() {
       // Deduplicate by Google Drive File ID instead of exact URL to prevent showing the same file twice
       const fileId = getDriveFileId(d.url)
       const isDuplicate = docs.some(existing => {
-         if (fileId && getDriveFileId(existing.url) === fileId) return true
-         return existing.url === d.url
+        if (fileId && getDriveFileId(existing.url) === fileId) return true
+        return existing.url === d.url
       })
 
       if (!isDuplicate) {
@@ -164,13 +164,13 @@ export default function ProjectOverviewPage() {
       // Drive documents (N/A) will be hidden unless we specifically match somehow.
       filteredDocs = filteredDocs.filter(d => d.taskId === filterTaskId)
     }
-    
+
     if (filterDept !== 'All Departments') {
       filteredDocs = filteredDocs.filter(d => {
         if (d.taskId === 'N/A') {
           // Check drive file department
-          return (d.department || '').toUpperCase() === filterDept.toUpperCase() || 
-                 (d.taskTitle || '').toUpperCase().includes(filterDept.toUpperCase())
+          return (d.department || '').toUpperCase() === filterDept.toUpperCase() ||
+            (d.taskTitle || '').toUpperCase().includes(filterDept.toUpperCase())
         } else {
           // Check task department
           const parentTask = projectTasks.find(t => t.id === d.taskId)
@@ -212,7 +212,7 @@ export default function ProjectOverviewPage() {
                   <span className="material-symbols-outlined text-[16px]">info</span>
                   Overview
                 </button>
-                <button 
+                <button
                   onClick={() => navigate('/tasks', { state: { clientFilter: projectName } })}
                   className="px-1 py-3 text-[13px] font-bold text-[#6B7280] hover:text-[#1E1B2E] flex items-center gap-2 transition-colors"
                 >
@@ -256,7 +256,7 @@ export default function ProjectOverviewPage() {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
           <div className="w-full flex flex-col gap-6">
-            
+
             {/* Project Progress */}
             <div className="bg-white p-6 rounded-[16px] shadow-sm flex flex-col md:flex-row md:items-center gap-6 justify-between">
               <div>
@@ -274,8 +274,8 @@ export default function ProjectOverviewPage() {
                   <span className="text-[12px] font-extrabold text-[#702c91]">{completedTasks} / {totalTasks} Tasks</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000 bg-[#702c91]" 
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 bg-[#702c91]"
                     style={{ width: `${progressPct}%` }}
                   ></div>
                 </div>
@@ -288,7 +288,7 @@ export default function ProjectOverviewPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
+
               {/* Recent Tasks Card */}
               <div className="bg-white rounded-[16px] shadow-sm overflow-hidden flex flex-col h-[500px]">
                 <div className="p-6 pb-2 flex items-center justify-between flex-shrink-0">
@@ -306,42 +306,40 @@ export default function ProjectOverviewPage() {
                       {recentTasks.map(task => {
                         const isOverdue = task.status !== 'Done' && new Date(task.dueDate) < new Date();
                         return (
-                        <div 
-                          key={task.id}
-                          onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="flex items-start justify-between gap-3 cursor-pointer group"
-                        >
-                          <div className="flex items-start gap-3 min-w-0">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isOverdue ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#FEF9C3] text-[#EAB308]'}`}>
-                              <span className="material-symbols-outlined text-[18px]">
-                                {isOverdue ? 'warning' : 'assignment'}
-                              </span>
+                          <div
+                            key={task.id}
+                            onClick={() => navigate(`/tasks/${task.id}`)}
+                            className="flex items-start justify-between gap-3 cursor-pointer group"
+                          >
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isOverdue ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#FEF9C3] text-[#EAB308]'}`}>
+                                <span className="material-symbols-outlined text-[18px]">
+                                  {isOverdue ? 'warning' : 'assignment'}
+                                </span>
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <p className="text-[13px] font-extrabold text-[#1E1B2E] truncate group-hover:text-[#702c91] transition-colors">
+                                  {task.title} <span className="text-[#9CA3AF] font-medium text-[11px] ml-1">#{task.id}</span>
+                                </p>
+                                <p className="text-[11px] text-[#6B7280] truncate mt-0.5">
+                                  {task.dueDate} • {task.client}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex flex-col min-w-0">
-                              <p className="text-[13px] font-extrabold text-[#1E1B2E] truncate group-hover:text-[#702c91] transition-colors">
-                                {task.title} <span className="text-[#9CA3AF] font-medium text-[11px] ml-1">#{task.id}</span>
-                              </p>
-                              <p className="text-[11px] text-[#6B7280] truncate mt-0.5">
-                                {task.dueDate} • {task.client}
-                              </p>
+
+                            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-extrabold shrink-0 border ${task.status === 'Done' ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]' :
+                                isOverdue ? 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]' :
+                                  task.status === 'In Progress' ? 'bg-[#FEF9C3] text-[#EAB308] border-[#FEF08A]' :
+                                    'bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]'
+                              }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${task.status === 'Done' ? 'bg-[#10B981]' :
+                                  isOverdue ? 'bg-[#EF4444]' :
+                                    task.status === 'In Progress' ? 'bg-[#EAB308]' :
+                                      'bg-[#9CA3AF]'
+                                }`}></span>
+                              {task.status === 'Done' ? 'Done' : isOverdue ? 'Overdue' : task.status}
                             </div>
                           </div>
-                          
-                          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-extrabold shrink-0 border ${
-                            task.status === 'Done' ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]' :
-                            isOverdue ? 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]' :
-                            task.status === 'In Progress' ? 'bg-[#FEF9C3] text-[#EAB308] border-[#FEF08A]' :
-                            'bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              task.status === 'Done' ? 'bg-[#10B981]' :
-                              isOverdue ? 'bg-[#EF4444]' :
-                              task.status === 'In Progress' ? 'bg-[#EAB308]' :
-                              'bg-[#9CA3AF]'
-                            }`}></span>
-                            {task.status === 'Done' ? 'Done' : isOverdue ? 'Overdue' : task.status}
-                          </div>
-                        </div>
                         )
                       })}
                     </div>
@@ -387,7 +385,7 @@ export default function ProjectOverviewPage() {
                     <div className={docsViewMode === 'Grid' ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : "grid grid-cols-1 gap-3"}>
                       {allDocs.map((doc, i) => (
                         docsViewMode === 'Grid' ? (
-                          <a 
+                          <a
                             key={i}
                             href={doc.url}
                             target="_blank"
@@ -397,9 +395,9 @@ export default function ProjectOverviewPage() {
                             <div className="w-full h-24 bg-surface-container-low flex items-center justify-center shrink-0 border-b border-outline-variant/30 relative overflow-hidden">
                               {getDriveFileId(doc.url) ? (
                                 <>
-                                  <img 
-                                    src={`https://drive.google.com/thumbnail?id=${getDriveFileId(doc.url)}&sz=w500`} 
-                                    alt={doc.name} 
+                                  <img
+                                    src={`https://drive.google.com/thumbnail?id=${getDriveFileId(doc.url)}&sz=w500`}
+                                    alt={doc.name}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={(e) => {
                                       e.target.style.display = 'none';
@@ -409,8 +407,8 @@ export default function ProjectOverviewPage() {
                                   <div className="hidden absolute inset-0 w-full h-full items-center justify-center bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-300">
                                     <span className="material-symbols-outlined text-[32px]">
                                       {doc.type === 'pdf' ? 'picture_as_pdf' :
-                                       doc.type === 'image' ? 'image' :
-                                       doc.type === 'document' ? 'article' : 'insert_drive_file'}
+                                        doc.type === 'image' ? 'image' :
+                                          doc.type === 'document' ? 'article' : 'insert_drive_file'}
                                     </span>
                                   </div>
                                 </>
@@ -418,8 +416,8 @@ export default function ProjectOverviewPage() {
                                 <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-300">
                                   <span className="material-symbols-outlined text-[32px]">
                                     {doc.type === 'pdf' ? 'picture_as_pdf' :
-                                     doc.type === 'image' ? 'image' :
-                                     doc.type === 'document' ? 'article' : 'insert_drive_file'}
+                                      doc.type === 'image' ? 'image' :
+                                        doc.type === 'document' ? 'article' : 'insert_drive_file'}
                                   </span>
                                 </div>
                               )}
@@ -434,7 +432,7 @@ export default function ProjectOverviewPage() {
                                     Drive &rarr; {doc.taskTitle.replace(' Folder', '')}
                                   </span>
                                 ) : (
-                                  <Link 
+                                  <Link
                                     to={`/tasks/${doc.taskId}`}
                                     onClick={(e) => e.stopPropagation()}
                                     className="font-bold text-primary hover:underline truncate max-w-full"
@@ -446,7 +444,7 @@ export default function ProjectOverviewPage() {
                             </div>
                           </a>
                         ) : (
-                          <a 
+                          <a
                             key={i}
                             href={doc.url}
                             target="_blank"
@@ -454,15 +452,14 @@ export default function ProjectOverviewPage() {
                             className="flex items-start justify-between gap-4 py-3 group"
                           >
                             <div className="flex items-start gap-3 min-w-0">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                                doc.type === 'pdf' ? 'bg-[#FEF2F2] text-[#EF4444]' :
-                                doc.type === 'image' ? 'bg-[#ECFDF5] text-[#10B981]' :
-                                'bg-[#F0FDF4] text-[#22C55E]'
-                              }`}>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${doc.type === 'pdf' ? 'bg-[#FEF2F2] text-[#EF4444]' :
+                                  doc.type === 'image' ? 'bg-[#ECFDF5] text-[#10B981]' :
+                                    'bg-[#F0FDF4] text-[#22C55E]'
+                                }`}>
                                 <span className="material-symbols-outlined">
                                   {doc.type === 'pdf' ? 'picture_as_pdf' :
-                                   doc.type === 'image' ? 'image' :
-                                   doc.type === 'document' ? 'article' : 'insert_drive_file'}
+                                    doc.type === 'image' ? 'image' :
+                                      doc.type === 'document' ? 'article' : 'insert_drive_file'}
                                 </span>
                               </div>
                               <div className="flex-1 min-w-0">
@@ -498,42 +495,14 @@ export default function ProjectOverviewPage() {
                 </div>
               </div>
 
-              {/* Tasks due this week & Live Activity */}
-              <div className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="hidden lg:block"></div> {/* Spacer for left side */}
-                <div className="flex flex-col gap-4">
-                  {/* Tasks due this week */}
-                  <div className="bg-[#FEF9C3] rounded-[12px] p-4 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all">
-                    <div className="flex items-center gap-2 text-[#CA8A04] font-extrabold text-[13px]">
-                      <span className="material-symbols-outlined text-[18px]">bolt</span>
-                      2 tasks due this week
-                    </div>
-                    <span className="material-symbols-outlined text-[#CA8A04] text-[18px]">arrow_forward</span>
-                  </div>
 
-                  {/* Live Activity Placeholder */}
-                  <div className="bg-white rounded-[16px] shadow-sm p-6 flex flex-col h-[200px]">
-                    <h2 className="text-[12px] font-extrabold text-[#6B7280] uppercase tracking-wider mb-4">LIVE ACTIVITY</h2>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                      {/* Placeholder items */}
-                      <div className="flex gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-[#F5F3FF] text-[#702c91] flex items-center justify-center font-bold text-[12px] shrink-0">SM</div>
-                        <div>
-                          <p className="text-[13px] text-[#1E1B2E]"><strong>Sarah Miller</strong> uploaded a document for <span className="text-[#702c91] cursor-pointer hover:underline">Website Redesign</span></p>
-                          <p className="text-[11px] text-[#9CA3AF] mt-0.5">2 hours ago</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
             </div>
           </div>
         </div>
 
         {/* Floating Action Button */}
-        <button 
+        <button
           onClick={() => navigate('/my-tasks')}
           className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
         >

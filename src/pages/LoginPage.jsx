@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 
-/* â”€â”€â”€ Dreamsdesk Logo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const LOGO_SRC = '/logo.png'
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec'
 
+// Animated chevron arrow for the button
+const ChevronRight = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+
 export default function LoginPage() {
   const [isRegisterMode, setIsRegisterMode] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -27,7 +34,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { setProfile, employees } = useApp()
+  const { setProfile } = useApp()
   const isElectron = /electron/i.test(navigator.userAgent)
 
   useEffect(() => {
@@ -73,12 +80,10 @@ export default function LoginPage() {
         }
       }
 
-      // 1. Check if the app was launched by a deep link initially
       ipcRenderer.invoke('get-initial-deep-link').then((url) => {
         if (url) processDeepLink(url)
       }).catch(err => console.warn('IPC invoke error:', err))
 
-      // 2. Listen for deep links while the app is already running
       const handleDeepLink = (e, url) => processDeepLink(url)
       ipcRenderer.on('deep-link', handleDeepLink)
 
@@ -115,7 +120,7 @@ export default function LoginPage() {
         } catch (err) {
           console.error("Polling error:", err);
         }
-      }, 3000); // Poll every 3 seconds
+      }, 3000);
     }
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -131,7 +136,6 @@ export default function LoginPage() {
 
     try {
       if (isRegisterMode) {
-        // Registration
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -155,7 +159,6 @@ export default function LoginPage() {
           setErrorMsg(data.error || 'Registration failed.')
         }
       } else {
-        // Login
         const res = await fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -170,7 +173,7 @@ export default function LoginPage() {
         if (data.ok && data.authenticated && data.user) {
           const urlParams = new URLSearchParams(window.location.search)
           if (urlParams.get('desktop') === 'true') {
-            window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
+            window.location.href = "dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}"
             return
           }
           setProfile({
@@ -214,7 +217,7 @@ export default function LoginPage() {
       if (data.ok && data.authenticated && data.user) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.get('desktop') === 'true') {
-          window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
+          window.location.href = "dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}"
           return
         }
         setProfile({
@@ -248,188 +251,250 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-[100dvh] w-full">
-      {/* â”€â”€ LEFT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center overflow-hidden" style={{ background: 'linear-gradient(135deg, #1b0a33 0%, #461466 100%)' }}>
-        <div className="absolute inset-0 z-0 opacity-10 bg-[url('/noise.png')] mix-blend-overlay"></div>
-        <div className="relative z-10 flex flex-col items-center text-center px-12">
-          <div className="mb-10 group relative cursor-pointer inline-block">
-            <div className="absolute inset-0 bg-surface-container-lowest opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-700 rounded-full pointer-events-none" />
+    <div className="min-h-screen w-full flex items-stretch justify-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
 
+      {/* Atmospheric Blobs */}
+      <div
+        className="absolute top-0 left-0 rounded-full pointer-events-none"
+        style={{
+          width: '700px', height: '700px',
+          background: 'radial-gradient(circle, #f472b6, transparent 70%)',
+          opacity: 0.5, filter: 'blur(60px)',
+          transform: 'translate(-40%, -40%)',
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 rounded-full pointer-events-none"
+        style={{
+          width: '700px', height: '700px',
+          background: 'radial-gradient(circle, #BFDBFE, transparent 70%)',
+          opacity: 0.5, filter: 'blur(60px)',
+          transform: 'translate(40%, 40%)',
+        }}
+      />
+
+      {/* MAIN CARD */}
+      <main
+        className="relative z-10 w-full flex flex-col md:flex-row animate-fade-in-up"
+        style={{
+          maxWidth: '1280px',
+          margin: '2rem auto',
+          borderRadius: '28px',
+          overflow: 'hidden',
+          minHeight: 'calc(100vh - 4rem)',
+          boxShadow: '0 24px 80px rgba(91,33,182,0.18), 0 4px 24px rgba(0,0,0,0.08)',
+        }}
+      >
+
+        {/* LEFT PANEL */}
+        <section
+          className="w-full md:w-1/2 flex flex-col items-center justify-between text-white"
+          style={{
+            background: 'linear-gradient(160deg, #702c91 0%, #ec008c 100%)',
+            padding: 'clamp(3rem, 6vw, 5rem) clamp(2.5rem, 5vw, 4rem)',
+          }}
+        >
+          {/* Top spacer */}
+          <div />
+
+          {/* Hero Logo */}
+          <div className="flex flex-col items-center gap-8 text-center">
             <img
-              alt="Dreamsdesk Logo"
-              className="max-w-[280px] h-auto opacity-0"
               src={LOGO_SRC}
-            />
-
-            <div
-              className="absolute inset-0 transition-transform duration-700 hover-bird-fly z-10"
+              alt="Dreamsdesk"
+              className="animate-float"
               style={{
-                backgroundColor: '#e9b3ff',
-                WebkitMaskImage: `url(${LOGO_SRC})`,
-                WebkitMaskSize: 'contain',
-                WebkitMaskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskImage: `url(${LOGO_SRC})`,
-                maskSize: 'contain',
-                maskRepeat: 'no-repeat',
-                maskPosition: 'center',
+                width: 'clamp(200px, 32vw, 300px)',
+                height: 'auto',
+                objectFit: 'contain',
+                filter: 'brightness(0) invert(1) drop-shadow(0 20px 48px rgba(196,181,253,0.3))',
+                opacity: 0.93,
               }}
-              aria-hidden="true"
             />
+            <p style={{
+              color: '#C4AEFF',
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+            }}>
+              Track. Collaborate. Deliver.
+            </p>
           </div>
-          <h2 className="text-white font-headline-sm text-[20px] font-semibold tracking-wider uppercase opacity-90 mb-4">
-            Track. Collaborate. Deliver.
-          </h2>
-          <div className="mt-12 p-4 md:p-8 rounded-2xl max-w-md bg-surface-container-lowest/[0.03] border border-white/[0.08] shadow-2xl backdrop-blur-sm">
-            <p className="text-white/[0.85] text-[15px] font-body-md leading-relaxed tracking-wide">
+
+          {/* Quote Block */}
+          <div
+            className="w-full"
+            style={{
+              background: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.13)',
+              borderRadius: '16px',
+              padding: '1.5rem 2rem',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <p style={{
+              color: '#D8C9F5',
+              fontSize: '14px',
+              lineHeight: '1.8',
+              textAlign: 'center',
+              fontStyle: 'italic',
+            }}>
               "Empowering teams to visualize productivity and streamline internal workflows with executive precision."
             </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* â”€â”€ RIGHT PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <section className="w-full lg:w-1/2 bg-surface-container-lowest flex items-center justify-center px-6 md:px-margin_desktop py-12 overflow-y-auto">
-        <div className="w-full max-w-[440px]">
-          <header className={`mb-8 ${!isRegisterMode ? 'text-center flex flex-col items-center' : ''}`}>
-            {!isRegisterMode && (
-              <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-3xl">waving_hand</span>
-              </div>
-            )}
-            <h1 className="text-[32px] font-headline-lg font-bold text-on-surface mb-3 tracking-tight">
+        {/* RIGHT PANEL */}
+        <section
+          className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center overflow-y-auto"
+          style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(2.5rem, 5vw, 5rem)' }}
+        >
+          <div className="w-full flex flex-col items-center" style={{ maxWidth: '400px' }}>
+
+            {/* Heading */}
+            <h1
+              style={{
+                fontSize: 'clamp(28px, 4vw, 36px)',
+                fontWeight: 800,
+                color: '#1E1B2E',
+                marginBottom: '10px',
+                textAlign: 'center',
+                letterSpacing: '-0.02em',
+              }}
+            >
               {isRegisterMode ? 'Complete Registration' : 'Welcome Back'}
             </h1>
-            <p className="text-[15px] font-body-md text-secondary">
+            <p style={{ fontSize: '15px', color: '#6B7280', textAlign: 'center', marginBottom: '40px', lineHeight: 1.6 }}>
               {isRegisterMode ? 'Please provide your details to request access.' : 'Sign in to your Dreamsdesk account to continue'}
             </p>
-          </header>
 
-          {errorMsg && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-error text-[14px] rounded-lg">
-              {errorMsg}
-            </div>
-          )}
-          {successMsg && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-[14px] rounded-lg">
-              {successMsg}
-            </div>
-          )}
-
-          <form className="space-y-5" onSubmit={handleManualAuth}>
-            {isRegisterMode && (
-              <div className="login-input relative">
-                <input
-                  id="name" required placeholder=" " value={name} onChange={(e) => setName(e.target.value)}
-                  className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
-                />
-                <label htmlFor="name" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Full Name</label>
+            {errorMsg && (
+              <div className="mb-4 w-full p-3 bg-red-50 border border-red-200 text-red-600 text-[14px] rounded-lg">
+                {errorMsg}
+              </div>
+            )}
+            {successMsg && (
+              <div className="mb-4 w-full p-3 bg-green-50 border border-green-200 text-green-700 text-[14px] rounded-lg">
+                {successMsg}
               </div>
             )}
 
-            {isRegisterMode && (
-              <div className="login-input relative">
-                <input
-                  id="email" type="email" required placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} disabled={isRegisterMode && email.length > 0}
-                  className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200 disabled:opacity-60 disabled:bg-surface"
-                />
-                <label htmlFor="email" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Email Address</label>
-              </div>
-            )}
-
-
-
-            {isRegisterMode && (
-              <>
-                <div className="login-input relative">
-                  <input
-                    id="role" required placeholder=" " value={role} onChange={(e) => setRole(e.target.value)}
-                    className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
-                  />
-                  <label htmlFor="role" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Role (e.g. Designer)</label>
-                </div>
-                <div className="login-input relative">
-                  <input
-                    id="department" required placeholder=" " value={department} onChange={(e) => setDepartment(e.target.value)}
-                    className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
-                  />
-                  <label htmlFor="department" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Department</label>
-                </div>
-                <div className="login-input relative">
-                  <input
-                    id="phone" required placeholder=" " value={phone} onChange={(e) => setPhone(e.target.value)}
-                    className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
-                  />
-                  <label htmlFor="phone" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-primary peer-focus:bg-surface-container-lowest peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-surface-container-lowest peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
-                </div>
-                <div className="login-input relative">
-                  <select
-                    id="systemRole" required value={systemRole} onChange={(e) => setSystemRole(e.target.value)}
-                    className="block w-full h-[54px] px-4 pt-2 text-on-surface bg-transparent border border-outline rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-all duration-200"
-                  >
-                    <option value="Employee" className="bg-surface-container-lowest text-on-surface">Employee</option>
-                    <option value="Manager" className="bg-surface-container-lowest text-on-surface">Manager</option>
-                    <option value="Admin" className="bg-surface-container-lowest text-on-surface">Admin</option>
-                  </select>
-                  <label htmlFor="systemRole" className="absolute text-[14px] text-secondary duration-200 transform -translate-y-[24px] scale-[0.85] top-1/2 left-4 z-10 bg-surface-container-lowest px-1 pointer-events-none text-primary">System Role</label>
-                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">expand_more</span>
-                </div>
-              </>
-            )}
-            {isRegisterMode && (
-              <button
-                id="login-btn"
-                type="submit"
-                disabled={loading}
-                className="w-full h-[54px] bg-primary text-on-primary font-label-lg font-medium tracking-wide rounded-[10px] flex items-center justify-center hover:bg-primary-container active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm mt-8"
-              >
-                {loading ? 'Processing...' : 'Submit Registration'}
-              </button>
-            )}
-
-            {!isRegisterMode && !isElectron && (
-              <div className="flex justify-center w-full google-login-wrapper mt-4">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setErrorMsg('Google login failed.')}
-                  shape="pill"
-                  size="large"
-                  theme="outline"
-                  width="360"
-                  text="continue_with"
-                />
-              </div>
-            )}
-
-            {isElectron && !isRegisterMode && (
-              <div className="mt-6 flex flex-col items-center space-y-3">
-                <div className="text-secondary text-sm font-medium">Or</div>
-                <button
-                  type="button"
-                  onClick={() => window.require('electron').shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')}
-                  className="w-full h-[54px] bg-surface border border-outline text-on-surface font-label-lg font-medium tracking-wide rounded-[10px] flex items-center justify-center hover:bg-surface-container-high transition-all shadow-sm"
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-3" />
-                  Sign in instantly via Web Browser
-                </button>
-              </div>
-            )}
-
-            <div className="mt-6 text-center text-[13px] text-secondary">
+            <form className="w-full space-y-4" onSubmit={handleManualAuth}>
               {isRegisterMode && (
-                <button type="button" onClick={() => { setIsRegisterMode(false); setErrorMsg(''); setSuccessMsg('') }} className="text-primary font-semibold hover:underline">Cancel & Return to Login</button>
+                <div className="relative">
+                  <input
+                    id="name" required placeholder=" " value={name} onChange={(e) => setName(e.target.value)}
+                    className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
+                  />
+                  <label htmlFor="name" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Full Name</label>
+                </div>
               )}
-            </div>
 
-          </form>
+              {isRegisterMode && (
+                <div className="relative">
+                  <input
+                    id="email" type="email" required placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} disabled={isRegisterMode && email.length > 0}
+                    className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200 disabled:opacity-60 disabled:bg-gray-50"
+                  />
+                  <label htmlFor="email" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Email Address</label>
+                </div>
+              )}
 
+              {isRegisterMode && (
+                <>
+                  <div className="relative">
+                    <input
+                      id="role" required placeholder=" " value={role} onChange={(e) => setRole(e.target.value)}
+                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
+                    />
+                    <label htmlFor="role" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Role (e.g. Designer)</label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="department" required placeholder=" " value={department} onChange={(e) => setDepartment(e.target.value)}
+                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
+                    />
+                    <label htmlFor="department" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Department</label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="phone" required placeholder=" " value={phone} onChange={(e) => setPhone(e.target.value)}
+                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
+                    />
+                    <label htmlFor="phone" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
+                  </div>
+                  <div className="relative">
+                    <select
+                      id="systemRole" required value={systemRole} onChange={(e) => setSystemRole(e.target.value)}
+                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
+                    >
+                      <option value="Employee" className="bg-white text-[#1E1B2E]">Employee</option>
+                      <option value="Manager" className="bg-white text-[#1E1B2E]">Manager</option>
+                      <option value="Admin" className="bg-white text-[#1E1B2E]">Admin</option>
+                    </select>
+                    <label htmlFor="systemRole" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-[24px] scale-[0.85] top-1/2 left-4 z-10 bg-white px-1 pointer-events-none text-[#702c91]">System Role</label>
+                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">expand_more</span>
+                  </div>
+                </>
+              )}
 
+              {isRegisterMode && (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-[58px] bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white font-bold tracking-wide rounded-[16px] flex items-center justify-center hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-md mt-8"
+                >
+                  {loading ? 'Processing...' : 'Submit Registration'}
+                </button>
+              )}
 
-        </div>
-      </section>
-    </main>
+              {!isRegisterMode && !isElectron && (
+                <div className="flex justify-center w-full google-login-wrapper mt-4">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setErrorMsg('Google login failed.')}
+                    shape="pill"
+                    size="large"
+                    theme="outline"
+                    width="360"
+                    text="continue_with"
+                  />
+                </div>
+              )}
+
+              {isElectron && !isRegisterMode && (
+                <div className="mt-6 flex flex-col items-center space-y-3">
+                  <div className="text-gray-400 text-sm font-medium">Or</div>
+                  <button
+                    type="button"
+                    onClick={() => window.require('electron').shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')}
+                    className="w-full h-[54px] bg-white border border-gray-200 text-[#1E1B2E] font-medium tracking-wide rounded-[14px] flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm"
+                  >
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-3" />
+                    Sign in instantly via Web Browser
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-6 text-center text-[13px] text-gray-500">
+                {isRegisterMode && (
+                  <button type="button" onClick={() => { setIsRegisterMode(false); setErrorMsg(''); setSuccessMsg('') }} className="text-[#702c91] font-semibold hover:underline">Cancel & Return to Login</button>
+                )}
+              </div>
+
+            </form>
+
+            {/* Footer */}
+            {!isRegisterMode && (
+              <footer className="mt-12 text-center">
+                <p style={{ fontSize: '12px', color: '#f472b6' }}>© 2026 Dreamsdesign. All rights reserved.</p>
+              </footer>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
   )
 }
-
 
