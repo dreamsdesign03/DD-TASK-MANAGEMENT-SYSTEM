@@ -80,21 +80,53 @@ export default function TeamPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
+    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+
+        .member-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(91, 33, 182, 0.15);
+        }
+        .member-card .msg-icon {
+            transition: transform 0.2s ease;
+        }
+        .member-card:hover .msg-icon {
+            transform: scale(1.2) rotate(-5deg);
+        }
+      `}</style>
+
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
         <TopNav title="Team Directory" showSearch={false} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-          <div className="max-w-[1200px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 pt-4 animate-fade-in-up">
+          <div className="max-w-[1450px] mx-auto w-full">
 
             {/* Filter and Search controls */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface-container-lowest p-4 rounded-lg border border-outline-variant/40 shadow-sm">
-
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+              
+              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
+                {['All', 'Development', 'Design', 'Marketing', 'Management'].map(dept => (
+                  <button
+                    key={dept}
+                    onClick={() => setActiveDept(dept)}
+                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
+                      activeDept === dept 
+                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
+                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
+                    }`}
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
 
               <div className="relative w-full md:w-80">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">
                   search
                 </span>
                 <input
@@ -102,110 +134,128 @@ export default function TeamPage() {
                   placeholder="Search by name, role..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant rounded-md pl-10 pr-4 py-2.5 text-body-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-full pl-10 pr-4 py-2 text-[13px] font-semibold text-[#1E1B2E] focus:ring-2 focus:ring-[#702c91]/20 focus:border-[#702c91] outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
 
             {/* Directory Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.length === 0 ? (
-                <div className="col-span-full text-center py-20 text-secondary">
-                  <span className="material-symbols-outlined text-[48px] mb-4">group_off</span>
-                  <p className="font-label-lg text-label-lg">No matching team members found.</p>
+                <div className="col-span-full text-center py-16">
+                  <span className="material-symbols-outlined text-[#D1D5DB] text-[64px] mb-4">group_off</span>
+                  <h3 className="text-[#4B5563] font-semibold text-lg m-0">No team members found</h3>
+                  <p className="text-[#9CA3AF] text-sm mt-1 m-0">Try adjusting your search or filters.</p>
                 </div>
               ) : (
-                filtered.map((emp) => (
-                  <div
-                    key={emp.id}
-                    className="bg-surface-container-lowest rounded-lg border border-outline-variant/40 p-6 flex flex-col items-center text-center relative hover:border-outline-variant transition-all duration-200 hover:shadow-sm"
-                  >
-                    {/* Status indicator dot */}
-                    <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container-low px-2 py-0.5 rounded-full border border-outline-variant/30">
-                      <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(emp.status)}`}></span>
-                      <span className="text-[10px] font-bold text-secondary font-['Montserrat'] uppercase">
-                        {emp.status}
-                      </span>
-                    </div>
+                filtered.map((emp, idx) => {
+                  const colors = [
+                    { topBar: 'from-[#702c91] to-[#ec008c]', avatarBg: 'from-purple-100 to-pink-100', text: 'text-[#702c91]', tagBg: 'bg-purple-50', tagText: 'text-purple-600' },
+                    { topBar: 'from-[#10B981] to-[#059669]', avatarBg: 'from-green-100 to-emerald-100', text: 'text-[#10B981]', tagBg: 'bg-green-50', tagText: 'text-green-600' },
+                    { topBar: 'from-[#F59E0B] to-[#D97706]', avatarBg: 'from-yellow-100 to-amber-100', text: 'text-[#F59E0B]', tagBg: 'bg-yellow-50', tagText: 'text-yellow-600' },
+                    { topBar: 'from-[#3B82F6] to-[#2563EB]', avatarBg: 'from-blue-100 to-indigo-100', text: 'text-[#3B82F6]', tagBg: 'bg-blue-50', tagText: 'text-blue-600' },
+                  ];
+                  const theme = colors[idx % colors.length];
 
-                    {/* Avatar */}
-                    <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border border-outline-variant/30 flex items-center justify-center bg-surface-container text-primary">
-                      {emp.email === profile.email ? (
-                        profile.avatar ? (
-                          <img src={profile.avatar} alt={emp.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-[20px] font-medium tracking-tight">
-                            {(() => {
-                              const name = profile.name || emp.name
-                              const parts = name.split(' ')
-                              if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-                              return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-                            })()}
-                          </span>
-                        )
-                      ) : emp.avatar ? (
-                        <img src={emp.avatar} alt={emp.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[20px] font-medium tracking-tight">
-                          {(() => {
-                            const name = emp.name
-                            const parts = name.split(' ')
-                            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-                            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-                          })()}
-                        </span>
-                      )}
-                    </div>
+                  const getStatusElement = (status) => {
+                    if (status === 'Online') {
+                      return <div className="w-2.5 h-2.5 bg-[#10B981] rounded-full ring-4 ring-green-100 animate-pulse"></div>;
+                    }
+                    if (status === 'Busy') {
+                      return <div className="w-2.5 h-2.5 bg-[#F59E0B] rounded-full ring-4 ring-yellow-100"></div>;
+                    }
+                    return <div className="w-2.5 h-2.5 bg-gray-300 rounded-full ring-4 ring-gray-100"></div>;
+                  };
 
-                    {/* Name & Title */}
-                    <h3 className="font-Montserrat font-bold text-on-surface text-lg leading-tight mb-1">
-                      {emp.name}
-                    </h3>
-                    <p className="text-secondary text-label-md font-medium mb-3">{emp.role}</p>
-
-                    {/* Dept Badge */}
-                    <span className="bg-surface-container-low text-secondary border border-outline-variant/50 px-2.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide mb-4">
-                      {emp.department}
-                    </span>
-
-                    {/* Contact Details */}
-                    <div className="w-full text-left space-y-2 text-label-sm text-secondary border-t border-divider pt-4 mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px] text-outline">mail</span>
-                        <span className="truncate">{emp.email}</span>
+                  return (
+                    <div
+                      key={emp.id}
+                      className="member-card bg-white rounded-[20px] p-5 shadow-[0_8px_24px_rgba(91,33,182,0.08)] relative overflow-hidden transition-all duration-300 border border-[#E5E7EB]"
+                    >
+                      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${theme.topBar}`}></div>
+                      
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${theme.avatarBg} flex items-center justify-center border-2 border-white shadow-sm overflow-hidden`}>
+                          {emp.email === profile.email ? (
+                            profile.avatar ? (
+                              <img src={profile.avatar} alt={emp.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className={`text-[20px] font-bold ${theme.text}`}>
+                                {(() => {
+                                  const name = profile.name || emp.name
+                                  const parts = name.split(' ')
+                                  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+                                  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                                })()}
+                              </span>
+                            )
+                          ) : emp.avatar ? (
+                            <img src={emp.avatar} alt={emp.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className={`text-[20px] font-bold ${theme.text}`}>
+                              {(() => {
+                                const name = emp.name
+                                const parts = name.split(' ')
+                                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+                                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+                              })()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative mt-1 mr-1">
+                          {getStatusElement(emp.status)}
+                        </div>
                       </div>
 
+                      <div className="mb-4">
+                        <h3 className="text-[15px] font-bold text-[#1E1B2E] m-0 mb-1">{emp.name}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`px-2.5 py-0.5 rounded-full ${theme.tagBg} ${theme.tagText} text-[11px] font-bold`}>
+                            {emp.role}
+                          </span>
+                          <span className="text-[11px] uppercase text-[#9CA3AF] font-bold tracking-wider">
+                            {emp.department}
+                          </span>
+                        </div>
+                      </div>
 
-                    </div>
+                      <div className="h-[1px] bg-[#F3F4F6] w-full mb-4"></div>
+                      
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-7 h-7 rounded-lg bg-[#F9FAFB] flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[16px] text-[#6B7280]">mail</span>
+                        </div>
+                        <span className="text-[11px] text-[#6B7280] font-medium truncate">{emp.email}</span>
+                      </div>
 
-                    {/* Action buttons */}
-                    <div className="grid grid-cols-1 gap-3 w-full mt-6">
-                      {emp.email !== profile.email ? (
-                        <button
-                          onClick={() => navigate('/chat', { state: { openChatWithName: emp.name } })}
-                          className="flex items-center justify-center gap-2 border border-outline text-secondary py-2 rounded-md font-body-sm hover:border-primary hover:text-primary active:scale-[0.98] transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">chat</span>
-                          Message
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSearchQuery(emp.name)
-                            navigate('/tasks')
-                          }}
-                          className="flex items-center justify-center gap-2 bg-primary text-on-primary py-2 rounded-md font-body-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">visibility</span>
-                          Tasks
-                        </button>
-                      )}
+                      <div className="w-full">
+                        {emp.email !== profile.email ? (
+                          <button
+                            onClick={() => navigate('/chat', { state: { openChatWithName: emp.name } })}
+                            className="w-full h-[38px] border-none cursor-pointer rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white text-[13px] font-semibold flex items-center justify-center gap-2 shadow-sm hover:opacity-90 active:scale-95 transition-all"
+                          >
+                            <span className="material-symbols-outlined msg-icon text-[18px]">chat_bubble</span>
+                            Message
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSearchQuery(emp.name)
+                              navigate('/tasks')
+                            }}
+                            className="w-full h-[38px] border border-[#702c91] cursor-pointer rounded-full bg-white text-[#702c91] text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">visibility</span>
+                            My Tasks
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
-            </div>
+          </div>
           </div>
       </main>
     </div>

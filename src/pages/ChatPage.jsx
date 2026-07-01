@@ -1336,47 +1336,46 @@ export default function ChatPage() {
 
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
+    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+        .module-shadow { box-shadow: 0 16px 48px rgba(91, 33, 182, 0.12); }
+      `}</style>
+
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
-        <TopNav title="Chat" showSearch={false} />
-
-        <div className="flex-1 flex overflow-hidden p-4 md:p-6 pb-6">
-          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] flex overflow-hidden">
+      <main className="flex-1 p-3 h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+        <div className="h-full w-full bg-white rounded-[24px] overflow-hidden module-shadow flex animate-fade-in-up">
             {/* LEFT PANEL: Conversation List */}
-            <div className={`bg-surface-container-lowest flex-col border-r border-outline-variant flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
-          {/* Panel header with Clear All button */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2 md:bg-transparent bg-primary md:text-on-surface text-white">
-            <div className="flex items-center gap-2">
-              <button className="md:hidden p-1 -ml-1 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" onClick={() => setIsSidebarOpen(true)}>
-                <span className="material-symbols-outlined text-[24px]">menu</span>
-              </button>
-              <h2 className="text-[20px] font-semibold tracking-tight">Messages</h2>
+            <div className={`bg-[#FAFAFF] flex-col border-r border-[#F3F1FA] flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
+          {/* Panel header with Search and Tabs */}
+          <div className="p-5 flex flex-col gap-4 border-b border-[#F3F1FA]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button className="md:hidden p-1 -ml-1 hover:bg-[#F3F1FA] rounded-full flex items-center justify-center transition-colors" onClick={() => setIsSidebarOpen(true)}>
+                  <span className="material-symbols-outlined text-[24px]">menu</span>
+                </button>
+                <h2 className="font-bold text-[18px] text-[#151c27] m-0">Messages</h2>
+              </div>
             </div>
-            {/* Unnecessary icons removed on user request */}
-          </div>
 
-          {/* Search */}
-          <div className="px-4 pb-4 border-b border-outline-variant">
             <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-[50%] -translate-y-1/2 text-[#9CA3AF] text-[18px]" style={{ fontVariationSettings: "'FILL' 0" }}>search</span>
               <input
                 type="text"
                 placeholder="Search people or groups..."
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                className="w-full h-[36px] bg-[#F3F4F6] border border-[#E5E7EB] rounded-[8px] pl-9 pr-4 text-[13px] outline-none"
               />
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">
-                search
-              </span>
             </div>
-          </div>
 
-          {/* Tabs */}
-          <div className="flex px-4 border-b border-outline-variant">
+            <div className="flex">
             {['personal', 'groups'].map((t) => {
               const unreadCount = t === 'personal' ? unreadPersonal : unreadGroups
+              const isActive = activeTab === t;
               return (
                 <button
                   key={t}
@@ -1384,8 +1383,7 @@ export default function ChatPage() {
                     setActiveTab(t)
                     setSearchFilter('')
                   }}
-                  className={`flex-1 py-3 text-label-md capitalize border-b-2 transition-all flex items-center justify-center gap-1.5 ${activeTab === t ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent'
-                    }`}
+                  className={`flex-1 border-none cursor-pointer bg-transparent text-[13px] font-bold py-2 border-b-2 transition-colors capitalize ${isActive ? 'text-[#702c91] border-[#702c91]' : 'text-[#6B7280] border-transparent'} flex items-center justify-center gap-1.5`}
                 >
                   <span>{t}</span>
                   {unreadCount > 0 && (
@@ -1427,29 +1425,18 @@ export default function ChatPage() {
                           setSelectedChatId(c.id)
                           markChatAsRead(c.id)
                         }}
-                        className={`p-4 flex items-center gap-3 cursor-pointer transition-colors ${isSelected ? 'bg-light-tint border-l-4 border-primary' : 'hover:bg-surface-container-low'
-                          }`}
+                        className={`flex items-center gap-3 h-16 px-4 cursor-pointer transition-colors border-l-4 ${isSelected ? 'bg-[#FAFAFF] border-[#702c91]' : 'bg-white border-transparent hover:bg-[#FAFAFF]'}`}
                       >
-                        {renderAvatar(c.avatar, c.name, "w-10 h-10 rounded-full")}
+                        <div className="relative shrink-0">
+                          {renderAvatar(c.avatar, c.name, "w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold")}
+                          {c.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-white rounded-full"></span>}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-center mb-0.5">
-                            <h4 className={`font-label-md truncate ${c.unread > 0 ? 'text-on-surface font-bold text-primary' : 'text-on-surface'}`}>
-                              {c.name}
-                            </h4>
-                            <span className={`text-[11px] font-medium flex-shrink-0 ml-1 ${c.unread > 0 ? 'text-[#25d366] font-semibold' : 'text-outline'}`}>
-                              {c.time}
-                            </span>
+                          <div className="flex justify-between items-baseline mb-1">
+                            <span className="text-[13px] font-semibold text-[#1E1B2E] truncate">{c.name}</span>
+                            <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-2">{c.time}</span>
                           </div>
-                          <div className="flex items-center justify-between gap-1">
-                            <p className={`text-body-sm truncate flex-1 ${c.unread > 0 ? 'text-on-surface font-semibold' : 'text-outline'}`}>
-                              {c.preview}
-                            </p>
-                            {c.unread > 0 && (
-                              <span className="min-w-[18px] h-[18px] px-1 bg-[#25d366] text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                                {c.unread}
-                              </span>
-                            )}
-                          </div>
+                          <p className={`text-[12px] truncate m-0 ${c.unread > 0 ? 'text-[#1E1B2E] font-semibold' : 'text-[#9CA3AF]'}`}>{c.preview}</p>
                         </div>
                       </div>
                     )
@@ -1484,43 +1471,31 @@ export default function ChatPage() {
                             setSelectedChatId(g.id)
                             markChatAsRead(g.id)
                           }}
-                          className={`p-4 flex items-center gap-3 cursor-pointer transition-colors ${isSelected ? 'bg-light-tint border-l-4 border-primary' : 'hover:bg-surface-container-low'
-                            }`}
+                          className={`flex items-center gap-3 h-16 px-4 cursor-pointer transition-colors border-l-4 ${isSelected ? 'bg-[#FAFAFF] border-[#702c91]' : 'bg-white border-transparent hover:bg-[#FAFAFF]'}`}
                         >
-                          <div className={`w-10 h-10 rounded-lg ${g.bg} flex items-center justify-center text-white flex-shrink-0`}>
-                            <span className="material-symbols-outlined">{g.icon}</span>
+                          <div className="relative shrink-0">
+                            <div className={`w-10 h-10 rounded-full ${g.bg} flex items-center justify-center text-white text-[13px] font-bold`}>
+                              <span className="material-symbols-outlined text-[20px]">{g.icon}</span>
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center mb-0.5">
-                              <h4 className={`font-label-md truncate ${g.unread > 0 ? 'text-on-surface font-bold text-primary' : 'text-on-surface'}`}>
-                                {g.name}
-                              </h4>
-                              <span className={`text-[11px] font-medium flex-shrink-0 ml-1 ${g.unread > 0 ? 'text-[#25d366] font-semibold' : 'text-outline'}`}>
-                                {g.time}
-                              </span>
+                            <div className="flex justify-between items-baseline mb-1">
+                              <span className="text-[13px] font-semibold text-[#1E1B2E] truncate">{g.name}</span>
+                              <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-2">{g.time}</span>
                             </div>
-                            <div className="flex items-center justify-between gap-1">
-                              <p className={`text-body-sm truncate flex-1 ${g.unread > 0 ? 'text-on-surface font-semibold' : 'text-outline'}`}>
-                                {g.preview}
-                              </p>
-                              {g.unread > 0 && (
-                                <span className="min-w-[18px] h-[18px] px-1 bg-[#25d366] text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                                  {g.unread}
-                                </span>
-                              )}
-                            </div>
+                            <p className={`text-[12px] truncate m-0 ${g.unread > 0 ? 'text-[#1E1B2E] font-semibold' : 'text-[#9CA3AF]'}`}>{g.preview}</p>
                           </div>
                         </div>
                       )
                     })
                   )}
                 </div>
-                <div className="p-4">
+                <div className="p-4 mt-auto">
                   <button
                     onClick={() => setShowModal(true)}
-                    className="w-full border border-primary text-primary py-2.5 rounded-lg font-label-md flex items-center justify-center gap-2 hover:bg-light-tint transition-all active:scale-95"
+                    className="w-full h-10 border border-[#702c91] rounded-[8px] bg-transparent text-[#702c91] text-[13px] font-semibold flex items-center justify-center gap-2 cursor-pointer hover:bg-[#702c91]/10 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                    <span className="material-symbols-outlined text-[18px]">add_circle</span>
                     Create New Group
                   </button>
                 </div>
@@ -1529,73 +1504,71 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* â”€â”€ MIDDLE PANEL: Message Thread â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className={`flex-1 flex-col bg-surface-container-lowest min-w-0 ${!selectedChatId ? 'hidden md:flex' : 'flex'}`}>
+        {/* ── MIDDLE PANEL: Message Thread ───────────────────────── */}
+        <div className={`flex-1 flex-col bg-white h-full relative min-w-0 ${!selectedChatId ? 'hidden md:flex' : 'flex'}`}>
           {activeChat ? (
             <>
               {/* Header */}
-              <div className="h-14 md:h-16 flex items-center justify-between px-2 md:px-6 md:bg-surface-container-lowest bg-primary md:text-on-surface text-white border-b border-outline-variant flex-shrink-0 shadow-sm md:shadow-none z-10">
-                <div className="flex items-center gap-1 md:gap-3">
+              <header className="h-[68px] px-6 border-b border-[#F3F1FA] flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
                   <button
-                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/20 transition-colors -ml-1 text-white"
+                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors -ml-1 text-[#9CA3AF]"
                     onClick={() => setSelectedChatId(null)}
                   >
                     <span className="material-symbols-outlined text-[24px]">arrow_back</span>
                   </button>
                   {activeTab === 'personal' ? (
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      {renderAvatar(activeChat?.avatar, activeChat?.name, "w-9 h-9 md:w-10 md:h-10 rounded-full border border-white/20 md:border-none")}
-                      <div className="flex flex-col">
-                        <h3 className="text-[15px] md:text-label-lg font-semibold leading-tight truncate max-w-[160px] sm:max-w-[220px]">{activeChat?.name}</h3>
-                        <span className="text-[12px] md:text-label-sm text-white/80 md:text-[#22c55e] flex items-center gap-1 font-medium">
-                          Online
-                        </span>
+                    <>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold" style={{ backgroundColor: activeChat?.bg || '#9CA3AF' }}>
+                        {activeChat?.avatar || activeChat?.name?.substring(0, 2).toUpperCase()}
                       </div>
-                    </div>
+                      <div className="flex flex-col">
+                        <h3 className="text-[14px] font-bold text-[#151c27] m-0">{activeChat?.name}</h3>
+                        <p className={`text-[11px] font-medium m-0 ${activeChat?.online ? 'text-[#10B981]' : 'text-[#9CA3AF]'}`}>
+                          {activeChat?.online ? 'Online' : 'Offline'}
+                        </p>
+                      </div>
+                    </>
                   ) : (
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <div className="w-9 h-9 md:w-10 md:h-10 bg-white/20 md:bg-primary-container rounded-full flex items-center justify-center text-white">
+                    <>
+                      <div className={`w-10 h-10 rounded-full ${activeChat?.bg || 'bg-gray-200'} flex items-center justify-center text-white text-[13px] font-bold`}>
                         <span className="material-symbols-outlined text-[20px]">{activeChat?.icon || 'groups'}</span>
                       </div>
                       <div className="flex flex-col">
-                        <h3 className="text-[15px] md:text-label-lg font-semibold leading-tight truncate max-w-[160px] sm:max-w-[220px]">{activeChat?.name}</h3>
-                        <span className="text-[12px] md:text-label-sm text-white/80 md:text-primary truncate max-w-[160px] font-medium">{activeMembersList.map(m => m.name.split(' ')[0]).join(', ')}</span>
+                        <h3 className="text-[14px] font-bold text-[#151c27] m-0">{activeChat?.name}</h3>
+                        <p className="text-[11px] font-medium text-[#9CA3AF] m-0 truncate max-w-[160px]">{activeMembersList.map(m => m.name.split(' ')[0]).join(', ')}</p>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
-                <div className="flex items-center gap-4 md:gap-4 text-white md:text-outline relative" ref={moreDropdownRef}>
+                <div className="flex gap-4">
                   <button
                     onClick={handleCreateMeeting}
-                    className="hover:text-white/80 md:hover:text-[#25d366] transition-colors flex items-center"
+                    className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#702c91] transition-colors flex"
                     title="Video Call"
                   >
-                    <span className="material-symbols-outlined text-[24px] md:text-[22px]">videocam</span>
+                    <span className="material-symbols-outlined text-[22px]">videocam</span>
                   </button>
                   <button
                     onClick={() => setShowSearchModal(true)}
-                    className="hover:text-white/80 md:hover:text-primary transition-colors hidden md:block"
+                    className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#702c91] transition-colors hidden md:flex"
                     title="Search messages"
                   >
-                    <span className="material-symbols-outlined text-[22px]">search</span>
+                    <span className="material-symbols-outlined text-[20px]">search</span>
                   </button>
                 </div>
-              </div>
+              </header>
 
-              {/* Messages lists â€” WhatsApp-style wallpaper */}
+              {/* Messages list */}
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 custom-scrollbar chat-wallpaper"
+                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar bg-[#f9f9ff]"
               >
                 {activeMessages.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-4 md:p-8 text-outline">
-                    <span className="material-symbols-outlined text-[64px] text-primary/40 mb-4">forum</span>
-                    <h3 className="font-Montserrat font-bold text-lg text-on-surface mb-1">
-                      Start chat with {activeChat?.name || 'this contact'}
-                    </h3>
-                    <p className="text-body-sm text-secondary max-w-[280px]">
-                      Send a message to start a conversation.
-                    </p>
+                  <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center text-center p-6">
+                    <span className="material-symbols-outlined text-[#6B7280] text-[56px] mb-4">forum</span>
+                    <h3 className="text-[16px] font-bold text-[#1E1B2E] m-0 mb-2">Start chat with {activeChat?.name || 'this contact'}</h3>
+                    <p className="text-[13px] text-[#9CA3AF] m-0">Send a message to start a conversation.</p>
                   </div>
                 ) : (
                   activeMessages.map((m, index) => {
@@ -1641,15 +1614,8 @@ export default function ChatPage() {
                                 </button>
                               </div>
                             )}
-                            {/* Bubble with left tail */}
-                            <div
-                              className="relative bg-surface-container-highest text-on-surface rounded-2xl rounded-tl-sm px-3 shadow-sm min-w-[60px] py-2"
-                              style={{ maxWidth: '100%' }}
-                            >
-                              <div
-                                className="absolute -left-2 top-0 w-3 h-3 bg-surface-container-highest"
-                                style={{ clipPath: 'polygon(100% 0,100% 100%,0 0)' }}
-                              />
+                            {/* Bubble */}
+                            <div className="bg-white border border-[#E5E7EB] rounded-[12px] rounded-tl-none p-3 shadow-sm" style={{ maxWidth: '100%' }}>
                               {renderMessageText(m.text, false, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span className="text-[10px] text-secondary leading-none">{m.time}</span>
@@ -1681,15 +1647,8 @@ export default function ChatPage() {
                               </button>
                             </div>
                           )}
-                          {/* Bubble with right tail */}
-                          <div
-                            className="relative text-white rounded-2xl rounded-tr-sm px-3 shadow-sm min-w-[60px] py-2"
-                            style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)', maxWidth: '100%' }}
-                          >
-                            <div
-                              className="absolute -right-2 top-0 w-3 h-3"
-                              style={{ background: '#5b21b6', clipPath: 'polygon(0 0,0 100%,100% 0)' }}
-                            />
+                          {/* Bubble */}
+                          <div className="bg-[#702c91] text-white rounded-[12px] rounded-tr-none p-3 shadow-sm" style={{ maxWidth: '100%' }}>
                             {renderMessageText(m.text, true, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
                             <div className="flex items-center justify-end gap-1 mt-1">
                               {m.isEdited && <span className="text-[9px] text-white/60 italic">edited</span>}
@@ -1801,119 +1760,124 @@ export default function ChatPage() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 bg-surface-container-lowest rounded-full px-4 py-2.5 shadow-md border border-purple-100 focus-within:ring-2 focus-within:ring-primary transition-all">
-                  {/* Emoji Picker Popover */}
-                  <div ref={emojiPickerRef} className="relative flex items-center">
+                <footer className="p-4 border-t border-[#F3F1FA] shrink-0">
+                  <div className="border border-[#E5E7EB] rounded-full p-1 pl-4 flex items-center gap-3 bg-white shadow-sm focus-within:border-purple-400 transition-colors relative">
+                    {/* Emoji Picker Popover */}
+                    <div ref={emojiPickerRef} className="relative flex items-center">
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className={`border-none cursor-pointer bg-transparent flex items-center justify-center transition-colors ${showEmojiPicker ? 'text-[#702c91]' : 'text-[#9CA3AF] hover:text-[#702c91]'}`}
+                      >
+                        <span className="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
+                      </button>
+                      {showEmojiPicker && (
+                        <div className="absolute bottom-12 left-0 z-50 shadow-2xl rounded-xl overflow-hidden animate-scale-in">
+                          <EmojiPicker
+                            onEmojiClick={(emojiObject) => {
+                              setText(prev => prev + emojiObject.emoji)
+                            }}
+                            theme="light"
+                            searchPlaceHolder="Search emojis..."
+                            lazyLoadEmojis={true}
+                            skinTonesDisabled={true}
+                            width={320}
+                            height={400}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hidden File Input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+
+                    {/* Attachment Button */}
                     <button
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className={`text-outline hover:text-primary transition-colors flex items-center ${showEmojiPicker ? 'text-primary' : ''}`}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-none cursor-pointer bg-transparent flex items-center justify-center text-[#9CA3AF] hover:text-[#702c91] transition-colors"
                     >
-                      <span className="material-symbols-outlined">sentiment_satisfied</span>
+                      <span className="material-symbols-outlined text-[20px]" style={{ transform: 'rotate(-45deg)' }}>attach_file</span>
                     </button>
-                    {showEmojiPicker && (
-                      <div className="absolute bottom-12 left-0 z-50 shadow-2xl rounded-xl overflow-hidden animate-scale-in">
-                        <EmojiPicker
-                          onEmojiClick={(emojiObject) => {
-                            setText(prev => prev + emojiObject.emoji)
-                          }}
-                          theme="light"
-                          searchPlaceHolder="Search emojis..."
-                          lazyLoadEmojis={true}
-                          skinTonesDisabled={true}
-                          width={320}
-                          height={400}
-                        />
-                      </div>
-                    )}
+
+                    <input
+                      ref={textInputRef}
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-[13px] py-2.5 outline-none text-[#1E1B2E]"
+                      placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
+                      type="text"
+                      value={text}
+                      onChange={(e) => handleTextChange(e.target.value, e.target.selectionStart)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
+                    />
+                    <button
+                      onClick={handleSend}
+                      className="w-10 h-10 border-none cursor-pointer btn-gradient rounded-full flex items-center justify-center text-white transition-opacity hover:opacity-90 active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">send</span>
+                    </button>
                   </div>
-
-                  {/* Hidden File Input */}
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-
-                  {/* Attachment Button */}
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-outline hover:text-primary transition-colors flex items-center"
-                  >
-                    <span className="material-symbols-outlined">attach_file</span>
-                  </button>
-
-                  <input
-                    ref={textInputRef}
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-body-sm py-1 outline-none"
-                    placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
-                    type="text"
-                    value={text}
-                    onChange={(e) => handleTextChange(e.target.value, e.target.selectionStart)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
-                  />
-                  <button
-                    onClick={handleSend}
-                    className="w-9 h-9 bg-primary text-on-primary rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-md flex-shrink-0"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">send</span>
-                  </button>
-                </div>
+                </footer>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-4 md:p-8 bg-surface-container-lowest text-outline">
-              <span className="material-symbols-outlined text-[64px] text-primary/30 mb-4 animate-pulse">forum</span>
-              <h3 className="font-Montserrat font-bold text-lg text-on-surface mb-1">
-                No Chat Selected
-              </h3>
-              <p className="text-body-sm text-secondary max-w-[280px]">
-                {activeTab === 'personal'
-                  ? 'Select a contact from the sidebar to start a conversation.'
-                  : 'Create a new group or select one to start collaborating.'}
-              </p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <span className="material-symbols-outlined text-[#9CA3AF] text-[64px] mb-4">forum</span>
+              <h3 className="text-[18px] font-bold text-[#1E1B2E] m-0 mb-2">No Chat Selected</h3>
+              <p className="text-[13px] text-[#9CA3AF] m-0 max-w-[250px]">Create a new group or select one to start collaborating.</p>
             </div>
           )}
         </div>
 
-        {/* â”€â”€ RIGHT PANEL: Details Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── RIGHT PANEL: Details Panel ───────────────────────── */}
         {activeChat && activeTab === 'personal' && (
-          <div className="hidden lg:flex w-[240px] bg-surface flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
-            <div className="flex flex-col items-center gap-4">
-              {renderAvatar(activeChat?.avatar, activeChat?.name, "w-20 h-20 rounded-full shadow-lg border-2 border-white", "text-[24px]")}
-              <div className="text-center">
-                <h2 className="text-headline-sm font-bold text-on-surface">{activeChat?.name}</h2>
-                <p className="text-body-sm text-outline">{activeChat?.role || 'Active Staff Member'}</p>
+          <aside className="w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex flex-col items-center shrink-0">
+            <div className="pt-12 pb-8 flex flex-col items-center w-full px-6 text-center border-b border-[#F3F1FA]">
+              <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-white text-[24px] font-bold mb-4 shadow-sm" style={{ backgroundColor: activeChat?.bg || '#9CA3AF' }}>
+                {activeChat?.avatar || activeChat?.name?.substring(0, 2).toUpperCase()}
+              </div>
+              <h2 className="font-bold text-[16px] text-[#151c27] m-0">{activeChat?.name}</h2>
+              <p className="text-[13px] text-[#9CA3AF] font-medium mt-1 mb-0">{activeChat?.role || 'Employee'}</p>
+            </div>
+            
+            <div className="w-full px-6 py-6 flex flex-col gap-5">
+              <h3 className="text-[12px] font-bold text-[#6B7280] tracking-wider m-0">DETAILS</h3>
+              
+              <div className="flex flex-col gap-1">
+                <span className="text-[12px] font-semibold text-[#9CA3AF]">Email:</span>
+                <span className="text-[12px] font-bold text-[#1E1B2E] break-all">{activeChat?.email || 'N/A'}</span>
+              </div>
+              
+              <div className="flex flex-col gap-1">
+                <span className="text-[12px] font-semibold text-[#9CA3AF]">Department:</span>
+                <span className="text-[12px] font-bold text-[#1E1B2E]">{activeChat?.department || 'N/A'}</span>
+              </div>
+              
+              <div className="flex flex-col gap-1">
+                <span className="text-[12px] font-semibold text-[#9CA3AF]">Location:</span>
+                <span className="text-[12px] font-bold text-[#1E1B2E]">{activeChat?.location || 'Remote'}</span>
               </div>
             </div>
-            <div className="space-y-4">
-              <h4 className="text-label-md font-bold uppercase tracking-wider text-outline">Details</h4>
-              <div className="space-y-2 text-label-sm">
-                <p className="break-words"><span className="text-outline">Email:</span> <br/><span className="break-all">{activeChat?.email || 'N/A'}</span></p>
-                <p><span className="text-outline">Department:</span> <br/>{activeChat?.department || 'N/A'}</p>
-                <p><span className="text-outline">Location:</span> <br/>{activeChat?.location || 'Remote'}</p>
-              </div>
-            </div>
-          </div>
+          </aside>
         )}
 
         {activeChat && activeTab === 'groups' && (
-          <div className="hidden lg:flex w-[240px] bg-surface flex-col border-l border-outline-variant p-6 gap-6 flex-shrink-0">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-20 h-20 bg-primary-container rounded-2xl flex items-center justify-center shadow-lg border-2 border-white">
-                <span className="material-symbols-outlined text-white text-[40px]">{activeChat?.icon || 'groups'}</span>
+          <aside className="w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex flex-col items-center shrink-0">
+            <div className="pt-12 pb-8 flex flex-col items-center w-full px-6 text-center border-b border-[#F3F1FA]">
+              <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-white text-[24px] font-bold mb-4 shadow-sm bg-gray-200">
+                <span className="material-symbols-outlined text-[40px]">{activeChat?.icon || 'groups'}</span>
               </div>
-              <div className="text-center">
-                <h2 className="text-headline-sm font-bold text-on-surface">{activeChat?.name}</h2>
-                <p className="text-body-sm text-outline">Digital transformation team</p>
-              </div>
+              <h2 className="font-bold text-[16px] text-[#151c27] m-0">{activeChat?.name}</h2>
+              <p className="text-[13px] text-[#9CA3AF] font-medium mt-1 mb-0">Group Chat</p>
             </div>
 
-            <div className="space-y-4 relative" ref={addMemberDropdownRef}>
+            <div className="w-full px-6 py-6 flex flex-col gap-5 relative" ref={addMemberDropdownRef}>
               <div className="flex justify-between items-center">
-                <h4 className="text-label-md font-bold uppercase tracking-wider text-outline">
-                  Members ({activeMembersList.length})
-                </h4>
+                <h3 className="text-[12px] font-bold text-[#6B7280] tracking-wider m-0">
+                  MEMBERS ({activeMembersList.length})
+                </h3>
                 {activeChat?.creator === profile?.name && (
                   <button
                     onClick={() => setShowAddMemberDropdown(!showAddMemberDropdown)}
@@ -2002,7 +1966,7 @@ export default function ChatPage() {
                 Leave Group
               </button>
             </div>
-          </div>
+          </aside>
         )}
           </div>
         </div>

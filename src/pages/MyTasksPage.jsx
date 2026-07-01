@@ -127,18 +127,24 @@ export default function MyTasksPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
+    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+      `}</style>
+      
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main */}
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
         {/* Top nav */}
         <TopNav title={location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'} showSearch={true} />
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-[32px] py-6">
-          <div className="w-full flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 lg:px-8 py-6 animate-fade-in-up">
+          <div className="max-w-[1450px] mx-auto w-full flex flex-col gap-6">
             <TaskTable />
           </div>
         </div>

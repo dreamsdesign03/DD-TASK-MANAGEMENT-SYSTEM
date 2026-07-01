@@ -137,113 +137,116 @@ export default function ClientsPage() {
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
+    <div className="bg-[#FAFAFF] font-body-md text-[#151c27] overflow-hidden h-screen flex">
       <Sidebar />
       <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
-        <TopNav title="Clients" showSearch={true} />
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <div>
-                <p className="text-secondary text-body-sm mt-1">Manage client details and active status.</p>
-              </div>
-
-              <div className="relative max-w-xs w-full">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none">
-                  search
-                </span>
-                <input
-                  type="text"
-                  placeholder="Search clients..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-4 py-2.5 text-body-sm focus:border-primary focus:ring-0 outline-none"
-                />
-              </div>
+        <TopNav title="Clients" showSearch={false} />
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 pt-4 animate-fade-in-up">
+          
+          {/* Page Header Area */}
+          <div className="flex justify-between items-end mb-6">
+            <div>
+              <h2 className="text-[28px] font-bold text-[#1E1B2E] mb-1 leading-tight">Clients</h2>
+              <p className="text-[14px] text-[#6B7280] m-0">Manage client details and active status.</p>
             </div>
+            
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
+              <input 
+                type="text" 
+                placeholder="Search clients..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-[300px] h-[42px] pl-10 pr-4 rounded-full border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all shadow-sm"
+              />
+            </div>
+          </div>
 
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-hidden w-full">
-                <table className="block md:table w-full text-left border-collapse">
-                  <thead className="hidden md:table-header-group">
-                    <tr className="bg-surface-container-low border-b border-outline-variant">
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client ID</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Project Name</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client Name</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Client Email(s)</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Phone</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider">Industry</th>
-                      <th className="py-3 px-4 text-label-sm font-label-sm text-secondary uppercase tracking-wider text-center">Active Status</th>
+            {/* Table Container */}
+            <div className="bg-white rounded-[12px] border border-[#E5E7EB] shadow-sm overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse min-w-[1000px]">
+                  <thead>
+                    <tr className="bg-[#F3F4F6] border-b border-[#E5E7EB]">
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Client ID</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Project Name</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Client Name</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Client Email(s)</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Phone</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Industry</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center">Active Status</th>
                     </tr>
                   </thead>
-                  <tbody className="block md:table-row-group divide-y md:divide-outline-variant/60 p-4 md:p-0">
+                  <tbody>
                     {filteredClients.map((client, idx) => {
                       const isActiveVal = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
                       const isActive = String(isActiveVal).toLowerCase() === 'yes' || isActiveVal === true
 
-                      return (
-                        <tr key={client['Client ID'] || idx} className="block md:table-row mb-4 md:mb-0 bg-surface-container-lowest border border-outline-variant md:border-none rounded-lg md:rounded-none hover:bg-surface-container-low/50 transition-colors overflow-hidden">
+                        <tr 
+                          key={client['Client ID'] || idx} 
+                          className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === filteredClients.length - 1 ? 'border-b-0' : ''}`}
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={e => { 
+                            e.currentTarget.style.background = 'white'; 
+                            e.currentTarget.style.transform = 'scale(1.01)'; 
+                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)';
+                            e.currentTarget.style.zIndex = 10;
+                          }}
+                          onMouseLeave={e => { 
+                            e.currentTarget.style.background = 'transparent'; 
+                            e.currentTarget.style.transform = 'scale(1)'; 
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.zIndex = 1;
+                          }}
+                        >
                           {/* Client ID */}
-                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm font-bold text-secondary whitespace-nowrap border-b border-outline-variant/30 md:border-none md:border-l-4 md:border-transparent">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Client ID</span>
-                            <div className="text-right">{client['Client ID']}</div>
+                          <td className="py-4 px-6 text-[13px] font-bold text-[#1E1B2E]">
+                            {client['Client ID']}
                           </td>
                           {/* Project Name */}
                           <td
-                            className={`flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm font-bold border-b border-outline-variant/30 md:border-none ${profile?.systemRole !== 'Employee' ? 'text-primary cursor-pointer hover:underline' : 'text-primary'}`}
-                            onClick={() => openEditModal(client)}
+                            className="py-4 px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
+                            onClick={() => {
+                              if (profile?.systemRole !== 'Employee') openEditModal(client)
+                            }}
                           >
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Project Name</span>
-                            <div className="text-left w-full md:w-auto">{client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}</div>
+                            {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
                           </td>
                           {/* Client Name */}
-                          <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-on-surface border-b border-outline-variant/30 md:border-none">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Client Name</span>
-                            <div className="text-left w-full md:w-auto">{client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}</div>
+                          <td className="py-4 px-6 text-[13px] text-[#4B5563]">
+                            {client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}
                           </td>
                           {/* Client Email(s) */}
-                          <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none break-all md:break-normal">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1 flex-shrink-0">Client Email(s)</span>
-                            <div className="text-left w-full md:w-auto">{client['Contact Email'] || client['Email'] || '-'}</div>
+                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                            {client['Contact Email'] || client['Email'] || '-'}
                           </td>
                           {/* Phone */}
-                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Phone</span>
-                            <div className="text-right">{client['Phone'] || '-'}</div>
+                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                            {client['Phone'] || '-'}
                           </td>
                           {/* Industry */}
-                          <td className="flex md:table-cell items-center justify-between py-2.5 md:py-3 px-4 text-body-sm text-secondary border-b border-outline-variant/30 md:border-none">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Industry</span>
-                            <div className="text-right">{client['Industry'] || '-'}</div>
+                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                            {client['Industry'] || '-'}
                           </td>
                           {/* Active Status */}
-                          <td className="flex md:table-cell items-center justify-between md:justify-center py-2.5 md:py-3 px-4 text-center bg-surface-container-low/50 md:bg-transparent">
-                            <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Active Status</span>
-                            <div className="flex flex-col items-end md:items-center">
-                              <button
-                                onClick={() => handleToggleStatus(client)}
-                                disabled={isUpdating || profile?.systemRole === 'Employee'}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isActive ? 'bg-[#25d366]' : 'bg-outline-variant'} ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                role="switch"
-                                aria-checked={isActive}
-                              >
-                                <span
-                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isActive ? 'translate-x-6' : 'translate-x-1'}`}
-                                />
-                              </button>
-                              <span className={`block text-[10px] font-bold mt-1 uppercase tracking-wider ${isActive ? 'text-[#25d366]' : 'text-secondary'}`}>
-                                {isActive ? 'Active' : 'Inactive'}
-                              </span>
+                          <td className="py-4 px-6 flex flex-col items-center justify-center gap-1">
+                            <div className={`relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in mt-1 ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`} onClick={() => { if (!isUpdating && profile?.systemRole !== 'Employee') handleToggleStatus(client) }}>
+                              <div className={`absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none transition-transform duration-300 ease-in-out z-10 ${isActive ? 'translate-x-5 border-[#10B981]' : 'translate-x-0 border-gray-300'}`}/>
+                              <div className={`block overflow-hidden h-5 rounded-full transition-colors duration-300 ease-in-out ${isActive ? 'bg-[#10B981]' : 'bg-gray-300'}`}/>
                             </div>
+                            <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-[#10B981]' : 'text-gray-400'}`}>
+                              {isActive ? 'Active' : 'Inactive'}
+                            </span>
                           </td>
                         </tr>
-                      )
                     })}
                     {filteredClients.length === 0 && (
-                      <tr className="block md:table-row">
-                        <td colSpan={7} className="block md:table-cell py-12 text-center text-secondary">
-                          <span className="material-symbols-outlined text-4xl mb-2 block opacity-50">search_off</span>
-                          <p>No clients found matching your search.</p>
+                      <tr>
+                        <td colSpan="7" className="py-12 text-center text-[#6B7280]">
+                          <div className="flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined text-[48px] text-gray-300 mb-3">search_off</span>
+                            <p className="text-[14px] font-medium m-0">No clients found matching your criteria.</p>
+                          </div>
                         </td>
                       </tr>
                     )}

@@ -154,41 +154,59 @@ export default function MonthlyReportPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
+    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .donut-segment {
+          transition: stroke-dasharray 0.3s ease;
+        }
+      `}</style>
+
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
-        <TopNav title="Monthly Report" showSearch={true} />
+      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+        <TopNav title="Reports" showSearch={false} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-          <div id="report-content" className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 md:p-8 space-y-8">
-            {/* Title & Month Selector */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <h2 className="font-Montserrat font-bold text-[28px] text-primary">Monthly Report Analysis</h2>
-              <div className="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant px-4 py-2 rounded-lg shadow-sm">
-                <span className="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 pt-4 animate-fade-in-up">
+          <div id="report-content" className="max-w-[1450px] mx-auto w-full">
+            
+            {/* Header Row */}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-[26px] font-bold text-[#702c91] m-0">Monthly Report Analysis</h2>
+              
+              <div className="relative flex items-center gap-2 px-4 py-2 bg-white border border-[#E5E7EB] rounded-lg text-[14px] font-semibold text-[#4B5563] shadow-sm hover:bg-gray-50 transition-colors">
+                <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+                <span>{currentMonth}</span>
+                <span className="material-symbols-outlined text-[18px]">expand_more</span>
                 <select
                   value={currentMonth}
                   onChange={(e) => setCurrentMonth(e.target.value)}
-                  className="font-Montserrat font-semibold text-primary whitespace-nowrap bg-transparent outline-none cursor-pointer appearance-none pr-4"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 >
                   {availableMonths.map(m => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
-                <span className="material-symbols-outlined text-primary pointer-events-none -ml-4 text-[20px]">expand_more</span>
               </div>
             </div>
 
             {/* Filter Tabs */}
-            <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant flex flex-col md:flex-row gap-6 items-start md:items-center">
-              <div className="flex items-center gap-2 bg-surface-container-lowest rounded-lg p-1 shadow-sm border border-outline-variant">
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
+              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
                 {['Overall', 'Company', 'User'].map(type => (
                   <button
                     key={type}
                     onClick={() => handleFilterChange(type)}
-                    className={`px-4 py-2 rounded-md font-label-md transition-all ${
-                      filterType === type ? 'bg-primary-container text-white shadow-sm' : 'text-secondary hover:bg-surface-container'
+                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
+                      filterType === type 
+                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
+                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
                     }`}
                   >
                     {type}
@@ -199,11 +217,11 @@ export default function MonthlyReportPage() {
               {/* Dynamic Dropdown based on filter type */}
               {filterType === 'Company' && (
                 <div className="flex items-center gap-3">
-                  <label className="text-label-sm font-bold text-secondary uppercase">Select Client:</label>
+                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select Client:</label>
                   <select
                     value={selectedValue}
                     onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-1.5 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[200px]"
                   >
                     {clients.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -211,11 +229,11 @@ export default function MonthlyReportPage() {
               )}
               {filterType === 'User' && (
                 <div className="flex items-center gap-3">
-                  <label className="text-label-sm font-bold text-secondary uppercase">Select User:</label>
+                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select User:</label>
                   <select
                     value={selectedValue}
                     onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-body-sm font-label-md focus:border-primary outline-none min-w-[200px]"
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-1.5 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[200px]"
                   >
                     {users.map(u => <option key={u} value={u}>{u}</option>)}
                   </select>
@@ -224,160 +242,177 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Tasks Assigned */}
-              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-primary hover:-translate-y-0.5 transition-all duration-300">
-                <div>
-                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Total Tasks</p>
-                  <h3 className="text-headline-lg text-primary">{totalTasks}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              {/* Total Tasks */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#ec008c]"></div>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Total Tasks</p>
+                    <h3 className="text-[32px] font-black text-[#702c91] leading-none m-0">{totalTasks}</h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#702c91]">assignment</span>
+                  </div>
                 </div>
-                <span className="material-symbols-outlined text-primary opacity-30 dark:opacity-80 text-4xl">
-                  assignment_add
-                </span>
               </div>
 
               {/* Completed */}
-              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#2ECC71] hover:-translate-y-0.5 transition-all duration-300">
-                <div>
-                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Completed</p>
-                  <h3 className="text-headline-lg text-[#2ECC71]">{completed}</h3>
-                  <div className="w-32 h-2 bg-gray-200 rounded-full mt-3 overflow-hidden">
-                    <div className="bg-[#2ECC71] h-full transition-all" style={{ width: `${completedPct}%` }}></div>
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#10B981]"></div>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Completed</p>
+                    <h3 className="text-[32px] font-black text-[#10B981] leading-none m-0">{completed}</h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#10B981]">check_circle</span>
                   </div>
                 </div>
-                <span className="material-symbols-outlined text-[#2ECC71] opacity-30 dark:opacity-80 text-4xl">
-                  check_circle
-                </span>
+                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div className="bg-[#10B981] h-full rounded-full" style={{ width: `${completedPct}%` }}></div>
+                </div>
               </div>
 
               {/* In Progress */}
-              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#F1C40F] hover:-translate-y-0.5 transition-all duration-300">
-                <div>
-                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">In Progress</p>
-                  <h3 className="text-headline-lg text-[#F1C40F]">{inProgress}</h3>
-                  <p className="text-xs text-on-surface-variant mt-2">Active now</p>
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#F59E0B]"></div>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">In Progress</p>
+                    <h3 className="text-[32px] font-black text-[#F59E0B] leading-none m-0">{inProgress}</h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#F59E0B]">more_horiz</span>
+                  </div>
                 </div>
-                <span className="material-symbols-outlined text-[#F1C40F] opacity-30 dark:opacity-80 text-4xl">
-                  pending
-                </span>
+                <p className="text-[11px] font-medium text-[#6B7280] m-0">Active now</p>
               </div>
 
               {/* Overdue */}
-              <div className="ambient-card p-6 flex items-start justify-between border-t-4 border-[#E74C3C] hover:-translate-y-0.5 transition-all duration-300">
-                <div>
-                  <p className="text-label-sm text-on-surface-variant uppercase mb-1">Overdue</p>
-                  <h3 className="text-headline-lg text-[#E74C3C]">{overdue}</h3>
-                  {overdue > 0 ? (
-                    <p className="text-xs text-[#E74C3C] font-semibold mt-2">Requires attention!</p>
-                  ) : (
-                    <p className="text-xs text-[#2ECC71] font-semibold mt-2">All on track</p>
-                  )}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
+                <div className="absolute top-0 left-0 w-full h-1 bg-[#EF4444]"></div>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Overdue</p>
+                    <h3 className="text-[32px] font-black text-[#EF4444] leading-none m-0">{overdue}</h3>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[#EF4444]">warning</span>
+                  </div>
                 </div>
-                <span className="material-symbols-outlined text-[#E74C3C] opacity-30 dark:opacity-80 text-4xl">
-                  warning
-                </span>
+                <p className={`text-[11px] font-bold m-0 ${overdue > 0 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}>
+                  {overdue > 0 ? 'Requires attention!' : 'All on track'}
+                </p>
               </div>
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Status Breakdown (Donut) */}
-              <div className="ambient-card p-6 flex flex-col hover:-translate-y-0.5 transition-all duration-300">
-                <h4 className="font-bold text-headline-sm text-on-surface mb-8">Status Breakdown</h4>
-                {totalTasks === 0 ? (
-                  <div className="flex flex-1 items-center justify-center text-secondary font-label-md">
-                    No data available for this selection.
-                  </div>
-                ) : (
-                  <div className="flex flex-1 items-center justify-center gap-8 flex-wrap">
-                    <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                        {/* Background ring */}
-                        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--color-surface-container-high, #e9e8e7)" strokeWidth="15" />
-                        
-                        {/* Done */}
-                        {completedPct > 0 && (
-                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#2ECC71" strokeWidth="15" 
-                            strokeDasharray={`${doneDash} ${circumference}`} 
-                            strokeDashoffset={0} />
-                        )}
-                        {/* In Progress */}
-                        {inProgressPct > 0 && (
-                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#F1C40F" strokeWidth="15" 
-                            strokeDasharray={`${inProgressDash} ${circumference}`} 
-                            strokeDashoffset={-doneDash} />
-                        )}
-                        {/* Pending */}
-                        {pendingPct > 0 && (
-                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#3498DB" strokeWidth="15" 
-                            strokeDasharray={`${pendingDash} ${circumference}`} 
-                            strokeDashoffset={-(doneDash + inProgressDash)} />
-                        )}
-                        {/* Blocked */}
-                        {blockedPct > 0 && (
-                          <circle cx="50" cy="50" r={radius} fill="none" stroke="#E74C3C" strokeWidth="15" 
-                            strokeDasharray={`${blockedDash} ${circumference}`} 
-                            strokeDashoffset={-(doneDash + inProgressDash + pendingDash)} />
-                        )}
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full pointer-events-none">
-                        <span className="text-headline-md font-bold text-on-surface">{totalTasks}</span>
-                        <span className="text-label-sm text-on-surface-variant">Total</span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#2ECC71]"></span>
-                        <span className="text-label-md text-on-surface-variant">Done ({completedPct}%)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#F1C40F]"></span>
-                        <span className="text-label-md text-on-surface-variant">In Progress ({inProgressPct}%)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#3498DB]"></span>
-                        <span className="text-label-md text-on-surface-variant">Pending ({pendingPct}%)</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-[#E74C3C]"></span>
-                        <span className="text-label-md text-on-surface-variant">Blocked ({blockedPct}%)</span>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              {/* Status Breakdown */}
+              <div>
+                <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-6 flex items-center gap-2">
+                  Status Breakdown
+                </h3>
+                <div className="flex items-center gap-8 bg-white p-6 rounded-xl border border-[#E5E7EB] shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-purple-900/5 hover:-translate-y-1">
+                  
+                  {/* SVG Donut Chart */}
+                  <div className="relative w-40 h-40 shrink-0">
+                    <svg viewBox="0 0 42 42" className="w-full h-full -rotate-90">
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#E5E7EB" strokeWidth="6"></circle>
+                      {/* Done */}
+                      {completedPct > 0 && (
+                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#10B981" strokeWidth="6" 
+                          strokeDasharray={`${completedPct} 100`} 
+                          strokeDashoffset="0"></circle>
+                      )}
+                      {/* In Progress */}
+                      {inProgressPct > 0 && (
+                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F59E0B" strokeWidth="6" 
+                          strokeDasharray={`${inProgressPct} 100`} 
+                          strokeDashoffset={-completedPct}></circle>
+                      )}
+                      {/* Pending */}
+                      {pendingPct > 0 && (
+                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3B82F6" strokeWidth="6" 
+                          strokeDasharray={`${pendingPct} 100`} 
+                          strokeDashoffset={-(completedPct + inProgressPct)}></circle>
+                      )}
+                      {/* Blocked */}
+                      {blockedPct > 0 && (
+                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#EF4444" strokeWidth="6" 
+                          strokeDasharray={`${blockedPct} 100`} 
+                          strokeDashoffset={-(completedPct + inProgressPct + pendingPct)}></circle>
+                      )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-[20px] font-black text-[#1E1B2E]">{totalTasks}</span>
+                      <span className="text-[11px] text-[#6B7280] font-medium">Total</span>
                     </div>
                   </div>
-                )}
+                  
+                  {/* Legend */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
+                      <span className="text-[13px] font-bold text-[#4B5563]">Done ({completedPct}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
+                      <span className="text-[13px] font-bold text-[#4B5563]">In Progress ({inProgressPct}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div>
+                      <span className="text-[13px] font-bold text-[#4B5563]">Pending ({pendingPct}%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-[#EF4444]"></div>
+                      <span className="text-[13px] font-bold text-[#4B5563]">Blocked ({blockedPct}%)</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Insights Card */}
-              <div className="ambient-card p-6 flex flex-col hover:-translate-y-0.5 transition-all duration-300">
-                <h4 className="font-bold text-headline-sm text-on-surface mb-6">Key Insights</h4>
-                <div className="space-y-4 flex-1">
-                  <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-primary">
-                    <span className="material-symbols-outlined text-primary mt-0.5">info</span>
-                    <div>
-                      <h5 className="font-bold text-body-sm text-on-surface">Completion Rate</h5>
-                      <p className="text-xs text-secondary mt-1">
-                        {filterType === 'Overall' ? 'Overall' : selectedValue} has a completion rate of {completedPct}%.
-                        {completedPct > 50 ? ' Great progress!' : ' There is room for improvement.'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-[#F1C40F]">
-                    <span className="material-symbols-outlined text-[#F1C40F] mt-0.5">trending_flat</span>
-                    <div>
-                      <h5 className="font-bold text-body-sm text-on-surface">Active Workload</h5>
-                      <p className="text-xs text-secondary mt-1">
-                        There are {inProgress} tasks currently actively being worked on.
-                      </p>
-                    </div>
-                  </div>
-                  {overdue > 0 && (
-                    <div className="bg-surface-container-low p-4 rounded-lg flex items-start gap-3 border-l-4 border-[#E74C3C]">
-                      <span className="material-symbols-outlined text-[#E74C3C] mt-0.5">warning</span>
+              {/* Key Insights */}
+              <div>
+                <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-6 flex items-center gap-2">
+                  Key Insights
+                </h3>
+                <div className="flex flex-col gap-4">
+                  <div className="bg-white border-l-4 border-[#ec008c] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="material-symbols-outlined text-[#702c91] text-[14px]">info</span>
+                      </div>
                       <div>
-                        <h5 className="font-bold text-body-sm text-on-surface">Overdue Alerts</h5>
-                        <p className="text-xs text-secondary mt-1">
-                          {overdue} tasks are overdue. Immediate follow-up is recommended.
-                        </p>
+                        <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Completion Rate</h4>
+                        <p className="text-[12px] text-[#6B7280] m-0">{filterType === 'Overall' ? 'Overall' : selectedValue} has a completion rate of {completedPct}%. {completedPct > 50 ? 'Great progress!' : 'There is room for improvement.'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white border-l-4 border-[#F59E0B] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-yellow-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="material-symbols-outlined text-[#F59E0B] text-[14px]">arrow_forward</span>
+                      </div>
+                      <div>
+                        <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Active Workload</h4>
+                        <p className="text-[12px] text-[#6B7280] m-0">There are {inProgress} tasks currently actively being worked on.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {overdue > 0 && (
+                    <div className="bg-white border-l-4 border-[#EF4444] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                          <span className="material-symbols-outlined text-[#EF4444] text-[14px]">warning</span>
+                        </div>
+                        <div>
+                          <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Overdue Alerts</h4>
+                          <p className="text-[12px] text-[#6B7280] m-0">{overdue} tasks are overdue. Immediate follow up is recommended.</p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -385,28 +420,27 @@ export default function MonthlyReportPage() {
               </div>
             </div>
 
-            {/* Project / Lists Progress View */}
-            <div className="ambient-card overflow-hidden">
-              <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-                <h4 className="font-bold text-headline-sm text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">view_list</span>
-                  Project Progress Lists
-                </h4>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant text-label-sm text-secondary uppercase tracking-wider">
-                      <th className="px-6 py-4 font-bold">Name</th>
-                      <th className="px-6 py-4 font-bold w-[250px]">Progress</th>
-                      <th className="px-6 py-4 font-bold">Start</th>
-                      <th className="px-6 py-4 font-bold">End</th>
-                      <th className="px-6 py-4 font-bold">Priority</th>
-                      <th className="px-6 py-4 font-bold">Owner</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/50 bg-surface-container-lowest">
-                    {(() => {
+            {/* Project Progress Lists */}
+            <div className="mb-10">
+              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#702c91] text-[20px]">view_list</span>
+                Project Progress Lists
+              </h3>
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                <div className="overflow-x-auto hide-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[25%]">Name</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[25%]">Progress</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Start</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">End</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Priority</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Owner</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
                       const projectsMap = {};
                       filteredTasks.forEach(t => {
                         const clientName = t.client || 'General';
@@ -445,54 +479,67 @@ export default function MonthlyReportPage() {
                       return projectsList.map((proj, idx) => {
                         const progressPct = proj.total > 0 ? Math.round(proj.progressScore / proj.total) : 0;
                         return (
-                          <tr key={idx} className="hover:bg-surface-container-low transition-colors group">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-2 font-bold text-on-surface cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/projects/${encodeURIComponent(proj.name)}`)}>
-                                <span className="material-symbols-outlined text-[18px] text-secondary group-hover:text-primary">folder_open</span>
-                                {proj.name}
+                          <tr 
+                            key={idx} 
+                            className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === projectsList.length - 1 ? 'border-b-0' : ''}`}
+                            style={{ cursor: 'pointer' }}
+                            onMouseEnter={e => { 
+                              e.currentTarget.style.background = 'white'; 
+                              e.currentTarget.style.transform = 'scale(1.01)'; 
+                              e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)';
+                              e.currentTarget.style.zIndex = 10;
+                            }}
+                            onMouseLeave={e => { 
+                              e.currentTarget.style.background = 'transparent'; 
+                              e.currentTarget.style.transform = 'scale(1)'; 
+                              e.currentTarget.style.boxShadow = 'none';
+                              e.currentTarget.style.zIndex = 1;
+                            }}
+                          >
+                            <td className="py-4 px-5">
+                              <div className="flex items-center gap-3" onClick={() => navigate(`/projects/${encodeURIComponent(proj.name)}`)}>
+                                <span className="material-symbols-outlined text-[#9CA3AF] text-[18px]">folder_open</span>
+                                <span className="text-[13px] font-bold text-[#1E1B2E]">{proj.name}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="py-4 px-5">
                               <div className="flex items-center gap-3">
-                                <div className="w-full h-2 bg-surface-container-high rounded-full overflow-hidden flex-1 border border-outline-variant/30">
-                                  <div 
-                                    className={`h-full rounded-full transition-all duration-500 ${progressPct === 100 ? 'bg-[#2ECC71]' : 'bg-primary'}`} 
-                                    style={{ width: `${progressPct}%` }}
-                                  ></div>
+                                <div className="flex-1 bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                  <div className="bg-[#702c91] h-full rounded-full transition-all" style={{ width: `${progressPct}%` }}></div>
                                 </div>
-                                <span className="text-xs font-bold text-secondary whitespace-nowrap w-12 text-right">
-                                  {progressPct}%
-                                </span>
+                                <span className="text-[11px] font-bold text-[#4B5563] w-8">{progressPct}%</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-1.5 text-xs text-secondary font-medium">
+                            <td className="py-4 px-5 text-[12px] text-[#6B7280]">
+                              <div className="flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                                 {proj.start}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-1.5 text-xs text-secondary font-medium">
-                                <span className="material-symbols-outlined text-[14px]">event</span>
+                            <td className="py-4 px-5 text-[12px] text-[#6B7280]">
+                              <div className="flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                                 {proj.end}
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border ${
-                                proj.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
-                                proj.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
-                                'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                            <td className="py-4 px-5">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border flex items-center w-max gap-1 ${
+                                proj.priority === 'Urgent' ? 'text-red-500 bg-red-50 border-red-200' :
+                                proj.priority === 'High' ? 'text-amber-600 bg-amber-50 border-amber-200' :
+                                'text-blue-500 bg-blue-50 border-blue-200'
                               }`}>
-                                <span className="material-symbols-outlined text-[10px] mr-1 inline-block align-middle pb-[1px]">flag</span>
+                                <span className="material-symbols-outlined text-[12px]">
+                                  {proj.priority === 'Urgent' ? 'flag' : 'play_arrow'}
+                                </span>
                                 {proj.priority}
                               </span>
                             </td>
-                            <td className="px-6 py-4">
+                            <td className="py-4 px-5">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+                                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-purple-100 text-purple-700">
                                   {proj.owner.substring(0,2).toUpperCase()}
                                 </div>
-                                <span className="text-xs font-medium text-secondary truncate max-w-[100px]">{proj.owner}</span>
+                                <span className="text-[12px] text-[#4B5563] truncate max-w-[100px]">{proj.owner}</span>
                               </div>
                             </td>
                           </tr>
@@ -504,69 +551,75 @@ export default function MonthlyReportPage() {
               </div>
             </div>
 
-            {/* Filtered Task Table */}
-            <div className="ambient-card overflow-hidden">
-              <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-                <h4 className="font-bold text-headline-sm text-on-surface">
-                  {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Activity`}
-                </h4>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-outline-variant">
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Task ID</th>
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Task Title</th>
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Client</th>
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Assigned To</th>
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Status</th>
-                      <th className="px-6 py-4 font-label-md text-on-surface-variant">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E8DDF0]">
+            {/* All Tasks Activity */}
+            <div className="mb-10">
+              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4">
+                {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Activity`}
+              </h3>
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                <div className="overflow-x-auto hide-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Task ID</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[35%]">Task Title</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[20%]">Client</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Assigned To</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Status</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[10%]">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                     {filteredTasks.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-secondary text-sm">
+                        <td colSpan="6" className="text-center py-8 text-secondary text-[14px]">
                           No tasks found for this selection.
                         </td>
                       </tr>
                     ) : (
-                      filteredTasks.map((row) => (
-                        <tr
-                          key={row.id}
-                          className={`table-row-hover ${
-                            row.status === 'Done'
-                              ? 'border-l-4 border-[#2ECC71]'
-                              : row.daysOverdue && row.daysOverdue !== 'No'
-                              ? 'border-l-4 border-[#E74C3C]'
-                              : ''
-                          }`}
+                      filteredTasks.map((row, idx) => (
+                        <tr 
+                          key={row.id} 
+                          className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === filteredTasks.length - 1 ? 'border-b-0' : ''}`}
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={e => { 
+                            e.currentTarget.style.background = 'white'; 
+                            e.currentTarget.style.transform = 'scale(1.01)'; 
+                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)';
+                            e.currentTarget.style.zIndex = 10;
+                          }}
+                          onMouseLeave={e => { 
+                            e.currentTarget.style.background = 'transparent'; 
+                            e.currentTarget.style.transform = 'scale(1)'; 
+                            e.currentTarget.style.boxShadow = 'none';
+                            e.currentTarget.style.zIndex = 1;
+                          }}
                         >
-                          <td className="px-6 py-4 font-mono text-xs text-on-surface-variant font-bold">{row.id}</td>
-                          <td className="px-6 py-4 font-label-md">{row.title}</td>
-                          <td className="px-6 py-4 text-body-sm">{row.client}</td>
-                          <td className="px-6 py-4 text-body-sm">
-                            <span className="truncate max-w-[150px] inline-block">{row.assignedTo || 'Unassigned'}</span>
+                          <td className="py-4 px-5 text-[12px] font-bold text-[#4B5563]">
+                            {row.id}
                           </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                row.status === 'Done'
-                                  ? 'bg-[#2ECC71]/10 text-[#2ECC71]'
-                                  : row.status === 'In Progress' || row.status === 'Review'
-                                  ? 'bg-[#F1C40F]/10 text-[#F1C40F]'
-                                  : row.status === 'Blocked'
-                                  ? 'bg-[#E74C3C]/10 text-[#E74C3C]'
-                                  : 'bg-primary/10 text-primary'
-                              }`}
-                            >
+                          <td className="py-4 px-5 text-[13px] text-[#4B5563]">
+                            <span className={row.status === 'Done' ? 'line-through text-[#9CA3AF]' : ''}>{row.title}</span>
+                          </td>
+                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
+                            {row.client}
+                          </td>
+                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
+                            {row.assignedTo || 'Unassigned'}
+                          </td>
+                          <td className="py-4 px-5">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              row.status === 'Done' ? 'text-green-600 bg-green-50' : 
+                              row.status === 'Blocked' ? 'text-red-600 bg-red-50' : 
+                              'text-pink-600 bg-pink-50'
+                            }`}>
                               {row.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-body-sm">
-                            <button
+                          <td className="py-4 px-5 text-right">
+                            <button 
                               onClick={() => navigate(`/tasks/${row.id}`)}
-                              className="text-primary font-label-sm hover:underline flex items-center gap-1"
+                              className="text-[12px] font-bold text-[#702c91] hover:text-[#702c91] transition-colors bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
                             >
                               View <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                             </button>
@@ -580,16 +633,16 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* Footer Action */}
-            <div className="flex justify-center md:justify-end pb-8" data-html2canvas-ignore>
+            <div className="flex justify-end pb-8" data-html2canvas-ignore>
               <button
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
-                className="flex items-center gap-2 border-2 border-primary text-primary font-label-lg px-4 md:px-8 py-3 rounded-lg hover:bg-primary-container hover:text-white transition-all group disabled:opacity-70 disabled:cursor-wait"
+                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#ec008c] rounded-lg text-[14px] font-bold text-[#702c91] shadow-sm hover:bg-purple-50 transition-colors group disabled:opacity-70 disabled:cursor-wait"
               >
                 {isDownloading ? (
-                  <span className="material-symbols-outlined animate-spin">sync</span>
+                  <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
                 ) : (
-                  <span className="material-symbols-outlined transition-transform group-hover:translate-y-1">download</span>
+                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-y-1">download</span>
                 )}
                 {isDownloading ? 'Generating PDF...' : 'Download PDF Report'}
               </button>

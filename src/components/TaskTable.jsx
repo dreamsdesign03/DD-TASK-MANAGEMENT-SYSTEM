@@ -661,7 +661,7 @@ export default function TaskTable() {
         <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 24 }}>
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
-                <thead className="hidden md:table-header-group bg-white border-b border-[#E5E7EB]">
+                <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
                   <tr>
                     {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
                       (h) => (
