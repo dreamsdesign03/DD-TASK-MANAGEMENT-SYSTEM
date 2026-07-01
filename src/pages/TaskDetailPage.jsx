@@ -90,7 +90,7 @@ export default function TaskDetailPage() {
   const navigate = useNavigate()
   const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast } = useApp()
 
-  const task = tasks.find((t) => t.id === taskId) || tasks[0]
+  const task = (tasks || []).find((t) => t.id === taskId) || (tasks && tasks.length > 0 ? tasks[0] : {})
 
   useEffect(() => {
     fetchMessages()
@@ -107,7 +107,7 @@ export default function TaskDetailPage() {
   const [isSendingReply, setIsSendingReply] = useState(false)
   const replyFileInputRef = useRef(null)
   const [linkUrl, setLinkUrl] = useState('')
-  const [localStatus, setLocalStatus] = useState(task.status)
+  const [localStatus, setLocalStatus] = useState(task?.status || 'Pending')
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false)
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [attachmentToDelete, setAttachmentToDelete] = useState(null)
@@ -397,16 +397,16 @@ export default function TaskDetailPage() {
 
   // Sync local status when task changes
   useEffect(() => {
-    if (task) {
+    if (task && task.status) {
       setLocalStatus(task.status)
     }
-  }, [task])
+  }, [task?.status])
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [task.comments])
+  }, [task?.comments])
 
   const handleReplyChange = (e) => {
     const val = e.target.value
@@ -642,9 +642,23 @@ export default function TaskDetailPage() {
   ].filter(Boolean)))
 
   const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
-  const isAssignee = (task.assignedTo || '').toLowerCase().includes(myNameStr)
-  const isAssigner = (task.assignedBy || '').toLowerCase() === myNameStr
+  const isAssignee = String(task?.assignedTo || '').toLowerCase().includes(myNameStr)
+  const isAssigner = String(task?.assignedBy || '').toLowerCase() === myNameStr
   const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
+
+  if (!task || !task.id) {
+    return (
+      <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+        <Sidebar />
+        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+          <TopNav title="Loading Task..." showSearch={false} />
+          <div className="flex-1 flex items-center justify-center animate-pulse">
+            <p className="text-secondary text-sm font-medium">Loading task details...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">

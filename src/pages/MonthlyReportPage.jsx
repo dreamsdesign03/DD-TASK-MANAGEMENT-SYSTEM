@@ -16,8 +16,8 @@ export default function MonthlyReportPage() {
   // Derive unique months from task due dates
   const availableMonths = useMemo(() => {
     const months = new Set()
-    tasks.forEach(t => {
-      if (t.dueDate) {
+    ;(tasks || []).forEach(t => {
+      if (t?.dueDate) {
         const d = new Date(t.dueDate)
         if (!isNaN(d.getTime())) {
           months.add(d.toLocaleString('default', { month: 'long', year: 'numeric' }))
@@ -33,8 +33,8 @@ export default function MonthlyReportPage() {
   const [currentMonth, setCurrentMonth] = useState('All Months')
 
   // Derive unique clients and users
-  const clients = [...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal'))].sort()
-  const users = [...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
+  const clients = [...new Set((tasks || []).map((t) => t?.client).filter(c => c && String(c).toLowerCase() !== 'internal'))].sort()
+  const users = [...new Set((tasks || []).flatMap((t) => String(t?.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
 
   const handleFilterChange = (type) => {
     setFilterType(type)
@@ -45,9 +45,9 @@ export default function MonthlyReportPage() {
 
   // Filter tasks based on selection
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => {
+    return (tasks || []).filter((t) => {
       // Exclude Internal projects from the report completely
-      if (t.client && t.client.toLowerCase() === 'internal') return false
+      if (t?.client && String(t.client).toLowerCase() === 'internal') return false
 
       // Month filter
       if (currentMonth !== 'All Months') {
