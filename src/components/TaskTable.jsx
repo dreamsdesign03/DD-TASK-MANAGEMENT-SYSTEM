@@ -102,12 +102,83 @@ const STATUS_STYLES = {
   Pending: 'bg-gray-100 text-gray-700',
 }
 
+const STATUS_CONFIG = {
+  'Pending':     { bg: '#F3F4F6', color: '#4B5563' },
+  'In Progress': { bg: '#FEF3C7', color: '#D97706' },
+  'Review':      { bg: '#EFF6FF', color: '#2563EB' },
+  'Done':        { bg: '#F0FDF4', color: '#16A34A' },
+  'Blocked':     { bg: '#FEF2F2', color: '#DC2626' },
+}
+
 const STATUS_ICON = {
   Done: 'check',
 }
 
 /* ─── Filter tabs ───────────────────────────────────────────────────────── */
 const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
+
+function InlineStatusSelect({ value, onChange, disabled }) {
+  const [open, setOpen] = React.useState(false)
+  const ref = React.useRef(null)
+  React.useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+  const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
+  return (
+    <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
+      <div
+        onClick={() => { if (!disabled) setOpen(o => !o) }}
+        style={{
+          padding: '6px 10px 6px 14px', borderRadius: 999,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          background: cfg.bg, color: cfg.color,
+          fontSize: 12, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: `1px solid ${open ? cfg.color : 'transparent'}`,
+          opacity: disabled ? 0.5 : 1,
+          transition: 'all 0.2s', userSelect: 'none',
+          boxShadow: open ? `0 0 0 3px ${cfg.color}22` : 'none',
+        }}
+        onMouseEnter={e => { if (!open && !disabled) e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }}
+        onMouseLeave={e => { if (!open) e.currentTarget.style.boxShadow = open ? `0 0 0 3px ${cfg.color}22` : 'none' }}
+        title={disabled ? 'Only assigned users can update status' : ''}
+      >
+        <span>{value}</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
+      </div>
+      {open && (
+        <div className="animate-fade-in-up" style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6,
+          background: 'white', borderRadius: 12,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          border: '1px solid #F3F4F6', zIndex: 999,
+          display: 'flex', flexDirection: 'column', padding: 6, gap: 2,
+        }}>
+          {Object.entries(STATUS_CONFIG).map(([status, style]) => (
+            <div
+              key={status}
+              onClick={() => { onChange(status); setOpen(false) }}
+              style={{
+                padding: '8px 10px', fontSize: 12, fontWeight: 700,
+                color: status === value ? style.color : '#4B5563',
+                background: status === value ? style.bg : 'transparent',
+                borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}
+              onMouseEnter={e => { if (status !== value) { e.currentTarget.style.background = style.bg; e.currentTarget.style.color = style.color } }}
+              onMouseLeave={e => { if (status !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4B5563' } }}
+            >
+              {status}
+              {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function getInitials(name) {
   if (!name) return '?'
@@ -971,40 +1042,24 @@ export default function TaskTable() {
                                   {/* Status */}
                                   <td className="flex md:table-cell items-center justify-between px-4 py-5 whitespace-nowrap border-b border-outline-variant/30 md:border-none">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
-                                    <div className="relative inline-block text-right">
-                                      <select
-                                        value={task.status}
-                                        onChange={(e) => {
-                                          const newStatus = e.target.value
-                                          updateTask(task.id, { status: newStatus })
-                                          
-                                          if (newStatus === 'Done') {
-                                            const due = new Date(task.dueDate)
-                                            const today = new Date()
-                                            today.setHours(0,0,0,0)
-                                            if (!task.dueDate || today <= due) {
-                                              import('canvas-confetti').then((confetti) => {
-                                                confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
-                                              })
-                                              setViewMode('Board')
-                                            }
+                                    <InlineStatusSelect
+                                      value={task.status}
+                                      disabled={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name)}
+                                      onChange={(newStatus) => {
+                                        updateTask(task.id, { status: newStatus })
+                                        if (newStatus === 'Done') {
+                                          const due = new Date(task.dueDate)
+                                          const today = new Date()
+                                          today.setHours(0,0,0,0)
+                                          if (!task.dueDate || today <= due) {
+                                            import('canvas-confetti').then((confetti) => {
+                                              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+                                            })
+                                            setViewMode('Board')
                                           }
-                                        }}
-                                        disabled={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name)}
-                                        className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'
-                                          } appearance-none px-4 py-1.5 pr-8 rounded-full text-label-sm font-label-sm font-bold whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed outline-none border-none ring-0`}
-                                        title={!(task.assignedTo || '').split(',').map(s => s.trim()).includes(profile?.name) ? "Only assigned users can update status" : ""}
-                                      >
-                                        <option value="Pending" className="bg-surface-container-lowest text-on-surface">Pending</option>
-                                        <option value="In Progress" className="bg-surface-container-lowest text-on-surface">In Progress</option>
-                                        <option value="Review" className="bg-surface-container-lowest text-on-surface">Review</option>
-                                        <option value="Done" className="bg-surface-container-lowest text-on-surface">Done</option>
-                                        <option value="Blocked" className="bg-surface-container-lowest text-on-surface">Blocked</option>
-                                      </select>
-                                      <span className="material-symbols-outlined text-[14px] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70">
-                                        arrow_drop_down
-                                      </span>
-                                    </div>
+                                        }
+                                      }}
+                                    />
                                   </td>
 
                                   {/* Actions */}
