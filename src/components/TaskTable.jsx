@@ -1132,7 +1132,7 @@ export default function TaskTable() {
                     key={colName}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, colName)}
-                    style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: colName === 'COMPLETE' || colName === 'Done' ? '#F9FAFB' : 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
+                    style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
