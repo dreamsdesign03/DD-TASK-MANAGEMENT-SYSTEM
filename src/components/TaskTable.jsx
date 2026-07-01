@@ -1409,15 +1409,7 @@ export default function TaskTable() {
         </div>
       )}
 
-      {/* Floating Action Button for List View */}
-      {viewMode === 'List' && (
-        <button 
-          onClick={() => setShowNewTaskModal(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
-        >
-          <span className="material-symbols-outlined text-[28px]">add</span>
-        </button>
-      )}
+      {/* FAB is now rendered by the parent page outside the scroll container */}
       </div>
 
       {/* Delete Confirmation Modal */}

@@ -133,21 +133,31 @@ export default function MyTasksPage() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
       `}</style>
-      
+
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300 relative">
         {/* Top nav */}
         <TopNav title={location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'} showSearch={true} />
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
-          <div className="w-full flex flex-col gap-6">
+          <div className="w-full flex flex-col">
             <TaskTable />
           </div>
         </div>
+
+        {/* Floating Action Button - outside scroll container so it stays fixed */}
+        <button
+          onClick={() => setShowNewTaskModal(true)}
+          className="fixed bottom-8 right-8 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
+          style={{ background: 'linear-gradient(to right, #702c91, #ec008c)' }}
+          title="New Task"
+        >
+          <span className="material-symbols-outlined text-[28px]">add</span>
+        </button>
       </main>
 
       {/* New Task Modal */}
@@ -171,7 +181,7 @@ export default function MyTasksPage() {
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-            
+
             <hr className="border-[#E5E7EB] -mx-6 mb-2" />
 
             {/* Form Fields */}
@@ -424,7 +434,7 @@ export default function MyTasksPage() {
                           </div>
                         </div>
                       )}
-                      
+
                       {recurringSchedule === 'Yearly' && (
                         <div className="flex flex-col justify-center sm:col-span-2 text-[12px] text-[#6B7280] italic">
                           Task will be created automatically every January 1st.
