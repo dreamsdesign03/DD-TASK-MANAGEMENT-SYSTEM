@@ -1159,23 +1159,29 @@ export default function TaskTable() {
 
                 const displayColName = boardGrouping === 'Process Stage' ? colName : (colName === 'WEBSITE' ? 'WEBSITE WORK' : colName === 'SEO' ? 'SEO WORK' : colName);
 
-                const getDotColor = (name) => {
+                // Single unified color map for dot + card border
+                const getColColor = (name) => {
                   if (boardGrouping === 'Process Stage') {
-                    if (name === 'Pending') return 'bg-gray-400';
-                    if (name === 'In Progress') return 'bg-[#3B82F6]'; // blue
-                    if (name === 'Review') return 'bg-[#702c91]'; // purple
-                    if (name === 'Done') return 'bg-[#10B981]'; // green
-                    if (name === 'Blocked') return 'bg-[#EF4444]'; // red
-                    return 'bg-gray-400';
+                    if (name === 'Pending')     return '#9CA3AF'; // grey
+                    if (name === 'In Progress') return '#F59E0B'; // amber
+                    if (name === 'Review')      return '#702c91'; // purple
+                    if (name === 'Done')        return '#10B981'; // green
+                    if (name === 'Blocked')     return '#EF4444'; // red
+                    return '#9CA3AF';
                   }
-                  if (name === 'SEO' || name === 'COMPLETE') return 'bg-[#10B981]';
-                  if (name === 'SOCIAL MEDIA' || name === 'GRAPHIC') return 'bg-[#702c91]';
-                  if (name === 'SALES') return 'bg-[#F59E0B]';
-                  if (name === 'WEBSITE') return 'bg-[#3B82F6]';
-                  return 'bg-[#9CA3AF]'; // COMMON
+                  // Department grouping — green ONLY for COMPLETE
+                  if (name === 'COMPLETE')    return '#10B981'; // green
+                  if (name === 'SEO')         return '#6366F1'; // indigo
+                  if (name === 'SOCIAL MEDIA') return '#702c91'; // purple
+                  if (name === 'GRAPHIC')     return '#F43F5E'; // rose
+                  if (name === 'SALES')       return '#F59E0B'; // amber
+                  if (name === 'WEBSITE')     return '#3B82F6'; // blue
+                  if (name === 'HR')          return '#EC4899'; // pink
+                  if (name === 'ACCOUNT')     return '#0EA5E9'; // sky
+                  return '#9CA3AF'; // COMMON
                 };
-                
-                const dotClass = getDotColor(colName);
+
+                const colColor = getColColor(colName);
 
                 return (
                   <div
@@ -1186,7 +1192,7 @@ export default function TaskTable() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></div>
+                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: colColor, flexShrink: 0 }} />
                         <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
                         <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
                       </div>
@@ -1210,24 +1216,9 @@ export default function TaskTable() {
                           };
                           const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
                           
-                          // Card border color = column's color (updates when dragged to new column)
-                          const getColumnColor = (col) => {
-                            if (boardGrouping === 'Process Stage') {
-                              if (col === 'Pending')     return '#9CA3AF';
-                              if (col === 'In Progress') return '#F59E0B';
-                              if (col === 'Review')      return '#3B82F6';
-                              if (col === 'Done')        return '#10B981';
-                              if (col === 'Blocked')     return '#EF4444';
-                              return '#9CA3AF';
-                            }
-                            // Department grouping
-                            if (col === 'SEO' || col === 'COMPLETE') return '#10B981';
-                            if (col === 'SOCIAL MEDIA' || col === 'GRAPHIC') return '#702c91';
-                            if (col === 'SALES') return '#F59E0B';
-                            if (col === 'WEBSITE') return '#3B82F6';
-                            return '#9CA3AF';
-                          };
-                          const cardBorderColor = getColumnColor(colName);
+                          // Card border color = same as column dot color
+                          const cardBorderColor = getColColor(colName);
+
                           
                           return (
                             <div
