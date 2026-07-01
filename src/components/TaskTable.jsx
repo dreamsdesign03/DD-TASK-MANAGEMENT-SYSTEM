@@ -656,15 +656,17 @@ export default function TaskTable() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
-                    <SelectDropdown
-                      value={boardGrouping}
-                      onChange={setBoardGrouping}
-                      options={['Department', 'Process Stage']}
-                      style={{ ...selectBaseStyle, width: 160 }}
-                    />
-                  </div>
+                  {viewMode === 'Board' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
+                      <SelectDropdown
+                        value={boardGrouping}
+                        onChange={setBoardGrouping}
+                        options={['Department', 'Process Stage']}
+                        style={{ ...selectBaseStyle, width: 160 }}
+                      />
+                    </div>
+                  )}
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>

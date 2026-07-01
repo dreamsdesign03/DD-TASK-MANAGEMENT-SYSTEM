@@ -158,78 +158,74 @@ export default function MyTasksPage() {
             className="bg-surface-container-lowest w-[520px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar border border-outline-variant/20"
           >
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-divider pb-3">
-              <h2 className="text-headline-sm font-bold text-primary flex items-center gap-2">
-                <span className="material-symbols-outlined">assignment</span>
+            <div className="flex justify-between items-center pb-2">
+              <h2 className="text-[20px] font-extrabold text-[#702c91] flex items-center gap-2">
+                <span className="material-symbols-outlined font-bold">assignment</span>
                 Create New Task
               </h2>
               <button
                 type="button"
                 onClick={() => setShowNewTaskModal(false)}
-                className="text-outline hover:text-on-surface transition-colors"
+                className="text-[#9CA3AF] hover:text-[#1E1B2E] transition-colors"
               >
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
+            
+            <hr className="border-[#E5E7EB] -mx-6 mb-2" />
 
             {/* Form Fields */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Task Title */}
-              <div className="relative">
+              <div>
                 <input
                   id="task_title"
                   type="text"
                   required
-                  placeholder=" "
+                  placeholder="Task Title *"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="block px-4 pb-2.5 pt-4 w-full text-body-sm text-on-surface bg-transparent rounded-md border border-outline-variant appearance-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary peer transition-colors"
+                  className="w-full px-4 py-3 text-[14px] text-[#1E1B2E] bg-white rounded-md border border-[#E5E7EB] focus:outline-none focus:border-[#702c91] transition-colors placeholder:text-[#9CA3AF]"
                 />
-                <label
-                  htmlFor="task_title"
-                  className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-surface-container-lowest px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2 pointer-events-none"
-                >
-                  Task Title *
-                </label>
               </div>
 
               {/* Company (Client) and Department Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                     Company (Client)
                   </label>
                   <div className="relative">
                     <select
                       value={client}
                       onChange={(e) => setClient(e.target.value)}
-                      className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                      className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors"
                     >
                       {companyList.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
+                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
                       expand_more
                     </span>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                     Department
                   </label>
                   <div className="relative">
                     <select
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors"
+                      className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors"
                     >
                       {['SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMMON'].map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
+                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
                       expand_more
                     </span>
                   </div>
@@ -240,23 +236,23 @@ export default function MyTasksPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Assignee */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                     Assignee(s)
                   </label>
                   <div className="relative">
                     <div
                       onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface cursor-pointer flex justify-between items-center hover:border-primary/50 transition-colors"
+                      className="w-full bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] cursor-pointer flex justify-between items-center hover:border-[#702c91] transition-colors h-[38px]"
                     >
                       <span className="truncate">{assignedTo.length > 0 ? assignedTo.join(', ') : 'Select Assignee'}</span>
-                      <span className="material-symbols-outlined text-secondary text-[18px]">
+                      <span className="material-symbols-outlined text-[#9CA3AF] text-[18px]">
                         {isAssigneeOpen ? 'expand_less' : 'expand_more'}
                       </span>
                     </div>
                     {isAssigneeOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
                         {uniqueTeamMembers.map((m) => (
-                          <label key={m} className="flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low cursor-pointer">
+                          <label key={m} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={assignedTo.includes(m)}
@@ -267,9 +263,9 @@ export default function MyTasksPage() {
                                   setAssignedTo(assignedTo.filter(name => name !== m))
                                 }
                               }}
-                              className="accent-primary w-4 h-4"
+                              className="accent-[#702c91] w-4 h-4"
                             />
-                            <span className="text-body-sm">{m}</span>
+                            <span className="text-[13px] text-[#1E1B2E]">{m}</span>
                           </label>
                         ))}
                       </div>
@@ -277,9 +273,9 @@ export default function MyTasksPage() {
                   </div>
                 </div>
 
-                {/* Assigned By â€” locked to current user */}
+                {/* Assigned By — locked to current user */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                     Assigned By
                   </label>
                   <div className="relative">
@@ -287,9 +283,9 @@ export default function MyTasksPage() {
                       type="text"
                       readOnly
                       value={assignedBy}
-                      className="w-full bg-surface border border-outline-variant rounded-md px-4 py-2.5 text-body-sm text-on-surface outline-none cursor-not-allowed opacity-80"
+                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#6B7280] outline-none cursor-not-allowed h-[38px]"
                     />
-                    <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none text-[18px]">
+                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
                       lock
                     </span>
                   </div>
@@ -297,7 +293,7 @@ export default function MyTasksPage() {
 
                 {/* Due Date - calendar picker */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                     Due Date
                   </label>
                   <div className="relative">
@@ -316,9 +312,9 @@ export default function MyTasksPage() {
                         }
                         setDueDate(val)
                       }}
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-md pl-9 pr-2 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
+                      className="w-full bg-white border border-[#E5E7EB] rounded-md pl-9 pr-2 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors h-[38px] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
                     />
-                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary pointer-events-none text-[18px]">
+                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none text-[18px]">
                       calendar_month
                     </span>
                   </div>
@@ -327,7 +323,7 @@ export default function MyTasksPage() {
 
               {/* Priority */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                   Priority
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -338,9 +334,9 @@ export default function MyTasksPage() {
                         type="button"
                         key={p}
                         onClick={() => setPriority(p)}
-                        className={`py-2 rounded-md text-[13px] font-medium text-center border transition-all ${isSelected
-                          ? 'bg-primary text-on-primary border-primary shadow-sm'
-                          : 'bg-surface-container-lowest border-outline text-secondary hover:border-outline-variant'
+                        className={`py-2 rounded-md text-[13px] font-bold text-center border transition-all ${isSelected
+                          ? 'bg-[#C2185B] text-white border-[#C2185B]'
+                          : 'bg-white border-[#E5E7EB] text-[#4B5563] hover:border-[#9CA3AF]'
                           }`}
                       >
                         {p}
@@ -357,19 +353,19 @@ export default function MyTasksPage() {
                     type="checkbox"
                     checked={isRecurring}
                     onChange={(e) => setIsRecurring(e.target.checked)}
-                    className="w-4 h-4 accent-primary"
+                    className="w-4 h-4 accent-[#702c91]"
                   />
-                  <span className="text-[13px] font-bold text-on-surface group-hover:text-primary transition-colors">
+                  <span className="text-[13px] font-extrabold text-[#1E1B2E] group-hover:text-[#702c91] transition-colors">
                     Make this a recurring task
                   </span>
                 </label>
 
                 {isRecurring && (
-                  <div className="p-4 bg-surface-container-lowest rounded-lg border border-primary/20 shadow-sm flex flex-col gap-4">
+                  <div className="p-4 bg-white rounded-lg border border-[#E5E7EB] shadow-sm flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Schedule Type */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                        <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                           Recurring Schedule
                         </label>
                         <select
@@ -379,7 +375,7 @@ export default function MyTasksPage() {
                             setRecurringDay('Monday')
                             setRecurringMonths([])
                           }}
-                          className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2 text-body-sm focus:border-primary outline-none cursor-pointer"
+                          className="w-full bg-white border border-[#E5E7EB] rounded-md px-3 py-2 text-[13px] focus:border-[#702c91] focus:outline-none cursor-pointer"
                         >
                           <option value="Weekly">Weekly</option>
                           <option value="Monthly">Monthly</option>
@@ -390,13 +386,13 @@ export default function MyTasksPage() {
                       {/* Dependent Fields */}
                       {recurringSchedule === 'Weekly' && (
                         <div className="flex flex-col gap-1">
-                          <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                          <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                             Day of the Week
                           </label>
                           <select
                             value={recurringDay}
                             onChange={(e) => setRecurringDay(e.target.value)}
-                            className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2 text-body-sm focus:border-primary outline-none cursor-pointer"
+                            className="w-full bg-white border border-[#E5E7EB] rounded-md px-3 py-2 text-[13px] focus:border-[#702c91] focus:outline-none cursor-pointer"
                           >
                             {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                               <option key={day} value={day}>{day}</option>
@@ -407,12 +403,12 @@ export default function MyTasksPage() {
 
                       {recurringSchedule === 'Monthly' && (
                         <div className="flex flex-col gap-1 sm:col-span-2">
-                          <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                          <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                             Select Months (task created on 1st of month)
                           </label>
                           <div className="flex flex-wrap gap-2 mt-1">
                             {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((mon) => (
-                              <label key={mon} className="flex items-center gap-1.5 bg-surface border border-outline-variant px-2.5 py-1.5 rounded text-[12px] cursor-pointer hover:border-primary transition-colors">
+                              <label key={mon} className="flex items-center gap-1.5 bg-white border border-[#E5E7EB] px-2.5 py-1.5 rounded text-[12px] cursor-pointer hover:border-[#702c91] transition-colors">
                                 <input
                                   type="checkbox"
                                   checked={recurringMonths.includes(mon)}
@@ -420,7 +416,7 @@ export default function MyTasksPage() {
                                     if (e.target.checked) setRecurringMonths([...recurringMonths, mon])
                                     else setRecurringMonths(recurringMonths.filter(m => m !== mon))
                                   }}
-                                  className="accent-primary"
+                                  className="accent-[#702c91]"
                                 />
                                 {mon}
                               </label>
@@ -430,12 +426,12 @@ export default function MyTasksPage() {
                       )}
                       
                       {recurringSchedule === 'Yearly' && (
-                        <div className="flex flex-col justify-center sm:col-span-2 text-[12px] text-secondary italic">
+                        <div className="flex flex-col justify-center sm:col-span-2 text-[12px] text-[#6B7280] italic">
                           Task will be created automatically every January 1st.
                         </div>
                       )}
                     </div>
-                    <div className="text-[11px] text-primary font-medium flex items-center gap-1 bg-primary/10 p-2 rounded">
+                    <div className="text-[11px] text-[#702c91] font-bold flex items-center gap-1 bg-[#F5F3FF] p-2 rounded">
                       <span className="material-symbols-outlined text-[14px]">info</span>
                       If the creation date falls on a Sunday, the task will be shifted to Monday.
                     </div>
@@ -445,44 +441,44 @@ export default function MyTasksPage() {
 
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                   Task Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full min-h-[100px] p-3 bg-surface-container-lowest border border-outline-variant rounded-md text-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none resize-none transition-colors"
+                  className="w-full min-h-[100px] p-3 bg-white border border-[#E5E7EB] rounded-md text-[13px] text-[#1E1B2E] focus:border-[#702c91] outline-none resize-none transition-colors placeholder:text-[#9CA3AF]"
                   placeholder="Details about the task..."
                 ></textarea>
               </div>
 
               {/* Remarks */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
+                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                   Remarks
                 </label>
                 <input
                   type="text"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 text-body-sm text-on-surface focus:border-primary focus:ring-0 outline-none"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] outline-none transition-colors placeholder:text-[#9CA3AF]"
                   placeholder="Any remarks..."
                 />
               </div>
             </div>
 
             {/* Footer Actions */}
-            <div className="flex justify-end gap-3 pt-3 border-t border-divider">
+            <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E7EB] -mx-6 px-6">
               <button
                 type="button"
                 onClick={() => setShowNewTaskModal(false)}
-                className="px-6 py-2.5 border border-outline text-secondary rounded-md font-medium hover:border-primary hover:text-primary transition-all text-[13px]"
+                className="px-6 py-2.5 border border-[#E5E7EB] text-[#1F2937] rounded-md font-bold hover:bg-gray-50 transition-all text-[13px]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-primary text-on-primary rounded-md font-medium shadow-sm hover:opacity-90 active:scale-[0.98] transition-all text-[13px]"
+                className="px-6 py-2.5 bg-[#E079C3] text-white rounded-md font-bold hover:bg-[#d66ab7] transition-all text-[13px]"
               >
                 Create Task
               </button>

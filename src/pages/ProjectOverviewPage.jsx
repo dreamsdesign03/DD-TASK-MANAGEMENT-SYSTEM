@@ -197,59 +197,56 @@ export default function ProjectOverviewPage() {
         <TopNav title={projectName} showSearch={true} />
 
         {/* Header Area */}
-        <div className="bg-white dark:bg-[#1e1b2e] border-b border-outline-variant/50 pt-4 px-4 md:px-8 flex-shrink-0 shadow-[0_2px_12px_rgba(91,33,182,0.04)] z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]">domain</span>
-            </div>
-            <h1 className="text-xl font-bold text-on-surface flex items-center gap-2">
-              <span className="text-secondary/70">Projects / </span>
-              {projectName}
+        <div className="bg-white border-b border-[#E5E7EB] pt-6 px-4 md:px-8 flex-shrink-0 shadow-sm z-10">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-[18px] font-extrabold text-[#1E1B2E] flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-[#4B5563]">domain</span>
+              Projects / {projectName}
             </h1>
-          </div>
 
-          {/* Tabs and Filters Row */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-transparent pb-1">
-            {/* Tabs */}
-            <div className="flex items-center gap-6">
-              <button className="px-1 py-3 text-sm font-bold text-primary border-b-2 border-primary flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]">info</span>
-                Overview
-              </button>
-              <button 
-                onClick={() => navigate('/tasks', { state: { clientFilter: projectName } })}
-                className="px-1 py-3 text-sm font-medium text-secondary hover:text-on-surface flex items-center gap-2 transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">list</span>
-                Tasks List
-              </button>
-            </div>
-
-            {/* Filters */}
-            <div className="flex items-center gap-3 mb-1">
-              <div className="relative min-w-[150px]">
-                <select
-                  value={filterTaskId}
-                  onChange={(e) => setFilterTaskId(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 pr-8 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+            {/* Tabs and Filters Row */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              {/* Tabs */}
+              <div className="flex items-center gap-6">
+                <button className="px-1 py-3 text-[13px] font-extrabold text-[#702c91] border-b-2 border-[#702c91] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px]">info</span>
+                  Overview
+                </button>
+                <button 
+                  onClick={() => navigate('/tasks', { state: { clientFilter: projectName } })}
+                  className="px-1 py-3 text-[13px] font-bold text-[#6B7280] hover:text-[#1E1B2E] flex items-center gap-2 transition-colors"
                 >
-                  {uniqueTaskIds.map(id => (
-                    <option key={id} value={id}>{id}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-2 top-1.5 text-secondary pointer-events-none text-[16px]">expand_more</span>
+                  <span className="material-symbols-outlined text-[16px]">list</span>
+                  Tasks List
+                </button>
               </div>
-              <div className="relative min-w-[170px]">
-                <select
-                  value={filterDept}
-                  onChange={(e) => setFilterDept(e.target.value)}
-                  className="w-full appearance-none bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 pr-8 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-                >
-                  {deduplicatedDepts.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-2 top-1.5 text-secondary pointer-events-none text-[16px]">expand_more</span>
+
+              {/* Filters */}
+              <div className="flex items-center gap-6 mb-1">
+                <div className="relative cursor-pointer group">
+                  <select
+                    value={filterTaskId}
+                    onChange={(e) => setFilterTaskId(e.target.value)}
+                    className="appearance-none bg-transparent text-[13px] font-extrabold text-[#4B5563] group-hover:text-[#1E1B2E] outline-none cursor-pointer pr-5 z-10 relative"
+                  >
+                    {uniqueTaskIds.map(id => (
+                      <option key={id} value={id}>{id}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-[#4B5563] group-hover:text-[#1E1B2E] pointer-events-none text-[16px]">expand_more</span>
+                </div>
+                <div className="relative cursor-pointer group">
+                  <select
+                    value={filterDept}
+                    onChange={(e) => setFilterDept(e.target.value)}
+                    className="appearance-none bg-transparent text-[13px] font-extrabold text-[#4B5563] group-hover:text-[#1E1B2E] outline-none cursor-pointer pr-5 z-10 relative"
+                  >
+                    {deduplicatedDepts.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-[#4B5563] group-hover:text-[#1E1B2E] pointer-events-none text-[16px]">expand_more</span>
+                </div>
               </div>
             </div>
           </div>
@@ -261,26 +258,28 @@ export default function ProjectOverviewPage() {
           <div className="w-full flex flex-col gap-6">
             
             {/* Project Progress */}
-            <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/60 shadow-sm flex flex-col md:flex-row md:items-center gap-6 justify-between">
+            <div className="bg-white p-6 rounded-[16px] shadow-sm flex flex-col md:flex-row md:items-center gap-6 justify-between">
               <div>
-                <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">data_usage</span>
+                <h2 className="text-[16px] font-extrabold text-[#1E1B2E] flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[#702c91] text-[18px]">data_usage</span>
+                  </div>
                   Project Progress
                 </h2>
-                <p className="text-sm text-secondary mt-1">Track the overall completion of {projectName}</p>
+                <p className="text-[12px] text-[#6B7280] mt-1 ml-10">Track the overall completion of all projects</p>
               </div>
               <div className="flex-1 max-w-[400px]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-on-surface">Overall Completion</span>
-                  <span className="text-sm font-bold text-primary">{completedTasks} / {totalTasks} Tasks</span>
+                  <span className="text-[12px] font-extrabold text-[#1E1B2E]">Overall Completion</span>
+                  <span className="text-[12px] font-extrabold text-[#702c91]">{completedTasks} / {totalTasks} Tasks</span>
                 </div>
-                <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden border border-outline-variant/30">
+                <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                   <div 
-                    className={`h-full rounded-full transition-all duration-1000 ${progressPct === 100 ? 'bg-[#2ECC71]' : 'bg-primary'}`} 
+                    className="h-full rounded-full transition-all duration-1000 bg-[#702c91]" 
                     style={{ width: `${progressPct}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-secondary mt-2 text-right">{progressPct}% Completed</p>
+                <p className="text-[10px] text-[#9CA3AF] mt-2 text-right">{progressPct}% Completed</p>
               </div>
             </div>
 
@@ -291,82 +290,94 @@ export default function ProjectOverviewPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Recent Tasks Card */}
-              <div className="bg-surface-container-low rounded-2xl border border-outline-variant/60 shadow-sm overflow-hidden flex flex-col h-[500px]">
-                <div className="p-6 border-b border-outline-variant/50 flex-shrink-0">
-                  <h2 className="text-lg font-bold text-on-surface">Recent Tasks</h2>
+              <div className="bg-white rounded-[16px] shadow-sm overflow-hidden flex flex-col h-[500px]">
+                <div className="p-6 pb-2 flex items-center justify-between flex-shrink-0">
+                  <h2 className="text-[16px] font-extrabold text-[#1E1B2E]">Recent Tasks</h2>
+                  <button className="text-[12px] font-extrabold text-[#702c91] hover:underline">View all</button>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                   {recentTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-secondary opacity-60">
+                    <div className="flex flex-col items-center justify-center h-full text-[#9CA3AF]">
                       <span className="material-symbols-outlined text-[32px] mb-2">inbox</span>
-                      <p>No recent tasks</p>
+                      <p className="text-[13px] font-bold">No recent tasks</p>
                     </div>
                   ) : (
-                    <div className="space-y-1">
-                      {recentTasks.map(task => (
+                    <div className="space-y-4">
+                      {recentTasks.map(task => {
+                        const isOverdue = task.status !== 'Done' && new Date(task.dueDate) < new Date();
+                        return (
                         <div 
                           key={task.id}
                           onClick={() => navigate(`/tasks/${task.id}`)}
-                          className="flex items-start gap-3 p-3 rounded-xl hover:bg-surface-container cursor-pointer transition-colors group"
+                          className="flex items-start justify-between gap-3 cursor-pointer group"
                         >
-                          <span className="material-symbols-outlined text-secondary/50 group-hover:text-primary transition-colors mt-0.5 text-[20px]">
-                            list_alt
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-body-sm font-bold text-on-surface truncate group-hover:text-primary transition-colors">
-                              {task.title}
-                            </p>
-                            <p className="text-[11px] text-secondary flex items-center gap-2 mt-0.5">
-                              <span className="font-medium text-primary/80">{task.id}</span>
-                              <span className="w-1 h-1 rounded-full bg-outline"></span>
-                              <span>{task.dueDate}</span>
-                            </p>
+                          <div className="flex items-start gap-3 min-w-0">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${isOverdue ? 'bg-[#FEF2F2] text-[#EF4444]' : 'bg-[#FEF9C3] text-[#EAB308]'}`}>
+                              <span className="material-symbols-outlined text-[18px]">
+                                {isOverdue ? 'warning' : 'assignment'}
+                              </span>
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <p className="text-[13px] font-extrabold text-[#1E1B2E] truncate group-hover:text-[#702c91] transition-colors">
+                                {task.title} <span className="text-[#9CA3AF] font-medium text-[11px] ml-1">#{task.id}</span>
+                              </p>
+                              <p className="text-[11px] text-[#6B7280] truncate mt-0.5">
+                                {task.dueDate} • {task.client}
+                              </p>
+                            </div>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                            task.status === 'Done' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
-                            task.priority === 'Urgent' ? 'bg-urgent-red/10 text-urgent-red border-urgent-red/30' :
-                            task.priority === 'High' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' :
-                            'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                          
+                          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-extrabold shrink-0 border ${
+                            task.status === 'Done' ? 'bg-[#ECFDF5] text-[#10B981] border-[#A7F3D0]' :
+                            isOverdue ? 'bg-[#FEF2F2] text-[#EF4444] border-[#FECACA]' :
+                            task.status === 'In Progress' ? 'bg-[#FEF9C3] text-[#EAB308] border-[#FEF08A]' :
+                            'bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]'
                           }`}>
-                            {task.status === 'Done' ? 'Done' : task.priority}
-                          </span>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              task.status === 'Done' ? 'bg-[#10B981]' :
+                              isOverdue ? 'bg-[#EF4444]' :
+                              task.status === 'In Progress' ? 'bg-[#EAB308]' :
+                              'bg-[#9CA3AF]'
+                            }`}></span>
+                            {task.status === 'Done' ? 'Done' : isOverdue ? 'Overdue' : task.status}
+                          </div>
                         </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Docs / Attachments Card */}
-              <div className="bg-surface-container-low rounded-2xl border border-outline-variant/60 shadow-sm overflow-hidden flex flex-col h-[500px]">
-                <div className="p-6 border-b border-outline-variant/50 flex-shrink-0 flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-on-surface flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-[20px]">description</span>
+              <div className="bg-white rounded-[16px] shadow-sm overflow-hidden flex flex-col h-[500px]">
+                <div className="p-6 pb-2 border-[#E5E7EB] flex-shrink-0 flex items-center justify-between">
+                  <h2 className="text-[16px] font-extrabold text-[#1E1B2E] flex items-center gap-2">
                     Docs & Attachments
                     {isLoadingDocs && (
-                      <span className="material-symbols-outlined animate-spin text-primary ml-2 text-[18px]">
+                      <span className="material-symbols-outlined animate-spin text-[#702c91] ml-2 text-[18px]">
                         refresh
                       </span>
                     )}
                   </h2>
-                  <div className="flex bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm">
+                  <div className="flex bg-[#F9FAFB] rounded-lg p-1 border border-[#E5E7EB]">
                     <button
                       onClick={() => setDocsViewMode('List')}
-                      className={`p-1.5 rounded text-secondary hover:text-on-surface hover:bg-surface-container transition-all ${docsViewMode === 'List' ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`p-1.5 rounded text-[#9CA3AF] hover:text-[#1E1B2E] transition-all ${docsViewMode === 'List' ? 'bg-[#F5F3FF] text-[#702c91]' : ''}`}
                       title="List View"
                     >
                       <span className="material-symbols-outlined text-[18px]">view_list</span>
                     </button>
                     <button
                       onClick={() => setDocsViewMode('Grid')}
-                      className={`p-1.5 rounded text-secondary hover:text-on-surface hover:bg-surface-container transition-all ${docsViewMode === 'Grid' ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`p-1.5 rounded text-[#9CA3AF] hover:text-[#1E1B2E] transition-all ${docsViewMode === 'Grid' ? 'bg-[#F5F3FF] text-[#702c91]' : ''}`}
                       title="Grid View"
                     >
                       <span className="material-symbols-outlined text-[18px]">grid_view</span>
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                   {allDocs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-secondary opacity-60">
                       <span className="material-symbols-outlined text-[32px] mb-2">folder_off</span>
@@ -440,38 +451,39 @@ export default function ProjectOverviewPage() {
                             href={doc.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-start gap-4 p-4 rounded-xl border border-outline-variant hover:border-primary/50 hover:bg-surface-container bg-surface-container-lowest transition-all group shadow-sm"
+                            className="flex items-start justify-between gap-4 py-3 group"
                           >
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined">
-                                {doc.type === 'pdf' ? 'picture_as_pdf' :
-                                 doc.type === 'image' ? 'image' :
-                                 doc.type === 'document' ? 'article' : 'insert_drive_file'}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-label-md font-bold text-on-surface truncate group-hover:text-primary transition-colors" title={doc.name}>
-                                {getDisplayName(doc.name)}
-                              </p>
-                              <div className="text-[11px] text-secondary mt-1 flex items-center gap-2 truncate">
-                                <span>Attached in</span>
-                                {doc.taskId === 'N/A' ? (
-                                  <span className="font-bold text-primary truncate">
-                                    Drive &rarr; {doc.taskTitle}
-                                  </span>
-                                ) : (
-                                  <Link 
-                                    to={`/tasks/${doc.taskId}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="font-bold text-primary hover:underline truncate"
-                                  >
-                                    {doc.taskId} - {doc.taskTitle}
-                                  </Link>
-                                )}
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                                doc.type === 'pdf' ? 'bg-[#FEF2F2] text-[#EF4444]' :
+                                doc.type === 'image' ? 'bg-[#ECFDF5] text-[#10B981]' :
+                                'bg-[#F0FDF4] text-[#22C55E]'
+                              }`}>
+                                <span className="material-symbols-outlined">
+                                  {doc.type === 'pdf' ? 'picture_as_pdf' :
+                                   doc.type === 'image' ? 'image' :
+                                   doc.type === 'document' ? 'article' : 'insert_drive_file'}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-extrabold text-[#1E1B2E] truncate group-hover:text-[#702c91] transition-colors" title={doc.name}>
+                                  {getDisplayName(doc.name)}
+                                </p>
+                                <div className="text-[11px] text-[#6B7280] mt-0.5 truncate">
+                                  {doc.taskId === 'N/A' ? (
+                                    <span className="truncate">
+                                      {doc.taskTitle}
+                                    </span>
+                                  ) : (
+                                    <span className="truncate">
+                                      In {doc.taskTitle}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            <span className="material-symbols-outlined text-secondary opacity-0 group-hover:opacity-100 transition-opacity">
-                              open_in_new
+                            <span className="material-symbols-outlined text-[#9CA3AF] opacity-0 group-hover:opacity-100 transition-opacity">
+                              download
                             </span>
                           </a>
                         )
@@ -479,11 +491,54 @@ export default function ProjectOverviewPage() {
                     </div>
                   )}
                 </div>
+                <div className="p-4 bg-white shrink-0">
+                  <button className="w-full py-2.5 rounded-lg border border-[#E5E7EB] border-dashed text-[13px] font-bold text-[#6B7280] hover:text-[#702c91] hover:border-[#702c91] transition-colors">
+                    View All Files
+                  </button>
+                </div>
+              </div>
+
+              {/* Tasks due this week & Live Activity */}
+              <div className="col-span-1 lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="hidden lg:block"></div> {/* Spacer for left side */}
+                <div className="flex flex-col gap-4">
+                  {/* Tasks due this week */}
+                  <div className="bg-[#FEF9C3] rounded-[12px] p-4 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all">
+                    <div className="flex items-center gap-2 text-[#CA8A04] font-extrabold text-[13px]">
+                      <span className="material-symbols-outlined text-[18px]">bolt</span>
+                      2 tasks due this week
+                    </div>
+                    <span className="material-symbols-outlined text-[#CA8A04] text-[18px]">arrow_forward</span>
+                  </div>
+
+                  {/* Live Activity Placeholder */}
+                  <div className="bg-white rounded-[16px] shadow-sm p-6 flex flex-col h-[200px]">
+                    <h2 className="text-[12px] font-extrabold text-[#6B7280] uppercase tracking-wider mb-4">LIVE ACTIVITY</h2>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                      {/* Placeholder items */}
+                      <div className="flex gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-[#F5F3FF] text-[#702c91] flex items-center justify-center font-bold text-[12px] shrink-0">SM</div>
+                        <div>
+                          <p className="text-[13px] text-[#1E1B2E]"><strong>Sarah Miller</strong> uploaded a document for <span className="text-[#702c91] cursor-pointer hover:underline">Website Redesign</span></p>
+                          <p className="text-[11px] text-[#9CA3AF] mt-0.5">2 hours ago</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
           </div>
         </div>
+
+        {/* Floating Action Button */}
+        <button 
+          onClick={() => navigate('/my-tasks')}
+          className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
+        >
+          <span className="material-symbols-outlined text-[28px]">add</span>
+        </button>
       </main>
     </div>
   )
