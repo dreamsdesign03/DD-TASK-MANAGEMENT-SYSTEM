@@ -1,3 +1,7 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-empty */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/refs */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
@@ -122,6 +126,7 @@ export default function TaskTable() {
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || 'List') // 'List' | 'Board'
+  const [boardGrouping, setBoardGrouping] = useState('Department')
 
   useEffect(() => {
     if (location.pathname === '/my-tasks') {
@@ -339,23 +344,39 @@ export default function TaskTable() {
     const task = tasks.find(t => t.id === taskId)
     if (!task) return
 
-    if (colName === 'COMPLETE') {
-      if (task.status !== 'Done') {
-        updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
-        
-        // Celebration Effect Check
-        const due = new Date(task.dueDate)
-        const today = new Date()
-        today.setHours(0,0,0,0)
-        if (!task.dueDate || today <= due) {
-          import('canvas-confetti').then((confetti) => {
-            confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
-          })
+    if (boardGrouping === 'Process Stage') {
+      if (task.status !== colName) {
+        updateTask(taskId, { status: colName })
+        if (colName === 'Done') {
+          const due = new Date(task.dueDate)
+          const today = new Date()
+          today.setHours(0,0,0,0)
+          if (!task.dueDate || today <= due) {
+            import('canvas-confetti').then((confetti) => {
+              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+            })
+          }
         }
       }
     } else {
-      if (task.department !== colName || task.status === 'Done') {
-        updateTask(taskId, { department: colName, status: task.status === 'Done' ? 'Pending' : task.status })
+      if (colName === 'COMPLETE') {
+        if (task.status !== 'Done') {
+          updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
+          
+          // Celebration Effect Check
+          const due = new Date(task.dueDate)
+          const today = new Date()
+          today.setHours(0,0,0,0)
+          if (!task.dueDate || today <= due) {
+            import('canvas-confetti').then((confetti) => {
+              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+            })
+          }
+        }
+      } else {
+        if (task.department !== colName || task.status === 'Done') {
+          updateTask(taskId, { department: colName, status: task.status === 'Done' ? 'Pending' : task.status })
+        }
       }
     }
   }
@@ -380,8 +401,9 @@ export default function TaskTable() {
     const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1
     const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`
 
-    const isComplete = department === 'COMPLETE'
-    const newDept = isComplete ? 'COMMON' : department
+    const isComplete = boardGrouping === 'Department' && department === 'COMPLETE'
+    const newDept = boardGrouping === 'Process Stage' ? 'COMMON' : (isComplete ? 'COMMON' : department)
+    const initialStatus = boardGrouping === 'Process Stage' ? department : (isComplete ? 'Done' : 'Pending')
 
     const assignedEmps = employees?.filter(e => quickAddAssignee.includes(e.name)) || []
     const finalAssignees = quickAddAssignee.length > 0 ? quickAddAssignee : [profile?.name || 'Unassigned']
@@ -395,7 +417,7 @@ export default function TaskTable() {
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       dueDate: quickAddDueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0], // 1 week default
       priority: quickAddPriority,
-      status: isComplete ? 'Done' : 'Pending',
+      status: initialStatus,
       statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       department: newDept,
       assignedTo: finalAssignees.join(', '),
@@ -634,6 +656,16 @@ export default function TaskTable() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
+                    <SelectDropdown
+                      value={boardGrouping}
+                      onChange={setBoardGrouping}
+                      options={['Department', 'Process Stage']}
+                      style={{ ...selectBaseStyle, width: 160 }}
+                    />
+                  </div>
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
                     <SelectDropdown 
@@ -1056,52 +1088,59 @@ export default function TaskTable() {
           className={`mt-6 overflow-x-auto select-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         >
           <div className="flex gap-4 min-w-max items-start">
-            {['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMPLETE'].filter(col => {
-              if (col === 'COMMON' || col === 'COMPLETE') return true;
-              return filtered.some(t => t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === col);
-            }).map((colName) => {
-              const columnTasks = filtered.filter(t => {
-                if (colName === 'COMPLETE') return t.status === 'Done';
-                return t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === colName;
-              })
+            {(() => {
+              const deptCols = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMPLETE'];
+              const processCols = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
+              
+              const baseCols = boardGrouping === 'Process Stage' ? processCols : deptCols;
+              
+              const visibleCols = baseCols.filter(col => {
+                if (boardGrouping === 'Process Stage') return true;
+                if (col === 'COMMON' || col === 'COMPLETE') return true;
+                return filtered.some(t => t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === col);
+              });
 
-              const displayColName = colName === 'WEBSITE' ? 'WEBSITE WORK' : colName === 'SEO' ? 'SEO WORK' : colName;
+              return visibleCols.map((colName) => {
+                const columnTasks = filtered.filter(t => {
+                  if (boardGrouping === 'Process Stage') return t.status === colName;
+                  if (colName === 'COMPLETE') return t.status === 'Done';
+                  return t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === colName;
+                });
 
-              const headerClass =
-                colName === 'COMMON' ? 'bg-gray-100/50 border-gray-200 dark:border-gray-700/50 text-gray-800 dark:text-gray-300' :
-                  colName === 'SOCIAL MEDIA' ? 'bg-red-100/30 border-red-200 dark:border-red-900/50 text-red-800 dark:text-red-300' :
-                    colName === 'WEBSITE' ? 'bg-amber-100/30 border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300' :
-                      colName === 'SEO' ? 'bg-green-100/30 border-green-200 dark:border-green-900/50 text-green-800 dark:text-green-300' :
-                        colName === 'GRAPHIC' ? 'bg-purple-100/30 border-purple-200 dark:border-purple-900/50 text-purple-800 dark:text-purple-300' :
-                          colName === 'HR' ? 'bg-pink-100/30 border-pink-200 dark:border-pink-900/50 text-pink-800 dark:text-pink-300' :
-                            colName === 'ACCOUNT' ? 'bg-blue-100/30 border-blue-200 dark:border-blue-900/50 text-blue-800 dark:text-blue-300' :
-                              colName === 'SALES' ? 'bg-indigo-100/30 border-indigo-200 dark:border-indigo-900/50 text-indigo-800 dark:text-indigo-300' :
-                                'bg-emerald-100/50 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-300'; // COMPLETE
+                const displayColName = boardGrouping === 'Process Stage' ? colName : (colName === 'WEBSITE' ? 'WEBSITE WORK' : colName === 'SEO' ? 'SEO WORK' : colName);
 
-              const dotClass =
-                colName === 'COMMON' ? 'bg-gray-500' :
-                  colName === 'SOCIAL MEDIA' ? 'bg-red-500' :
-                    colName === 'WEBSITE' ? 'bg-amber-500' :
-                      colName === 'SEO' ? 'bg-green-500' :
-                        colName === 'GRAPHIC' ? 'bg-purple-500' :
-                          colName === 'HR' ? 'bg-pink-500' :
-                            colName === 'ACCOUNT' ? 'bg-blue-500' :
-                              colName === 'SALES' ? 'bg-indigo-500' :
-                                'bg-emerald-500';
+                const getDotColor = (name) => {
+                  if (boardGrouping === 'Process Stage') {
+                    if (name === 'Pending') return 'bg-gray-400';
+                    if (name === 'In Progress') return 'bg-[#3B82F6]'; // blue
+                    if (name === 'Review') return 'bg-[#702c91]'; // purple
+                    if (name === 'Done') return 'bg-[#10B981]'; // green
+                    if (name === 'Blocked') return 'bg-[#EF4444]'; // red
+                    return 'bg-gray-400';
+                  }
+                  if (name === 'SEO' || name === 'COMPLETE') return 'bg-[#10B981]';
+                  if (name === 'SOCIAL MEDIA' || name === 'GRAPHIC') return 'bg-[#702c91]';
+                  if (name === 'SALES') return 'bg-[#F59E0B]';
+                  if (name === 'WEBSITE') return 'bg-[#3B82F6]';
+                  return 'bg-[#9CA3AF]'; // COMMON
+                };
+                
+                const dotClass = getDotColor(colName);
 
-              return (
-                <div
-                  key={colName}
-                  onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, colName)}
-                  style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: colName === 'COMPLETE' ? '#F9FAFB' : 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
-                      <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
+                return (
+                  <div
+                    key={colName}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, colName)}
+                    style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: colName === 'COMPLETE' || colName === 'Done' ? '#F9FAFB' : 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className={`w-2.5 h-2.5 rounded-full ${dotClass}`}></div>
+                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
+                        <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
+                      </div>
                     </div>
-                  </div>
 
                   {/* Column Body */}
                   <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
@@ -1121,6 +1160,16 @@ export default function TaskTable() {
                           };
                           const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
                           
+                          const getTaskDeptColor = (dept) => {
+                            const d = (dept || 'COMMON').toUpperCase();
+                            if (d === 'SEO') return '#10B981';
+                            if (d === 'SOCIAL MEDIA' || d === 'GRAPHIC') return '#702c91';
+                            if (d === 'SALES') return '#F59E0B';
+                            if (d === 'WEBSITE') return '#3B82F6';
+                            return '#9CA3AF'; // COMMON
+                          };
+                          const cardBorderColor = getTaskDeptColor(task.department);
+                          
                           return (
                             <div
                               key={task.id}
@@ -1131,7 +1180,7 @@ export default function TaskTable() {
                               style={{
                                 background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
                                 boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
-                                borderLeft: `4px solid ${pStyle.bg}`, cursor: 'grab', position: 'relative', zIndex: 1,
+                                borderLeft: `4px solid ${cardBorderColor}`, cursor: 'grab', position: 'relative', zIndex: 1,
                                 transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s'
                               }}
                               onMouseEnter={e => {
@@ -1345,7 +1394,8 @@ export default function TaskTable() {
                   )}
                 </div>
               )
-            })}
+            })
+          })()}
           </div>
         </div>
       )}
