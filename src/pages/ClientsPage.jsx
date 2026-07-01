@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp, mqttClient } from '../context/AppContext'
@@ -182,6 +182,7 @@ export default function ClientsPage() {
                       const isActiveVal = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
                       const isActive = String(isActiveVal).toLowerCase() === 'yes' || isActiveVal === true
 
+                      return (
                         <tr 
                           key={client['Client ID'] || idx} 
                           className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === filteredClients.length - 1 ? 'border-b-0' : ''}`}
@@ -239,6 +240,7 @@ export default function ClientsPage() {
                             </span>
                           </td>
                         </tr>
+                      );
                     })}
                     {filteredClients.length === 0 && (
                       <tr>
@@ -255,7 +257,6 @@ export default function ClientsPage() {
               </div>
             </div>
           </div>
-        </div>
       </main>
 
       {/* Edit Client Modal */}
