@@ -640,13 +640,6 @@ export default function TaskTable() {
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
             </button>
-            <button onClick={() => setViewMode('Timeline')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: viewMode === 'Timeline' ? '#F5F3FF' : 'transparent',
-              color: viewMode === 'Timeline' ? '#702c91' : '#9CA3AF',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>insights</span>
-            </button>
           </div>
           <button
             onClick={() => {
@@ -1217,15 +1210,24 @@ export default function TaskTable() {
                           };
                           const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
                           
-                          const getTaskDeptColor = (dept) => {
-                            const d = (dept || 'COMMON').toUpperCase();
-                            if (d === 'SEO') return '#10B981';
-                            if (d === 'SOCIAL MEDIA' || d === 'GRAPHIC') return '#702c91';
-                            if (d === 'SALES') return '#F59E0B';
-                            if (d === 'WEBSITE') return '#3B82F6';
-                            return '#9CA3AF'; // COMMON
+                          // Card border color = column's color (updates when dragged to new column)
+                          const getColumnColor = (col) => {
+                            if (boardGrouping === 'Process Stage') {
+                              if (col === 'Pending')     return '#9CA3AF';
+                              if (col === 'In Progress') return '#F59E0B';
+                              if (col === 'Review')      return '#3B82F6';
+                              if (col === 'Done')        return '#10B981';
+                              if (col === 'Blocked')     return '#EF4444';
+                              return '#9CA3AF';
+                            }
+                            // Department grouping
+                            if (col === 'SEO' || col === 'COMPLETE') return '#10B981';
+                            if (col === 'SOCIAL MEDIA' || col === 'GRAPHIC') return '#702c91';
+                            if (col === 'SALES') return '#F59E0B';
+                            if (col === 'WEBSITE') return '#3B82F6';
+                            return '#9CA3AF';
                           };
-                          const cardBorderColor = getTaskDeptColor(task.department);
+                          const cardBorderColor = getColumnColor(colName);
                           
                           return (
                             <div
