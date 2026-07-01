@@ -1336,7 +1336,7 @@ export default function ChatPage() {
 
 
   return (
-    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+    <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

@@ -647,7 +647,7 @@ export default function TaskDetailPage() {
   const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
 
   return (
-    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+    <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -659,8 +659,8 @@ export default function TaskDetailPage() {
       <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
         <TopNav title={task.title} showSearch={true} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 animate-fade-in-up">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
+          <div className="w-full flex flex-col lg:flex-row gap-8">
             {/* LEFT COLUMN */}
             <div className="flex-1 flex flex-col gap-8">
               {/* Header */}

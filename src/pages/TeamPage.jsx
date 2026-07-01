@@ -80,7 +80,7 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="bg-[#f9f9ff] font-body-md text-[#151c27] overflow-hidden h-screen flex">
+    <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -103,8 +103,8 @@ export default function TeamPage() {
       <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
         <TopNav title="Team Directory" showSearch={false} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 pt-4 animate-fade-in-up">
-          <div className="max-w-[1450px] mx-auto w-full">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
+          <div className="w-full">
 
             {/* Filter and Search controls */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
