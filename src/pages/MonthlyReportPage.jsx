@@ -84,13 +84,6 @@ export default function MonthlyReportPage() {
   // Calculate conic gradient string for the donut chart
   // Order: Done -> In Progress -> Pending -> Blocked
   // SVG Donut Chart Calculations
-  const radius = 42.5
-  const circumference = 2 * Math.PI * radius
-  
-  const doneDash = (completedPct / 100) * circumference
-  const inProgressDash = (inProgressPct / 100) * circumference
-  const pendingDash = (pendingPct / 100) * circumference
-  const blockedDash = (blockedPct / 100) * circumference
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true)
@@ -550,8 +543,9 @@ export default function MonthlyReportPage() {
                 </table>
               </div>
             </div>
+          </div>
 
-            {/* All Tasks Activity */}
+          {/* All Tasks Activity */}
             <div className="mb-10">
               <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4">
                 {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Activity`}
@@ -631,8 +625,9 @@ export default function MonthlyReportPage() {
                 </table>
               </div>
             </div>
+          </div>
 
-            {/* Footer Action */}
+          {/* Footer Action */}
             <div className="flex justify-end pb-8" data-html2canvas-ignore>
               <button
                 onClick={handleDownloadPDF}

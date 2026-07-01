@@ -116,8 +116,6 @@ export default function TaskDetailPage() {
   const [newSubtaskDueDate, setNewSubtaskDueDate] = useState('')
   const [newSubtaskPriority, setNewSubtaskPriority] = useState('Medium')
   const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
-  const [taskToDelete, setTaskToDelete] = useState(null)
-  const [subtaskToDelete, setSubtaskToDelete] = useState(null)
   const [infoModal, setInfoModal] = useState(null)
   
   const [isEditingDescription, setIsEditingDescription] = useState(false)
@@ -1216,7 +1214,7 @@ export default function TaskDetailPage() {
                     </div>
                   </div>
                 </div>
-              </section>
+              </div>
             </div>
 
             {/* RIGHT COLUMN */}
