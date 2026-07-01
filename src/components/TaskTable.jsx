@@ -352,6 +352,28 @@ export default function TaskTable() {
   const indexOfFirstTask = indexOfLastTask - tasksPerPage
   const currentTasks = filtered.slice(indexOfFirstTask, indexOfLastTask)
 
+  // Metrics Logic
+  const baseTasksForStats = tasks.filter((t) => {
+    if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
+    const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient;
+    const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser);
+    const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment;
+    return matchesClient && matchesUser && matchesDepartment;
+  });
+
+  const totalTasks = baseTasksForStats.length;
+  const inProgressTasks = baseTasksForStats.filter(t => t.status === 'In Progress').length;
+  const completedTasks = baseTasksForStats.filter(t => t.status === 'Done').length;
+  const overdueTasks = baseTasksForStats.filter(t => {
+    if (t.status === 'Done' || !t.dueDate) return false;
+    const due = new Date(t.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return due < today;
+  }).length;
+
+
+
   return (
     <>
       <input 
@@ -361,113 +383,96 @@ export default function TaskTable() {
         onChange={handleDeptFileUpload} 
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex flex-col gap-4">
+      {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Total Tasks */}
+        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
+          <div>
+            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Total Tasks</p>
+            <h3 className="text-4xl font-black text-on-surface">{String(totalTasks).padStart(2, '0')}</h3>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+            <span className="material-symbols-outlined text-[24px]">layers</span>
+          </div>
+        </div>
+
+        {/* In Progress */}
+        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
+          <div>
+            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">In Progress</p>
+            <h3 className="text-4xl font-black text-on-surface">{String(inProgressTasks).padStart(2, '0')}</h3>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
+            <span className="material-symbols-outlined text-[24px]">schedule</span>
+          </div>
+        </div>
+
+        {/* Completed */}
+        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
+          <div>
+            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Completed</p>
+            <h3 className="text-4xl font-black text-on-surface">{String(completedTasks).padStart(2, '0')}</h3>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 border border-green-500/20">
+            <span className="material-symbols-outlined text-[24px]">check_circle</span>
+          </div>
+        </div>
+
+        {/* Overdue */}
+        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] p-6 shadow-[0_4px_24px_rgba(91,33,182,0.06)] flex items-center justify-between border border-transparent">
+          <div>
+            <p className="text-[11px] font-bold text-secondary uppercase tracking-wider mb-2">Overdue</p>
+            <h3 className="text-4xl font-black text-urgent-red">{String(overdueTasks).padStart(2, '0')}</h3>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-urgent-red/10 flex items-center justify-center text-urgent-red border border-urgent-red/20">
+            <span className="material-symbols-outlined text-[24px]">error</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-6">
         {/* Top tab filter */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+          <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0">
             {FILTERS.map((f) => (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-5 py-2 rounded-full font-label-md text-label-md transition-all shadow-sm ${activeFilter === f
-                  ? 'bg-primary text-on-primary border-transparent'
-                  : 'bg-surface-container-lowest border border-primary text-primary hover:bg-surface-container-low'
+                className={`px-6 py-2.5 rounded-full font-label-md text-label-md transition-all ${activeFilter === f
+                  ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-md border-transparent'
+                  : 'bg-white dark:bg-[#1e1b2e] text-secondary hover:text-on-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-transparent'
                   }`}
               >
                 {f}
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Multi-Dimensional Dropdowns Row */}
-        <div className="flex flex-wrap items-end gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/60">
-          {/* Client Filter */}
-          <div className="flex flex-col gap-1 min-w-[200px] flex-1 md:flex-initial">
-            <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-              Filter by Client
-            </label>
-            <div className="relative">
-              <select
-                value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
-                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-              >
-                {uniqueClients.map((client) => (
-                  <option key={client} value={client}>
-                    {client}
-                  </option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
-                expand_more
-              </span>
-            </div>
-          </div>
-
-          {/* User Filter */}
-          <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
-            <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-              Filter by User
-            </label>
-            <div className="relative">
-              <select
-                value={selectedUser}
-                onChange={(e) => setSelectedUser(e.target.value)}
-                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-              >
-                {uniqueUsers.map((user) => (
-                  <option key={user} value={user}>
-                    {user}
-                  </option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
-                expand_more
-              </span>
-            </div>
-          </div>
-
-          {/* Department Filter */}
-          <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
-            <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-              Filter by Dept
-            </label>
-            <div className="relative">
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
-              >
-                {deduplicatedDepartments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none">
-                expand_more
-              </span>
-            </div>
-          </div>
-
-          {/* Spacer */}
-          <div className="hidden md:block flex-grow"></div>
 
           {/* View Mode Toggle */}
-          <div className="flex w-full md:w-auto bg-surface-container-lowest rounded-lg p-1 border border-outline-variant/60 shadow-sm mt-4 md:mt-0 overflow-x-auto md:overflow-x-visible [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            <button
-              onClick={() => setViewMode('List')}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
-            >
-              <span className="material-symbols-outlined text-[18px]">list</span> List
-            </button>
-            <button
-              onClick={() => setViewMode('Board')}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all ${viewMode === 'Board' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
-            >
-              <span className="material-symbols-outlined text-[18px]">view_kanban</span> Board
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="flex bg-white dark:bg-[#1e1b2e] rounded-full p-1 shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-transparent">
+              <button
+                onClick={() => setViewMode('List')}
+                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all ${viewMode === 'List' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
+                title="List View"
+              >
+                <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+              </button>
+              <button
+                onClick={() => setViewMode('Board')}
+                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all ${viewMode === 'Board' ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-on-surface hover:bg-surface-container'}`}
+                title="Board View"
+              >
+                <span className="material-symbols-outlined text-[18px]">grid_view</span>
+              </button>
+              <button
+                className={`flex items-center justify-center w-10 h-8 rounded-full transition-all text-secondary hover:text-on-surface hover:bg-surface-container`}
+                title="Timeline View"
+              >
+                <span className="material-symbols-outlined text-[18px]">timeline</span>
+              </button>
+            </div>
             <button
               onClick={() => {
                 if (selectedClient === 'All Clients') {
@@ -476,37 +481,114 @@ export default function TaskTable() {
                   navigate(`/projects/${encodeURIComponent(selectedClient)}`)
                 }
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-label-sm font-bold transition-all text-primary hover:text-primary hover:bg-primary/10 md:border-l md:border-outline-variant/50 md:ml-1 md:pl-4 bg-primary/5"
+              className="flex items-center justify-center w-10 h-10 rounded-full transition-all text-primary hover:text-white hover:bg-primary border border-primary/20 bg-primary/5 shadow-[0_4px_12px_rgba(0,0,0,0.03)]"
               title="Open Overview"
             >
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span> Overview
+              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
             </button>
           </div>
+        </div>
 
-          {/* Sort selector */}
-          <div className="flex flex-col gap-1 min-w-[180px] flex-1 md:flex-initial mt-4 md:mt-0">
-            <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
-              Sort Order
-            </label>
-            <div className="relative">
-              <select
-                value={`Sort by: ${sortBy}`}
-                onChange={(e) => setSortBy(e.target.value.replace('Sort by: ', ''))}
-                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2.5 pr-10 text-body-sm font-label-md text-secondary focus:border-primary focus:ring-0 outline-none cursor-pointer font-bold"
-              >
-                <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
-                <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
-                <option value="Sort by: Due Date">Sort by: Due Date</option>
-                <option value="Sort by: Priority">Sort by: Priority</option>
-                <option value="Sort by: Status">Sort by: Status</option>
-                <option value="Sort by: Task Title">Sort by: Task Title</option>
-              </select>
-              <span className="material-symbols-outlined absolute right-3 top-3 text-secondary pointer-events-none font-normal">
-                expand_more
-              </span>
+        {/* ─── Main White Card ──────────────────────────────────────────────────────── */}
+        <div className="bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6 flex flex-col gap-6 border border-outline-variant/30">
+          {/* Multi-Dimensional Dropdowns Row */}
+          <div className="flex flex-wrap items-end gap-4">
+            {/* Client Filter */}
+            <div className="flex flex-col gap-1 min-w-[200px] flex-1 md:flex-initial">
+              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                Filter by Client
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedClient}
+                  onChange={(e) => setSelectedClient(e.target.value)}
+                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+                >
+                  {uniqueClients.map((client) => (
+                    <option key={client} value={client}>
+                      {client}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
+                  expand_more
+                </span>
+              </div>
+            </div>
+
+            {/* User Filter */}
+            <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
+              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                Filter by User
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+                >
+                  {uniqueUsers.map((user) => (
+                    <option key={user} value={user}>
+                      {user}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
+                  expand_more
+                </span>
+              </div>
+            </div>
+
+            {/* Department Filter */}
+            <div className="flex flex-col gap-1 min-w-[160px] flex-1 md:flex-initial">
+              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                Filter by Dept
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] font-bold text-on-surface focus:border-primary focus:ring-0 outline-none cursor-pointer"
+                >
+                  {deduplicatedDepartments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
+                  expand_more
+                </span>
+              </div>
+            </div>
+
+            {/* Spacer */}
+            <div className="hidden md:block flex-grow"></div>
+
+            {/* Sort selector */}
+            <div className="flex flex-col gap-1 min-w-[180px] flex-1 md:flex-initial mt-4 md:mt-0">
+              <label className="text-[11px] font-bold text-secondary uppercase tracking-wider pl-1">
+                Sort Order
+              </label>
+              <div className="relative">
+                <select
+                  value={`Sort by: ${sortBy}`}
+                  onChange={(e) => setSortBy(e.target.value.replace('Sort by: ', ''))}
+                  className="w-full appearance-none bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 pr-10 text-[13px] text-secondary focus:border-primary focus:ring-0 outline-none cursor-pointer font-bold"
+                >
+                  <option value="Sort by: Task ID (Descending)">Sort by: Task ID (Descending)</option>
+                  <option value="Sort by: Task ID (Ascending)">Sort by: Task ID (Ascending)</option>
+                  <option value="Sort by: Due Date">Sort by: Due Date</option>
+                  <option value="Sort by: Priority">Sort by: Priority</option>
+                  <option value="Sort by: Status">Sort by: Status</option>
+                  <option value="Sort by: Task Title">Sort by: Task Title</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-2.5 text-secondary pointer-events-none text-[18px]">
+                  expand_more
+                </span>
+              </div>
             </div>
           </div>
-        </div>
       </div>
 
       {/* ──────────────────────────────────────────────────────────── */}
@@ -1261,6 +1343,7 @@ export default function TaskTable() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {taskToDelete && (

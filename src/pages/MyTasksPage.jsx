@@ -138,7 +138,7 @@ export default function MyTasksPage() {
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-          <div className="max-w-[1450px] mx-auto w-full bg-white dark:bg-[#1e1b2e] rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] p-6">
+          <div className="max-w-[1450px] mx-auto w-full flex flex-col gap-6">
             <TaskTable />
           </div>
         </div>
