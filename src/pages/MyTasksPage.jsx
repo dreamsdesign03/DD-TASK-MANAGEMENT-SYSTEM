@@ -137,8 +137,8 @@ export default function MyTasksPage() {
         <TopNav title={location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'} showSearch={true} />
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
-          <div className="max-w-[1450px] mx-auto w-full flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-[32px] py-6">
+          <div className="w-full flex flex-col gap-6">
             <TaskTable />
           </div>
         </div>
