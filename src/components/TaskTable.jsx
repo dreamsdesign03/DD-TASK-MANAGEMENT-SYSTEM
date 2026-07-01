@@ -1375,27 +1375,34 @@ export default function TaskTable() {
                         )}
                       </>
                     )}
-                  </div>
 
-                  {/* Add Task Button at bottom of column */}
-                  {quickAddCol !== colName && (
-                    <div className="p-2 border-t border-outline-variant/30 bg-surface-container-lowest shrink-0">
+                    {/* Add Task Button at bottom of column body */}
+                    {quickAddCol !== colName && (
                       <button
                         onClick={() => {
                           setQuickAddCol(colName)
                           setQuickAddTitle('')
                         }}
-                        className="w-full py-2 flex items-center justify-center gap-2 text-[12px] font-bold text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                        className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-[13px] font-bold text-[#9CA3AF] hover:text-[#702c91] border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:bg-[#F5F3FF] rounded-full transition-all"
                       >
-                        <span className="material-symbols-outlined text-[16px]">add</span>
+                        <span className="material-symbols-outlined text-[18px]">add_circle</span>
                         Add Task
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )
             })
           })()}
+
+            {/* Add new group placeholder */}
+            <div style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 280px)', padding: '0 8px' }}>
+              <div style={{ height: 36, marginBottom: 16 }}></div>
+              <button className="w-full h-[140px] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:text-[#702c91] text-[#9CA3AF] text-[14px] font-bold rounded-[24px] transition-all bg-[#F9FAFB]/50 hover:bg-[#F5F3FF]">
+                <span className="material-symbols-outlined text-[28px]">add_box</span>
+                Add new group
+              </button>
+            </div>
           </div>
         </div>
       )}
