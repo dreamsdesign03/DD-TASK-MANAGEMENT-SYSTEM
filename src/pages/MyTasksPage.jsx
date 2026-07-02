@@ -162,25 +162,21 @@ export default function MyTasksPage() {
 
       {/* New Task Modal — Dreamsdesk Layout style */}
       {showNewTaskModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <form
             onSubmit={handleCreateTask}
-            className="bg-white rounded-xl w-full max-w-[520px] flex flex-col overflow-hidden animate-fade-in-up"
-            style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.2)', maxHeight: '92vh' }}
+            className="bg-white w-full max-w-[520px] rounded-2xl shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-hidden animate-scale-in"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#702c91] text-[24px]">assignment</span>
-                <h2 className="text-[#702c91] font-black text-[20px] m-0">Create New Task</h2>
-              </div>
-              <button type="button" onClick={() => setShowNewTaskModal(false)} className="bg-transparent border-none text-gray-400 hover:text-gray-600 cursor-pointer p-1 rounded-full flex items-center justify-center transition-colors">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <h2 className="text-[18px] font-bold text-[#702c91] m-0">Create New Task</h2>
+              <button type="button" onClick={() => setShowNewTaskModal(false)} className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
             {/* Body */}
-            <div className="p-5 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2">
               {/* Task Title */}
               <div>
                 <input
@@ -190,7 +186,7 @@ export default function MyTasksPage() {
                   placeholder="Task Title *"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 text-[14px] text-[#1E1B2E] bg-white rounded-md border border-[#E5E7EB] focus:outline-none focus:border-[#702c91] transition-colors placeholder:text-[#9CA3AF]"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
                 />
               </div>
 
@@ -199,7 +195,7 @@ export default function MyTasksPage() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">COMPANY (CLIENT)</label>
                   <div className="relative">
-                    <select value={client} onChange={(e) => setClient(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
+                    <select value={client} onChange={(e) => setClient(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
                       {companyList.map((c) => (<option key={c} value={c}>{c}</option>))}
                     </select>
                     <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
@@ -208,7 +204,7 @@ export default function MyTasksPage() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">DEPARTMENT</label>
                   <div className="relative">
-                    <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
+                    <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
                       {['COMMON', 'SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'UI/UX', 'HR', 'ACCOUNT', 'SALES'].map((d) => (<option key={d} value={d}>{d}</option>))}
                     </select>
                     <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
@@ -222,7 +218,7 @@ export default function MyTasksPage() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">ASSIGNEE(S)</label>
                   <div className="relative">
-                    <div onClick={() => setIsAssigneeOpen(!isAssigneeOpen)} className="w-full bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 cursor-pointer flex justify-between items-center hover:border-[#702c91] transition-colors shadow-sm">
+                    <div onClick={() => setIsAssigneeOpen(!isAssigneeOpen)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-700 cursor-pointer flex justify-between items-center hover:border-[#702c91] transition-colors shadow-sm">
                       <span className="truncate text-[13px]">{assignedTo.length > 0 ? assignedTo.join(', ') : 'Select'}</span>
                       <span className="material-symbols-outlined text-gray-400 text-[18px]">{isAssigneeOpen ? 'expand_less' : 'expand_more'}</span>
                     </div>
@@ -241,14 +237,14 @@ export default function MyTasksPage() {
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">ASSIGNED BY</label>
                   <div className="relative">
-                    <input type="text" readOnly value={assignedBy} className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-500 outline-none shadow-sm cursor-not-allowed" />
+                    <input type="text" readOnly value={assignedBy} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-500 outline-none shadow-sm cursor-not-allowed" />
                     <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[18px]">lock</span>
                   </div>
                 </div>
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">DUE DATE</label>
                   <div className="relative">
-                    <input type="date" value={dueDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => { const val = e.target.value; if (val) { const d = new Date(val); if (d.getUTCDay() === 0) { addToast("Sundays cannot be selected as a due date.", 'error'); return } } setDueDate(val) }} className="w-full appearance-none bg-white border border-gray-200 rounded-md pl-8 pr-2 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full" />
+                    <input type="date" value={dueDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => { const val = e.target.value; if (val) { const d = new Date(val); if (d.getUTCDay() === 0) { addToast("Sundays cannot be selected as a due date.", 'error'); return } } setDueDate(val) }} className="w-full appearance-none bg-white border border-gray-200 rounded-lg pl-8 pr-2 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full" />
                     <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[18px]">calendar_today</span>
                   </div>
                 </div>
@@ -263,7 +259,7 @@ export default function MyTasksPage() {
                       type="button"
                       key={p}
                       onClick={() => setPriority(p)}
-                      className={`flex-1 py-2 rounded-md font-bold text-[13px] border transition-colors cursor-pointer ${
+                      className={`flex-1 py-2 rounded-lg font-bold text-[13px] border transition-colors cursor-pointer ${
                         priority === p
                           ? 'btn-gradient border-transparent text-white'
                           : 'bg-white border-[#E5E7EB] text-[#4B5563] hover:border-[#702c91]/30'
@@ -362,20 +358,20 @@ export default function MyTasksPage() {
               {/* Description */}
               <div>
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 mt-2">TASK DESCRIPTION</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-white border border-gray-200 rounded-md p-3 text-[14px] outline-none focus:border-[#702c91] transition-colors shadow-sm min-h-[100px] resize-none" placeholder="Details about the task..."></textarea>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg p-3 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm min-h-[100px] resize-none" placeholder="Details about the task..."></textarea>
               </div>
 
               {/* Remarks */}
               <div>
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 mt-2">REMARKS</label>
-                <input type="text" value={remarks} onChange={(e) => setRemarks(e.target.value)} className="w-full bg-white border border-gray-200 rounded-md px-3 py-3 text-[14px] outline-none focus:border-[#702c91] transition-colors shadow-sm" placeholder="Any remarks..." />
+                <input type="text" value={remarks} onChange={(e) => setRemarks(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm" placeholder="Any remarks..." />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/30">
-              <button type="button" onClick={() => setShowNewTaskModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-600 rounded-md text-[14px] font-bold hover:bg-gray-50 transition-colors cursor-pointer">Cancel</button>
-              <button type="submit" className={`px-6 py-2.5 btn-gradient border-none text-white rounded-md text-[14px] font-bold shadow-sm transition-opacity cursor-pointer active:scale-95 ${!title.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}>Create Task</button>
+            <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-200">
+              <button type="button" onClick={() => setShowNewTaskModal(false)} className="px-6 py-2 border border-[#702c91] text-[#702c91] bg-white rounded-lg font-bold hover:bg-purple-50 transition-all text-[13px] cursor-pointer">Cancel</button>
+              <button type="submit" disabled={!title.trim()} className={`px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md transition-all text-[13px] cursor-pointer ${!title.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#5a1f75] active:scale-95'}`}>Create Task</button>
             </div>
           </form>
         </div>
