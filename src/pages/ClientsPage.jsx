@@ -430,7 +430,7 @@ export default function ClientsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-lg bg-[#702c91] text-white border-none font-bold hover:bg-[#5a1f75] shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                className="px-6 py-2.5 rounded-lg btn-gradient border-none font-bold shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>

@@ -121,7 +121,7 @@ export function CreateGroupModal({ onClose }) {
             Cancel
           </button>
           <button onClick={onClose}
-            className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all">
+            className="px-6 py-2 btn-gradient rounded-lg font-label-md shadow-md active:scale-95 transition-all">
             Create Group
           </button>
         </div>

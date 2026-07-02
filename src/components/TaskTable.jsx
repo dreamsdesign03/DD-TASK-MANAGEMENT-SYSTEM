@@ -1311,7 +1311,7 @@ export default function TaskTable() {
                                     }}
                                     className="w-full bg-transparent border-none text-body-sm text-on-surface focus:ring-0 outline-none placeholder:text-secondary font-bold"
                                   />
-                                  <button onClick={() => handleQuickAdd(colName)} className="px-2.5 py-1 text-[11px] font-bold bg-primary text-on-primary rounded hover:opacity-90 transition-opacity ml-2 shrink-0 flex items-center gap-1">
+                                  <button onClick={() => handleQuickAdd(colName)} className="px-2.5 py-1 text-[11px] font-bold btn-gradient rounded transition-opacity ml-2 shrink-0 flex items-center gap-1">
                                     Save <span className="material-symbols-outlined text-[12px]">keyboard_return</span>
                                   </button>
                                 </div>
@@ -1608,7 +1608,7 @@ export default function TaskTable() {
               <button
                 type="submit"
                 disabled={isRecurringSubmitting || (recurringSchedule === 'Monthly' && recurringMonths.length === 0)}
-                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-bold"
+                className="px-5 py-2 btn-gradient rounded-lg font-label-md shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-bold"
               >
                 {isRecurringSubmitting ? 'Saving...' : 'Save Schedule'}
               </button>

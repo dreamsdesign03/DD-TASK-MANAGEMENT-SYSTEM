@@ -2160,7 +2160,7 @@ export default function ChatPage() {
             <div className="px-6 py-4 bg-white border-t border-gray-200 flex justify-end">
               <button
                 onClick={() => setShowBgModal(false)}
-                className="px-6 py-2.5 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
+                className="px-6 py-2.5 btn-gradient border-none rounded-lg font-bold shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
               >
                 Done
               </button>
@@ -2533,7 +2533,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
           </button>
           <button
             onClick={handleCreate}
-            className="px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
+            className="px-6 py-2 btn-gradient border-none rounded-lg font-bold shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
           >
             Create Group
           </button>

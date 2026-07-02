@@ -873,7 +873,7 @@ export default function TaskDetailPage() {
                       </button>
                       <button
                         onClick={handleSaveDescription}
-                        className="px-3 py-1.5 text-[12px] font-medium bg-primary text-white hover:opacity-90 rounded-md transition-opacity shadow-sm"
+                        className="px-3 py-1.5 text-[12px] font-medium btn-gradient rounded-md transition-opacity shadow-sm"
                       >
                         Save
                       </button>
@@ -1040,7 +1040,7 @@ export default function TaskDetailPage() {
                         <button
                           onClick={handleAddSubtask}
                           disabled={!newSubtaskTitle.trim()}
-                          className="bg-primary text-white px-4 py-1.5 rounded-lg font-bold text-[13px] hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
+                          className="btn-gradient px-4 py-1.5 rounded-lg font-bold text-[13px] transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
                         >
                           Save
                           <span className="material-symbols-outlined text-[14px]">keyboard_return</span>
@@ -1566,7 +1566,7 @@ export default function TaskDetailPage() {
               </button>
               <button
                 onClick={handleSaveAssignees}
-                className="px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
+                className="px-6 py-2 btn-gradient border-none rounded-lg font-bold shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
               >
                 Save
               </button>
@@ -1787,7 +1787,7 @@ export default function TaskDetailPage() {
               <button
                 type="submit"
                 disabled={isRecurringSubmitting || (recurringSchedule === 'Monthly' && recurringMonths.length === 0)}
-                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-bold"
+                className="px-5 py-2 btn-gradient rounded-lg font-label-md shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-bold"
               >
                 {isRecurringSubmitting ? 'Saving...' : 'Save Schedule'}
               </button>
@@ -1817,7 +1817,7 @@ export default function TaskDetailPage() {
             <div className="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3">
               <button
                 onClick={() => setInfoModal(null)}
-                className="px-5 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm font-bold"
+                className="px-5 py-2 btn-gradient rounded-lg font-label-md shadow-md active:scale-95 transition-all text-sm font-bold"
               >
                 OK
               </button>

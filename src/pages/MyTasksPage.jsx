@@ -371,7 +371,7 @@ export default function MyTasksPage() {
             {/* Footer */}
             <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-200">
               <button type="button" onClick={() => setShowNewTaskModal(false)} className="px-6 py-2 border border-[#702c91] text-[#702c91] bg-white rounded-lg font-bold hover:bg-purple-50 transition-all text-[13px] cursor-pointer">Cancel</button>
-              <button type="submit" disabled={!title.trim()} className={`px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md transition-all text-[13px] cursor-pointer ${!title.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#5a1f75] active:scale-95'}`}>Create Task</button>
+              <button type="submit" disabled={!title.trim()} className={`px-6 py-2 btn-gradient border-none rounded-lg font-bold shadow-md text-[13px] cursor-pointer ${!title.trim() ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}>Create Task</button>
             </div>
           </form>
         </div>

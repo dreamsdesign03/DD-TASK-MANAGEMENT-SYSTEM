@@ -54,7 +54,7 @@ function DesktopLauncher({ profile }) {
                 window.location.href = window.location.pathname + '#/download'
               }, 1500)
             }}
-            className="w-full h-12 bg-primary text-white rounded-lg font-label-lg font-bold hover:opacity-90 transition-opacity"
+            className="w-full h-12 btn-gradient rounded-lg font-label-lg font-bold transition-opacity"
           >
             Open Desktop App
           </button>
