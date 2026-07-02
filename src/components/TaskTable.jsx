@@ -22,10 +22,10 @@ function SelectDropdown({ value, onChange, options, style }) {
 
   return (
     <div ref={selectRef} style={{ position: 'relative', width: style.width }}>
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
-        style={{ 
-          ...style, width: '100%', 
+        style={{
+          ...style, width: '100%',
           borderColor: isOpen ? '#ec008c' : '#E5E7EB',
           boxShadow: isOpen ? '0 0 0 3px rgba(139,92,246,0.15)' : '0 2px 6px rgba(0,0,0,0.02)',
           userSelect: 'none',
@@ -39,8 +39,8 @@ function SelectDropdown({ value, onChange, options, style }) {
         }}
         onMouseLeave={e => {
           if (!isOpen) {
-             e.currentTarget.style.borderColor = '#E5E7EB';
-             e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
+            e.currentTarget.style.borderColor = '#E5E7EB';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.02)';
           }
         }}
       >
@@ -56,18 +56,18 @@ function SelectDropdown({ value, onChange, options, style }) {
           maxHeight: 250, overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none'
         }}>
           {options.map(opt => (
-            <div 
+            <div
               key={opt}
               onClick={() => { onChange(opt); setIsOpen(false); }}
               style={{
-                padding: '10px 12px', fontSize: 13, fontWeight: 600, 
+                padding: '10px 12px', fontSize: 13, fontWeight: 600,
                 color: opt === value ? '#702c91' : '#4B5563',
                 background: opt === value ? '#F5F3FF' : 'transparent',
                 borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }}
-              onMouseEnter={e => { if(opt !== value) e.currentTarget.style.background = '#F9FAFB'; }}
-              onMouseLeave={e => { if(opt !== value) e.currentTarget.style.background = 'transparent'; }}
+              onMouseEnter={e => { if (opt !== value) e.currentTarget.style.background = '#F9FAFB'; }}
+              onMouseLeave={e => { if (opt !== value) e.currentTarget.style.background = 'transparent'; }}
             >
               {opt}
               {opt === value && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
@@ -103,11 +103,11 @@ const STATUS_STYLES = {
 }
 
 const STATUS_CONFIG = {
-  'Pending':     { bg: '#F3F4F6', color: '#4B5563' },
+  'Pending': { bg: '#F3F4F6', color: '#4B5563' },
   'In Progress': { bg: '#FEF3C7', color: '#D97706' },
-  'Review':      { bg: '#EFF6FF', color: '#2563EB' },
-  'Done':        { bg: '#F0FDF4', color: '#16A34A' },
-  'Blocked':     { bg: '#FEF2F2', color: '#DC2626' },
+  'Review': { bg: '#EFF6FF', color: '#2563EB' },
+  'Done': { bg: '#F0FDF4', color: '#16A34A' },
+  'Blocked': { bg: '#FEF2F2', color: '#DC2626' },
 }
 
 const STATUS_ICON = {
@@ -421,10 +421,10 @@ export default function TaskTable() {
         if (colName === 'Done') {
           const due = new Date(task.dueDate)
           const today = new Date()
-          today.setHours(0,0,0,0)
+          today.setHours(0, 0, 0, 0)
           if (!task.dueDate || today <= due) {
             import('canvas-confetti').then((confetti) => {
-              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
             })
           }
         }
@@ -433,14 +433,14 @@ export default function TaskTable() {
       if (colName === 'COMPLETE') {
         if (task.status !== 'Done') {
           updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
-          
+
           // Celebration Effect Check
           const due = new Date(task.dueDate)
           const today = new Date()
-          today.setHours(0,0,0,0)
+          today.setHours(0, 0, 0, 0)
           if (!task.dueDate || today <= due) {
             import('canvas-confetti').then((confetti) => {
-              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
             })
           }
         }
@@ -541,15 +541,15 @@ export default function TaskTable() {
 
   return (
     <>
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        className="hidden" 
-        onChange={handleDeptFileUpload} 
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleDeptFileUpload}
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
         {[
           { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
           { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB' },
@@ -564,16 +564,16 @@ export default function TaskTable() {
             transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
             cursor: 'pointer'
           }}
-          onMouseEnter={e => { 
-            e.currentTarget.style.transform = 'translateY(-2px)'; 
-            e.currentTarget.style.boxShadow = `0 12px 28px rgba(91,33,182,0.1)`; 
-            e.currentTarget.style.borderColor = `${s.color}80`;
-          }}
-          onMouseLeave={e => { 
-            e.currentTarget.style.transform = 'translateY(0)'; 
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.05)'; 
-            e.currentTarget.style.borderColor = `${s.color}40`;
-          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = `0 12px 28px rgba(91,33,182,0.1)`;
+              e.currentTarget.style.borderColor = `${s.color}80`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.05)';
+              e.currentTarget.style.borderColor = `${s.color}40`;
+            }}
           >
             <div>
               <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</p>
@@ -601,24 +601,24 @@ export default function TaskTable() {
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               fontFamily: 'Inter,sans-serif',
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = f === activeFilter ? '0 6px 16px rgba(91,33,182,0.4)' : '0 6px 16px rgba(0,0,0,0.08)';
-              if (f !== activeFilter) {
-                e.currentTarget.style.color = '#1E1B2E';
-              } else {
-                e.currentTarget.style.backgroundPosition = 'right center';
-              }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)';
-              if (f !== activeFilter) {
-                e.currentTarget.style.color = '#6B7280';
-              } else {
-                e.currentTarget.style.backgroundPosition = 'left center';
-              }
-            }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = f === activeFilter ? '0 6px 16px rgba(91,33,182,0.4)' : '0 6px 16px rgba(0,0,0,0.08)';
+                if (f !== activeFilter) {
+                  e.currentTarget.style.color = '#1E1B2E';
+                } else {
+                  e.currentTarget.style.backgroundPosition = 'right center';
+                }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)';
+                if (f !== activeFilter) {
+                  e.currentTarget.style.color = '#6B7280';
+                } else {
+                  e.currentTarget.style.backgroundPosition = 'left center';
+                }
+              }}
             >
               {f}
             </button>
@@ -669,13 +669,13 @@ export default function TaskTable() {
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div 
+      <div
         className="animate-fade-in-up"
         style={
-        viewMode === 'List'
-          ? { background: 'white', borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }
-          : { display: 'flex', flexDirection: 'column', flexShrink: 0 }
-      }>
+          viewMode === 'List'
+            ? { background: 'white', borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }
+            : { display: 'flex', flexDirection: 'column', flexShrink: 0 }
+        }>
         {/* ADVANCED FILTER BAR */}
         <div style={{
           background: viewMode === 'List' ? '#F8F9FA' : 'white',
@@ -685,9 +685,9 @@ export default function TaskTable() {
           borderBottom: viewMode === 'List' ? '1px solid #F5F3FF' : 'none'
         }}>
           {(() => {
-            const selectBaseStyle = { 
+            const selectBaseStyle = {
               padding: '10px 16px', borderRadius: 12, border: '1px solid #E5E7EB',
-              background: 'white', 
+              background: 'white',
               fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none'
             };
             return (
@@ -734,7 +734,7 @@ export default function TaskTable() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
-                    <SelectDropdown 
+                    <SelectDropdown
                       value={`Sort by: ${sortBy}`}
                       onChange={val => setSortBy(val.replace('Sort by: ', ''))}
                       options={[
@@ -754,9 +754,9 @@ export default function TaskTable() {
           })()}
         </div>
 
-      {/* ──────────────────────────────────────────────────────────── */}
-      {viewMode === 'List' ? (
-        <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 24 }}>
+        {/* ──────────────────────────────────────────────────────────── */}
+        {viewMode === 'List' ? (
+          <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 24 }}>
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
                 <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
@@ -808,8 +808,8 @@ export default function TaskTable() {
                                   <span className="material-symbols-outlined text-[20px]">folder_open</span>
                                   {dept}
                                   <span className="text-[12px]">{deptTasks.length}</span>
-                                  
-                                  <button 
+
+                                  <button
                                     onClick={(e) => handleDeptUploadClick(e, dept)}
                                     disabled={isUploading && uploadDept === dept}
                                     title={`Add attachment for ${dept} department`}
@@ -915,21 +915,21 @@ export default function TaskTable() {
                                           {task.title}
                                         </a>
                                         {task.isRecurring ? (
-                                          <span 
-                                            className="material-symbols-outlined text-[14px] text-primary" 
+                                          <span
+                                            className="material-symbols-outlined text-[14px] text-primary"
                                             title={`Recurring Task (${task.recurringSchedule})`}
                                           >
                                             event_repeat
                                           </span>
                                         ) : task.isAutoGenerated ? (
-                                          <span 
-                                            className="material-symbols-outlined text-[14px] text-primary/70" 
+                                          <span
+                                            className="material-symbols-outlined text-[14px] text-primary/70"
                                             title={`Auto-generated from recurring task`}
                                           >
                                             event_repeat
                                           </span>
                                         ) : (
-                                          <button 
+                                          <button
                                             onClick={(e) => {
                                               e.stopPropagation()
                                               setRecurringTaskObj(task)
@@ -937,7 +937,7 @@ export default function TaskTable() {
                                               setRecurringDay('Monday')
                                               setRecurringMonths([])
                                             }}
-                                            className="material-symbols-outlined text-[14px] text-outline hover:text-primary transition-colors focus:outline-none" 
+                                            className="material-symbols-outlined text-[14px] text-outline hover:text-primary transition-colors focus:outline-none"
                                             title="Make this a recurring task"
                                           >
                                             repeat
@@ -1043,10 +1043,10 @@ export default function TaskTable() {
                                         if (newStatus === 'Done') {
                                           const due = new Date(task.dueDate)
                                           const today = new Date()
-                                          today.setHours(0,0,0,0)
+                                          today.setHours(0, 0, 0, 0)
                                           if (!task.dueDate || today <= due) {
                                             import('canvas-confetti').then((confetti) => {
-                                              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 }})
+                                              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
                                             })
                                             setViewMode('Board')
                                           }
@@ -1127,337 +1127,337 @@ export default function TaskTable() {
                 </div>
               </div>
             </div>
-        </div>
-      ) : (
-        <div
-          ref={boardRef}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          className={`mt-6 overflow-x-auto select-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        >
-          <div className="flex gap-4 min-w-max items-start">
-            {(() => {
-              const deptCols = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMPLETE'];
-              const processCols = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
-              
-              const baseCols = boardGrouping === 'Process Stage' ? processCols : deptCols;
-              
-              const visibleCols = baseCols.filter(col => {
-                if (boardGrouping === 'Process Stage') return true;
-                if (col === 'COMMON' || col === 'COMPLETE') return true;
-                return filtered.some(t => t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === col);
-              });
+          </div>
+        ) : (
+          <div
+            ref={boardRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            className={`mt-6 overflow-x-auto select-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          >
+            <div className="flex gap-4 min-w-max items-start">
+              {(() => {
+                const deptCols = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMPLETE'];
+                const processCols = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
 
-              return visibleCols.map((colName) => {
-                const columnTasks = filtered.filter(t => {
-                  if (boardGrouping === 'Process Stage') return t.status === colName;
-                  if (colName === 'COMPLETE') return t.status === 'Done';
-                  return t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === colName;
+                const baseCols = boardGrouping === 'Process Stage' ? processCols : deptCols;
+
+                const visibleCols = baseCols.filter(col => {
+                  if (boardGrouping === 'Process Stage') return true;
+                  if (col === 'COMMON' || col === 'COMPLETE') return true;
+                  return filtered.some(t => t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === col);
                 });
 
-                const displayColName = boardGrouping === 'Process Stage' ? colName : (colName === 'WEBSITE' ? 'WEBSITE WORK' : colName === 'SEO' ? 'SEO WORK' : colName);
+                return visibleCols.map((colName) => {
+                  const columnTasks = filtered.filter(t => {
+                    if (boardGrouping === 'Process Stage') return t.status === colName;
+                    if (colName === 'COMPLETE') return t.status === 'Done';
+                    return t.status !== 'Done' && (t.department || 'COMMON').toUpperCase() === colName;
+                  });
 
-                // Single unified color map for dot + card border
-                const getColColor = (name) => {
-                  if (boardGrouping === 'Process Stage') {
-                    if (name === 'Pending')     return '#9CA3AF'; // grey
-                    if (name === 'In Progress') return '#F59E0B'; // amber
-                    if (name === 'Review')      return '#702c91'; // purple
-                    if (name === 'Done')        return '#10B981'; // green
-                    if (name === 'Blocked')     return '#EF4444'; // red
-                    return '#9CA3AF';
-                  }
-                  // Department grouping — green ONLY for COMPLETE
-                  if (name === 'COMPLETE')    return '#10B981'; // green
-                  if (name === 'SEO')         return '#6366F1'; // indigo
-                  if (name === 'SOCIAL MEDIA') return '#702c91'; // purple
-                  if (name === 'GRAPHIC')     return '#F43F5E'; // rose
-                  if (name === 'SALES')       return '#F59E0B'; // amber
-                  if (name === 'WEBSITE')     return '#3B82F6'; // blue
-                  if (name === 'HR')          return '#EC4899'; // pink
-                  if (name === 'ACCOUNT')     return '#0EA5E9'; // sky
-                  return '#9CA3AF'; // COMMON
-                };
+                  const displayColName = boardGrouping === 'Process Stage' ? colName : (colName === 'WEBSITE' ? 'WEBSITE WORK' : colName === 'SEO' ? 'SEO WORK' : colName);
 
-                const colColor = getColColor(colName);
+                  // Single unified color map for dot + card border
+                  const getColColor = (name) => {
+                    if (boardGrouping === 'Process Stage') {
+                      if (name === 'Pending') return '#9CA3AF'; // grey
+                      if (name === 'In Progress') return '#F59E0B'; // amber
+                      if (name === 'Review') return '#702c91'; // purple
+                      if (name === 'Done') return '#10B981'; // green
+                      if (name === 'Blocked') return '#EF4444'; // red
+                      return '#9CA3AF';
+                    }
+                    // Department grouping — green ONLY for COMPLETE
+                    if (name === 'COMPLETE') return '#10B981'; // green
+                    if (name === 'SEO') return '#6366F1'; // indigo
+                    if (name === 'SOCIAL MEDIA') return '#702c91'; // purple
+                    if (name === 'GRAPHIC') return '#F43F5E'; // rose
+                    if (name === 'SALES') return '#F59E0B'; // amber
+                    if (name === 'WEBSITE') return '#3B82F6'; // blue
+                    if (name === 'HR') return '#EC4899'; // pink
+                    if (name === 'ACCOUNT') return '#0EA5E9'; // sky
+                    return '#9CA3AF'; // COMMON
+                  };
 
-                return (
-                  <div
-                    key={colName}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, colName)}
-                    style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: colColor, flexShrink: 0 }} />
-                        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
-                        <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
+                  const colColor = getColColor(colName);
+
+                  return (
+                    <div
+                      key={colName}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, colName)}
+                      style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', background: 'transparent', borderRadius: 24, height: 'calc(100vh - 280px)' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: colColor, flexShrink: 0 }} />
+                          <h3 style={{ fontSize: 15, fontWeight: 800, color: '#1E1B2E', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{displayColName}</h3>
+                          <span style={{ background: '#F3F4F6', color: '#6B7280', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999 }}>{columnTasks.length}</span>
+                        </div>
                       </div>
-                    </div>
 
-                  {/* Column Body */}
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-                    {columnTasks.length === 0 && quickAddCol !== colName ? (
-                      <div className="text-center py-10 flex flex-col items-center justify-center opacity-40">
-                        <span className="material-symbols-outlined text-[32px] mb-2">inbox</span>
-                        <span className="text-label-sm">No tasks</span>
-                      </div>
-                    ) : (
-                      <>
-                        {columnTasks.map(task => {
-                          const priorityColors = {
-                            urgent: { bg: '#EF4444', color: 'white' },
-                            high: { bg: '#F59E0B', color: 'white' },
-                            medium: { bg: '#3B82F6', color: 'white' },
-                            low: { bg: '#10B981', color: 'white' },
-                          };
-                          const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
-                          
-                          // Card border color = same as column dot color
-                          const cardBorderColor = getColColor(colName);
+                      {/* Column Body */}
+                      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
+                        {columnTasks.length === 0 && quickAddCol !== colName ? (
+                          <div className="text-center py-10 flex flex-col items-center justify-center opacity-40">
+                            <span className="material-symbols-outlined text-[32px] mb-2">inbox</span>
+                            <span className="text-label-sm">No tasks</span>
+                          </div>
+                        ) : (
+                          <>
+                            {columnTasks.map(task => {
+                              const priorityColors = {
+                                urgent: { bg: '#EF4444', color: 'white' },
+                                high: { bg: '#F59E0B', color: 'white' },
+                                medium: { bg: '#3B82F6', color: 'white' },
+                                low: { bg: '#10B981', color: 'white' },
+                              };
+                              const pStyle = priorityColors[task.priority?.toLowerCase()] || { bg: '#3B82F6', color: 'white' };
 
-                          
-                          return (
-                            <div
-                              key={task.id}
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, task.id)}
-                              onDragEnd={handleDragEnd}
-                              onClick={() => navigate(`/tasks/${task.id}`)}
-                              style={{
-                                background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
-                                boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
-                                borderLeft: `4px solid ${cardBorderColor}`, cursor: 'grab', position: 'relative', zIndex: 1,
-                                transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s'
-                              }}
-                              onMouseEnter={e => {
-                                e.currentTarget.style.transform = 'translateY(-4px) rotate(-1deg)';
-                                e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,33,182,0.15)';
-                                e.currentTarget.style.zIndex = 100;
-                              }}
-                              onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'translateY(0) rotate(0)';
-                                e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.06)';
-                                e.currentTarget.style.zIndex = 1;
-                              }}
-                            >
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                                <span style={{ background: '#F0F3FF', color: '#702c91', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.department || 'COMMON'}</span>
-                                <span style={{ background: pStyle.bg, color: pStyle.color, fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.priority || 'Medium'}</span>
-                              </div>
-                              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1E1B2E', margin: '0 0 8px 0', lineHeight: 1.2, transition: 'color 0.2s' }}
-                                onMouseEnter={(e) => { e.currentTarget.style.color = '#702c91'; e.currentTarget.style.textDecoration = 'underline'; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.color = '#1E1B2E'; e.currentTarget.style.textDecoration = 'none'; }}
-                              >
-                                {task.title}
-                              </h3>
-                              <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.client}</p>
+                              // Card border color = same as column dot color
+                              const cardBorderColor = getColColor(colName);
 
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
-                                <div style={{ display: 'flex' }}>
-                                  {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
-                                    <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: i % 2 === 0 ? '#60A5FA' : '#ec008c', border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
-                                      {getInitials(a)}
-                                    </div>
-                                  ))}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
-                                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
-                                  <span style={{ fontSize: 11, fontWeight: 600, color: (!task.dueDate || task.dueDate === 'No') ? '#6B7280' : '#DC2626' }}>{task.dueDate}</span>
-                                </div>
-                              </div>
-                              
-                              {profile?.systemRole !== 'Employee' && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setTaskToDelete(task.id)
+
+                              return (
+                                <div
+                                  key={task.id}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, task.id)}
+                                  onDragEnd={handleDragEnd}
+                                  onClick={() => navigate(`/tasks/${task.id}`)}
+                                  style={{
+                                    background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
+                                    boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
+                                    borderLeft: `4px solid ${cardBorderColor}`, cursor: 'grab', position: 'relative', zIndex: 1,
+                                    transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s'
                                   }}
-                                  style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0, transition: 'opacity 0.2s', color: '#EF4444' }}
-                                  className="group-hover/card:opacity-100"
-                                  onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                                  onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
-                                  title="Delete Task"
+                                  onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-4px) rotate(-1deg)';
+                                    e.currentTarget.style.boxShadow = '0 12px 32px rgba(91,33,182,0.15)';
+                                    e.currentTarget.style.zIndex = 100;
+                                  }}
+                                  onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'translateY(0) rotate(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.06)';
+                                    e.currentTarget.style.zIndex = 1;
+                                  }}
                                 >
-                                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete_outline</span>
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                    <span style={{ background: '#F0F3FF', color: '#702c91', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.department || 'COMMON'}</span>
+                                    <span style={{ background: pStyle.bg, color: pStyle.color, fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, textTransform: 'uppercase' }}>{task.priority || 'Medium'}</span>
+                                  </div>
+                                  <h3 style={{ fontSize: 15, fontWeight: 700, color: '#1E1B2E', margin: '0 0 8px 0', lineHeight: 1.2, transition: 'color 0.2s' }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.color = '#702c91'; e.currentTarget.style.textDecoration = 'underline'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.color = '#1E1B2E'; e.currentTarget.style.textDecoration = 'none'; }}
+                                  >
+                                    {task.title}
+                                  </h3>
+                                  <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.client}</p>
 
-                        {/* Quick Add Input */}
-                        {quickAddCol === colName && (
-                          <div className="bg-surface-container-lowest p-3 rounded-xl border border-primary/50 shadow-md mt-2 flex flex-col gap-2">
-                            <div className="flex justify-between items-start">
-                              <input
-                                autoFocus
-                                type="text"
-                                placeholder="Task Name..."
-                                value={quickAddTitle}
-                                onChange={(e) => setQuickAddTitle(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleQuickAdd(colName)
-                                  if (e.key === 'Escape') {
-                                    setQuickAddCol(null)
-                                    setQuickAddTitle('')
-                                    setQuickAddAssignee([])
-                                    setQuickAddDueDate('')
-                                    setQuickAddPriority('Medium')
-                                  }
-                                }}
-                                className="w-full bg-transparent border-none text-body-sm text-on-surface focus:ring-0 outline-none placeholder:text-secondary font-bold"
-                              />
-                              <button onClick={() => handleQuickAdd(colName)} className="px-2.5 py-1 text-[11px] font-bold bg-primary text-on-primary rounded hover:opacity-90 transition-opacity ml-2 shrink-0 flex items-center gap-1">
-                                Save <span className="material-symbols-outlined text-[12px]">keyboard_return</span>
-                              </button>
-                            </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
+                                    <div style={{ display: 'flex' }}>
+                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
+                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: i % 2 === 0 ? '#60A5FA' : '#ec008c', border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
+                                          {getInitials(a)}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
+                                      <span style={{ fontSize: 11, fontWeight: 600, color: (!task.dueDate || task.dueDate === 'No') ? '#6B7280' : '#DC2626' }}>{task.dueDate}</span>
+                                    </div>
+                                  </div>
 
-                            <div className="text-[11px] text-secondary mb-1">
-                              {new Date().toLocaleString('en-US', { month: 'short', year: '2-digit' })}
-                            </div>
+                                  {profile?.systemRole !== 'Employee' && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setTaskToDelete(task.id)
+                                      }}
+                                      style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0, transition: 'opacity 0.2s', color: '#EF4444' }}
+                                      className="group-hover/card:opacity-100"
+                                      onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                                      onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+                                      title="Delete Task"
+                                    >
+                                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>delete_outline</span>
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
 
-                            <div className="flex items-start gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative flex-col">
-                              <div className="flex items-center gap-2 w-full">
-                                <span className="material-symbols-outlined text-[16px] shrink-0">person_add</span>
-
-                                <div className="flex flex-wrap gap-1 flex-1 items-center">
-                                  {quickAddAssignee.map(name => (
-                                    <span key={name} className="flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                      {getInitials(name)}
-                                      <button
-                                        onClick={() => setQuickAddAssignee(prev => prev.filter(n => n !== name))}
-                                        className="hover:text-red-500 flex items-center justify-center"
-                                      >
-                                        <span className="material-symbols-outlined text-[10px]">close</span>
-                                      </button>
-                                    </span>
-                                  ))}
-
-                                  <select
-                                    value=""
-                                    onChange={(e) => {
-                                      if (e.target.value && !quickAddAssignee.includes(e.target.value)) {
-                                        setQuickAddAssignee(prev => [...prev, e.target.value])
+                            {/* Quick Add Input */}
+                            {quickAddCol === colName && (
+                              <div className="bg-surface-container-lowest p-3 rounded-xl border border-primary/50 shadow-md mt-2 flex flex-col gap-2">
+                                <div className="flex justify-between items-start">
+                                  <input
+                                    autoFocus
+                                    type="text"
+                                    placeholder="Task Name..."
+                                    value={quickAddTitle}
+                                    onChange={(e) => setQuickAddTitle(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleQuickAdd(colName)
+                                      if (e.key === 'Escape') {
+                                        setQuickAddCol(null)
+                                        setQuickAddTitle('')
+                                        setQuickAddAssignee([])
+                                        setQuickAddDueDate('')
+                                        setQuickAddPriority('Medium')
                                       }
                                     }}
-                                    className="flex-1 min-w-[100px] bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
+                                    className="w-full bg-transparent border-none text-body-sm text-on-surface focus:ring-0 outline-none placeholder:text-secondary font-bold"
+                                  />
+                                  <button onClick={() => handleQuickAdd(colName)} className="px-2.5 py-1 text-[11px] font-bold bg-primary text-on-primary rounded hover:opacity-90 transition-opacity ml-2 shrink-0 flex items-center gap-1">
+                                    Save <span className="material-symbols-outlined text-[12px]">keyboard_return</span>
+                                  </button>
+                                </div>
+
+                                <div className="text-[11px] text-secondary mb-1">
+                                  {new Date().toLocaleString('en-US', { month: 'short', year: '2-digit' })}
+                                </div>
+
+                                <div className="flex items-start gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative flex-col">
+                                  <div className="flex items-center gap-2 w-full">
+                                    <span className="material-symbols-outlined text-[16px] shrink-0">person_add</span>
+
+                                    <div className="flex flex-wrap gap-1 flex-1 items-center">
+                                      {quickAddAssignee.map(name => (
+                                        <span key={name} className="flex items-center gap-1 bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                          {getInitials(name)}
+                                          <button
+                                            onClick={() => setQuickAddAssignee(prev => prev.filter(n => n !== name))}
+                                            className="hover:text-red-500 flex items-center justify-center"
+                                          >
+                                            <span className="material-symbols-outlined text-[10px]">close</span>
+                                          </button>
+                                        </span>
+                                      ))}
+
+                                      <select
+                                        value=""
+                                        onChange={(e) => {
+                                          if (e.target.value && !quickAddAssignee.includes(e.target.value)) {
+                                            setQuickAddAssignee(prev => [...prev, e.target.value])
+                                          }
+                                        }}
+                                        className="flex-1 min-w-[100px] bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
+                                      >
+                                        <option value="">{quickAddAssignee.length === 0 ? 'Add assignee' : 'Add more...'}</option>
+                                        {employees?.filter(emp => !quickAddAssignee.includes(emp.name)).map(emp => (
+                                          <option key={emp.id} value={emp.name}>{emp.name}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="flex items-center gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative cursor-pointer"
+                                  onClick={(e) => {
+                                    const input = e.currentTarget.querySelector('input');
+                                    if (input) {
+                                      input.type = 'date';
+                                      input.focus();
+                                      try { input.showPicker(); } catch (err) { }
+                                    }
+                                  }}
+                                >
+                                  <span className="material-symbols-outlined text-[16px] shrink-0">calendar_add_on</span>
+                                  <input
+                                    type="text"
+                                    onClick={(e) => {
+                                      e.target.type = 'date';
+                                      try { e.target.showPicker(); } catch (err) { }
+                                    }}
+                                    onFocus={(e) => {
+                                      e.target.type = 'date';
+                                      try { e.target.showPicker(); } catch (err) { }
+                                    }}
+                                    onBlur={(e) => {
+                                      if (!e.target.value) e.target.type = 'text'
+                                    }}
+                                    value={quickAddDueDate}
+                                    onChange={(e) => {
+                                      if (e.target.value) {
+                                        const dateObj = new Date(e.target.value)
+                                        if (dateObj.getDay() === 0) { // 0 is Sunday
+                                          addToast("Sundays cannot be selected as due dates.", 'error')
+                                          setQuickAddDueDate('')
+                                          return
+                                        }
+                                      }
+                                      setQuickAddDueDate(e.target.value)
+                                    }}
+                                    className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface py-1"
+                                    placeholder="Due Date"
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative">
+                                  <span className="material-symbols-outlined text-[16px] shrink-0">flag</span>
+                                  <select
+                                    value={quickAddPriority}
+                                    onChange={(e) => setQuickAddPriority(e.target.value)}
+                                    className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
                                   >
-                                    <option value="">{quickAddAssignee.length === 0 ? 'Add assignee' : 'Add more...'}</option>
-                                    {employees?.filter(emp => !quickAddAssignee.includes(emp.name)).map(emp => (
-                                      <option key={emp.id} value={emp.name}>{emp.name}</option>
-                                    ))}
+                                    <option value="Medium">Add priority</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
                                   </select>
                                 </div>
+
+                                <div className="flex justify-start gap-2 mt-2">
+                                  <button onClick={() => {
+                                    setQuickAddCol(null);
+                                    setQuickAddTitle('');
+                                    setQuickAddAssignee([]);
+                                    setQuickAddDueDate('');
+                                    setQuickAddPriority('Medium');
+                                  }} className="px-3 py-1.5 text-[11px] font-bold text-secondary hover:bg-surface-container-high rounded transition-colors w-full border border-outline-variant/30">Cancel</button>
+                                </div>
                               </div>
-                            </div>
-
-                            <div
-                              className="flex items-center gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative cursor-pointer"
-                              onClick={(e) => {
-                                const input = e.currentTarget.querySelector('input');
-                                if (input) {
-                                  input.type = 'date';
-                                  input.focus();
-                                  try { input.showPicker(); } catch (err) { }
-                                }
-                              }}
-                            >
-                              <span className="material-symbols-outlined text-[16px] shrink-0">calendar_add_on</span>
-                              <input
-                                type="text"
-                                onClick={(e) => {
-                                  e.target.type = 'date';
-                                  try { e.target.showPicker(); } catch (err) { }
-                                }}
-                                onFocus={(e) => {
-                                  e.target.type = 'date';
-                                  try { e.target.showPicker(); } catch (err) { }
-                                }}
-                                onBlur={(e) => {
-                                  if (!e.target.value) e.target.type = 'text'
-                                }}
-                                value={quickAddDueDate}
-                                onChange={(e) => {
-                                  if (e.target.value) {
-                                    const dateObj = new Date(e.target.value)
-                                    if (dateObj.getDay() === 0) { // 0 is Sunday
-                                      addToast("Sundays cannot be selected as due dates.", 'error')
-                                      setQuickAddDueDate('')
-                                      return
-                                    }
-                                  }
-                                  setQuickAddDueDate(e.target.value)
-                                }}
-                                className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface py-1"
-                                placeholder="Due Date"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative">
-                              <span className="material-symbols-outlined text-[16px] shrink-0">flag</span>
-                              <select
-                                value={quickAddPriority}
-                                onChange={(e) => setQuickAddPriority(e.target.value)}
-                                className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
-                              >
-                                <option value="Medium">Add priority</option>
-                                <option value="Urgent">Urgent</option>
-                                <option value="High">High</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Low">Low</option>
-                              </select>
-                            </div>
-
-                            <div className="flex justify-start gap-2 mt-2">
-                              <button onClick={() => {
-                                setQuickAddCol(null);
-                                setQuickAddTitle('');
-                                setQuickAddAssignee([]);
-                                setQuickAddDueDate('');
-                                setQuickAddPriority('Medium');
-                              }} className="px-3 py-1.5 text-[11px] font-bold text-secondary hover:bg-surface-container-high rounded transition-colors w-full border border-outline-variant/30">Cancel</button>
-                            </div>
-                          </div>
+                            )}
+                          </>
                         )}
-                      </>
-                    )}
 
-                    {/* Add Task Button at bottom of column body */}
-                    {quickAddCol !== colName && (
-                      <button
-                        onClick={() => {
-                          setQuickAddCol(colName)
-                          setQuickAddTitle('')
-                        }}
-                        className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-[13px] font-bold text-[#9CA3AF] hover:text-[#702c91] border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:bg-[#F5F3FF] rounded-full transition-all"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">add_circle</span>
-                        Add Task
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })
-          })()}
+                        {/* Add Task Button at bottom of column body */}
+                        {quickAddCol !== colName && (
+                          <button
+                            onClick={() => {
+                              setQuickAddCol(colName)
+                              setQuickAddTitle('')
+                            }}
+                            className="w-full mt-2 py-3 flex items-center justify-center gap-2 text-[13px] font-bold text-[#9CA3AF] hover:text-[#702c91] border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:bg-[#F5F3FF] rounded-full transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                            Add Task
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+              })()}
 
-            {/* Add new group placeholder */}
-            <div style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 280px)', padding: '0 8px' }}>
-              <div style={{ height: 36, marginBottom: 16 }}></div>
-              <button className="w-full h-[140px] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:text-[#702c91] text-[#9CA3AF] text-[14px] font-bold rounded-[24px] transition-all bg-[#F9FAFB]/50 hover:bg-[#F5F3FF]">
-                <span className="material-symbols-outlined text-[28px]">add_box</span>
-                Add new group
-              </button>
+              {/* Add new group placeholder */}
+              <div style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 280px)', padding: '0 8px' }}>
+                <div style={{ height: 36, marginBottom: 16 }}></div>
+                <button className="w-full h-[140px] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:text-[#702c91] text-[#9CA3AF] text-[14px] font-bold rounded-[24px] transition-all bg-[#F9FAFB]/50 hover:bg-[#F5F3FF]">
+                  <span className="material-symbols-outlined text-[28px]">add_box</span>
+                  Add new group
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* FAB is now rendered by the parent page outside the scroll container */}
+        {/* FAB is now rendered by the parent page outside the scroll container */}
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -1499,7 +1499,7 @@ export default function TaskTable() {
       {/* Make Recurring Modal */}
       {recurringTaskObj && (
         <div className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <form 
+          <form
             onSubmit={handleMakeRecurring}
             className="bg-surface-container-lowest w-full max-w-[500px] rounded-xl shadow-2xl p-6 flex flex-col gap-6 animate-scaleIn border border-outline-variant"
           >
@@ -1584,7 +1584,7 @@ export default function TaskTable() {
                   </div>
                 </div>
               )}
-              
+
               {recurringSchedule === 'Yearly' && (
                 <div className="flex flex-col justify-center text-[13px] text-secondary italic bg-surface-container-low p-3 rounded-lg border border-outline-variant/50">
                   This task will be automatically created every January 1st.
