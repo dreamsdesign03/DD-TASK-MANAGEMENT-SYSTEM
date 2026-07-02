@@ -296,6 +296,39 @@ export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full",
   )
 }
 
+const CHAT_BACKGROUNDS = [
+  {
+    id: 'default',
+    name: 'Subtle Purple Dots',
+    bgColor: '#F0EDF8',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23702c91' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
+  },
+  {
+    id: 'whatsapp_classic',
+    name: 'Classic Beige',
+    bgColor: '#efeae2',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M0 12L12 0H6L0 6M12 12V6L6 12'/%3E%3C/g%3E%3C/svg%3E")`
+  },
+  {
+    id: 'doodles',
+    name: 'Doodles Style',
+    bgColor: '#fdfbf7',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23702c91' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+  },
+  {
+    id: 'dark',
+    name: 'Dark Mode',
+    bgColor: '#1E1B2E',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
+  },
+  {
+    id: 'geometry',
+    name: 'Geometry',
+    bgColor: '#f9f9ff',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l40 40M40 0L0 40' stroke='%23702c91' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E")`
+  }
+]
+
 export default function ChatPage() {
   const {
     personalChats,
@@ -321,6 +354,10 @@ export default function ChatPage() {
     setIsSidebarOpen,
     addToast
   } = useApp()
+
+  const [selectedBgId, setSelectedBgId] = useState(localStorage.getItem('dd_chat_bg') || 'default')
+  const [showBgModal, setShowBgModal] = useState(false)
+
   const ALL_EMPLOYEES = employees || []
   const location = useLocation()
   const navigate = useNavigate()
@@ -1557,6 +1594,13 @@ export default function ChatPage() {
                   >
                     <span className="material-symbols-outlined text-[20px]">search</span>
                   </button>
+                  <button
+                    onClick={() => setShowBgModal(true)}
+                    className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#702c91] transition-colors flex"
+                    title="Change Chat Wallpaper"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">wallpaper</span>
+                  </button>
                 </div>
               </header>
 
@@ -1564,8 +1608,8 @@ export default function ChatPage() {
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar"
                 style={{
-                  backgroundColor: '#F0EDF8',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23702c91' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
+                  backgroundColor: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgColor || '#F0EDF8',
+                  backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgImage || 'none'
                 }}
               >
                 {activeMessages.length === 0 ? (
@@ -2015,6 +2059,59 @@ export default function ChatPage() {
           }}
           allChats={[...personalChats, ...groupChats]}
         />
+      )}
+
+      {/* Background Selection Modal */}
+      {showBgModal && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-scale-in flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">wallpaper</span>
+                Chat Wallpaper
+              </h2>
+              <button
+                onClick={() => setShowBgModal(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4 bg-[#f9f9ff] max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {CHAT_BACKGROUNDS.map((bg) => (
+                <button
+                  key={bg.id}
+                  onClick={() => {
+                    setSelectedBgId(bg.id)
+                    localStorage.setItem('dd_chat_bg', bg.id)
+                  }}
+                  className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${
+                    selectedBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
+                  }`}
+                  style={{ backgroundColor: bg.bgColor, backgroundImage: bg.bgImage }}
+                  title={bg.name}
+                >
+                  {selectedBgId === bg.id && (
+                    <div className="absolute top-2 right-2 w-6 h-6 bg-[#702c91] rounded-full flex items-center justify-center shadow-sm">
+                      <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-md p-2 text-center">
+                    <span className="text-white text-[11px] font-bold tracking-wide">{bg.name}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="px-6 py-4 bg-white border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => setShowBgModal(false)}
+                className="px-6 py-2.5 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
