@@ -1336,7 +1336,7 @@ export default function ChatPage() {
 
 
   return (
-    <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+    <div className="bg-[#f9f9ff] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -1559,10 +1559,9 @@ export default function ChatPage() {
                 </div>
               </header>
 
-              {/* Messages list */}
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar bg-[#f9f9ff]"
+                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar bg-white"
               >
                 {activeMessages.length === 0 ? (
                   <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center text-center p-6">
@@ -1666,11 +1665,11 @@ export default function ChatPage() {
               </div>
 
               {/* Input bar */}
-              <div className="p-4 border-t border-outline-variant bg-surface-container-lowest flex-shrink-0 flex flex-col gap-2 relative">
+              <div className="p-4 border-t border-[#F3F1FA] bg-white flex-shrink-0 flex flex-col gap-2 relative">
                 {/* Mention Dropdown Popover */}
                 {mentionIndex !== -1 && activeTab === 'groups' && (
-                  <div ref={mentionDropdownRef} className="absolute bottom-16 left-4 z-50 bg-surface-container-lowest border border-outline-variant shadow-xl rounded-xl p-2 w-[240px] max-h-[180px] overflow-y-auto custom-scrollbar flex flex-col gap-1 bg-surface-container-lowest animate-scale-in">
-                    <div className="text-[11px] font-bold text-outline px-2 py-1 uppercase tracking-wider border-b border-outline-variant mb-1">
+                  <div ref={mentionDropdownRef} className="absolute bottom-16 left-4 z-50 bg-white border border-[#E5E7EB] shadow-xl rounded-xl p-2 w-[240px] max-h-[180px] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-scale-in">
+                    <div className="text-[11px] font-bold text-[#6B7280] px-2 py-1 uppercase tracking-wider border-b border-[#F3F1FA] mb-1">
                       Mention Member
                     </div>
                     {[{ name: 'all', role: 'Notify everyone', avatar: null }, ...activeMembersList]
@@ -1679,37 +1678,37 @@ export default function ChatPage() {
                         <button
                           key={m.name}
                           onClick={() => selectMention(m)}
-                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-container-low transition-colors text-left w-full"
+                          className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left w-full border-none cursor-pointer bg-transparent"
                         >
                           {m.name === 'all' ? (
-                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-[#F3F1FA] flex items-center justify-center text-[#702c91] flex-shrink-0">
                               <span className="material-symbols-outlined text-[14px]">groups</span>
                             </div>
                           ) : (
                             renderAvatar(m.avatar, m.name, "w-6 h-6 rounded-full", "text-[9px]")
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-label-md font-semibold truncate leading-tight capitalize">{m.name}</p>
-                            {m.role && <p className="text-[9px] text-outline truncate block">{m.role}</p>}
+                            <p className="text-[13px] font-semibold text-[#1E1B2E] m-0 truncate leading-tight capitalize">{m.name}</p>
+                            {m.role && <p className="text-[10px] text-[#9CA3AF] m-0 truncate block">{m.role}</p>}
                           </div>
                         </button>
                       ))}
                     {[{ name: 'all' }, ...activeMembersList].filter(m => m.name.toLowerCase().includes(mentionFilter.toLowerCase())).length === 0 && (
-                      <p className="text-[11px] text-outline text-center py-2">No matching members</p>
+                      <p className="text-[11px] text-[#9CA3AF] text-center py-2 m-0">No matching members</p>
                     )}
                   </div>
                 )}
 
                 {/* Quote Reply Target Preview */}
                 {replyTarget && (
-                  <div className="px-4 py-2 border-l-4 border-primary bg-surface-container-low rounded-r-xl flex items-center justify-between gap-3 animate-fade-in">
+                  <div className="px-4 py-2 border-l-4 border-[#702c91] bg-[#F9FAFB] rounded-r-xl flex items-center justify-between gap-3 animate-fade-in">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-primary">Replying to {replyTarget.sender || 'You'}</p>
-                      <p className="text-body-sm text-outline truncate leading-normal">{replyTarget.text}</p>
+                      <p className="text-[11px] font-bold text-[#702c91] m-0">Replying to {replyTarget.sender || 'You'}</p>
+                      <p className="text-[13px] text-[#6B7280] m-0 truncate leading-normal">{replyTarget.text}</p>
                     </div>
                     <button
                       onClick={() => setReplyTarget(null)}
-                      className="text-outline hover:text-error transition-colors flex items-center justify-center flex-shrink-0"
+                      className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#DC2626] transition-colors flex items-center justify-center flex-shrink-0"
                     >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
@@ -1718,12 +1717,12 @@ export default function ChatPage() {
 
                 {/* Editing Message Indicator Preview */}
                 {editingMessage && (
-                  <div className="px-4 py-2 border-l-4 border-warning bg-surface-container-low rounded-r-xl flex items-center justify-between gap-3 animate-fade-in">
+                  <div className="px-4 py-2 border-l-4 border-[#F59E0B] bg-[#F9FAFB] rounded-r-xl flex items-center justify-between gap-3 animate-fade-in">
                     <div className="min-w-0 flex-1 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-warning text-[20px]">edit</span>
+                      <span className="material-symbols-outlined text-[#F59E0B] text-[20px]">edit</span>
                       <div className="min-w-0">
-                        <p className="text-[11px] font-bold text-warning">Editing Message</p>
-                        <p className="text-body-sm text-outline truncate leading-normal">
+                        <p className="text-[11px] font-bold text-[#F59E0B] m-0">Editing Message</p>
+                        <p className="text-[13px] text-[#6B7280] m-0 truncate leading-normal">
                           Original: {editingMessage.text}
                         </p>
                       </div>
@@ -1733,7 +1732,7 @@ export default function ChatPage() {
                         setEditingMessage(null)
                         setText('')
                       }}
-                      className="text-outline hover:text-error transition-colors flex items-center justify-center flex-shrink-0"
+                      className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#DC2626] transition-colors flex items-center justify-center flex-shrink-0"
                     >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
@@ -1742,26 +1741,25 @@ export default function ChatPage() {
 
                 {/* File Attachment Preview */}
                 {attachedFile && (
-                  <div className="px-4 py-2 border border-outline-variant bg-surface-container-low rounded-xl flex items-center justify-between gap-3 animate-fade-in">
+                  <div className="px-4 py-2 border border-[#E5E7EB] bg-[#F9FAFB] rounded-xl flex items-center justify-between gap-3 animate-fade-in">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="material-symbols-outlined text-primary">
+                      <span className="material-symbols-outlined text-[#702c91]">
                         {attachedFile.type.startsWith('image/') ? 'image' : 'description'}
                       </span>
-                      <span className="text-body-sm truncate font-semibold text-on-surface">
+                      <span className="text-[13px] truncate font-semibold text-[#1E1B2E] m-0">
                         {attachedFile.name}
                       </span>
                     </div>
                     <button
                       onClick={() => setAttachedFile(null)}
-                      className="text-outline hover:text-error transition-colors flex items-center justify-center"
+                      className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#DC2626] transition-colors flex items-center justify-center"
                     >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                   </div>
                 )}
 
-                <footer className="p-4 border-t border-[#F3F1FA] shrink-0">
-                  <div className="border border-[#E5E7EB] rounded-full p-1 pl-4 flex items-center gap-3 bg-white shadow-sm focus-within:border-purple-400 transition-colors relative">
+                <div className="border border-[#E5E7EB] rounded-full p-1 pl-4 flex items-center gap-3 bg-white shadow-sm focus-within:border-[#702c91]/50 transition-colors relative">
                     {/* Emoji Picker Popover */}
                     <div ref={emojiPickerRef} className="relative flex items-center">
                       <button
@@ -1819,7 +1817,6 @@ export default function ChatPage() {
                       <span className="material-symbols-outlined text-[18px]">send</span>
                     </button>
                   </div>
-                </footer>
               </div>
             </>
           ) : (
