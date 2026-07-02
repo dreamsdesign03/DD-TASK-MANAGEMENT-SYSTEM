@@ -1153,7 +1153,7 @@ export default function TaskDetailPage() {
                     )}
                     <textarea
                       ref={replyInputRef}
-                      className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E]"
+                      className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] bg-[#F9F4FB] focus:bg-[#F3E8F7] transition-colors"
                       placeholder="Write your reply... (type @ to mention)"
                       value={reply}
                       onChange={handleReplyChange}
@@ -1196,7 +1196,7 @@ export default function TaskDetailPage() {
                       <button
                         onClick={sendReply}
                         disabled={isSendingReply || (!reply.trim() && !replyAttachment)}
-                        className="bg-[#ec008c] hover:bg-[#d4007d] text-white border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="btn-gradient border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
                       >
                         {isSendingReply ? (
                           <>
