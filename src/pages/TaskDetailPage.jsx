@@ -6,6 +6,7 @@ import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import { processMessagesList, renderMessageText } from './ChatPage'
 import { renderAvatar } from '../utils/avatar'
+import CHAT_BACKGROUNDS from '../data/chatBackgrounds'
 /* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PriorityBadge({ priority }) {
   const map = {
@@ -119,6 +120,17 @@ export default function TaskDetailPage() {
 
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editDescriptionContent, setEditDescriptionContent] = useState('')
+
+  // Chat Background State
+  const [chatBackgrounds, setChatBackgrounds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('dd_chat_bgs_tasks')
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  })
+  const [showBgModal, setShowBgModal] = useState(false)
 
   // Recurring Task Modal State
   const [showRecurringModal, setShowRecurringModal] = useState(false)
@@ -1024,9 +1036,18 @@ export default function TaskDetailPage() {
 
               {/* Comments / Replies Section */}
               <div className="mt-8">
-                <h3 className="text-[13px] font-black text-[#702c91] uppercase tracking-wider mb-6 flex items-center gap-2 m-0">
-                  Task Replies & Updates
-                </h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-[13px] font-black text-[#702c91] uppercase tracking-wider flex items-center gap-2 m-0">
+                    Task Replies & Updates
+                  </h3>
+                  <button
+                    onClick={() => setShowBgModal(true)}
+                    className="border-none cursor-pointer bg-transparent text-[#9CA3AF] hover:text-[#702c91] transition-colors flex items-center gap-1 p-1"
+                    title="Change Chat Wallpaper"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">wallpaper</span>
+                  </button>
+                </div>
 
                 <div className="flex justify-center mb-6">
                   <button className="bg-transparent border-none text-[#702c91] font-bold text-[12px] hover:underline cursor-pointer p-0">
@@ -1034,7 +1055,17 @@ export default function TaskDetailPage() {
                   </button>
                 </div>
 
-                <div ref={scrollRef} className="space-y-8 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                <div ref={scrollRef} className="space-y-8 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar"
+                  style={{
+                    backgroundColor: CHAT_BACKGROUNDS.find(bg => bg.id === (chatBackgrounds[task.id] || 'default'))?.bgColor || '#f9f9ff',
+                    backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === (chatBackgrounds[task.id] || 'default'))?.bgImage || 'none',
+                    backgroundSize: CHAT_BACKGROUNDS.find(bg => bg.id === (chatBackgrounds[task.id] || 'default'))?.bgSize || 'auto',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: CHAT_BACKGROUNDS.find(bg => bg.id === (chatBackgrounds[task.id] || 'default'))?.bgSize === 'auto' ? 'repeat' : 'no-repeat',
+                    borderRadius: 12,
+                    padding: 12
+                  }}
+                >
                   {allMessages.map((m, index) => {
                     if (m.type === 'system' || m.type === 'divider') {
                       return (
@@ -1042,7 +1073,7 @@ export default function TaskDetailPage() {
                           <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-[#E5E7EB]"></div>
                           </div>
-                          <div className="relative bg-[#f9f9ff] px-4">
+                          <div className="relative bg-white/80 backdrop-blur-sm px-4">
                             <p className={`text-[12px] text-[#6B6B6B] ${m.type === 'system' ? 'italic' : 'font-bold'} font-['Inter']`}>
                               {m.label || m.text}
                             </p>
@@ -1760,6 +1791,69 @@ export default function TaskDetailPage() {
                 className="px-5 py-2 btn-gradient rounded-lg font-label-md shadow-md active:scale-95 transition-all text-sm font-bold"
               >
                 OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Background Selection Modal */}
+      {showBgModal && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[560px] overflow-hidden animate-scale-in flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">wallpaper</span>
+                Chat Wallpaper
+              </h2>
+              <button
+                onClick={() => setShowBgModal(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4 bg-[#f9f9ff] max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {CHAT_BACKGROUNDS.map((bg) => {
+                const currentBgId = chatBackgrounds[task.id] || 'default'
+                return (
+                  <button
+                    key={bg.id}
+                    onClick={() => {
+                      const newBgs = { ...chatBackgrounds, [task.id]: bg.id }
+                      setChatBackgrounds(newBgs)
+                      localStorage.setItem('dd_chat_bgs_tasks', JSON.stringify(newBgs))
+                    }}
+                    className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${
+                      currentBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
+                    }`}
+                    style={{
+                      backgroundColor: bg.bgColor,
+                      backgroundImage: bg.bgImage,
+                      backgroundSize: bg.bgSize || 'auto',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: bg.bgSize === 'auto' ? 'repeat' : 'no-repeat'
+                    }}
+                    title={bg.name}
+                  >
+                    {currentBgId === bg.id && (
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-[#702c91] rounded-full flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-md p-2 text-center">
+                      <span className="text-white text-[11px] font-bold tracking-wide">{bg.name}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="px-6 py-4 bg-white border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => setShowBgModal(false)}
+                className="px-6 py-2.5 btn-gradient border-none rounded-lg font-bold shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
+              >
+                Done
               </button>
             </div>
           </div>
