@@ -1394,6 +1394,7 @@ export default function ChatPage() {
                 </button>
               )
             })}
+            </div>
           </div>
 
           {/* List scrollarea */}
@@ -1965,7 +1966,6 @@ export default function ChatPage() {
             </div>
           </aside>
         )}
-          </div>
         </div>
       </main>
 
