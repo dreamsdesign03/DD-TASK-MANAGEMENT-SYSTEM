@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
+import SelectDropdown from '../components/SelectDropdown'
 
 export default function ProjectOverviewPage() {
   const { projectName } = useParams()
@@ -223,30 +224,8 @@ export default function ProjectOverviewPage() {
 
               {/* Filters */}
               <div className="flex items-center gap-6 mb-1">
-                <div className="relative cursor-pointer group">
-                  <select
-                    value={filterTaskId}
-                    onChange={(e) => setFilterTaskId(e.target.value)}
-                    className="appearance-none bg-transparent text-[13px] font-extrabold text-[#4B5563] group-hover:text-[#1E1B2E] outline-none cursor-pointer pr-5 z-10 relative"
-                  >
-                    {uniqueTaskIds.map(id => (
-                      <option key={id} value={id}>{id}</option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-[#4B5563] group-hover:text-[#1E1B2E] pointer-events-none text-[16px]">expand_more</span>
-                </div>
-                <div className="relative cursor-pointer group">
-                  <select
-                    value={filterDept}
-                    onChange={(e) => setFilterDept(e.target.value)}
-                    className="appearance-none bg-transparent text-[13px] font-extrabold text-[#4B5563] group-hover:text-[#1E1B2E] outline-none cursor-pointer pr-5 z-10 relative"
-                  >
-                    {deduplicatedDepts.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-0 top-1/2 -translate-y-1/2 text-[#4B5563] group-hover:text-[#1E1B2E] pointer-events-none text-[16px]">expand_more</span>
-                </div>
+                <SelectDropdown value={filterTaskId} onChange={setFilterTaskId} options={uniqueTaskIds} style={{ width: 160 }} />
+                <SelectDropdown value={filterDept} onChange={setFilterDept} options={deduplicatedDepts} style={{ width: 180 }} />
               </div>
             </div>
           </div>

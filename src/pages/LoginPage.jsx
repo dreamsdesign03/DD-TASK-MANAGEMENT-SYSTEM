@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
+import SelectDropdown from '../components/SelectDropdown'
 
 const LOGO_SRC = '/logo.png'
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec'
@@ -425,16 +426,7 @@ export default function LoginPage() {
                     <label htmlFor="phone" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
                   </div>
                   <div className="relative">
-                    <select
-                      id="systemRole" required value={systemRole} onChange={(e) => setSystemRole(e.target.value)}
-                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
-                    >
-                      <option value="Employee" className="bg-white text-[#1E1B2E]">Employee</option>
-                      <option value="Manager" className="bg-white text-[#1E1B2E]">Manager</option>
-                      <option value="Admin" className="bg-white text-[#1E1B2E]">Admin</option>
-                    </select>
-                    <label htmlFor="systemRole" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-[24px] scale-[0.85] top-1/2 left-4 z-10 bg-white px-1 pointer-events-none text-[#702c91]">System Role</label>
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">expand_more</span>
+                    <SelectDropdown value={systemRole} onChange={setSystemRole} options={['Employee', 'Manager', 'Admin']} style={{ width: '100%', height: 54, fontSize: 14 }} />
                   </div>
                 </>
               )}

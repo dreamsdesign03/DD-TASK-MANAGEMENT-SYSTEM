@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
+import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
@@ -173,20 +174,7 @@ export default function MonthlyReportPage() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[26px] font-bold text-[#702c91] m-0">Monthly Report Analysis</h2>
               
-              <div className="relative flex items-center gap-2 px-4 py-2 bg-white border border-[#E5E7EB] rounded-lg text-[14px] font-semibold text-[#4B5563] shadow-sm hover:bg-gray-50 transition-colors">
-                <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-                <span>{currentMonth}</span>
-                <span className="material-symbols-outlined text-[18px]">expand_more</span>
-                <select
-                  value={currentMonth}
-                  onChange={(e) => setCurrentMonth(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                >
-                  {availableMonths.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
+              <SelectDropdown value={currentMonth} onChange={setCurrentMonth} options={availableMonths} style={{ width: 220 }} />
             </div>
 
             {/* Filter Tabs */}
@@ -211,25 +199,13 @@ export default function MonthlyReportPage() {
               {filterType === 'Company' && (
                 <div className="flex items-center gap-3">
                   <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select Client:</label>
-                  <select
-                    value={selectedValue}
-                    onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-1.5 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[200px]"
-                  >
-                    {clients.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200 }} />
                 </div>
               )}
               {filterType === 'User' && (
                 <div className="flex items-center gap-3">
                   <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select User:</label>
-                  <select
-                    value={selectedValue}
-                    onChange={(e) => setSelectedValue(e.target.value)}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-1.5 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[200px]"
-                  >
-                    {users.map(u => <option key={u} value={u}>{u}</option>)}
-                  </select>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200 }} />
                 </div>
               )}
             </div>

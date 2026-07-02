@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
+import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import { processMessagesList, renderMessageText } from './ChatPage'
 import { renderAvatar } from '../utils/avatar'
@@ -982,20 +983,7 @@ export default function TaskDetailPage() {
                     <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Assignee Selector */}
-                        <div className="relative group">
-                          <select
-                            value={newSubtaskAssignee}
-                            onChange={e => setNewSubtaskAssignee(e.target.value)}
-                            className="appearance-none bg-surface-container hover:bg-surface-container-high text-[12px] font-medium border border-outline-variant/50 rounded-lg focus:ring-1 focus:ring-primary outline-none py-1.5 pl-7 pr-6 cursor-pointer text-secondary group-hover:text-primary transition-colors h-[32px]"
-                            title="Assign to"
-                          >
-                            <option value="">Unassigned</option>
-                            {uniqueTeamMembers.map(m => (
-                              <option key={m} value={m}>{m}</option>
-                            ))}
-                          </select>
-                          <span className="material-symbols-outlined text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary group-hover:text-primary transition-colors">person_add</span>
-                        </div>
+                        <SelectDropdown value={newSubtaskAssignee} onChange={setNewSubtaskAssignee} options={[{ value: '', label: 'Unassigned' }, ...uniqueTeamMembers.map(m => ({ value: m, label: m }))]} style={{ minHeight: 32, fontSize: 12 }} />
 
                         {/* Due Date Selector */}
                         <div className="relative group flex items-center bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 rounded-lg h-[32px] overflow-hidden transition-colors w-[120px]">
@@ -1010,20 +998,7 @@ export default function TaskDetailPage() {
                         </div>
 
                         {/* Priority Selector */}
-                        <div className="relative group">
-                          <select
-                            value={newSubtaskPriority}
-                            onChange={e => setNewSubtaskPriority(e.target.value)}
-                            className="appearance-none bg-surface-container hover:bg-surface-container-high text-[12px] font-medium border border-outline-variant/50 rounded-lg focus:ring-1 focus:ring-primary outline-none py-1.5 pl-7 pr-6 cursor-pointer text-secondary group-hover:text-primary transition-colors h-[32px]"
-                            title="Priority"
-                          >
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                            <option value="Urgent">Urgent</option>
-                          </select>
-                          <span className="material-symbols-outlined text-[14px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary group-hover:text-primary transition-colors">flag</span>
-                        </div>
+                        <SelectDropdown value={newSubtaskPriority} onChange={setNewSubtaskPriority} options={['Low', 'Medium', 'High', 'Urgent']} style={{ minHeight: 32, fontSize: 12 }} />
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -1323,22 +1298,7 @@ export default function TaskDetailPage() {
                       </h3>
                     </div>
                     <div className="p-5 flex flex-col gap-4">
-                      <div className="relative">
-                        <select
-                          value={localStatus}
-                          onChange={(e) => setLocalStatus(e.target.value)}
-                          className="w-full bg-white border border-[#E5E7EB] rounded-lg px-4 py-3 text-[13px] font-medium text-[#1E1B2E] focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] outline-none appearance-none cursor-pointer transition-colors"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Review">Review</option>
-                          <option value="Done">Done</option>
-                          <option value="Blocked">Blocked</option>
-                        </select>
-                        <span className="material-symbols-outlined absolute right-3 top-3 text-gray-400 pointer-events-none text-[20px]">
-                          expand_more
-                        </span>
-                      </div>
+                      <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
 
                       <button
                         onClick={handleSaveStatus}
@@ -1699,19 +1659,15 @@ export default function TaskDetailPage() {
                 <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
                   Recurring Schedule
                 </label>
-                <select
+                <SelectDropdown
                   value={recurringSchedule}
-                  onChange={(e) => {
-                    setRecurringSchedule(e.target.value)
+                  onChange={(val) => {
+                    setRecurringSchedule(val)
                     setRecurringDay('Monday')
                     setRecurringMonths([])
                   }}
-                  className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2.5 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-                >
-                  <option value="Weekly">Weekly</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Yearly">Yearly</option>
-                </select>
+                  options={['Weekly', 'Monthly', 'Yearly']}
+                />
               </div>
 
               {/* Dependent Fields */}
@@ -1720,15 +1676,7 @@ export default function TaskDetailPage() {
                   <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">
                     Day of the Week
                   </label>
-                  <select
-                    value={recurringDay}
-                    onChange={(e) => setRecurringDay(e.target.value)}
-                    className="w-full bg-surface border border-outline-variant rounded-md px-3 py-2.5 text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"
-                  >
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
+                  <SelectDropdown value={recurringDay} onChange={setRecurringDay} options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']} />
                 </div>
               )}
 

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import TaskTable from '../components/TaskTable'
+import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 
 export default function MyTasksPage() {
@@ -194,20 +195,12 @@ export default function MyTasksPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">COMPANY (CLIENT)</label>
-                  <div className="relative">
-                    <select value={client} onChange={(e) => setClient(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
-                      {companyList.map((c) => (<option key={c} value={c}>{c}</option>))}
-                    </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
-                  </div>
+                  <SelectDropdown value={client} onChange={setClient} options={companyList} />
                 </div>
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">DEPARTMENT</label>
                   <div className="relative">
-                    <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
-                      {['COMMON', 'SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'UI/UX', 'HR', 'ACCOUNT', 'SALES'].map((d) => (<option key={d} value={d}>{d}</option>))}
-                    </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+                    <SelectDropdown value={department} onChange={setDepartment} options={['COMMON', 'SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'UI/UX', 'HR', 'ACCOUNT', 'SALES']} />
                   </div>
                 </div>
               </div>
@@ -285,19 +278,15 @@ export default function MyTasksPage() {
                         <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                           Recurring Schedule
                         </label>
-                        <select
+                        <SelectDropdown
                           value={recurringSchedule}
-                          onChange={(e) => {
-                            setRecurringSchedule(e.target.value)
+                          onChange={(val) => {
+                            setRecurringSchedule(val)
                             setRecurringDay('Monday')
                             setRecurringMonths([])
                           }}
-                          className="w-full bg-white border border-[#E5E7EB] rounded-md px-3 py-2 text-[13px] focus:border-[#702c91] focus:outline-none cursor-pointer"
-                        >
-                          <option value="Weekly">Weekly</option>
-                          <option value="Monthly">Monthly</option>
-                          <option value="Yearly">Yearly</option>
-                        </select>
+                          options={['Weekly', 'Monthly', 'Yearly']}
+                        />
                       </div>
 
                       {/* Dependent Fields */}
@@ -306,15 +295,7 @@ export default function MyTasksPage() {
                           <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
                             Day of the Week
                           </label>
-                          <select
-                            value={recurringDay}
-                            onChange={(e) => setRecurringDay(e.target.value)}
-                            className="w-full bg-white border border-[#E5E7EB] rounded-md px-3 py-2 text-[13px] focus:border-[#702c91] focus:outline-none cursor-pointer"
-                          >
-                            {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                              <option key={day} value={day}>{day}</option>
-                            ))}
-                          </select>
+                          <SelectDropdown value={recurringDay} onChange={setRecurringDay} options={['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']} />
                         </div>
                       )}
 
