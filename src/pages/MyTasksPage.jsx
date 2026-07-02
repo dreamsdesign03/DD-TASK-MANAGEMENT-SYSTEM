@@ -160,32 +160,27 @@ export default function MyTasksPage() {
         </button>
       </main>
 
-      {/* New Task Modal */}
+      {/* New Task Modal — Dreamsdesk Layout style */}
       {showNewTaskModal && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
           <form
             onSubmit={handleCreateTask}
-            className="bg-surface-container-lowest w-[520px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar border border-outline-variant/20"
+            className="bg-white rounded-xl w-full max-w-[520px] flex flex-col overflow-hidden animate-fade-in-up"
+            style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.2)', maxHeight: '92vh' }}
           >
             {/* Header */}
-            <div className="flex justify-between items-center pb-2">
-              <h2 className="text-[20px] font-extrabold text-[#702c91] flex items-center gap-2">
-                <span className="material-symbols-outlined font-bold">assignment</span>
-                Create New Task
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowNewTaskModal(false)}
-                className="text-[#9CA3AF] hover:text-[#1E1B2E] transition-colors"
-              >
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#702c91] text-[24px]">assignment</span>
+                <h2 className="text-[#702c91] font-black text-[20px] m-0">Create New Task</h2>
+              </div>
+              <button type="button" onClick={() => setShowNewTaskModal(false)} className="bg-transparent border-none text-gray-400 hover:text-gray-600 cursor-pointer p-1 rounded-full flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
-            <hr className="border-[#E5E7EB] -mx-6 mb-2" />
-
-            {/* Form Fields */}
-            <div className="space-y-5">
+            {/* Body */}
+            <div className="p-5 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4">
               {/* Task Title */}
               <div>
                 <input
@@ -200,177 +195,93 @@ export default function MyTasksPage() {
               </div>
 
               {/* Company (Client) and Department Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                    Company (Client)
-                  </label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">COMPANY (CLIENT)</label>
                   <div className="relative">
-                    <select
-                      value={client}
-                      onChange={(e) => setClient(e.target.value)}
-                      className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors"
-                    >
-                      {companyList.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
+                    <select value={client} onChange={(e) => setClient(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
+                      {companyList.map((c) => (<option key={c} value={c}>{c}</option>))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
-                      expand_more
-                    </span>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                    Department
-                  </label>
+                <div>
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">DEPARTMENT</label>
                   <div className="relative">
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors"
-                    >
-                      {['SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMMON'].map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
+                    <select value={department} onChange={(e) => setDepartment(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer">
+                      {['COMMON', 'SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'UI/UX', 'HR', 'ACCOUNT', 'SALES'].map((d) => (<option key={d} value={d}>{d}</option>))}
                     </select>
-                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
-                      expand_more
-                    </span>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
                   </div>
                 </div>
               </div>
 
               {/* Assignee, Assigned By & Due Date */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Assignee */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                    Assignee(s)
-                  </label>
+              {/* Assignee, Assigned By & Due Date */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">ASSIGNEE(S)</label>
                   <div className="relative">
-                    <div
-                      onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
-                      className="w-full bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] cursor-pointer flex justify-between items-center hover:border-[#702c91] transition-colors h-[38px]"
-                    >
-                      <span className="truncate">{assignedTo.length > 0 ? assignedTo.join(', ') : 'Select Assignee'}</span>
-                      <span className="material-symbols-outlined text-[#9CA3AF] text-[18px]">
-                        {isAssigneeOpen ? 'expand_less' : 'expand_more'}
-                      </span>
+                    <div onClick={() => setIsAssigneeOpen(!isAssigneeOpen)} className="w-full bg-white border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-700 cursor-pointer flex justify-between items-center hover:border-[#702c91] transition-colors shadow-sm">
+                      <span className="truncate text-[13px]">{assignedTo.length > 0 ? assignedTo.join(', ') : 'Select'}</span>
+                      <span className="material-symbols-outlined text-gray-400 text-[18px]">{isAssigneeOpen ? 'expand_less' : 'expand_more'}</span>
                     </div>
                     {isAssigneeOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-[#E5E7EB] rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-[150px] overflow-y-auto custom-scrollbar">
                         {uniqueTeamMembers.map((m) => (
-                          <label key={m} className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={assignedTo.includes(m)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setAssignedTo([...assignedTo, m])
-                                } else {
-                                  setAssignedTo(assignedTo.filter(name => name !== m))
-                                }
-                              }}
-                              className="accent-[#702c91] w-4 h-4"
-                            />
-                            <span className="text-[13px] text-[#1E1B2E]">{m}</span>
+                          <label key={m} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                            <input type="checkbox" checked={assignedTo.includes(m)} onChange={(e) => { if (e.target.checked) setAssignedTo([...assignedTo, m]); else setAssignedTo(assignedTo.filter(name => name !== m)) }} className="accent-[#702c91] w-4 h-4" />
+                            <span className="text-[13px] text-gray-700">{m}</span>
                           </label>
                         ))}
                       </div>
                     )}
                   </div>
                 </div>
-
-                {/* Assigned By — locked to current user */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                    Assigned By
-                  </label>
+                <div>
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">ASSIGNED BY</label>
                   <div className="relative">
-                    <input
-                      type="text"
-                      readOnly
-                      value={assignedBy}
-                      className="w-full bg-[#F9FAFB] border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#6B7280] outline-none cursor-not-allowed h-[38px]"
-                    />
-                    <span className="material-symbols-outlined absolute right-3 top-2.5 text-[#9CA3AF] pointer-events-none text-[18px]">
-                      lock
-                    </span>
+                    <input type="text" readOnly value={assignedBy} className="w-full bg-gray-50 border border-gray-200 rounded-md px-3 py-2.5 text-[14px] text-gray-500 outline-none shadow-sm cursor-not-allowed" />
+                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[18px]">lock</span>
                   </div>
                 </div>
-
-                {/* Due Date - calendar picker */}
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                    Due Date
-                  </label>
+                <div>
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">DUE DATE</label>
                   <div className="relative">
-                    <input
-                      type="date"
-                      value={dueDate}
-                      min={new Date().toISOString().split('T')[0]}
-                      onChange={(e) => {
-                        const val = e.target.value
-                        if (val) {
-                          const selectedDate = new Date(val)
-                          if (selectedDate.getUTCDay() === 0) {
-                            addToast("Sundays cannot be selected as a due date. Please choose a different day.", 'error')
-                            return
-                          }
-                        }
-                        setDueDate(val)
-                      }}
-                      className="w-full bg-white border border-[#E5E7EB] rounded-md pl-9 pr-2 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] focus:outline-none cursor-pointer transition-colors h-[38px] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full"
-                    />
-                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none text-[18px]">
-                      calendar_month
-                    </span>
+                    <input type="date" value={dueDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => { const val = e.target.value; if (val) { const d = new Date(val); if (d.getUTCDay() === 0) { addToast("Sundays cannot be selected as a due date.", 'error'); return } } setDueDate(val) }} className="w-full appearance-none bg-white border border-gray-200 rounded-md pl-8 pr-2 py-2.5 text-[14px] text-gray-700 outline-none focus:border-[#702c91] transition-colors shadow-sm cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full" />
+                    <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-[18px]">calendar_today</span>
                   </div>
                 </div>
               </div>
 
               {/* Priority */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                  Priority
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {['Low', 'Medium', 'High', 'Urgent'].map((p) => {
-                    const isSelected = priority === p
-                    return (
-                      <button
-                        type="button"
-                        key={p}
-                        onClick={() => setPriority(p)}
-                        className={`py-2 rounded-md text-[13px] font-bold text-center border transition-all ${isSelected
-                          ? 'bg-[#C2185B] text-white border-[#C2185B]'
-                          : 'bg-white border-[#E5E7EB] text-[#4B5563] hover:border-[#9CA3AF]'
-                          }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  })}
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">PRIORITY</label>
+                <div className="flex items-center gap-2">
+                  {['Low', 'Medium', 'High', 'Urgent'].map((p) => (
+                    <button
+                      type="button"
+                      key={p}
+                      onClick={() => setPriority(p)}
+                      className={`flex-1 py-2 rounded-md font-bold text-[13px] border transition-colors cursor-pointer ${
+                        priority === p
+                          ? 'btn-gradient border-transparent text-white'
+                          : 'bg-white border-[#E5E7EB] text-[#4B5563] hover:border-[#702c91]/30'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Recurring Task */}
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-2 cursor-pointer w-fit group">
-                  <input
-                    type="checkbox"
-                    checked={isRecurring}
-                    onChange={(e) => setIsRecurring(e.target.checked)}
-                    className="w-4 h-4 accent-[#702c91]"
-                  />
-                  <span className="text-[13px] font-extrabold text-[#1E1B2E] group-hover:text-[#702c91] transition-colors">
-                    Make this a recurring task
-                  </span>
-                </label>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="recurring" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} className="w-4 h-4 cursor-pointer accent-[#702c91]" />
+                <label htmlFor="recurring" className="text-[14px] font-bold text-[#1E1B2E] cursor-pointer">Make this a recurring task</label>
+              </div>
 
-                {isRecurring && (
+              {isRecurring && (
                   <div className="p-4 bg-white rounded-lg border border-[#E5E7EB] shadow-sm flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Schedule Type */}
@@ -447,51 +358,24 @@ export default function MyTasksPage() {
                     </div>
                   </div>
                 )}
-              </div>
 
               {/* Description */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                  Task Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full min-h-[100px] p-3 bg-white border border-[#E5E7EB] rounded-md text-[13px] text-[#1E1B2E] focus:border-[#702c91] outline-none resize-none transition-colors placeholder:text-[#9CA3AF]"
-                  placeholder="Details about the task..."
-                ></textarea>
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 mt-2">TASK DESCRIPTION</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-white border border-gray-200 rounded-md p-3 text-[14px] outline-none focus:border-[#702c91] transition-colors shadow-sm min-h-[100px] resize-none" placeholder="Details about the task..."></textarea>
               </div>
 
               {/* Remarks */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-extrabold text-[#6B7280] uppercase tracking-wider pl-1">
-                  Remarks
-                </label>
-                <input
-                  type="text"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  className="w-full bg-white border border-[#E5E7EB] rounded-md px-4 py-2 text-[13px] text-[#1E1B2E] focus:border-[#702c91] outline-none transition-colors placeholder:text-[#9CA3AF]"
-                  placeholder="Any remarks..."
-                />
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 mt-2">REMARKS</label>
+                <input type="text" value={remarks} onChange={(e) => setRemarks(e.target.value)} className="w-full bg-white border border-gray-200 rounded-md px-3 py-3 text-[14px] outline-none focus:border-[#702c91] transition-colors shadow-sm" placeholder="Any remarks..." />
               </div>
             </div>
 
-            {/* Footer Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E7EB] -mx-6 px-6">
-              <button
-                type="button"
-                onClick={() => setShowNewTaskModal(false)}
-                className="px-6 py-2.5 border border-[#E5E7EB] text-[#1F2937] rounded-md font-bold hover:bg-gray-50 transition-all text-[13px]"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-[#E079C3] text-white rounded-md font-bold hover:bg-[#d66ab7] transition-all text-[13px]"
-              >
-                Create Task
-              </button>
+            {/* Footer */}
+            <div className="p-5 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/30">
+              <button type="button" onClick={() => setShowNewTaskModal(false)} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-600 rounded-md text-[14px] font-bold hover:bg-gray-50 transition-colors cursor-pointer">Cancel</button>
+              <button type="submit" className={`px-6 py-2.5 btn-gradient border-none text-white rounded-md text-[14px] font-bold shadow-sm transition-opacity cursor-pointer active:scale-95 ${!title.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}>Create Task</button>
             </div>
           </form>
         </div>
