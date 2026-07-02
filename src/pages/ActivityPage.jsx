@@ -1,360 +1,412 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
-import { loadActivityLog, formatDuration } from '../utils/activityLog'
+import { getISTDate, getISTTime, formatDuration } from '../utils/activityLog'
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-function getDaysInMonth(month, year) {
-  return new Date(year, month, 0).getDate()
+// Helper to parse date/time from the Google Sheet activity logs
+function parseSheetDateTime(val) {
+  if (!val) return null
+  const str = String(val).trim()
+  if (!str) return null
+  
+  // Try parsing "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DDTHH:MM:SS"
+  const parts = str.split(/[ T]/)
+  const datePart = parts[0] // "2026-07-01"
+  const timePart = parts[1] ? parts[1].split('.')[0] : "00:00:00" // "09:30:15"
+  
+  return {
+    date: datePart,
+    time: timePart,
+    full: str
+  }
 }
 
-function getFirstDayOfMonth(month, year) {
-  return new Date(year, month - 1, 1).getDay()
+// Convert "HH:MM:SS" to seconds
+function timeToSeconds(timeStr) {
+  if (!timeStr) return 0
+  const parts = timeStr.split(':')
+  const hrs = parseInt(parts[0] || 0, 10)
+  const mins = parseInt(parts[1] || 0, 10)
+  const secs = parseInt(parts[2] || 0, 10)
+  return hrs * 3600 + mins * 60 + secs
 }
 
-function getMonthRange(month, year) {
-  const start = `${year}-${String(month).padStart(2, '0')}-01`
-  const lastDay = getDaysInMonth(month, year)
-  const end = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
-  return { start, end }
+// Convert seconds to "HH:MM:SS"
+function formatSecondsToHMS(seconds) {
+  if (isNaN(seconds) || seconds <= 0) return "00:00:00"
+  const hrs = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':')
 }
 
 export default function ActivityPage() {
-  const { profile, getAllLoggedUsers, getISTDate } = useApp()
+  const { profile, employees, fetchActivities } = useApp()
+  
   const now = new Date()
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
-  const [selectedUser, setSelectedUser] = useState('all')
+  
+  const currentEmpId = profile?.["Employee ID"] || profile?.id || ''
+  const [selectedEmpId, setSelectedEmpId] = useState('')
+  
+  const [activities, setActivities] = useState([])
+  const [loading, setLoading] = useState(true)
   const [selectedDay, setSelectedDay] = useState(null)
   const [showDayModal, setShowDayModal] = useState(false)
 
-  const allUsers = getAllLoggedUsers()
-  const activityLog = loadActivityLog()
-  const today = getISTDate()
-
-  const filteredLog = useMemo(() => {
-    const { start, end } = getMonthRange(selectedMonth, selectedYear)
-    let logs = activityLog.filter(s => s.date >= start && s.date <= end)
-    if (selectedUser !== 'all') {
-      logs = logs.filter(s => s.email === selectedUser)
+  // Set default selected employee ID once profile or employees load
+  useEffect(() => {
+    if (currentEmpId && !selectedEmpId) {
+      setSelectedEmpId(currentEmpId)
+    } else if (employees.length > 0 && !selectedEmpId) {
+      setSelectedEmpId(employees[0].id)
     }
-    return logs
-  }, [activityLog, selectedMonth, selectedYear, selectedUser])
+  }, [currentEmpId, employees, selectedEmpId])
 
-  const daysInMonth = getDaysInMonth(selectedMonth, selectedYear)
-  const firstDay = getFirstDayOfMonth(selectedMonth, selectedYear)
+  // Fetch activities from Google Sheets API
+  const loadData = async () => {
+    setLoading(true)
+    const data = await fetchActivities()
+    setActivities(data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  // Find details of the selected employee
+  const selectedEmployee = useMemo(() => {
+    const emp = employees.find(e => String(e.id).trim() === String(selectedEmpId).trim())
+    return emp || {
+      id: selectedEmpId,
+      name: profile?.["Full Name"] || profile?.name || '',
+      role: profile?.Role || profile?.role || '',
+      department: profile?.Department || profile?.department || '',
+      email: profile?.["Email Address"] || profile?.email || ''
+    }
+  }, [employees, selectedEmpId, profile])
+
+  // Get days in the currently selected month
+  const daysInMonth = useMemo(() => {
+    return new Date(selectedYear, selectedMonth, 0).getDate()
+  }, [selectedMonth, selectedYear])
+
+  // Date range display: e.g., "7/1/2026 to 7/31/2026"
+  const dateRangeStr = `${selectedMonth}/1/${selectedYear} to ${selectedMonth}/${daysInMonth}/${selectedYear}`
+
+  // Navigation handlers
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12)
+      setSelectedYear(y => y - 1)
+    } else {
+      setSelectedMonth(m => m - 1)
+    }
+  }
+
+  const handleNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedMonth(1)
+      setSelectedYear(y => y + 1)
+    } else {
+      setSelectedMonth(m => m + 1)
+    }
+  }
+
+  // Filter activities for the selected user and calculate stats per day
+  const todayDateStr = getISTDate()
+  const currentISTTimeStr = getISTTime()
 
   const dayStats = useMemo(() => {
     const stats = {}
+    
+    // Filter activities belonging to selected employee ID
+    const userActivities = activities.filter(act => {
+      return String(act["Employee ID"]).trim() === String(selectedEmpId).trim()
+    })
+
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-      const dayLogs = filteredLog.filter(s => s.date === dateStr)
-      const totalSecs = dayLogs.reduce((sum, s) => sum + (s.duration || 0), 0)
-      const activeUsers = dayLogs.filter(s => s.status === 'active').length
-      const shutdowns = dayLogs.filter(s => s.status === 'shutdown').length
+      
+      const dayLogs = userActivities.filter(act => {
+        const dt = parseSheetDateTime(act["Login Date and Time"])
+        return dt && dt.date === dateStr
+      })
+
+      const sessions = dayLogs.map((log, idx) => {
+        const loginDt = parseSheetDateTime(log["Login Date and Time"])
+        const logoutDt = parseSheetDateTime(log["Logout Date and Time"])
+        
+        const loginTimeStr = loginDt ? loginDt.time : null
+        let logoutTimeStr = logoutDt ? logoutDt.time : null
+        let isStillActive = false
+
+        if (!logoutTimeStr) {
+          if (dateStr === todayDateStr) {
+            logoutTimeStr = currentISTTimeStr
+            isStillActive = true
+          } else {
+            // Missed logout in the past: treat duration as 0 or single punch
+            logoutTimeStr = loginTimeStr
+          }
+        }
+
+        const loginSecs = timeToSeconds(loginTimeStr)
+        const logoutSecs = timeToSeconds(logoutTimeStr)
+
+        return {
+          id: log.id || `session_${idx}`,
+          loginTimeStr,
+          logoutTimeStr,
+          loginSecs,
+          logoutSecs,
+          isStillActive,
+          status: isStillActive ? 'active' : 'logged_out'
+        }
+      }).filter(s => s.loginTimeStr).sort((a, b) => a.loginSecs - b.loginSecs)
+
+      const totalSeconds = sessions.reduce((sum, s) => sum + Math.max(0, s.logoutSecs - s.loginSecs), 0)
+      const extraSeconds = totalSeconds > 28800 ? totalSeconds - 28800 : 0 // Overtime after 8 hours
+
       stats[dateStr] = {
-        date: dateStr,
         day: d,
-        totalSessions: dayLogs.length,
-        totalSeconds: totalSecs,
-        activeUsers,
-        shutdowns,
-        sessions: dayLogs
+        dateStr,
+        sessions,
+        totalSeconds,
+        extraSeconds
       }
     }
+
     return stats
-  }, [filteredLog, daysInMonth, selectedMonth, selectedYear])
-
-  const monthTotalSeconds = Object.values(dayStats).reduce((sum, d) => sum + d.totalSeconds, 0)
-
-  const usersInMonth = useMemo(() => {
-    const userSet = new Set()
-    filteredLog.forEach(s => userSet.add(s.email))
-    const userStats = []
-    userSet.forEach(email => {
-      const userSessions = filteredLog.filter(s => s.email === email)
-      const name = userSessions[0]?.name || email
-      const totalSecs = userSessions.reduce((sum, s) => sum + (s.duration || 0), 0)
-      const presentDays = new Set(userSessions.map(s => s.date)).size
-      const shutdownDays = userSessions.filter(s => s.status === 'shutdown').length
-      userStats.push({ email, name, totalSeconds: totalSecs, presentDays, shutdownDays, sessions: userSessions.length })
-    })
-    userStats.sort((a, b) => b.totalSeconds - a.totalSeconds)
-    return userStats
-  }, [filteredLog])
-
-  const getDayColor = (dateStr) => {
-    const stat = dayStats[dateStr]
-    if (!stat || stat.totalSessions === 0) return 'bg-[#F3F4F6]'
-    if (stat.shutdowns > 0) return 'bg-[#FEF2F2]'
-    if (stat.totalSeconds > 0) return 'bg-[#F0FDF4]'
-    return 'bg-[#F3F4F6]'
-  }
-
-  const getDayStatus = (dateStr) => {
-    const stat = dayStats[dateStr]
-    if (!stat || stat.totalSessions === 0) return 'No activity'
-    if (stat.shutdowns > 0) return 'Shutdown'
-    if (stat.totalSeconds > 0) return `${formatDuration(stat.totalSeconds)}`
-    return 'No activity'
-  }
+  }, [activities, selectedEmpId, selectedMonth, selectedYear, daysInMonth, todayDateStr, currentISTTimeStr])
 
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
       `}</style>
       <Sidebar />
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
-        <TopNav title="Activity Log" showSearch={false} />
+        <TopNav title="Activity Tracker" showSearch={false} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
-          <div className="w-full">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 pb-6">
+          <div className="max-w-[1400px] mx-auto">
 
             {/* Header Section */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <h2 className="text-[26px] font-bold text-[#702c91] m-0">Team Activity Tracker</h2>
-              <div className="flex items-center gap-3 flex-wrap">
-                <select
-                  value={selectedUser}
-                  onChange={e => setSelectedUser(e.target.value)}
-                  className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[180px] cursor-pointer"
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#702c91] text-[32px]">monitoring</span>
+                <h2 className="text-[26px] font-black text-[#702c91] m-0">Employee Activity & Attendance</h2>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {profile?.systemRole !== 'Employee' && (
+                  <select
+                    value={selectedEmpId}
+                    onChange={e => setSelectedEmpId(e.target.value)}
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[220px] cursor-pointer shadow-sm hover:bg-gray-50 transition-colors"
+                  >
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>
+                    ))}
+                  </select>
+                )}
+                
+                <button
+                  onClick={loadData}
+                  className="flex items-center justify-center p-2 bg-white border border-[#E5E7EB] rounded-lg text-gray-500 hover:text-[#702c91] hover:border-[#702c91]/30 transition-all cursor-pointer shadow-sm"
+                  title="Refresh Logs"
                 >
-                  <option value="all">All Users</option>
-                  {allUsers.map(u => (
-                    <option key={u.email} value={u.email}>{u.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={selectedMonth}
-                  onChange={e => setSelectedMonth(Number(e.target.value))}
-                  className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none cursor-pointer"
-                >
-                  {MONTHS.map((name, i) => (
-                    <option key={i} value={i + 1}>{name}</option>
-                  ))}
-                </select>
-                <select
-                  value={selectedYear}
-                  onChange={e => setSelectedYear(Number(e.target.value))}
-                  className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none cursor-pointer"
-                >
-                  {[2024, 2025, 2026, 2027].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
+                  <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>sync</span>
+                </button>
               </div>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#702c91]"></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Total Sessions</p>
-                    <h3 className="text-[28px] font-black text-[#702c91] leading-none m-0">{filteredLog.length}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#702c91]">assignment</span>
-                  </div>
-                </div>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
+                <span className="material-symbols-outlined text-[48px] text-[#702c91] animate-spin mb-4">progress_activity</span>
+                <p className="text-[15px] font-medium text-gray-500">Fetching activity records from sheet...</p>
               </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#10B981]"></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Total Hours</p>
-                    <h3 className="text-[28px] font-black text-[#10B981] leading-none m-0">{formatDuration(monthTotalSeconds)}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#10B981]">schedule</span>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#F59E0B]"></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Active Users</p>
-                    <h3 className="text-[28px] font-black text-[#F59E0B] leading-none m-0">{usersInMonth.length}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#F59E0B]">group</span>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#EF4444]"></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Shutdowns</p>
-                    <h3 className="text-[28px] font-black text-[#EF4444] leading-none m-0">{filteredLog.filter(s => s.status === 'shutdown').length}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#EF4444]">power_off</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Calendar */}
-            <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-6 mb-8">
-              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#702c91]">calendar_month</span>
-                {MONTHS[selectedMonth - 1]} {selectedYear} - Daily Activity
-              </h3>
-
-              {/* Legend */}
-              <div className="flex items-center gap-6 mb-6 text-[12px] font-medium text-[#6B7280]">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-[#F0FDF4] border border-[#10B981]/30"></div>
-                  <span>Active (worked)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-[#FEF2F2] border border-[#EF4444]/30"></div>
-                  <span>Shutdown</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-[#F3F4F6] border border-[#E5E7EB]"></div>
-                  <span>No Activity</span>
-                </div>
-              </div>
-
-              {/* Day headers */}
-              <div className="grid grid-cols-7 gap-2 mb-2">
-                {DAYS.map(d => (
-                  <div key={d} className="text-center text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider py-1">{d}</div>
-                ))}
-              </div>
-
-              {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-2">
-                {Array.from({ length: firstDay }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square rounded-lg"></div>
-                ))}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const day = i + 1
-                  const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                  const stat = dayStats[dateStr]
-                  const isToday = dateStr === today
-                  return (
-                    <button
-                      key={day}
-                      onClick={() => {
-                        if (stat && stat.totalSessions > 0) {
-                          setSelectedDay(dateStr)
-                          setShowDayModal(true)
-                        }
-                      }}
-                      disabled={!stat || stat.totalSessions === 0}
-                      className={`aspect-square rounded-xl border text-[13px] font-bold transition-all relative flex flex-col items-center justify-center ${
-                        isToday ? 'ring-2 ring-[#702c91] ring-offset-2' : ''
-                      } ${
-                        stat && stat.totalSessions > 0
-                          ? `${getDayColor(dateStr)} border-[#E5E7EB] cursor-pointer hover:scale-105 hover:shadow-md`
-                          : 'bg-[#FAFAFA] border-[#F3F4F6] cursor-default opacity-60'
-                      }`}
+            ) : (
+              <div className="bg-white rounded-[20px] border border-[#E5E7EB] shadow-[0_8px_24px_rgba(91,33,182,0.08)] overflow-hidden">
+                
+                {/* Attendance details card header */}
+                <div className="flex items-center justify-between px-6 py-5 border-b border-[#E5E7EB]">
+                  <h3 className="text-[16px] font-bold text-[#1E1B2E] m-0">Attendance details</h3>
+                  
+                  {/* Date range selector */}
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={handlePrevMonth}
+                      className="p-1 bg-transparent border-none text-[#2563EB] hover:bg-blue-50 rounded-md cursor-pointer transition-colors flex items-center justify-center"
                     >
-                      <span className={stat && stat.totalSessions > 0 ? 'text-[#1E1B2E]' : 'text-[#9CA3AF]'}>{day}</span>
-                      {stat && stat.totalSessions > 0 && (
-                        <span className="text-[8px] font-medium mt-0.5 leading-tight">
-                          {stat.shutdowns > 0 ? (
-                            <span className="text-[#EF4444]">Shutdown</span>
-                          ) : (
-                            <span className="text-[#10B981]">{formatDuration(stat.totalSeconds)}</span>
-                          )}
-                        </span>
-                      )}
+                      <span className="material-symbols-outlined text-[20px] font-bold">chevron_left</span>
                     </button>
-                  )
-                })}
-              </div>
-            </div>
+                    
+                    <span className="text-[13px] font-bold text-gray-700 min-w-[150px] text-center select-none">
+                      {dateRangeStr}
+                    </span>
+                    
+                    <button 
+                      onClick={handleNextMonth}
+                      className="p-1 bg-transparent border-none text-[#2563EB] hover:bg-blue-50 rounded-md cursor-pointer transition-colors flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined text-[20px] font-bold">chevron_right</span>
+                    </button>
+                  </div>
+                </div>
 
-            {/* User-wise Monthly Breakdown */}
-            <div className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] overflow-hidden">
-              <div className="p-6 pb-4 border-b border-[#E5E7EB]">
-                <h3 className="text-[16px] font-bold text-[#1E1B2E] flex items-center gap-2 m-0">
-                  <span className="material-symbols-outlined text-[#702c91]">group</span>
-                  User-wise Working Hours
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">User</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Present Days</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Total Sessions</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Total Hours</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Avg / Day</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Shutdowns</th>
-                      <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usersInMonth.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="text-center py-8 text-[#9CA3AF] text-[14px]">
-                          No activity data for this month.
-                        </td>
+                {/* Table Content */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-[#E5E7EB]">
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[12%]">DATE</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[54%]">PUNCHES</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[12%]">WORKHOURS</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[12%]">EXTRA TIME</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[10%]">OP LOGS</th>
                       </tr>
-                    ) : (
-                      usersInMonth.map((u, idx) => {
-                        const avgSecs = u.presentDays > 0 ? Math.floor(u.totalSeconds / u.presentDays) : 0
-                        const status = u.sessions > 0 && u.sessions === u.shutdownDays ? 'Shutdown' : u.totalSeconds > 0 ? 'Active' : 'Inactive'
+                    </thead>
+                    <tbody className="divide-y divide-[#E5E7EB]">
+                      {Array.from({ length: daysInMonth }).map((_, i) => {
+                        const day = i + 1
+                        const dayNumStr = String(day).padStart(2, '0')
+                        const monthNumStr = String(selectedMonth).padStart(2, '0')
+                        const dateFormatted = `${dayNumStr}/${monthNumStr}/${selectedYear}`
+                        const dateStr = `${selectedYear}-${monthNumStr}-${dayNumStr}`
+                        
+                        const stat = dayStats[dateStr] || { sessions: [], totalSeconds: 0, extraSeconds: 0 }
+                        const hasSessions = stat.sessions.length > 0
+
+                        // Calculate chevrons position
+                        const firstSession = stat.sessions[0]
+                        const lastSession = stat.sessions[stat.sessions.length - 1]
+                        
+                        const firstPercent = firstSession ? (firstSession.loginSecs / 86400) * 100 : 0
+                        const lastPercent = lastSession ? (lastSession.logoutSecs / 86400) * 100 : 0
+
                         return (
-                          <tr key={u.email} className={`border-b border-[#E5E7EB] transition-all ${idx === usersInMonth.length - 1 ? 'border-b-0' : ''}`}>
-                            <td className="py-4 px-5">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center text-[#702c91] text-[12px] font-bold">
-                                  {u.name.substring(0, 2).toUpperCase()}
+                          <tr 
+                            key={day} 
+                            onClick={() => {
+                              if (hasSessions) {
+                                setSelectedDay(dateStr)
+                                setShowDayModal(true)
+                              }
+                            }}
+                            className={`hover:bg-gray-50/50 transition-colors ${hasSessions ? 'cursor-pointer' : ''}`}
+                          >
+                            {/* DATE */}
+                            <td className="py-6 px-6 text-[13px] font-semibold text-[#374151]">
+                              {dateFormatted}
+                            </td>
+
+                            {/* PUNCHES TIMELINE BAR */}
+                            <td className="py-6 px-6">
+                              <div className="relative w-full h-[14px] bg-[#E2E8F0]/50 rounded-full select-none">
+                                {/* Grid Marks (12 lines for 2-hour segments) */}
+                                <div className="absolute inset-0 flex justify-between pointer-events-none px-[2px]">
+                                  {Array.from({ length: 13 }).map((_, idx) => (
+                                    <div key={idx} className="w-[1px] h-full bg-[#CBD5E1]/30" />
+                                  ))}
                                 </div>
-                                <span className="text-[13px] font-bold text-[#1E1B2E]">{u.name}</span>
+
+                                {/* Active Punch Blocks */}
+                                {stat.sessions.map((s, idx) => {
+                                  const leftPercent = (s.loginSecs / 86400) * 100
+                                  const widthPercent = ((s.logoutSecs - s.loginSecs) / 86400) * 100
+
+                                  return (
+                                    <div
+                                      key={s.id || idx}
+                                      className={`absolute top-0 h-full rounded-full transition-all duration-300 ${
+                                        s.isStillActive 
+                                          ? 'bg-gradient-to-r from-[#2563EB] to-[#60A5FA] animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]' 
+                                          : 'bg-[#2563EB] hover:bg-blue-700'
+                                      }`}
+                                      style={{
+                                        left: `${leftPercent}%`,
+                                        width: `${Math.max(1, widthPercent)}%`
+                                      }}
+                                      title={`Punch Segment: ${s.loginTimeStr} - ${s.logoutTimeStr}`}
+                                    />
+                                  )
+                                })}
+
+                                {/* Check-in & Check-out Chevrons */}
+                                {hasSessions && (
+                                  <>
+                                    <span 
+                                      className="material-symbols-outlined text-[#2563EB] text-[15px] absolute font-black flex items-center justify-center"
+                                      style={{
+                                        left: `${firstPercent}%`,
+                                        transform: 'translateX(-50%)',
+                                        top: '10px'
+                                      }}
+                                    >
+                                      keyboard_arrow_up
+                                    </span>
+                                    <span 
+                                      className="material-symbols-outlined text-[#2563EB] text-[15px] absolute font-black flex items-center justify-center"
+                                      style={{
+                                        left: `${lastPercent}%`,
+                                        transform: 'translateX(-50%)',
+                                        top: '10px'
+                                      }}
+                                    >
+                                      keyboard_arrow_up
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </td>
-                            <td className="py-4 px-5 text-[13px] font-bold text-[#4B5563]">{u.presentDays}</td>
-                            <td className="py-4 px-5 text-[13px] text-[#6B7280]">{u.sessions}</td>
-                            <td className="py-4 px-5 text-[13px] font-bold text-[#702c91]">{formatDuration(u.totalSeconds)}</td>
-                            <td className="py-4 px-5 text-[13px] text-[#6B7280]">{formatDuration(avgSecs)}</td>
-                            <td className="py-4 px-5 text-[13px] text-[#EF4444]">{u.shutdownDays > 0 ? u.shutdownDays : '-'}</td>
-                            <td className="py-4 px-5">
-                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                status === 'Active' ? 'bg-[#F0FDF4] text-[#10B981]' :
-                                status === 'Shutdown' ? 'bg-[#FEF2F2] text-[#EF4444]' :
-                                'bg-[#F3F4F6] text-[#9CA3AF]'
-                              }`}>
-                                {status}
-                              </span>
+
+                            {/* WORKHOURS */}
+                            <td className="py-6 px-6 text-[13px] font-semibold text-[#1F2937] text-right">
+                              {formatSecondsToHMS(stat.totalSeconds)}
+                            </td>
+
+                            {/* EXTRA TIME */}
+                            <td className="py-6 px-6 text-[13px] font-semibold text-[#4B5563] text-right">
+                              {formatSecondsToHMS(stat.extraSeconds)}
+                            </td>
+
+                            {/* OP LOGS */}
+                            <td className="py-6 px-6 text-center text-gray-400 text-[13px]">
+                              -
                             </td>
                           </tr>
                         )
-                      })
-                    )}
-                  </tbody>
-                </table>
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
               </div>
-            </div>
+            )}
 
           </div>
         </div>
       </main>
 
-      {/* Day Detail Modal */}
+      {/* Detailed Day Modal */}
       {showDayModal && selectedDay && (
         <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[520px] overflow-hidden animate-scale-in flex flex-col">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[500px] overflow-hidden animate-scale-in flex flex-col">
+            
+            {/* Modal Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+              <h2 className="text-[17px] font-bold text-[#702c91] flex items-center gap-2 m-0">
                 <span className="material-symbols-outlined text-[20px]">calendar_today</span>
-                Activity - {selectedDay}
+                Punches Detail - {selectedDay}
               </h2>
               <button
                 onClick={() => setShowDayModal(false)}
@@ -363,60 +415,72 @@ export default function ActivityPage() {
                 <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
+
+            {/* Modal Content */}
             <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+              <div className="mb-4 bg-purple-50 rounded-xl p-4 border border-purple-100 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#702c91] flex items-center justify-center text-white text-[14px] font-bold shadow-md">
+                  {selectedEmployee.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="m-0 text-[14px] font-bold text-[#1E1B2E]">{selectedEmployee.name}</h4>
+                  <p className="m-0 text-[12px] text-gray-500">{selectedEmployee.role} • {selectedEmployee.department}</p>
+                </div>
+              </div>
+
               {dayStats[selectedDay]?.sessions?.length > 0 ? (
-                dayStats[selectedDay].sessions.map(s => (
-                  <div key={s.id} className="bg-[#F9FAFB] rounded-xl p-4 border border-[#E5E7EB] transition-all hover:border-[#702c91]/30">
+                dayStats[selectedDay].sessions.map((s, idx) => (
+                  <div 
+                    key={s.id || idx} 
+                    className="bg-[#F8FAFC] rounded-xl p-4 border border-slate-100 transition-all hover:border-[#702c91]/20"
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center text-[#702c91] text-[11px] font-bold">
-                          {s.name.substring(0, 2).toUpperCase()}
-                        </div>
-                        <span className="text-[14px] font-bold text-[#1E1B2E]">{s.name}</span>
-                      </div>
+                      <span className="text-[12px] font-extrabold text-[#702c91] uppercase bg-purple-50 px-2.5 py-1 rounded-md">
+                        Session #{idx + 1}
+                      </span>
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        s.status === 'active' ? 'bg-[#F0FDF4] text-[#10B981]' :
-                        s.status === 'shutdown' ? 'bg-[#FEF2F2] text-[#EF4444]' :
-                        'bg-[#F3F4F6] text-[#6B7280]'
+                        s.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                       }`}>
-                        {s.status}
+                        {s.isStillActive ? 'Active Now' : 'Logged Out'}
                       </span>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4 text-[13px]">
                       <div>
-                        <span className="text-[#9CA3AF] block text-[11px] font-medium">Login Time</span>
-                        <span className="font-bold text-[#1E1B2E]">{s.loginTime || '-'}</span>
+                        <span className="text-[#64748B] block text-[11px] font-bold uppercase tracking-wider mb-0.5">Punch In</span>
+                        <span className="font-semibold text-slate-800">{s.loginTimeStr || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[#9CA3AF] block text-[11px] font-medium">Logout Time</span>
-                        <span className="font-bold text-[#1E1B2E]">{s.logoutTime || 'Still active'}</span>
+                        <span className="text-[#64748B] block text-[11px] font-bold uppercase tracking-wider mb-0.5">Punch Out</span>
+                        <span className="font-semibold text-slate-800">{s.isStillActive ? 'Still Punching' : s.logoutTimeStr}</span>
                       </div>
-                      <div>
-                        <span className="text-[#9CA3AF] block text-[11px] font-medium">Duration</span>
-                        <span className="font-bold text-[#702c91]">{formatDuration(s.duration)}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#9CA3AF] block text-[11px] font-medium">Status</span>
-                        <span className="font-bold text-[#1E1B2E] capitalize">{s.status}</span>
+                      <div className="col-span-2 pt-2 border-t border-slate-100/50 flex justify-between items-center">
+                        <span className="text-[#64748B] text-[11px] font-bold uppercase tracking-wider">Duration</span>
+                        <span className="font-bold text-[#702c91]">
+                          {formatDuration(s.logoutSecs - s.loginSecs)}
+                        </span>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-[#9CA3AF]">
+                <div className="text-center py-8 text-gray-400">
                   <span className="material-symbols-outlined text-[40px] mb-2">info</span>
-                  <p className="text-[14px]">No activity data for this day.</p>
+                  <p className="text-[14px]">No punches recorded for this day.</p>
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 bg-white border-t border-gray-200 flex justify-end">
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-white border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setShowDayModal(false)}
-                className="px-6 py-2.5 btn-gradient border-none rounded-lg font-bold shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
+                className="px-5 py-2.5 bg-gradient-to-r from-[#702c91] to-[#ec008c] border-none text-white font-bold rounded-lg shadow-md active:scale-95 transition-all text-[13px] cursor-pointer"
               >
                 Close
               </button>
             </div>
+
           </div>
         </div>
       )}

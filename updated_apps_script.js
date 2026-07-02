@@ -215,6 +215,7 @@ function doPost(e) {
 
         if (payload.action === 'logout') {
           teamSheet.getRange(i + 1, 9).setValue("No");
+          recordActivityLogout(ss, payload.email);
           return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
         }
 
@@ -222,8 +223,8 @@ function doPost(e) {
           return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Admin not approved" })).setMimeType(ContentService.MimeType.JSON);
         }
 
-
         teamSheet.getRange(i + 1, 9).setValue("Yes");
+        recordActivityLogin(ss, row[0], row[1], row[4], row[5]);
 
         var userObj = {
           "Employee ID": row[0],
@@ -485,6 +486,32 @@ function doGet(e) {
     }
   }
 
+  // -------------------------
+  // 0.5. READ ACTIVITIES
+  // -------------------------
+  if (action === "get_activities") {
+    var sheet = ss.getSheetByName("Activity");
+    var result = [];
+    if (sheet) {
+      var data = sheet.getDataRange().getValues();
+      if (data.length > 1) {
+        var headers = data[0];
+        for (var i = 1; i < data.length; i++) {
+          var row = data[i];
+          if (row.length === 0 || !row[0]) continue;
+          var obj = {};
+          for (var j = 0; j < headers.length; j++) {
+            var headerStr = String(headers[j]).trim();
+            if (headerStr) {
+              obj[headerStr] = row[j];
+            }
+          }
+          result.push(obj);
+        }
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  }
 
   // -------------------------
   // 1. READ CLIENTS
@@ -643,4 +670,54 @@ function doGet(e) {
     }
   }
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Helper to record login activity in the Activity sheet
+function recordActivityLogin(ss, employeeId, fullName, role, department) {
+  var activitySheet = ss.getSheetByName("Activity");
+  if (!activitySheet) {
+    activitySheet = ss.insertSheet("Activity");
+    activitySheet.appendRow(["Employee ID", "Full Name", "Role", "Department", "Login Date and Time", "Logout Date and Time"]);
+  }
+  var now = new Date();
+  var formattedTime = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+  
+  activitySheet.appendRow([
+    employeeId,
+    fullName,
+    role,
+    department,
+    formattedTime,
+    "" // Logout Date and Time starts empty
+  ]);
+}
+
+// Helper to record logout activity in the Activity sheet
+function recordActivityLogout(ss, email) {
+  var teamSheet = ss.getSheetByName("Team");
+  var activitySheet = ss.getSheetByName("Activity");
+  if (!teamSheet || !activitySheet) return;
+  
+  var teamData = teamSheet.getDataRange().getValues();
+  var empId = "";
+  for (var i = 1; i < teamData.length; i++) {
+    if (String(teamData[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
+      empId = teamData[i][0];
+      break;
+    }
+  }
+  if (!empId) return;
+
+  var activityData = activitySheet.getDataRange().getValues();
+  // Find the last row for this employee where logout time is empty, or update their latest record
+  for (var j = activityData.length - 1; j >= 1; j--) {
+    if (String(activityData[j][0]).trim() === String(empId).trim()) {
+      if (String(activityData[j][5]).trim() === "") {
+        var now = new Date();
+        var formattedTime = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+        activitySheet.getRange(j + 1, 6).setValue(formattedTime);
+        return;
+      }
+    }
+  }
 }

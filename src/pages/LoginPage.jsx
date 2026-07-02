@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode'
 import SelectDropdown from '../components/SelectDropdown'
 
 const LOGO_SRC = '/logo.png'
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec'
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
 
 // Animated chevron arrow for the button
 const ChevronRight = () => (
