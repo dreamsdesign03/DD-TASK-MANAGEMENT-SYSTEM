@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
+import { renderAvatar } from '../utils/avatar'
 
 
 const INITIAL_EMPLOYEES = []
@@ -175,33 +176,12 @@ export default function TeamPage() {
                       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${theme.topBar}`}></div>
                       
                       <div className="flex justify-between items-start mb-4">
-                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${theme.avatarBg} flex items-center justify-center border-2 border-white shadow-sm overflow-hidden`}>
-                          {emp.email === profile.email ? (
-                            profile.avatar ? (
-                              <img src={profile.avatar} alt={emp.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className={`text-[20px] font-bold ${theme.text}`}>
-                                {(() => {
-                                  const name = profile.name || emp.name
-                                  const parts = name.split(' ')
-                                  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-                                  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-                                })()}
-                              </span>
-                            )
-                          ) : emp.avatar ? (
-                            <img src={emp.avatar} alt={emp.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className={`text-[20px] font-bold ${theme.text}`}>
-                              {(() => {
-                                const name = emp.name
-                                const parts = name.split(' ')
-                                if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-                                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-                              })()}
-                            </span>
-                          )}
-                        </div>
+                        {renderAvatar(
+                          emp.email === profile.email ? profile.avatar : emp.avatar,
+                          emp.email === profile.email ? (profile.name || emp.name) : emp.name,
+                          "w-16 h-16 rounded-full border-2 border-white shadow-sm",
+                          "text-[20px]"
+                        )}
                         <div className="relative mt-1 mr-1">
                           {getStatusElement(emp.status)}
                         </div>

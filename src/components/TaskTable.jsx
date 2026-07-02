@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { getUserColor, getInitials } from '../utils/avatar'
 
 function SelectDropdown({ value, onChange, options, style }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -180,12 +181,7 @@ function InlineStatusSelect({ value, onChange, disabled }) {
   )
 }
 
-function getInitials(name) {
-  if (!name) return '?'
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+
 
 export default function TaskTable() {
   const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal } = useApp()
@@ -984,7 +980,7 @@ export default function TaskTable() {
                                         return (
                                           <div className="flex items-center">
                                             {assignees.map((a, idx) => (
-                                              <div key={idx} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#702c91] to-[#ec008c] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" title={a}>
+                                              <div key={idx} className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }} title={a}>
                                                 {getInitials(a)}
                                               </div>
                                             ))}
@@ -1002,7 +998,7 @@ export default function TaskTable() {
                                         const rawName = task.assignedBy || 'Mansi Shah'
                                         const cleanName = String(rawName).replace(/[^\w\s-]/g, '').trim()
                                         return (
-                                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#ec008c] to-[#702c91] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" title={cleanName}>
+                                          <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(cleanName) }} title={cleanName}>
                                             {getInitials(cleanName)}
                                           </div>
                                         )
@@ -1259,7 +1255,7 @@ export default function TaskTable() {
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
                                     <div style={{ display: 'flex' }}>
                                       {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
-                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: i % 2 === 0 ? '#60A5FA' : '#ec008c', border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
+                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
                                           {getInitials(a)}
                                         </div>
                                       ))}

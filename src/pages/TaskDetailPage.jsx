@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
-import { processMessagesList, renderMessageText, renderAvatar } from './ChatPage'
+import { processMessagesList, renderMessageText } from './ChatPage'
+import { renderAvatar } from '../utils/avatar'
 /* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PriorityBadge({ priority }) {
   const map = {
@@ -40,12 +41,7 @@ function StatusBadge({ status }) {
 
 
 
-function getInitials(name) {
-  if (!name) return '?'
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+
 
 const getPriorityConfig = (priority) => {
   switch (priority) {
@@ -1244,9 +1240,7 @@ export default function TaskDetailPage() {
                                 referrerPolicy="no-referrer"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
-                                {getInitials(trimmedAssignee)}
-                              </div>
+                              renderAvatar(null, trimmedAssignee, "w-6 h-6 rounded-full text-[10px]")
                             )}
                           </div>
                         )
@@ -1274,9 +1268,7 @@ export default function TaskDetailPage() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
-                          {getInitials(task.assignedBy || 'Mansi Shah')}
-                        </div>
+                        renderAvatar(null, task.assignedBy || 'Mansi Shah', "w-6 h-6 rounded-full text-[10px]")
                       )}
                     </div>
                   </div>

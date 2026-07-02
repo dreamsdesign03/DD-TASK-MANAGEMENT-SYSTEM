@@ -4,13 +4,7 @@ import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
 
 
-
-const getInitials = (name) => {
-  if (!name) return 'U'
-  const parts = name.split(' ')
-  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+import { renderAvatar } from '../utils/avatar'
 
 export default function ProfilePage() {
   const { profile, setProfile } = useApp()
@@ -34,9 +28,7 @@ export default function ProfilePage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                         {/* Left side: Photo, Name, Designation, Mail */}
                         <div className="flex items-center gap-6">
-                          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-sm flex items-center justify-center bg-primary-container text-white text-[28px] font-semibold flex-shrink-0">
-                            <span>{getInitials(profile.name)}</span>
-                          </div>
+                          {renderAvatar(profile.avatar, profile.name, "w-24 h-24 rounded-full border-2 border-white shadow-sm text-[28px]", "text-[28px]")}
                           <div className="flex flex-col">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1 font-bold text-[22px]">
                               {profile.name}

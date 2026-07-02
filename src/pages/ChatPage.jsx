@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import EmojiPicker from 'emoji-picker-react'
 import Sidebar from '../components/Sidebar'
 import { useApp, getPersonalChatRoomId } from '../context/AppContext'
+import { useToast } from '../context/ToastContext'
+import { renderAvatar } from '../utils/avatar'
 import { useGoogleLogin } from '@react-oauth/google'
 
 export function renderMessageTextWithMentions(text, isSent = false, employeeNames = []) {
@@ -252,49 +254,7 @@ export function processMessagesList(messages, currentProfile) {
   return result
 }
 
-// Render helper to show real avatar image or initials fallback
-export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full", textClass = "text-[13px]") {
-  const isValidImage = avatar &&
-    (avatar.startsWith('http') || avatar.startsWith('/') || avatar.startsWith('data:')) &&
-    !avatar.includes('dicebear.com')
 
-  if (isValidImage) {
-    return (
-      <img
-        src={avatar}
-        alt={name}
-        className={`${sizeClass} object-cover flex-shrink-0`}
-      />
-    )
-  }
-
-  // Initials fallback
-  const initials = (() => {
-    const trimmed = (name || '').trim()
-    if (!trimmed) return '?'
-    const parts = trimmed.split(/\s+/)
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-  })()
-
-  // Background colors based on name initials hash
-  const colors = [
-    'bg-[#E8DEF8] text-[#21005D]', // Purple
-    'bg-[#D0BCFF] text-[#381E72]', // Light Purple
-    'bg-[#F2B8B5] text-[#601410]', // Red
-    'bg-[#F7D070] text-[#4A3B00]', // Yellow
-    'bg-[#A1E3F9] text-[#004B6E]', // Teal
-    'bg-[#C2F0C2] text-[#004A00]'  // Green
-  ]
-  const code = initials.charCodeAt(0) + (initials.charCodeAt(1) || 0)
-  const bgClass = colors[code % colors.length]
-
-  return (
-    <div className={`${sizeClass} ${bgClass} rounded-full flex items-center justify-center font-bold ${textClass} flex-shrink-0`}>
-      {initials}
-    </div>
-  )
-}
 
 const CHAT_BACKGROUNDS = [
   {
