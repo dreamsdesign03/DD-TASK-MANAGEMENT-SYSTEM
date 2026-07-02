@@ -1461,7 +1461,7 @@ export default function TaskTable() {
           </div>
         ) : (
           <div className="mt-6">
-            <TaskCalendar tasks={filteredAndSortedTasks} />
+            <TaskCalendar tasks={filtered} />
           </div>
         )}
 
