@@ -117,6 +117,8 @@ export default function TaskDetailPage() {
   const [newSubtaskPriority, setNewSubtaskPriority] = useState('Medium')
   const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
   const [infoModal, setInfoModal] = useState(null)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [subtaskToDelete, setSubtaskToDelete] = useState(null)
 
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editDescriptionContent, setEditDescriptionContent] = useState('')

@@ -1936,7 +1936,6 @@ export function AppProvider({ children }) {
 
     return () => {
       clearInterval(taskInterval)
-      clearInterval(msgInterval)
       clearInterval(teamInterval)
       clearInterval(clientInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
