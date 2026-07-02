@@ -659,7 +659,7 @@ export default function TaskDetailPage() {
   }
 
   return (
-    <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+    <div className="bg-[#f9f9ff] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -671,8 +671,8 @@ export default function TaskDetailPage() {
       <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
         <TopNav title={task.title} showSearch={true} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
-          <div className="w-full flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 animate-fade-in-up">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
             {/* LEFT COLUMN */}
             <div className="flex-1 flex flex-col gap-8">
               {/* Header */}
@@ -906,7 +906,7 @@ export default function TaskDetailPage() {
                 {subtasks.length > 0 && (
                   <div className="space-y-2">
                     {subtasks.map((st) => (
-                      <div key={st.id} className="flex items-center gap-3 p-3 bg-surface-container-low border border-outline-variant/30 rounded-xl">
+                      <div key={st.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-[#E5E7EB] rounded-xl transition-colors hover:border-[#702c91]/30">
                         <input
                           type="checkbox"
                           checked={st.status === 'Done'}
@@ -964,8 +964,8 @@ export default function TaskDetailPage() {
                     Add subtask
                   </button>
                 ) : (
-                  <div className="flex flex-col gap-3 mt-4 bg-surface-container-lowest p-4 rounded-xl border border-primary/40 focus-within:border-primary transition-colors shadow-sm">
-                    <div className="flex items-center gap-2 border-b border-divider pb-2">
+                  <div className="flex flex-col gap-3 mt-4 bg-white p-4 rounded-xl border border-[#702c91]/40 focus-within:border-[#702c91] transition-colors shadow-sm">
+                    <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-2">
                       <span className="material-symbols-outlined text-secondary text-[18px]">radio_button_unchecked</span>
                       <input
                         type="text"
@@ -1067,9 +1067,9 @@ export default function TaskDetailPage() {
                       return (
                         <div key={index} className="relative flex items-center justify-center py-2">
                           <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-divider"></div>
+                            <div className="w-full border-t border-[#E5E7EB]"></div>
                           </div>
-                          <div className="relative bg-background px-4">
+                          <div className="relative bg-[#f9f9ff] px-4">
                             <p className={`text-[12px] text-[#6B6B6B] ${m.type === 'system' ? 'italic' : 'font-bold'} font-['Inter']`}>
                               {m.label || m.text}
                             </p>
@@ -1091,7 +1091,7 @@ export default function TaskDetailPage() {
                                 {m.time}
                               </span>
                             </div>
-                            <div className="bg-brand-accent p-4 rounded-xl rounded-tl-none border border-divider max-w-md">
+                            <div className="bg-white p-4 rounded-xl rounded-tl-none border border-[#E5E7EB] max-w-md shadow-sm">
                               {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name))}
                             </div>
                           </div>
@@ -1111,7 +1111,7 @@ export default function TaskDetailPage() {
                           </span>
                           {renderAvatar(profile?.avatar, profile?.name, "w-9 h-9 rounded-full")}
                         </div>
-                        <div className="bg-primary p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
+                        <div className="bg-[#702c91] p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
                           <div className="text-white text-body-sm">
                             {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name))}
                           </div>
@@ -1348,7 +1348,7 @@ export default function TaskDetailPage() {
 
                       <button
                         onClick={handleSaveStatus}
-                        className="w-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white border-none rounded-md py-2.5 text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95"
+                        className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95"
                       >
                         Save Status
                       </button>
@@ -1439,7 +1439,7 @@ export default function TaskDetailPage() {
                         setLinkUrl('')
                         addToast('Attachment link added successfully and synced to Google Sheets!', 'success')
                       }}
-                      className="w-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white border-none rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95 mb-3"
+                      className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95 mb-3"
                     >
                       <span className="material-symbols-outlined text-[16px]">add_link</span>
                       Add Link Attachment
