@@ -339,6 +339,19 @@ export default function TaskTable() {
     const task = tasks.find(t => t.id === taskId)
     if (!task) return
 
+    const canUpdateStatus = (() => {
+      if (!profile) return false;
+      const myName = String(profile.name || '').trim().toLowerCase();
+      if (!myName) return false;
+      const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
+      return assignees.includes(myName);
+    })();
+
+    if (!canUpdateStatus) {
+      addToast('Only assigned users or Admins/Managers can update status of this task', 'error');
+      return;
+    }
+
     if (boardGrouping === 'Process Stage') {
       if (task.status !== colName) {
         updateTask(taskId, { status: colName })
@@ -968,7 +981,13 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <InlineStatusSelect
                                       value={task.status}
-                                      disabled={!profile}
+                                      disabled={(() => {
+                                        if (!profile) return true;
+                                        const myName = String(profile.name || '').trim().toLowerCase();
+                                        if (!myName) return true;
+                                        const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
+                                        return !assignees.includes(myName);
+                                      })()}
                                       onChange={(newStatus) => {
                                         updateTask(task.id, { status: newStatus })
                                         if (newStatus === 'Done') {
@@ -1151,12 +1170,20 @@ export default function TaskTable() {
                               const cardBorderColor = getColColor(colName);
 
 
+                              const canUpdateStatus = (() => {
+                                if (!profile) return false;
+                                const myName = String(profile.name || '').trim().toLowerCase();
+                                if (!myName) return false;
+                                const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
+                                return assignees.includes(myName);
+                              })();
+
                               return (
                                 <div
                                   key={task.id}
-                                  draggable={!!profile}
+                                  draggable={canUpdateStatus}
                                   onDragStart={(e) => {
-                                    if (!profile) {
+                                    if (!canUpdateStatus) {
                                       e.preventDefault();
                                       return;
                                     }

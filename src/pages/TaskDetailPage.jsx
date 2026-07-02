@@ -1305,24 +1305,47 @@ export default function TaskDetailPage() {
               </div>
 
               {/* Update Status Card */}
-              <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
-                <div className="p-4 border-b border-[#E5E7EB]">
-                  <h3 className="text-[14px] font-bold text-[#1E1B2E] m-0 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#6B7280] text-[18px]">update</span>
-                    Update Status
-                  </h3>
-                </div>
-                <div className="p-5 flex flex-col gap-4">
-                  <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
+              {(() => {
+                const canUpdateStatus = (() => {
+                  if (!profile) return false;
+                  const myName = String(profile.name || '').trim().toLowerCase();
+                  if (!myName) return false;
+                  const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
+                  return assignees.includes(myName);
+                })();
 
-                  <button
-                    onClick={handleSaveStatus}
-                    className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95"
-                  >
-                    Save Status
-                  </button>
-                </div>
-              </div>
+                if (!canUpdateStatus) {
+                  return (
+                    <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm p-6 opacity-80">
+                      <h3 className="text-[14px] font-bold text-[#1E1B2E] m-0 flex items-center gap-2 mb-4">
+                        <span className="material-symbols-outlined text-[#6B7280] text-[18px]">lock</span> Update Status
+                      </h3>
+                      <p className="text-[12px] text-gray-500 italic m-0">Only assigned users can update the status of this task.</p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
+                    <div className="p-4 border-b border-[#E5E7EB]">
+                      <h3 className="text-[14px] font-bold text-[#1E1B2E] m-0 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#6B7280] text-[18px]">update</span>
+                        Update Status
+                      </h3>
+                    </div>
+                    <div className="p-5 flex flex-col gap-4">
+                      <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
+
+                      <button
+                        onClick={handleSaveStatus}
+                        className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95"
+                      >
+                        Save Status
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Priority Card */}
               {(() => {
