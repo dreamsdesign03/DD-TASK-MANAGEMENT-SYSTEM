@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { renderAvatar } from '../utils/avatar'
 
 export default function TopNav({ title, badgeCount, showSearch = true }) {
   const navigate = useNavigate()
@@ -85,20 +86,10 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
         <div 
           onClick={() => navigate('/settings')}
-          style={{ 
-            width: 40, height: 40, borderRadius: '50%', 
-            background: 'linear-gradient(135deg, #702c91 0%, #ec008c 100%)', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            color: 'white', fontWeight: 700, fontSize: 14, cursor: 'pointer' 
-          }}
+          className="cursor-pointer"
           title={profile?.name}
         >
-          {(() => {
-            const name = profile?.name || 'User'
-            const parts = name.split(' ')
-            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
-            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-          })()}
+          {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]")}
         </div>
       </div>
     </header>

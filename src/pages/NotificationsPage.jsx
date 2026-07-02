@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
+import { renderAvatar } from '../utils/avatar'
 
 const FILTER_TABS = ['All', 'Unread', 'Status Updates']
 
@@ -43,14 +44,51 @@ function NotificationCard({ notification, onRead }) {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 0 }}>
         {/* Icon */}
-        <div className={iconBg || 'bg-[#F0EDF8]'} style={{ width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span
-            className={`material-symbols-outlined ${iconColor || 'text-[#702c91]'}`}
-            style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}
-          >
-            {icon || 'notifications'}
-          </span>
-        </div>
+        {(() => {
+          let sender = null
+          if (category === 'New Message' && title.startsWith('Message from ')) {
+            sender = title.replace('Message from ', '')
+          } else if (category === 'Task Chat' && subtitle.includes(':')) {
+            sender = subtitle.split(':')[0]
+          } else if (category === 'Task Reminders' && title.includes('New Task')) {
+            sender = subtitle.split(' assigned')[0]
+          }
+
+          if (sender) {
+            return renderAvatar(null, sender, "w-[42px] h-[42px] rounded-xl", "text-[16px]")
+          }
+          if (category === 'New Group Message') {
+            return (
+              <div className="bg-[#E3F2FD] w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-blue-600" style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}>group</span>
+              </div>
+            )
+          }
+          if (category === 'Status Updates') {
+            return (
+              <div className="bg-[#F4EFF6] w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[#702c91]" style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}>published_with_changes</span>
+              </div>
+            )
+          }
+          if (category === 'Overdue Alerts') {
+            return (
+              <div className="bg-red-50 w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-red-600" style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}>warning</span>
+              </div>
+            )
+          }
+          return (
+            <div className={iconBg || 'bg-[#F0EDF8]'} style={{ width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span
+                className={`material-symbols-outlined ${iconColor || 'text-[#702c91]'}`}
+                style={{ fontVariationSettings: "'FILL' 1", fontSize: 22 }}
+              >
+                {icon || 'notifications'}
+              </span>
+            </div>
+          )
+        })()}
 
         {/* Content */}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, overflow: 'hidden' }}>
