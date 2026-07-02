@@ -1,13 +1,30 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUserColor, getInitials } from '../utils/avatar'
 
 export default function TaskCalendar({ tasks }) {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [showMonthDropdown, setShowMonthDropdown] = useState(false)
+  const monthDropdownRef = useRef(null)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
+        setShowMonthDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate()
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay()
@@ -92,11 +109,35 @@ export default function TaskCalendar({ tasks }) {
             Today
           </button>
           
-          <button 
-            className="flex items-center gap-1 px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Month <span className="material-symbols-outlined text-[16px]">expand_more</span>
-          </button>
+          <div className="relative" ref={monthDropdownRef}>
+            <button 
+              onClick={() => setShowMonthDropdown(!showMonthDropdown)}
+              className="flex items-center gap-1 px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              {months[month]} <span className="material-symbols-outlined text-[16px]">{showMonthDropdown ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            
+            {showMonthDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-40 bg-white border border-[#E5E7EB] rounded-md shadow-lg z-50 overflow-hidden animate-fade-in-up">
+                {months.map((m, idx) => (
+                  <button
+                    key={m}
+                    onClick={() => {
+                      setCurrentDate(new Date(year, idx, 1))
+                      setShowMonthDropdown(false)
+                    }}
+                    className={`w-full px-4 py-2 text-left text-[13px] font-medium transition-colors ${
+                      idx === month 
+                        ? 'bg-[#F5F3FF] text-[#702c91]' 
+                        : 'text-[#4B5563] hover:bg-gray-50'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           
           <div className="flex items-center gap-1">
             <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#6B7280] transition-colors cursor-pointer border-none bg-transparent">
