@@ -20,15 +20,6 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       zIndex: 40,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {/* Mobile menu button */}
-        <button
-          className="md:hidden"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ background: 'transparent', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 0, display: 'flex' }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>menu</span>
-        </button>
-
         <h1 style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
           {title || 'Dashboard'}
         </h1>
@@ -43,31 +34,21 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         {isSearchVisible && (
           <div style={{ position: 'relative', width: 300 }} className="hidden md:block">
             <span className="material-symbols-outlined" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 20 }}>search</span>
-            <input
-              type="text"
-              placeholder="Search tasks..."
+            <input 
+              type="text" 
+              placeholder="Search tasks..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%', height: 42, background: isDarkMode ? '#2d2a3d' : '#F8F7FC', border: 'none', borderRadius: 999,
                 paddingLeft: 44, paddingRight: 16, fontSize: 14, outline: 'none', color: isDarkMode ? '#fff' : '#1E1B2E',
                 fontFamily: 'Inter,sans-serif',
-              }}
+              }} 
             />
           </div>
         )}
-
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          style={{ width: 40, height: 40, background: isDarkMode ? '#3b384d' : '#F3F4F6', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          title="Toggle Theme"
-        >
-          <span className="material-symbols-outlined" style={{ color: isDarkMode ? '#FBBF24' : '#4B5563', fontSize: 20 }}>
-            {isDarkMode ? 'light_mode' : 'dark_mode'}
-          </span>
-        </button>
-
-        <button
+        
+        <button 
           onClick={() => navigate('/notifications')}
           style={{ position: 'relative', width: 40, height: 40, background: '#FEF2F2', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
@@ -77,14 +58,14 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
           )}
         </button>
 
-        <button
+        <button 
           onClick={() => navigate('/chat')}
           style={{ width: 40, height: 40, background: '#EFF6FF', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
           <span className="material-symbols-outlined" style={{ color: '#2563EB', fontSize: 20 }}>chat_bubble</span>
         </button>
 
-        <div
+        <div 
           onClick={() => navigate('/settings')}
           className="cursor-pointer"
           title={profile?.name}
