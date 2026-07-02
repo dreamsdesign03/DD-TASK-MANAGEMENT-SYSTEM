@@ -1308,10 +1308,18 @@ export default function TaskDetailPage() {
               {(() => {
                 const canUpdateStatus = (() => {
                   if (!profile) return false;
-                  const myName = String(profile.name || '').trim().toLowerCase();
-                  if (!myName) return false;
-                  const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
-                  return assignees.includes(myName);
+                  const normalizeName = (name) => {
+                    if (!name) return '';
+                    return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
+                  };
+                  const myName = normalizeName(profile.name);
+                  const myEmail = String(profile.email || '').trim().toLowerCase();
+                  if (!myName && !myEmail) return false;
+
+                  const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+                  const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+                  return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                 })();
 
                 if (!canUpdateStatus) {
