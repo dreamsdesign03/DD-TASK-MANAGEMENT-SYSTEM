@@ -321,7 +321,7 @@ export default function Sidebar() {
 
           {profile?.systemRole !== 'Employee' && (
             <button
-              onClick={() => setIsAddClientModalOpen(true)}
+              onClick={() => setShowNewClientModal(true)}
               style={{
                 display: 'flex', alignItems: 'center',
                 height: 48, margin: '0 20px', width: expanded ? 'calc(100% - 40px)' : '48px',
