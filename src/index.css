@@ -293,6 +293,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   background-size: 200% auto;
   background-position: left center;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #ffffff !important;
 }
 .btn-gradient:hover {
   background-position: right center;
