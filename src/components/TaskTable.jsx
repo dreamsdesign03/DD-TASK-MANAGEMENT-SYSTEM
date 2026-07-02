@@ -6,6 +6,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
+import TaskCalendar from './TaskCalendar'
 
 function SelectDropdown({ value, onChange, options, style }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -636,6 +637,13 @@ export default function TaskTable() {
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
             </button>
+            <button onClick={() => setViewMode('Calendar')} style={{
+              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: viewMode === 'Calendar' ? '#F5F3FF' : 'transparent',
+              color: viewMode === 'Calendar' ? '#702c91' : '#9CA3AF',
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>calendar_month</span>
+            </button>
           </div>
           <button
             onClick={() => {
@@ -1124,7 +1132,7 @@ export default function TaskTable() {
               </div>
             </div>
           </div>
-        ) : (
+        ) : viewMode === 'Board' ? (
           <div
             ref={boardRef}
             onMouseDown={handleMouseDown}
@@ -1450,6 +1458,10 @@ export default function TaskTable() {
                 </button>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="mt-6">
+            <TaskCalendar tasks={filteredAndSortedTasks} />
           </div>
         )}
 
