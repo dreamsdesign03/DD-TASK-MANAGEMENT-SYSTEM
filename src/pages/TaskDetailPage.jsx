@@ -1306,10 +1306,20 @@ export default function TaskDetailPage() {
 
               {/* Update Status Card */}
               {(() => {
-                const assignees = (task.assignedTo || '').split(',').map(s => s.trim())
-                const isAssigned = assignees.includes(profile?.name)
+                const canUpdateStatus = (() => {
+                  if (!profile) return false;
+                  const systemRole = String(profile.systemRole || '').trim().toLowerCase();
+                  const role = String(profile.role || '').trim().toLowerCase();
+                  if (systemRole === 'admin' || systemRole === 'manager' || role === 'admin' || role === 'manager') {
+                    return true;
+                  }
+                  const myName = String(profile.name || '').trim().toLowerCase();
+                  if (!myName) return false;
+                  const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
+                  return assignees.includes(myName);
+                })();
 
-                if (!isAssigned) {
+                if (!canUpdateStatus) {
                   return (
                     <div className="bg-white border border-[#E5E7EB] rounded-xl shadow-sm p-6 opacity-80">
                       <h3 className="text-[14px] font-bold text-[#1E1B2E] m-0 flex items-center gap-2 mb-4">
