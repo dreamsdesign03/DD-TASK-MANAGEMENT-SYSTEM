@@ -299,33 +299,64 @@ export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full",
 const CHAT_BACKGROUNDS = [
   {
     id: 'default',
-    name: 'Subtle Purple Dots',
+    name: 'DD Light',
     bgColor: '#F0EDF8',
     bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23702c91' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
   },
   {
-    id: 'whatsapp_classic',
-    name: 'Classic Beige',
-    bgColor: '#efeae2',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M0 12L12 0H6L0 6M12 12V6L6 12'/%3E%3C/g%3E%3C/svg%3E")`
+    id: 'dreamsdesk_gradient',
+    name: 'DD Theme',
+    bgColor: '#702c91',
+    bgImage: `linear-gradient(135deg, #702c91 0%, #e83a82 100%)`
   },
   {
-    id: 'doodles',
-    name: 'Doodles Style',
-    bgColor: '#fdfbf7',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23702c91' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+    id: 'whatsapp_classic',
+    name: 'WA Classic',
+    bgColor: '#efeae2',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`
+  },
+  {
+    id: 'whatsapp_dark',
+    name: 'WA Dark',
+    bgColor: '#0b141a',
+    bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
+  },
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    bgColor: '#f09433',
+    bgImage: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)`
+  },
+  {
+    id: 'galaxy',
+    name: 'Galaxy',
+    bgColor: '#0f0c29',
+    bgImage: `radial-gradient(circle at top right, #302b63, #0f0c29), url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='1' fill='%23ffffff' fill-opacity='0.8'/%3E%3Ccircle cx='40' cy='30' r='1.5' fill='%23ffffff' fill-opacity='0.6'/%3E%3Ccircle cx='70' cy='80' r='1' fill='%23ffffff' fill-opacity='0.5'/%3E%3Ccircle cx='90' cy='20' r='2' fill='%23ffffff' fill-opacity='0.3'/%3E%3Ccircle cx='20' cy='90' r='1' fill='%23ffffff' fill-opacity='0.7'/%3E%3C/svg%3E")`
+  },
+  {
+    id: 'adventures',
+    name: 'Adventures',
+    bgColor: '#11998e',
+    bgImage: `linear-gradient(to bottom, #11998e, #38ef7d), url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 10L10 30h20L20 10z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E")`
+  },
+  {
+    id: 'funny',
+    name: 'Comic',
+    bgColor: '#ffde59',
+    bgImage: `radial-gradient(circle, #ff914d 10%, transparent 11%), radial-gradient(circle at bottom left, #ff914d 5%, transparent 6%), radial-gradient(circle at bottom right, #ff914d 5%, transparent 6%), radial-gradient(circle at top left, #ff914d 5%, transparent 6%), radial-gradient(circle at top right, #ff914d 5%, transparent 6%)`,
+    bgSize: '40px 40px'
+  },
+  {
+    id: 'ocean',
+    name: 'Ocean Waves',
+    bgColor: '#2b5876',
+    bgImage: `linear-gradient(to right, #2b5876, #4e4376)`
   },
   {
     id: 'dark',
-    name: 'Dark Mode',
+    name: 'Deep Dark',
     bgColor: '#1E1B2E',
     bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
-  },
-  {
-    id: 'geometry',
-    name: 'Geometry',
-    bgColor: '#f9f9ff',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l40 40M40 0L0 40' stroke='%23702c91' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E")`
   }
 ]
 
@@ -1609,7 +1640,8 @@ export default function ChatPage() {
                 className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar"
                 style={{
                   backgroundColor: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgColor || '#F0EDF8',
-                  backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgImage || 'none'
+                  backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgImage || 'none',
+                  backgroundSize: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgSize || 'auto',
                 }}
               >
                 {activeMessages.length === 0 ? (
@@ -2088,7 +2120,7 @@ export default function ChatPage() {
                   className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${
                     selectedBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
                   }`}
-                  style={{ backgroundColor: bg.bgColor, backgroundImage: bg.bgImage }}
+                  style={{ backgroundColor: bg.bgColor, backgroundImage: bg.bgImage, backgroundSize: bg.bgSize || 'auto' }}
                   title={bg.name}
                 >
                   {selectedBgId === bg.id && (
