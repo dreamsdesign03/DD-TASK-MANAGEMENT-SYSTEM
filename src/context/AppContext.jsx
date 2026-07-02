@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
+import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate } from '../utils/activityLog'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
 
@@ -268,6 +269,40 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('dd_profile', JSON.stringify(profile))
   }, [profile])
+
+  // Activity tracking: log login on profile set, heartbeat every 30s
+  const heartbeatRef = useRef(null)
+  const loggedLoginRef = useRef(false)
+
+  useEffect(() => {
+    if (profile?.email) {
+      if (!loggedLoginRef.current) {
+        logLogin(profile.email, profile.name)
+        loggedLoginRef.current = true
+      }
+
+      heartbeatRef.current = setInterval(() => {
+        updateHeartbeat(profile.email)
+      }, 30000)
+
+      const handleBeforeUnload = () => {
+        logShutdown(profile.email)
+      }
+      window.addEventListener('beforeunload', handleBeforeUnload)
+
+      return () => {
+        clearInterval(heartbeatRef.current)
+        window.removeEventListener('beforeunload', handleBeforeUnload)
+        logShutdown(profile.email)
+      }
+    } else {
+      loggedLoginRef.current = false
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current)
+        heartbeatRef.current = null
+      }
+    }
+  }, [profile?.email])
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     try {
@@ -1996,6 +2031,14 @@ export function AppProvider({ children }) {
         isDarkMode,
         setIsDarkMode,
         addToast,
+        activityLog: loadActivityLog(),
+        getActiveUsers,
+        getAllUsersMonthlyActivity,
+        formatDuration,
+        getAllLoggedUsers,
+        getISTDate,
+        logLogout,
+        logShutdown,
       }}
     >
       {children}

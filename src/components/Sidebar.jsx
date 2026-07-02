@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp, mqttClient } from '../context/AppContext'
+import { logLogout } from '../utils/activityLog'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -118,6 +119,10 @@ export default function Sidebar() {
     { icon: 'business_center', label: 'Clients',       path: '/clients'                 },
     { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
   ];
+
+  if (profile?.systemRole !== 'Employee') {
+    NAV_ITEMS.push({ icon: 'monitoring', label: 'Activity', path: '/activity' })
+  }
 
   return (
     <>
@@ -348,6 +353,7 @@ export default function Sidebar() {
           <button
             onClick={() => {
               if (profile?.email) {
+                logLogout(profile.email)
                 fetch('https://script.google.com/macros/s/AKfycbxhPoHG7KQZObNKAxn-FL35qqIUBoTFPfXoHrH6r67a6-0aQsmD0VxhEXt960CWQEie/exec', {
                   method: 'POST',
                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },

@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
+import { getAllUsersMonthlyActivity, formatDuration } from '../utils/activityLog'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
@@ -602,6 +603,57 @@ export default function MonthlyReportPage() {
               </div>
             </div>
           </div>
+
+          {/* Working Hours */}
+          {(() => {
+            let activityMonth = null;
+            let activityYear = null;
+            if (currentMonth !== 'All Months') {
+              const parts = currentMonth.split(' ');
+              activityMonth = parts[0];
+              activityYear = parseInt(parts[1]);
+            }
+            const monthlyData = getAllUsersMonthlyActivity(activityMonth, activityYear);
+            const users = Object.keys(monthlyData);
+            if (users.length > 0) {
+              return (
+                <div className="mb-10">
+                  <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4">
+                    Working Hours {currentMonth !== 'All Months' ? `- ${currentMonth}` : ''}
+                  </h3>
+                  <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto hide-scrollbar">
+                      <table className="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                          <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                            <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Name</th>
+                            <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Total Days</th>
+                            <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Total Hours</th>
+                            <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Avg Hours / Day</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((u, idx) => {
+                            const d = monthlyData[u];
+                            const avg = d.totalDays > 0 ? (d.totalMinutes / d.totalDays / 60).toFixed(1) : '0';
+                            return (
+                              <tr key={u} className={`border-b border-[#E5E7EB] ${idx === users.length - 1 ? 'border-b-0' : ''}`}>
+                                <td className="py-4 px-5 text-[13px] font-semibold text-[#4B5563]">{u}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#6B7280]">{d.totalDays}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#6B7280]">{formatDuration(d.totalMinutes)}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#6B7280]">{avg}h</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* Footer Action */}
             <div className="flex justify-end pb-8" data-html2canvas-ignore>
