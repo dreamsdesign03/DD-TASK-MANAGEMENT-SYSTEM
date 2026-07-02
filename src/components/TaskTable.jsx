@@ -339,24 +339,6 @@ export default function TaskTable() {
     const task = tasks.find(t => t.id === taskId)
     if (!task) return
 
-    const canUpdateStatus = (() => {
-      if (!profile) return false;
-      const systemRole = String(profile.systemRole || '').trim().toLowerCase();
-      const role = String(profile.role || '').trim().toLowerCase();
-      if (systemRole === 'admin' || systemRole === 'manager' || role === 'admin' || role === 'manager') {
-        return true;
-      }
-      const myName = String(profile.name || '').trim().toLowerCase();
-      if (!myName) return false;
-      const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
-      return assignees.includes(myName);
-    })();
-
-    if (!canUpdateStatus) {
-      addToast('Only assigned users or Admins/Managers can update status of this task', 'error');
-      return;
-    }
-
     if (boardGrouping === 'Process Stage') {
       if (task.status !== colName) {
         updateTask(taskId, { status: colName })
@@ -986,18 +968,7 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <InlineStatusSelect
                                       value={task.status}
-                                      disabled={(() => {
-                                        if (!profile) return true;
-                                        const systemRole = String(profile.systemRole || '').trim().toLowerCase();
-                                        const role = String(profile.role || '').trim().toLowerCase();
-                                        if (systemRole === 'admin' || systemRole === 'manager' || role === 'admin' || role === 'manager') {
-                                          return false;
-                                        }
-                                        const myName = String(profile.name || '').trim().toLowerCase();
-                                        if (!myName) return true;
-                                        const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
-                                        return !assignees.includes(myName);
-                                      })()}
+                                      disabled={!profile}
                                       onChange={(newStatus) => {
                                         updateTask(task.id, { status: newStatus })
                                         if (newStatus === 'Done') {
@@ -1180,25 +1151,12 @@ export default function TaskTable() {
                               const cardBorderColor = getColColor(colName);
 
 
-                              const canUpdateStatus = (() => {
-                                if (!profile) return false;
-                                const systemRole = String(profile.systemRole || '').trim().toLowerCase();
-                                const role = String(profile.role || '').trim().toLowerCase();
-                                if (systemRole === 'admin' || systemRole === 'manager' || role === 'admin' || role === 'manager') {
-                                  return true;
-                                }
-                                const myName = String(profile.name || '').trim().toLowerCase();
-                                if (!myName) return false;
-                                const assignees = (task.assignedTo || '').split(',').map(s => s.trim().toLowerCase());
-                                return assignees.includes(myName);
-                              })();
-
                               return (
                                 <div
                                   key={task.id}
-                                  draggable={canUpdateStatus}
+                                  draggable={!!profile}
                                   onDragStart={(e) => {
-                                    if (!canUpdateStatus) {
+                                    if (!profile) {
                                       e.preventDefault();
                                       return;
                                     }
