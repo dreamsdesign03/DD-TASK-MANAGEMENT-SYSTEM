@@ -1562,7 +1562,11 @@ export default function ChatPage() {
 
               <div
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar bg-white"
+                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar"
+                style={{
+                  backgroundColor: '#F0EDF8',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23702c91' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
+                }}
               >
                 {activeMessages.length === 0 ? (
                   <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center text-center p-6">
@@ -2286,40 +2290,34 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-      <div className="bg-surface-container-lowest w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
+    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white w-[480px] rounded-2xl shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-hidden animate-scale-in">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-headline-sm font-bold text-primary">Create New Group</h2>
-          <button onClick={onClose} className="text-outline hover:text-on-surface transition-colors">
-            <span className="material-symbols-outlined">close</span>
+        <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+          <h2 className="text-[18px] font-bold text-[#702c91] m-0">Create New Group</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100">
+            <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Group name */}
-          <div className="relative">
+          <div>
             <input
               id="gname"
               type="text"
-              placeholder=" "
+              placeholder="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              className="block px-4 pb-2.5 pt-4 w-full text-body-sm text-on-surface bg-transparent rounded-lg border border-outline-variant appearance-none focus:outline-none focus:ring-0 focus:border-primary peer"
+              className="w-full bg-white border border-gray-300 rounded-md px-3 py-2.5 text-[14px] text-gray-800 focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] outline-none transition-colors shadow-sm"
             />
-            <label
-              htmlFor="gname"
-              className="absolute text-body-sm text-outline duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-surface-container-lowest px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2"
-            >
-              Group Name
-            </label>
           </div>
 
           {/* Members selection */}
-          <div className="space-y-2">
-            <label className="text-label-md font-bold text-on-surface-variant">Add Members</label>
+          <div className="space-y-3">
+            <label className="text-[13px] font-bold text-gray-700">Add Members</label>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">
                 search
               </span>
               <input
@@ -2327,7 +2325,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
                 placeholder="Search employees..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-2 text-body-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md pl-10 pr-4 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] outline-none transition-colors"
               />
             </div>
 
@@ -2336,11 +2334,11 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
                 {selectedEmployees.map((e) => (
                   <div
                     key={e.id}
-                    className="flex items-center gap-1 bg-light-tint text-primary px-3 py-1 rounded-full text-label-md font-medium"
+                    className="flex items-center gap-1 bg-purple-50 text-[#702c91] border border-purple-100 px-3 py-1 rounded-full text-[12px] font-bold"
                   >
                     <span>{e.name}</span>
                     <span
-                      className="material-symbols-outlined text-[16px] cursor-pointer hover:text-error transition-colors"
+                      className="material-symbols-outlined text-[14px] cursor-pointer hover:text-red-500 transition-colors"
                       onClick={() => removeChip(e.id)}
                     >
                       close
@@ -2350,22 +2348,22 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
               </div>
             )}
 
-            <div className="h-[150px] overflow-y-auto custom-scrollbar border border-outline-variant rounded-lg divide-y divide-outline-variant">
+            <div className="h-[180px] overflow-y-auto custom-scrollbar border border-gray-200 rounded-md divide-y divide-gray-100 bg-[#fafafa]">
               {filtered.map((e) => (
                 <label
                   key={e.id}
-                  className="p-3 flex items-center gap-3 hover:bg-surface-container-low transition-colors cursor-pointer"
+                  className="p-3 flex items-center gap-4 hover:bg-purple-50/50 transition-colors cursor-pointer group"
                 >
                   <input
                     type="checkbox"
                     checked={selected.includes(e.id)}
                     onChange={() => toggle(e.id)}
-                    className="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4"
+                    className="w-4 h-4 rounded cursor-pointer accent-[#702c91]"
                   />
                   {renderAvatar(e.avatar, e.name, "w-8 h-8 rounded-full", "text-[11px]")}
                   <div className="flex-1">
-                    <p className="text-label-md font-semibold">{e.name}</p>
-                    <p className="text-label-sm text-outline">{e.role}</p>
+                    <p className="text-[13px] font-bold text-gray-800 group-hover:text-[#702c91] transition-colors m-0">{e.name}</p>
+                    <p className="text-[11px] text-gray-500 font-medium m-0">{e.role}</p>
                   </div>
                 </label>
               ))}
@@ -2374,16 +2372,16 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
         </div>
 
         {/* Footer actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">
+        <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-6 py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-light-tint transition-all"
+            className="px-6 py-2 border border-[#702c91] text-[#702c91] bg-white rounded-lg font-bold hover:bg-purple-50 transition-all text-[13px] cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
-            className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:opacity-90 active:scale-95 transition-all"
+            className="px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
           >
             Create Group
           </button>
