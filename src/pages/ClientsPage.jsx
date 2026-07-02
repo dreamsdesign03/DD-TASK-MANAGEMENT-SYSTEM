@@ -260,56 +260,57 @@ export default function ClientsPage() {
       </main>
 
       {/* Edit Client Modal */}
+      {/* Edit Client Modal */}
       {editingClient && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <form
             onSubmit={handleUpdateClient}
-            className="bg-surface-container-lowest w-full max-w-[480px] rounded-lg shadow-2xl p-6 flex flex-col gap-4 max-h-[90vh] overflow-y-auto custom-scrollbar"
+            className="bg-white w-full max-w-[480px] rounded-2xl shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto custom-scrollbar animate-scale-in"
           >
-            <div className="flex justify-between items-center border-b border-divider pb-3">
-              <h2 className="text-headline-sm font-bold text-primary flex items-center gap-2">
-                <span className="material-symbols-outlined">edit_square</span>
+            <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">edit_square</span>
                 Update Client Profile
               </h2>
               <button
                 type="button"
                 onClick={() => setEditingClient(null)}
-                className="text-secondary hover:text-on-surface transition-colors"
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Project Name *</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Project Name *</label>
               <input
                 type="text"
                 required
                 value={clientForm.projectName}
                 onChange={e => setClientForm({ ...clientForm, projectName: e.target.value })}
-                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] focus:bg-white outline-none transition-colors shadow-sm"
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Client Name</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Client Name</label>
               <input
                 type="text"
                 value={clientForm.clientName}
                 onChange={e => setClientForm({ ...clientForm, clientName: e.target.value })}
-                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] focus:bg-white outline-none transition-colors shadow-sm"
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Email(s)</label>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Client Email(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, emails: [...clientForm.emails, ''] })}
-                  className="text-primary hover:bg-primary/10 rounded-full p-1"
+                  className="text-[#702c91] hover:bg-purple-50 rounded-full p-0.5 flex items-center transition-colors bg-transparent border-none cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  <span className="material-symbols-outlined text-[18px]">add</span>
                 </button>
               </div>
               <div className="space-y-2">
@@ -323,7 +324,7 @@ export default function ClientsPage() {
                         newEmails[idx] = e.target.value
                         setClientForm({ ...clientForm, emails: newEmails })
                       }}
-                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                      className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] focus:bg-white outline-none transition-colors shadow-sm"
                     />
                     {clientForm.emails.length > 1 && (
                       <button
@@ -332,7 +333,7 @@ export default function ClientsPage() {
                           const newEmails = clientForm.emails.filter((_, i) => i !== idx)
                           setClientForm({ ...clientForm, emails: newEmails })
                         }}
-                        className="text-urgent-red hover:bg-urgent-red/10 rounded-md px-2"
+                        className="text-red-500 hover:bg-red-50 rounded-md px-2 flex items-center transition-colors bg-transparent border-none cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-[20px]">remove</span>
                       </button>
@@ -342,15 +343,15 @@ export default function ClientsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-label-sm font-label-sm text-secondary uppercase">Client Phone(s)</label>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Client Phone(s)</label>
                 <button
                   type="button"
                   onClick={() => setClientForm({ ...clientForm, phones: [...clientForm.phones, ''] })}
-                  className="text-primary hover:bg-primary/10 rounded-full p-1"
+                  className="text-[#702c91] hover:bg-purple-50 rounded-full p-0.5 flex items-center transition-colors bg-transparent border-none cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  <span className="material-symbols-outlined text-[18px]">add</span>
                 </button>
               </div>
               <div className="space-y-2">
@@ -364,7 +365,7 @@ export default function ClientsPage() {
                         newPhones[idx] = e.target.value
                         setClientForm({ ...clientForm, phones: newPhones })
                       }}
-                      className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                      className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] focus:bg-white outline-none transition-colors shadow-sm"
                     />
                     {clientForm.phones.length > 1 && (
                       <button
@@ -373,7 +374,7 @@ export default function ClientsPage() {
                           const newPhones = clientForm.phones.filter((_, i) => i !== idx)
                           setClientForm({ ...clientForm, phones: newPhones })
                         }}
-                        className="text-urgent-red hover:bg-urgent-red/10 rounded-md px-2"
+                        className="text-red-500 hover:bg-red-50 rounded-md px-2 flex items-center transition-colors bg-transparent border-none cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-[20px]">remove</span>
                       </button>
@@ -383,21 +384,21 @@ export default function ClientsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Industry</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Industry</label>
               <input
                 type="text"
                 value={clientForm.industry}
                 onChange={e => setClientForm({ ...clientForm, industry: e.target.value })}
-                className="w-full bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface focus:border-primary outline-none"
+                className="w-full bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-800 focus:border-[#702c91] focus:bg-white outline-none transition-colors shadow-sm"
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-label-sm font-label-sm text-secondary uppercase">Services</label>
-              <div className="bg-surface-container border border-outline-variant rounded-md px-4 py-2 text-body-sm text-on-surface max-h-[160px] overflow-y-auto custom-scrollbar flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Services</label>
+              <div className="bg-[#f4f3f7] border border-gray-200 rounded-md px-3 py-2.5 text-[13px] text-gray-700 max-h-[160px] overflow-y-auto custom-scrollbar flex flex-col gap-3 shadow-inner">
                 {AVAILABLE_SERVICES.map(service => (
-                  <label key={service} className="flex items-center gap-2 cursor-pointer group">
+                  <label key={service} className="flex items-center gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
                       checked={clientForm.services.includes(service)}
@@ -410,31 +411,31 @@ export default function ClientsPage() {
                             : prev.services.filter(s => s !== service)
                         }))
                       }}
-                      className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface-container-lowest bg-surface-container-lowest"
+                      className="w-4 h-4 cursor-pointer accent-[#702c91]"
                     />
-                    <span className="text-secondary group-hover:text-on-surface transition-colors">{service}</span>
+                    <span className="text-[13px] group-hover:text-[#702c91] transition-colors">{service}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-divider">
+            <div className="flex justify-end items-center gap-4 mt-2 pt-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => setEditingClient(null)}
-                className="px-4 py-2 rounded-md font-label-lg text-secondary hover:bg-surface-container-high transition-colors"
+                className="text-[14px] text-gray-500 hover:text-gray-700 font-medium transition-colors bg-transparent border-none cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2 rounded-md font-label-lg bg-primary text-on-primary hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-lg bg-[#702c91] text-white border-none font-bold hover:bg-[#5a1f75] shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                  <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
                 ) : (
-                  <span className="material-symbols-outlined text-[20px]">save</span>
+                  <span className="material-symbols-outlined text-[18px]">save</span>
                 )}
                 Save Changes
               </button>

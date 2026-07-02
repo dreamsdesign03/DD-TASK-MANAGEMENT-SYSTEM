@@ -1523,24 +1523,24 @@ export default function TaskDetailPage() {
       </main>
       {/* Assignee Modal */}
       {isAssigneeModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-          <div className="bg-surface-container-lowest w-[400px] rounded-xl shadow-xl p-6 flex flex-col gap-4 max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center border-b border-divider pb-3">
-              <h2 className="text-[18px] font-bold text-primary flex items-center gap-2">
-                <span className="material-symbols-outlined">group_add</span>
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-[400px] rounded-2xl shadow-2xl p-6 flex flex-col gap-4 max-h-[80vh] overflow-hidden animate-scale-in">
+            <div className="flex justify-between items-center border-b border-gray-200 pb-4">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[22px]">group_add</span>
                 Manage Assignees
               </h2>
               <button
                 type="button"
                 onClick={() => setIsAssigneeModalOpen(false)}
-                className="text-outline hover:text-on-surface transition-colors"
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-            <div className="overflow-y-auto custom-scrollbar flex-1 space-y-1">
+            <div className="overflow-y-auto custom-scrollbar flex-1 space-y-1 py-2">
               {uniqueTeamMembers.map((m) => (
-                <label key={m} className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-low cursor-pointer rounded-lg border border-transparent hover:border-outline-variant transition-colors">
+                <label key={m} className="flex items-center gap-4 px-3 py-2.5 hover:bg-purple-50/50 cursor-pointer rounded-lg transition-colors group">
                   <input
                     type="checkbox"
                     checked={selectedAssignees.includes(m)}
@@ -1551,22 +1551,22 @@ export default function TaskDetailPage() {
                         setSelectedAssignees(selectedAssignees.filter(name => name !== m))
                       }
                     }}
-                    className="accent-primary w-4 h-4 cursor-pointer"
+                    className="w-4 h-4 cursor-pointer accent-[#702c91]"
                   />
-                  <span className="text-body-sm text-on-surface font-medium">{m}</span>
+                  <span className="text-[14px] text-gray-700 font-medium group-hover:text-[#702c91] transition-colors">{m}</span>
                 </label>
               ))}
             </div>
-            <div className="flex justify-end gap-3 pt-3 border-t border-divider">
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
               <button
                 onClick={() => setIsAssigneeModalOpen(false)}
-                className="px-6 py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-primary/5 transition-all text-sm"
+                className="px-6 py-2 border border-[#702c91] text-[#702c91] bg-white rounded-lg font-bold hover:bg-purple-50 transition-all text-[13px] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveAssignees}
-                className="px-6 py-2 bg-primary text-on-primary rounded-lg font-label-md shadow-md hover:brightness-105 active:scale-95 transition-all text-sm"
+                className="px-6 py-2 bg-[#702c91] text-white border-none rounded-lg font-bold shadow-md hover:bg-[#5a1f75] active:scale-95 transition-all text-[13px] cursor-pointer"
               >
                 Save
               </button>
