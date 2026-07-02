@@ -310,8 +310,15 @@ const CHAT_BACKGROUNDS = [
     bgImage: `linear-gradient(135deg, #702c91 0%, #e83a82 100%)`
   },
   {
+    id: 'whatsapp_image',
+    name: 'WA Pattern',
+    bgColor: '#efeae2',
+    bgImage: `url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")`,
+    bgSize: 'auto'
+  },
+  {
     id: 'whatsapp_classic',
-    name: 'WA Classic',
+    name: 'WA Light',
     bgColor: '#efeae2',
     bgImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`
   },
@@ -333,27 +340,6 @@ const CHAT_BACKGROUNDS = [
     name: 'Ocean Waves',
     bgColor: '#006994',
     bgImage: `url("https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'cat',
-    name: 'Cute Cat',
-    bgColor: '#f4f4f4',
-    bgImage: `url("https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'dog',
-    name: 'Funny Dog',
-    bgColor: '#f4f4f4',
-    bgImage: `url("https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'cringe',
-    name: 'Cringe Pug',
-    bgColor: '#f4f4f4',
-    bgImage: `url("https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=1200&q=80")`,
     bgSize: 'cover'
   },
   {
@@ -404,7 +390,14 @@ export default function ChatPage() {
     addToast
   } = useApp()
 
-  const [selectedBgId, setSelectedBgId] = useState(localStorage.getItem('dd_chat_bg') || 'default')
+  const [chatBackgrounds, setChatBackgrounds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('dd_chat_bgs')
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  })
   const [showBgModal, setShowBgModal] = useState(false)
 
   const ALL_EMPLOYEES = employees || []
@@ -551,6 +544,8 @@ export default function ChatPage() {
       ? personalChats.find((c) => String(c.id) === String(selectedChatId))
       : groupChats.find((g) => String(g.id) === String(selectedChatId))
     : null
+
+  const currentBgId = activeChat ? (chatBackgrounds[activeChat.id] || 'default') : 'default'
 
   const getMessageTicks = (msg) => {
     if (msg.isFailed) {
@@ -1657,11 +1652,11 @@ export default function ChatPage() {
                 ref={messagesContainerRef}
                 className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar"
                 style={{
-                  backgroundColor: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgColor || '#F0EDF8',
-                  backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgImage || 'none',
-                  backgroundSize: CHAT_BACKGROUNDS.find(bg => bg.id === selectedBgId)?.bgSize || 'auto',
+                  backgroundColor: CHAT_BACKGROUNDS.find(bg => bg.id === currentBgId)?.bgColor || '#F0EDF8',
+                  backgroundImage: CHAT_BACKGROUNDS.find(bg => bg.id === currentBgId)?.bgImage || 'none',
+                  backgroundSize: CHAT_BACKGROUNDS.find(bg => bg.id === currentBgId)?.bgSize || 'auto',
                   backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
+                  backgroundRepeat: CHAT_BACKGROUNDS.find(bg => bg.id === currentBgId)?.bgSize === 'auto' ? 'repeat' : 'no-repeat'
                 }}
               >
                 {activeMessages.length === 0 ? (
@@ -2134,22 +2129,24 @@ export default function ChatPage() {
                 <button
                   key={bg.id}
                   onClick={() => {
-                    setSelectedBgId(bg.id)
-                    localStorage.setItem('dd_chat_bg', bg.id)
+                    if (!activeChat) return
+                    const newBgs = { ...chatBackgrounds, [activeChat.id]: bg.id }
+                    setChatBackgrounds(newBgs)
+                    localStorage.setItem('dd_chat_bgs', JSON.stringify(newBgs))
                   }}
                   className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${
-                    selectedBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
+                    currentBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
                   }`}
                   style={{ 
                     backgroundColor: bg.bgColor, 
                     backgroundImage: bg.bgImage, 
                     backgroundSize: bg.bgSize || 'auto',
                     backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
+                    backgroundRepeat: bg.bgSize === 'auto' ? 'repeat' : 'no-repeat'
                   }}
                   title={bg.name}
                 >
-                  {selectedBgId === bg.id && (
+                  {currentBgId === bg.id && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-[#702c91] rounded-full flex items-center justify-center shadow-sm">
                       <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>
                     </div>
