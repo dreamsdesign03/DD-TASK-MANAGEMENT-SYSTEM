@@ -1090,31 +1090,56 @@ export default function TaskTable() {
                                       })()}
                                       onChange={(newStatus) => {
                                         if (newStatus === 'MyPartComplete') {
+                                          const nowISO = new Date().toISOString();
                                           const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
-                                          const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
+                                          const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: nowISO };
                                           const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
-                                          const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
                                           const originalStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
                                           
+                                          // Check if ALL assignees have completed
+                                          const allAssignees = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean);
+                                          const allCompleted = allAssignees.length > 0 && allAssignees.every(a => newCompletedBy.includes(a));
+                                          
+                                          let newStatus, isFullyDone;
+                                          if (allCompleted) {
+                                            newStatus = 'Done';
+                                            isFullyDone = true;
+                                          } else {
+                                            newStatus = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+                                            isFullyDone = false;
+                                          }
+                                          
+                                          const statusHistoryEntry = {
+                                            from: originalStatus,
+                                            to: newStatus,
+                                            changedBy: profile?.name,
+                                            timestamp: nowISO,
+                                            type: isFullyDone ? 'all_completed' : 'part_complete'
+                                          };
+                                          const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
+                                          
                                           updateTask(task.id, { 
-                                            status: newStatusStr,
+                                            status: newStatus,
+                                            done: isFullyDone,
                                             description: { 
                                               ...task.description, 
                                               originalStatus: originalStatus,
                                               completedBy: newCompletedBy, 
                                               completedParts: newCompletedParts,
-                                              completedEmpIds: newCompletedEmpIds 
+                                              completedEmpIds: newCompletedEmpIds,
+                                              statusHistory: newStatusHistory
                                             } 
                                           });
                                           
+                                          const nowFormatted = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2');
                                           const payload = {
                                             id: 'msg_' + Date.now(),
                                             action: 'send',
                                             roomId: String(task.id),
                                             senderId: 'system',
                                             senderName: 'System',
-                                            message: `${profile?.name} has marked their part as complete.`,
-                                            timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2'),
+                                            message: isFullyDone ? `All assignees have completed their parts. Task is now Done.` : `${profile?.name} has marked their part as complete.`,
+                                            timestamp: nowFormatted,
                                             type: 'task_reply',
                                             groupName: task.title
                                           };
@@ -1128,6 +1153,12 @@ export default function TaskTable() {
                                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                                             body: JSON.stringify(payload)
                                           }).catch(e => console.warn(e));
+                                          
+                                          if (isFullyDone && (!task.dueDate || new Date(task.dueDate) >= new Date(new Date().toDateString()))) {
+                                            import('canvas-confetti').then((confetti) => {
+                                              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
+                                            })
+                                          }
                                           return;
                                         }
                                         updateTask(task.id, { status: newStatus })
