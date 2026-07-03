@@ -6,7 +6,7 @@ import { useApp, getPersonalChatRoomId } from '../context/AppContext'
 import { useToast } from '../context/ToastContext'
 import { renderAvatar } from '../utils/avatar'
 import { useGoogleLogin } from '@react-oauth/google'
-
+import CHAT_BACKGROUNDS from '../data/chatBackgrounds'
 export function renderMessageTextWithMentions(text, isSent = false, employeeNames = []) {
   if (!text) return null
 
@@ -256,73 +256,7 @@ export function processMessagesList(messages, currentProfile) {
 
 
 
-const CHAT_BACKGROUNDS = [
-  {
-    id: 'default',
-    name: 'DD Light',
-    bgColor: '#F0EDF8',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23702c91' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
-  },
-  {
-    id: 'dreamsdesk_gradient',
-    name: 'DD Theme',
-    bgColor: '#702c91',
-    bgImage: `linear-gradient(135deg, #702c91 0%, #e83a82 100%)`
-  },
-  {
-    id: 'whatsapp_image',
-    name: 'WA Pattern',
-    bgColor: '#efeae2',
-    bgImage: `url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")`,
-    bgSize: 'auto'
-  },
-  {
-    id: 'whatsapp_classic',
-    name: 'WA Light',
-    bgColor: '#efeae2',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2H0v-2h20v-2H0V8h20V6H0V4h20V2H0V0h22v20h2V0h2v20h2V0h2v20h2V0h2v20h2V0h2v20h2v2H20v-1.5zM0 20h2v20H0V20zm4 0h2v20H4V20zm4 0h2v20H8V20zm4 0h2v20h-2V20zm4 0h2v20h-2V20zm4 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2zm0 4h20v2H20v-2z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`
-  },
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    bgColor: '#f09433',
-    bgImage: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)`
-  },
-  {
-    id: 'galaxy',
-    name: 'Galaxy',
-    bgColor: '#000000',
-    bgImage: `url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'ocean',
-    name: 'Ocean Waves',
-    bgColor: '#006994',
-    bgImage: `url("https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'adventures',
-    name: 'Adventures',
-    bgColor: '#11998e',
-    bgImage: `url("https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1200&q=80")`,
-    bgSize: 'cover'
-  },
-  {
-    id: 'funny',
-    name: 'Comic',
-    bgColor: '#ffde59',
-    bgImage: `radial-gradient(circle, #ff914d 10%, transparent 11%), radial-gradient(circle at bottom left, #ff914d 5%, transparent 6%), radial-gradient(circle at bottom right, #ff914d 5%, transparent 6%), radial-gradient(circle at top left, #ff914d 5%, transparent 6%), radial-gradient(circle at top right, #ff914d 5%, transparent 6%)`,
-    bgSize: '40px 40px'
-  },
-  {
-    id: 'dark',
-    name: 'Deep Dark',
-    bgColor: '#1E1B2E',
-    bgImage: `url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Ccircle cx='4' cy='4' r='1.5'/%3E%3Ccircle cx='16' cy='16' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`
-  }
-]
+
 
 export default function ChatPage() {
   const {
