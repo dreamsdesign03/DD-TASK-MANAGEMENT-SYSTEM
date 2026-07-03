@@ -202,6 +202,27 @@ const mapWebhookTaskToApp = (item) => {
   }
 }
 
+const insertDateDividers_util = (msgList) => {
+  if (!msgList || msgList.length === 0) return []
+  const withDividers = []
+  let lastDateStr = ''
+  msgList.forEach(m => {
+    let dateStr = 'Today'
+    if (m.timestamp) {
+      try {
+        const d = new Date(m.timestamp)
+        dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+      } catch (e) { }
+    }
+    if (dateStr !== lastDateStr) {
+      withDividers.push({ id: `div-${dateStr}`, type: 'divider', label: dateStr })
+      lastDateStr = dateStr
+    }
+    withDividers.push(m)
+  })
+  return withDividers
+}
+
 export function AppProvider({ children }) {
   const { addToast } = useToast()
   const [tasks, setTasks] = useState(() => {
@@ -628,7 +649,7 @@ export function AppProvider({ children }) {
     }
   }, [profile?.email])
 
-  const mapN8nMessageToApp = (m) => {
+  const mapN8nMessageToApp = useCallback((m) => {
     // Find keys case-insensitively since Google Sheets headers might vary slightly
     const getVal = (keyBase) => {
       const lowerBase = keyBase.toLowerCase()
@@ -682,35 +703,9 @@ export function AppProvider({ children }) {
       time: timeStr,
       timestamp: timestamp
     }
-  }
+  }, [profileRef])
 
-  const insertDateDividers = (msgList) => {
-    if (!msgList || msgList.length === 0) return []
-    const withDividers = []
-    let lastDateStr = ''
-
-    msgList.forEach(m => {
-      let dateStr = 'Today'
-      if (m.timestamp) {
-        try {
-          const d = new Date(m.timestamp)
-          dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
-        } catch (e) { }
-      }
-
-      if (dateStr !== lastDateStr) {
-        withDividers.push({
-          id: `div-${dateStr}`,
-          type: 'divider',
-          label: dateStr
-        })
-        lastDateStr = dateStr
-      }
-      withDividers.push(m)
-    })
-
-    return withDividers
-  }
+  const insertDateDividers = insertDateDividers_util
 
   // Helper: strip protocol markers from message text for sidebar preview display
   const cleanPreviewText = (text) => {
@@ -743,7 +738,7 @@ export function AppProvider({ children }) {
   }
 
   // Fetch messages from n8n CHAT_ENGINE Webhook
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
       const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
 
@@ -1189,7 +1184,7 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('Failed to fetch messages:', err)
     }
-  }
+  }, [])
 
   // Poll for new messages every 5 minutes as a fallback.
   // Real-time updates are handled entirely by MQTT now.
