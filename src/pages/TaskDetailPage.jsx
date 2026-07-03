@@ -604,11 +604,13 @@ export default function TaskDetailPage() {
       const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
       const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
       const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+      const originalStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
 
       updateTask(task.id, { 
         status: newStatusStr,
         description: { 
           ...task.description, 
+          originalStatus: originalStatus,
           completedBy: newCompletedBy, 
           completedParts: newCompletedParts,
           completedEmpIds: newCompletedEmpIds 
@@ -1485,18 +1487,7 @@ export default function TaskDetailPage() {
                             style: { borderTop: '1px solid #E5E7EB', marginTop: 4, paddingTop: 12 }
                           });
                         }
-                        let displayLocalStatus = localStatus;
-                        if (displayLocalStatus?.startsWith('Task part done by')) {
-                          displayLocalStatus = displayLocalStatus.split(', ').map(part => {
-                            const empIdMatch = part.match(/EMP-\d+/);
-                            if (empIdMatch && employees) {
-                              const empId = empIdMatch[0];
-                              const emp = employees.find(e => e.id === empId);
-                              if (emp) return `Done by ${emp.name}`;
-                            }
-                            return part;
-                          }).join(', ');
-                        }
+                        let displayLocalStatus = localStatus?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : localStatus;
 
                         return (
                           <SelectDropdown value={displayLocalStatus} onChange={setLocalStatus} options={statusOptions} />

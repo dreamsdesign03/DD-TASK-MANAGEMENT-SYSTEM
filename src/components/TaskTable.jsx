@@ -80,20 +80,8 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
     }
   }
 
-  const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
-
-  let displayValue = value;
-  if (displayValue?.startsWith('Task part done by')) {
-    displayValue = displayValue.split(', ').map(part => {
-      const empIdMatch = part.match(/EMP-\d+/);
-      if (empIdMatch && employees) {
-        const empId = empIdMatch[0];
-        const emp = employees.find(e => e.id === empId);
-        if (emp) return `Done by ${emp.name}`;
-      }
-      return part;
-    }).join(', ');
-  }
+  let displayValue = value?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : value;
+  const cfg = STATUS_CONFIG[displayValue] || STATUS_CONFIG['Pending']
 
   return (
     <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
@@ -1106,11 +1094,13 @@ export default function TaskTable() {
                                           const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
                                           const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
                                           const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+                                          const originalStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
                                           
                                           updateTask(task.id, { 
                                             status: newStatusStr,
                                             description: { 
                                               ...task.description, 
+                                              originalStatus: originalStatus,
                                               completedBy: newCompletedBy, 
                                               completedParts: newCompletedParts,
                                               completedEmpIds: newCompletedEmpIds 
