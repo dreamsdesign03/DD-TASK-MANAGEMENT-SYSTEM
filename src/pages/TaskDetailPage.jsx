@@ -90,6 +90,20 @@ export default function TaskDetailPage() {
 
   const task = (tasks || []).find((t) => t.id === taskId) || (tasks && tasks.length > 0 ? tasks[0] : {})
 
+  const canViewTask = (() => {
+    if (!profile || !task?.id) return true;
+    if (profile.systemRole !== 'Employee') return true;
+    const normalizeName = (name) => {
+      if (!name) return '';
+      return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
+    };
+    const myName = normalizeName(profile.name);
+    const myEmail = String(profile.email || '').trim().toLowerCase();
+    const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+    const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
+  })();
+
   useEffect(() => {
     fetchMessages()
   }, [taskId, fetchMessages])
@@ -661,6 +675,24 @@ export default function TaskDetailPage() {
     )
   }
 
+  if (!canViewTask) {
+    return (
+      <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+        <Sidebar />
+        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+          <TopNav title="Access Denied" showSearch={false} />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md">
+              <span className="material-symbols-outlined text-[48px] text-gray-300 mb-4 block">lock</span>
+              <h2 className="text-[18px] font-bold text-[#1E1B2E] mb-2">Access Restricted</h2>
+              <p className="text-[13px] text-gray-500">Only assigned users can view this task's details.</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-[#f9f9ff] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
@@ -925,6 +957,12 @@ export default function TaskDetailPage() {
                           <input
                           type="checkbox"
                           checked={st.status === 'Done'}
+                          disabled={(() => {
+                            if (!profile) return true;
+                            const myName = String(profile.name || '').toLowerCase().replace(/[^\w]/g, '').trim();
+                            const subAssignee = String(st.assignedTo || '').toLowerCase().replace(/[^\w]/g, '').trim();
+                            return myName !== subAssignee;
+                          })()}
                           onChange={(e) => {
                             const newStatus = e.target.checked ? 'Done' : 'Pending'
                             updateTask(st.id, { status: newStatus, statusUpdatedOn: newStatus === 'Done' ? new Date().toISOString() : '' })
@@ -937,7 +975,7 @@ export default function TaskDetailPage() {
                               }
                             }
                           }}
-                          className="w-5 h-5 accent-primary cursor-pointer rounded"
+                          className={`w-5 h-5 accent-primary rounded ${st.assignedTo && String(profile?.name || '').toLowerCase().replace(/[^\w]/g, '').trim() !== String(st.assignedTo).toLowerCase().replace(/[^\w]/g, '').trim() ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                         />
                         <div className={`flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
                           <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
@@ -1334,6 +1372,8 @@ export default function TaskDetailPage() {
                   const myEmail = String(profile.email || '').trim().toLowerCase();
                   if (!myName && !myEmail) return false;
 
+                  if (profile.systemRole !== 'Employee') return true;
+
                   const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
                   const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
@@ -1346,7 +1386,7 @@ export default function TaskDetailPage() {
                       <h3 className="text-[14px] font-bold text-[#1E1B2E] m-0 flex items-center gap-2 mb-4">
                         <span className="material-symbols-outlined text-[#6B7280] text-[18px]">lock</span> Update Status
                       </h3>
-                      <p className="text-[12px] text-gray-500 italic m-0">Only assigned users can update the status of this task.</p>
+                      <p className="text-[12px] text-gray-500 italic m-0">Only assigned users, admins, or managers can update the status of this task.</p>
                     </div>
                   )
                 }
