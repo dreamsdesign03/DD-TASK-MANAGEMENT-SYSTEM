@@ -457,13 +457,13 @@ export default function TaskTable() {
       id: nextIdStr,
       title: quickAddTitle.trim(),
       client: selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || ''),
-      project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-      assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+      assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+      assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       dueDate: quickAddDueDate || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0], // 1 week default
       priority: quickAddPriority,
       status: initialStatus,
-      statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       department: newDept,
       assignedTo: finalAssignees.join(', '),
       employeeId: assignedEmps.length > 0 ? assignedEmps.map(e => e.id).join(', ') : (profile?.id || ''),
@@ -1384,7 +1384,7 @@ export default function TaskTable() {
                                 </div>
 
                                 <div className="text-[11px] text-secondary mb-1">
-                                  {new Date().toLocaleString('en-US', { month: 'short', year: '2-digit' })}
+                                  {new Date().toLocaleString('en-US', { month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
                                 </div>
 
                                 <div className="flex items-start gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative flex-col">

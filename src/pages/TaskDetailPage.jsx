@@ -6,6 +6,7 @@ import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import { processMessagesList, renderMessageText } from './ChatPage'
 import { renderAvatar } from '../utils/avatar'
+import { formatTime, formatDateTime } from '../utils/dateFormat'
 import CHAT_BACKGROUNDS from '../data/chatBackgrounds'
 /* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PriorityBadge({ priority }) {
@@ -510,7 +511,7 @@ export default function TaskDetailPage() {
 
       const tempId = String(Date.now())
       const isoTimestamp = new Date().toISOString()
-      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      const now = formatTime()
 
       const newMessage = {
         id: tempId,
@@ -897,7 +898,7 @@ export default function TaskDetailPage() {
                   </h3>
                   {task.description?.editedAt && !isEditingDescription && (
                     <span className="text-[10px] text-secondary italic ml-auto">
-                      Edited: {new Date(task.description.editedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      Edited: {formatDateTime(task.description.editedAt)}
                     </span>
                   )}
                 </div>
@@ -982,7 +983,7 @@ export default function TaskDetailPage() {
                           <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
                           {st.status === 'Done' && st.statusUpdatedOn && (
                             <p className="text-[10px] text-gray-400 mt-0.5 font-normal">
-                              {new Date(st.statusUpdatedOn).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              {formatDateTime(st.statusUpdatedOn)}
                             </p>
                           )}
                         </div>

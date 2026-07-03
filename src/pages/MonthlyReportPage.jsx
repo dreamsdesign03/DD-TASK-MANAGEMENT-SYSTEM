@@ -22,7 +22,7 @@ export default function MonthlyReportPage() {
       if (t?.dueDate) {
         const d = new Date(t.dueDate)
         if (!isNaN(d.getTime())) {
-          months.add(d.toLocaleString('default', { month: 'long', year: 'numeric' }))
+          months.add(d.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }))
         }
       }
     })
@@ -56,7 +56,7 @@ export default function MonthlyReportPage() {
         if (!t.dueDate) return false
         const d = new Date(t.dueDate)
         if (isNaN(d.getTime())) return false
-        const taskMonth = d.toLocaleString('default', { month: 'long', year: 'numeric' })
+        const taskMonth = d.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
         if (taskMonth !== currentMonth) return false
       }
 

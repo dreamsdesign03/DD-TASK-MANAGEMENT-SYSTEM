@@ -149,7 +149,7 @@ export default function TaskCalendar({ tasks }) {
           </div>
           
           <h2 className="text-[18px] font-bold text-[#1E1B2E] m-0 ml-2">
-            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
           </h2>
         </div>
       </div>

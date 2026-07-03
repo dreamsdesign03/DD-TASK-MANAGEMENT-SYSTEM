@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef, useCallback } f
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
 import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate } from '../utils/activityLog'
+import { formatDateShort, formatDateTime } from '../utils/dateFormat'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
 
@@ -59,7 +60,7 @@ const mapWebhookTaskToApp = (item) => {
     try {
       const d = new Date(dateStr)
       if (isNaN(d.getTime())) return dateStr
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })
     } catch {
       return dateStr
     }
@@ -131,7 +132,7 @@ const mapWebhookTaskToApp = (item) => {
     mainTaskId: mainTaskId,
     client: finalClient,
     project: finalProject,
-    assigned: assigned || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    assigned: assigned || formatDateShort(),
     dueDate: dueDate,
     priority: data.Priority || data.priority || 'Medium',
     status: data.Status || data.status || 'Pending',
@@ -211,7 +212,7 @@ const insertDateDividers_util = (msgList) => {
     if (m.timestamp) {
       try {
         const d = new Date(m.timestamp)
-        dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+        dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })
       } catch (e) { }
     }
     if (dateStr !== lastDateStr) {
@@ -521,7 +522,7 @@ export function AppProvider({ children }) {
       icon: category === 'Status Updates' ? 'check_circle' : (category === 'Task Reminders' ? 'assignment' : 'chat_bubble'),
       title,
       subtitle,
-      time: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      time: formatDateTime(),
       taskId
     }
     setNotifications(prev => [newNotif, ...prev])

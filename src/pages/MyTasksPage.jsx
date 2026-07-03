@@ -60,6 +60,7 @@ export default function MyTasksPage() {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
+        timeZone: 'Asia/Kolkata',
       })
     }
 
@@ -82,13 +83,13 @@ export default function MyTasksPage() {
       id: nextIdStr,
       title: title.trim(),
       client: client || companyList[0] || 'Unknown Client',
-      project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
-      assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+      assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+      assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       dueDate: formattedDate,
       priority,
       status: 'Pending',
-      statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       overdue: false,
       done: false,
       department,
