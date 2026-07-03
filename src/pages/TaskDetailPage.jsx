@@ -600,9 +600,20 @@ export default function TaskDetailPage() {
 
   const handleSaveStatus = () => {
     if (localStatus === 'My Part Complete') {
-      const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+      const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
       const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
-      updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy, completedParts: newCompletedParts } });
+      const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
+      const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+
+      updateTask(task.id, { 
+        status: newStatusStr,
+        description: { 
+          ...task.description, 
+          completedBy: newCompletedBy, 
+          completedParts: newCompletedParts,
+          completedEmpIds: newCompletedEmpIds 
+        } 
+      });
       
       const payload = {
         id: 'msg_' + Date.now(),
@@ -796,7 +807,22 @@ export default function TaskDetailPage() {
                           : 'bg-gray-100 text-gray-600 border-gray-200'
                       }`}>
                         {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
-                        {task.status === 'Done' && isDoneLate ? 'Done (Late)' : (task.status || 'To Do')}
+                        {(() => {
+                          if (task.status === 'Done' && isDoneLate) return 'Done (Late)';
+                          let displayStatus = task.status || 'To Do';
+                          if (displayStatus.startsWith('Task part done by')) {
+                            displayStatus = displayStatus.split(', ').map(part => {
+                              const empIdMatch = part.match(/EMP-\d+/);
+                              if (empIdMatch && employees) {
+                                const empId = empIdMatch[0];
+                                const emp = employees.find(e => e.id === empId);
+                                if (emp) return `Done by ${emp.name}`;
+                              }
+                              return part;
+                            }).join(', ');
+                          }
+                          return <span className="truncate max-w-[200px] block">{displayStatus}</span>;
+                        })()}
                       </span>
                     )
                   })()}
@@ -1449,7 +1475,7 @@ export default function TaskDetailPage() {
                         const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                         const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                         
-                        if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task.status !== 'Done') {
+                        if (isMultiAssignee && amIAssigned && task.status !== 'Done') {
                           statusOptions.push({
                             value: 'My Part Complete',
                             label: 'Done My Part',
@@ -1459,8 +1485,21 @@ export default function TaskDetailPage() {
                             style: { borderTop: '1px solid #E5E7EB', marginTop: 4, paddingTop: 12 }
                           });
                         }
+                        let displayLocalStatus = localStatus;
+                        if (displayLocalStatus?.startsWith('Task part done by')) {
+                          displayLocalStatus = displayLocalStatus.split(', ').map(part => {
+                            const empIdMatch = part.match(/EMP-\d+/);
+                            if (empIdMatch && employees) {
+                              const empId = empIdMatch[0];
+                              const emp = employees.find(e => e.id === empId);
+                              if (emp) return `Done by ${emp.name}`;
+                            }
+                            return part;
+                          }).join(', ');
+                        }
+
                         return (
-                          <SelectDropdown value={localStatus} onChange={setLocalStatus} options={statusOptions} />
+                          <SelectDropdown value={displayLocalStatus} onChange={setLocalStatus} options={statusOptions} />
                         )
                       })()}
 

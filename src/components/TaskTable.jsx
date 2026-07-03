@@ -47,7 +47,7 @@ const STATUS_ICON = {
 /* ─── Filter tabs ───────────────────────────────────────────────────────── */
 const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done My Part', 'Done', 'Blocked']
 
-function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
+function InlineStatusSelect({ value, onChange, disabled, task, profile, employees }) {
   const [open, setOpen] = React.useState(false)
   const [rect, setRect] = React.useState(null)
   const ref = React.useRef(null)
@@ -81,6 +81,20 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
   }
 
   const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
+
+  let displayValue = value;
+  if (displayValue?.startsWith('Task part done by')) {
+    displayValue = displayValue.split(', ').map(part => {
+      const empIdMatch = part.match(/EMP-\d+/);
+      if (empIdMatch && employees) {
+        const empId = empIdMatch[0];
+        const emp = employees.find(e => e.id === empId);
+        if (emp) return `Done by ${emp.name}`;
+      }
+      return part;
+    }).join(', ');
+  }
+
   return (
     <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
       <div
@@ -100,7 +114,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
         onMouseLeave={e => { if (!open) e.currentTarget.style.boxShadow = open ? `0 0 0 3px ${cfg.color}22` : 'none' }}
         title={disabled ? 'Only assigned users can update status' : ''}
       >
-        <span>{value}</span>
+        <span className="truncate">{displayValue}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
       </div>
       {open && rect && createPortal(
@@ -140,7 +154,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
             const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
             const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
 
-            if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task?.status !== 'Done') {
+            if (isMultiAssignee && amIAssigned && task?.status !== 'Done') {
               return (
                 <div
                   onClick={() => { onChange('MyPartComplete'); setOpen(false) }}
@@ -1070,6 +1084,7 @@ export default function TaskTable() {
                                       value={task.status}
                                       task={task}
                                       profile={profile}
+                                      employees={employees}
                                       disabled={(() => {
                                         if (!profile) return true;
                                         const normalizeName = (name) => {
@@ -1087,9 +1102,20 @@ export default function TaskTable() {
                                       })()}
                                       onChange={(newStatus) => {
                                         if (newStatus === 'MyPartComplete') {
-                                          const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+                                          const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
                                           const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
-                                          updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy, completedParts: newCompletedParts } });
+                                          const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
+                                          const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+                                          
+                                          updateTask(task.id, { 
+                                            status: newStatusStr,
+                                            description: { 
+                                              ...task.description, 
+                                              completedBy: newCompletedBy, 
+                                              completedParts: newCompletedParts,
+                                              completedEmpIds: newCompletedEmpIds 
+                                            } 
+                                          });
                                           
                                           const payload = {
                                             id: 'msg_' + Date.now(),

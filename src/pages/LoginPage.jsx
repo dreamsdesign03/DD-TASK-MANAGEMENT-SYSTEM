@@ -59,6 +59,7 @@ export default function LoginPage() {
               setLoading(false)
               if (data.ok && data.authenticated && data.user) {
                 setProfile({
+                  empId: data.user['Employee ID'],
                   name: data.user['Full Name'],
                   role: data.user['Role'],
                   email: data.user['Email Address'],
@@ -107,6 +108,7 @@ export default function LoginPage() {
             clearInterval(intervalId);
             setPendingApprovalEmail(null);
             setProfile({
+              empId: data.user['Employee ID'],
               name: data.user['Full Name'],
               role: data.user['Role'],
               email: data.user['Email Address'],
@@ -178,6 +180,7 @@ export default function LoginPage() {
             return
           }
           setProfile({
+            empId: data.user['Employee ID'],
             name: data.user['Full Name'],
             role: data.user['Role'],
             email: data.user['Email Address'],
@@ -222,6 +225,7 @@ export default function LoginPage() {
           return
         }
         setProfile({
+          empId: data.user['Employee ID'],
           name: data.user['Full Name'],
           role: data.user['Role'],
           email: data.user['Email Address'],
