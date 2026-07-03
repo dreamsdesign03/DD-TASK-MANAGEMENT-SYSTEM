@@ -41,9 +41,9 @@ function formatSecondsToHMS(seconds) {
   return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':')
 }
 
-// Timeline window constants (IST working hours)
-const WINDOW_START = 9 * 3600 + 30 * 60  // 09:30 IST in seconds
-const WINDOW_END = 19 * 3600              // 19:00 IST in seconds
+// Timeline window constants (IST) — covers typical early/late work hours
+const WINDOW_START = 6 * 3600    // 06:00 IST in seconds
+const WINDOW_END = 22 * 3600     // 22:00 IST in seconds
 const WINDOW_DURATION = WINDOW_END - WINDOW_START
 
 // Convert seconds-from-midnight to a percentage position within the 09:30-19:00 window
