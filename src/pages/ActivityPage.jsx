@@ -41,6 +41,17 @@ function formatSecondsToHMS(seconds) {
   return [hrs, mins, secs].map(v => String(v).padStart(2, '0')).join(':')
 }
 
+// Timeline window constants (IST working hours)
+const WINDOW_START = 9 * 3600 + 30 * 60  // 09:30 IST in seconds
+const WINDOW_END = 19 * 3600              // 19:00 IST in seconds
+const WINDOW_DURATION = WINDOW_END - WINDOW_START
+
+// Convert seconds-from-midnight to a percentage position within the 09:30-19:00 window
+function toWindowPercent(secs) {
+  const clamped = Math.max(WINDOW_START, Math.min(WINDOW_END, secs))
+  return ((clamped - WINDOW_START) / WINDOW_DURATION) * 100
+}
+
 export default function ActivityPage() {
   const { profile, employees, fetchActivities } = useApp()
   
@@ -190,6 +201,13 @@ export default function ActivityPage() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+        @keyframes shimmer {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s ease-in-out infinite;
+        }
       `}</style>
       <Sidebar />
 
@@ -286,12 +304,28 @@ export default function ActivityPage() {
                         const stat = dayStats[dateStr] || { sessions: [], totalSeconds: 0, extraSeconds: 0 }
                         const hasSessions = stat.sessions.length > 0
 
-                        // Calculate chevrons position
-                        const firstSession = stat.sessions[0]
-                        const lastSession = stat.sessions[stat.sessions.length - 1]
-                        
-                        const firstPercent = firstSession ? (firstSession.loginSecs / 86400) * 100 : 0
-                        const lastPercent = lastSession ? (lastSession.logoutSecs / 86400) * 100 : 0
+                        // Merge overlapping sessions for clean timeline rendering
+                        const processedSessions = (() => {
+                          const sorted = [...stat.sessions].sort((a, b) => a.loginSecs - b.loginSecs)
+                          const merged = []
+                          for (const s of sorted) {
+                            const prev = merged[merged.length - 1]
+                            if (prev && s.loginSecs < prev.logoutSecs) {
+                              prev.logoutSecs = Math.max(prev.logoutSecs, s.logoutSecs)
+                              prev.isStillActive = prev.isStillActive || s.isStillActive
+                            } else {
+                              merged.push({ ...s })
+                            }
+                          }
+                          return merged
+                        })()
+
+                        // Calculate chevrons position relative to the 09:30-19:00 window
+                        const firstSession = processedSessions[0]
+                        const lastSession = processedSessions[processedSessions.length - 1]
+
+                        const firstPercent = firstSession ? toWindowPercent(firstSession.loginSecs) : 0
+                        const lastPercent = lastSession ? toWindowPercent(lastSession.logoutSecs) : 0
 
                         return (
                           <tr 
@@ -312,37 +346,51 @@ export default function ActivityPage() {
                             {/* PUNCHES TIMELINE BAR */}
                             <td className="py-6 px-6">
                               <div className="relative w-full h-[14px] bg-[#E2E8F0]/50 rounded-full select-none">
-                                {/* Grid Marks (12 lines for 2-hour segments) */}
-                                <div className="absolute inset-0 flex justify-between pointer-events-none px-[2px]">
-                                  {Array.from({ length: 13 }).map((_, idx) => (
-                                    <div key={idx} className="w-[1px] h-full bg-[#CBD5E1]/30" />
-                                  ))}
+                                {/* Hour Tick Marks (full hours within 09:30-19:00 window) */}
+                                <div className="absolute inset-0 pointer-events-none">
+                                  {(() => {
+                                    const ticks = []
+                                    for (let h = 10; h <= 18; h++) {
+                                      const secs = h * 3600
+                                      const pct = toWindowPercent(secs)
+                                      ticks.push(
+                                        <div
+                                          key={h}
+                                          className={`absolute top-0 w-px ${h === 10 || h === 13 || h === 16 ? 'h-1/2' : 'h-1/3'} bg-[#94A3B8]/40`}
+                                          style={{ left: `${pct}%`, bottom: 0 }}
+                                        />
+                                      )
+                                    }
+                                    return ticks
+                                  })()}
                                 </div>
 
-                                {/* Active Punch Blocks */}
-                                {stat.sessions.map((s, idx) => {
-                                  const leftPercent = (s.loginSecs / 86400) * 100
-                                  const widthPercent = ((s.logoutSecs - s.loginSecs) / 86400) * 100
+                                {/* Session Segments (positioned relative to 09:30-19:00 window) */}
+                                {processedSessions.map((s, idx) => {
+                                  const leftPct = toWindowPercent(s.loginSecs)
+                                  const rightPct = toWindowPercent(s.logoutSecs)
+                                  const widthPct = rightPct - leftPct
+                                  if (widthPct <= 0) return null
 
                                   return (
                                     <div
                                       key={s.id || idx}
                                       className={`absolute top-0 h-full rounded-full transition-all duration-300 ${
-                                        s.isStillActive 
-                                          ? 'bg-gradient-to-r from-[#2563EB] to-[#60A5FA] animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]' 
-                                          : 'bg-[#2563EB] hover:bg-blue-700'
+                                        s.isStillActive
+                                          ? 'bg-gradient-to-r from-[#2563EB] to-[#60A5FA] animate-shimmer shadow-[0_0_8px_rgba(37,99,235,0.4)]'
+                                          : 'bg-[#2563EB] hover:bg-blue-600'
                                       }`}
                                       style={{
-                                        left: `${leftPercent}%`,
-                                        width: `${Math.max(1, widthPercent)}%`
+                                        left: `${leftPct}%`,
+                                        width: `${Math.max(1.5, widthPct)}%`
                                       }}
-                                      title={`Punch Segment: ${s.loginTimeStr} - ${s.logoutTimeStr}`}
+                                      title={`${s.loginTimeStr} - ${s.logoutTimeStr}${s.isStillActive ? ' (Active)' : ''}`}
                                     />
                                   )
                                 })}
 
                                 {/* Check-in & Check-out Chevrons */}
-                                {hasSessions && (
+                                {processedSessions.length > 0 && (
                                   <>
                                     <span 
                                       className="material-symbols-outlined text-[#2563EB] text-[15px] absolute font-black flex items-center justify-center"
