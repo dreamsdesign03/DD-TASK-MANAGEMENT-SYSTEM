@@ -603,12 +603,10 @@ export default function TaskDetailPage() {
       const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
       const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
       const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
-
-      const allAssignees = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean);
-      const isAllDone = allAssignees.length > 0 && allAssignees.every(name => newCompletedBy.includes(name));
+      const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
 
       updateTask(task.id, { 
-        status: isAllDone ? 'Done' : task.status,
+        status: newStatusStr,
         description: { 
           ...task.description, 
           completedBy: newCompletedBy, 
@@ -809,21 +807,24 @@ export default function TaskDetailPage() {
                           : 'bg-gray-100 text-gray-600 border-gray-200'
                       }`}>
                         {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
-                        {task.status === 'Done' && isDoneLate ? 'Done (Late)' : (task.status || 'To Do')}
+                        {(() => {
+                          if (task.status === 'Done' && isDoneLate) return 'Done (Late)';
+                          let displayStatus = task.status || 'To Do';
+                          if (displayStatus.startsWith('Task part done by')) {
+                            displayStatus = displayStatus.split(', ').map(part => {
+                              const empIdMatch = part.match(/EMP-\d+/);
+                              if (empIdMatch && employees) {
+                                const empId = empIdMatch[0];
+                                const emp = employees.find(e => e.id === empId);
+                                if (emp) return `Done by ${emp.name}`;
+                              }
+                              return part;
+                            }).join(', ');
+                          }
+                          return <span className="truncate max-w-[200px] block">{displayStatus}</span>;
+                        })()}
                       </span>
                     )
-                  })()}
-                  {(() => {
-                    const doneNames = task.description?.completedBy || [];
-                    if (doneNames.length > 0 && task.status !== 'Done') {
-                      return (
-                        <span className="bg-green-50 text-green-600 border border-green-100 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">done_all</span>
-                          Done by: {doneNames.join(', ')}
-                        </span>
-                      );
-                    }
-                    return null;
                   })()}
                   {task.dueDate && (
                     <button className="bg-gray-50 border border-gray-200 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 cursor-pointer transition-colors border-none" title={`Due: ${task.dueDate}`}>
@@ -1484,8 +1485,21 @@ export default function TaskDetailPage() {
                             style: { borderTop: '1px solid #E5E7EB', marginTop: 4, paddingTop: 12 }
                           });
                         }
+                        let displayLocalStatus = localStatus;
+                        if (displayLocalStatus?.startsWith('Task part done by')) {
+                          displayLocalStatus = displayLocalStatus.split(', ').map(part => {
+                            const empIdMatch = part.match(/EMP-\d+/);
+                            if (empIdMatch && employees) {
+                              const empId = empIdMatch[0];
+                              const emp = employees.find(e => e.id === empId);
+                              if (emp) return `Done by ${emp.name}`;
+                            }
+                            return part;
+                          }).join(', ');
+                        }
+
                         return (
-                          <SelectDropdown value={localStatus} onChange={setLocalStatus} options={statusOptions} />
+                          <SelectDropdown value={displayLocalStatus} onChange={setLocalStatus} options={statusOptions} />
                         )
                       })()}
 
