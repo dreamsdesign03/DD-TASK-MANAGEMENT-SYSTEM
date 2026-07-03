@@ -155,11 +155,6 @@ const mapWebhookTaskToApp = (item) => {
       bullets: Array.isArray(descObj?.bullets) ? descObj.bullets : [],
       outro: descObj?.outro || (remarks ? `Remarks: ${remarks}` : ''),
       subtasks: Array.isArray(descObj?.subtasks) ? descObj.subtasks : [],
-      completedBy: Array.isArray(descObj?.completedBy) ? descObj.completedBy : [],
-      completedParts: descObj?.completedParts || {},
-      completedEmpIds: Array.isArray(descObj?.completedEmpIds) ? descObj.completedEmpIds : [],
-      originalStatus: descObj?.originalStatus || null,
-      statusHistory: Array.isArray(descObj?.statusHistory) ? descObj.statusHistory : [],
       editedAt: descObj?.editedAt || null
     },
     comments: comments,
@@ -1383,13 +1378,7 @@ export function AppProvider({ children }) {
     const hasOutro = desc.outro && String(desc.outro).trim() !== '';
     const hasSubtasks = desc.subtasks && desc.subtasks.length > 0;
     const hasEditedAt = !!desc.editedAt;
-    const hasCompletedBy = desc.completedBy && desc.completedBy.length > 0;
-    const hasCompletedParts = desc.completedParts && Object.keys(desc.completedParts).length > 0;
-    const hasCompletedEmpIds = desc.completedEmpIds && desc.completedEmpIds.length > 0;
-    const hasOriginalStatus = !!desc.originalStatus;
-    const hasStatusHistory = desc.statusHistory && desc.statusHistory.length > 0;
-
-    if (isIntroEmpty && !hasBullets && !hasOutro && !hasSubtasks && !hasEditedAt && !hasCompletedBy && !hasCompletedParts && !hasCompletedEmpIds && !hasOriginalStatus && !hasStatusHistory) {
+    if (isIntroEmpty && !hasBullets && !hasOutro && !hasSubtasks && !hasEditedAt) {
       return '';
     }
 
@@ -1721,9 +1710,6 @@ export function AppProvider({ children }) {
               } catch (e) { }
 
               let isCompletedOrBlocked = nt.status === 'Done' || nt.status === 'Blocked'
-              if (profile?.name && nt.description?.completedBy?.includes(profile.name)) {
-                isCompletedOrBlocked = true;
-              }
               if (nt.overdue && !isCompletedOrBlocked) {
                 if (notifiedHistory[nt.id] !== todayStr && isRelated) {
                   notifiedHistory[nt.id] = todayStr
