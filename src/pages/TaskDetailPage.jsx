@@ -789,15 +789,21 @@ export default function TaskDetailPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   {(() => {
+                    const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
+                    const myName = normalizeName(profile?.name);
+                    const myEmail = String(profile?.email || '').trim().toLowerCase();
+                    const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+                    const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                    
                     const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
-                    const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+                    const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                     const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                     
                     if (isMultiAssignee && amIAssigned && task.status !== 'Done' && haveICompletedMyPart) {
                       return (
                         <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                          My Part Completed
+                          Done My Part
                         </span>
                       );
                     }
@@ -1384,14 +1390,20 @@ export default function TaskDetailPage() {
                     <div className="p-5 flex flex-col gap-4">
                       {(() => {
                         const statusOptions = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
+                        const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
+                        const myName = normalizeName(profile?.name);
+                        const myEmail = String(profile?.email || '').trim().toLowerCase();
+                        const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+                        const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                        
                         const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
-                        const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+                        const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                         const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                         
                         if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task.status !== 'Done') {
                           statusOptions.push({
                             value: 'My Part Complete',
-                            label: 'Mark My Part Complete',
+                            label: 'Done My Part',
                             icon: 'done_all',
                             color: '#16A34A',
                             hoverBg: '#F0FDF4',

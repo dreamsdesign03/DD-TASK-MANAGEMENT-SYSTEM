@@ -130,8 +130,14 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
             </div>
           ))}
           {(() => {
+            const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
+            const myName = normalizeName(profile?.name);
+            const myEmail = String(profile?.email || '').trim().toLowerCase();
+            const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+            const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            
             const isMultiAssignee = task?.assignedTo && task.assignedTo.includes(',');
-            const amIAssigned = task?.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+            const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
             const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
 
             if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task?.status !== 'Done') {
@@ -150,7 +156,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
                   onMouseEnter={e => { e.currentTarget.style.background = '#F0FDF4'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Mark My Part Complete</span>
+                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Done My Part</span>
                 </div>
               );
             }
