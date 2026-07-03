@@ -161,6 +161,15 @@ export function processMessagesList(messages, currentProfile) {
   const deletedIds = new Set()
   const reactionsMap = {} // { msgId: { emoji: Set of names } }
 
+  // Filter out old "Done by Me" system messages from backend
+  messages = messages.filter(m => {
+    if (!m || !m.text) return true
+    const text = String(m.text)
+    if (text.includes('marked their part as complete')) return false
+    if (text.includes('completed their part')) return false
+    return true
+  })
+
   messages.forEach(m => {
     if (!m || !m.text) return
 
