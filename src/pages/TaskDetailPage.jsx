@@ -648,7 +648,7 @@ export default function TaskDetailPage() {
         text: c.text,
         time: c.time
       }
-    })
+    }) 
 
   const allMessages = [...legacyComments, ...processedMessages]
 

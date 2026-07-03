@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { useApp } from './context/AppContext'
 import LoginPage from './pages/LoginPage'
@@ -52,7 +52,7 @@ function DesktopLauncher({ profile }) {
               // 2. Wait a moment to ensure the browser processes the protocol, 
               // then redirect to the landing page so they aren't stuck here.
               setTimeout(() => {
-                window.location.href = window.location.pathname + '#/download'
+                window.location.href = '/download'
               }, 1500)
             }}
             className="w-full h-12 btn-gradient rounded-lg font-label-lg font-bold transition-opacity"
@@ -61,7 +61,7 @@ function DesktopLauncher({ profile }) {
           </button>
           
           <button 
-            onClick={() => window.location.href = window.location.pathname + '#/tasks'}
+            onClick={() => window.location.href = '/tasks'}
             className="w-full h-12 bg-surface border border-outline text-on-surface rounded-lg font-label-lg hover:bg-surface-container-low transition-colors"
           >
             Continue to Web Dashboard
@@ -104,7 +104,7 @@ function RootRedirect() {
 
 export default function App() {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <GlobalNav />
       <Routes>
         {/* Default */}
@@ -132,7 +132,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </HashRouter>
+    </BrowserRouter>
   )
 }
 
