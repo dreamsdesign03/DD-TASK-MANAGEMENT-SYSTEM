@@ -98,7 +98,7 @@ function InlineStatusSelect({ value, onChange, disabled }) {
         }}
         onMouseEnter={e => { if (!open && !disabled) e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)' }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.boxShadow = open ? `0 0 0 3px ${cfg.color}22` : 'none' }}
-        title={disabled ? 'Only assigned users can update status' : ''}
+        title={disabled ? 'Only assigned users, admins, or managers can update status' : ''}
       >
         <span>{value}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
@@ -162,6 +162,24 @@ export default function TaskTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [tasksPerPage, setTasksPerPage] = useState(10)
   const [taskToDelete, setTaskToDelete] = useState(null)
+
+  // Unauthorized Access Modal
+  const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
+
+  const canAccessTask = (task) => {
+    if (!profile) return false;
+    if (profile.systemRole !== 'Employee') return true;
+    const normalizeName = (name) => {
+      if (!name) return '';
+      return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
+    };
+    const myName = normalizeName(profile.name);
+    const myEmail = String(profile.email || '').trim().toLowerCase();
+    if (!myName && !myEmail) return false;
+    const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+    const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
+  }
 
   // Recurring Task Modal State
   const [recurringTaskObj, setRecurringTaskObj] = useState(null)
@@ -366,24 +384,8 @@ export default function TaskTable() {
     const task = tasks.find(t => t.id === taskId)
     if (!task) return
 
-    const canUpdateStatus = (() => {
-      if (!profile) return false;
-      const normalizeName = (name) => {
-        if (!name) return '';
-        return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
-      };
-      const myName = normalizeName(profile.name);
-      const myEmail = String(profile.email || '').trim().toLowerCase();
-      if (!myName && !myEmail) return false;
-
-      const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-      const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-      return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
-    })();
-
-    if (!canUpdateStatus) {
-      addToast('Only assigned users can update status of this task', 'error');
+    if (!canAccessTask(task)) {
+      addToast('Only assigned users, admins, or managers can update status of this task.', 'error');
       return;
     }
 
@@ -899,7 +901,14 @@ export default function TaskTable() {
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
                                       <div className="flex items-center gap-2 flex-wrap">
                                         <a
-                                          onClick={() => navigate(`/tasks/${task.id}`)}
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            if (!canAccessTask(task)) {
+                                              setUnauthorizedTaskTitle(task.title)
+                                              return
+                                            }
+                                            navigate(`/tasks/${task.id}`)
+                                          }}
                                           className="text-[14px] font-bold text-[#702c91] hover:underline cursor-pointer transition-all"
                                         >
                                           {task.title}
@@ -922,6 +931,10 @@ export default function TaskTable() {
                                           <button
                                             onClick={(e) => {
                                               e.stopPropagation()
+                                              if (!canAccessTask(task)) {
+                                                setUnauthorizedTaskTitle(task.title)
+                                                return
+                                              }
                                               setRecurringTaskObj(task)
                                               setRecurringSchedule('Weekly')
                                               setRecurringDay('Monday')
@@ -957,6 +970,10 @@ export default function TaskTable() {
                                     <span
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        if (!canAccessTask(task)) {
+                                          setUnauthorizedTaskTitle(task.title)
+                                          return
+                                        }
                                         navigate(`/projects/${encodeURIComponent(task.client)}`);
                                       }}
                                       className="flex items-center gap-1.5 hover:text-[#702c91] hover:underline cursor-pointer transition-colors group/client w-fit"
@@ -1044,21 +1061,7 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <InlineStatusSelect
                                       value={task.status}
-                                      disabled={(() => {
-                                        if (!profile) return true;
-                                        const normalizeName = (name) => {
-                                          if (!name) return '';
-                                          return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
-                                        };
-                                        const myName = normalizeName(profile.name);
-                                        const myEmail = String(profile.email || '').trim().toLowerCase();
-                                        if (!myName && !myEmail) return true;
-
-                                        const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-                                        const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-                                        return !(assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail)));
-                                      })()}
+                                      disabled={!canAccessTask(task)}
                                       onChange={(newStatus) => {
                                         updateTask(task.id, { status: newStatus })
                                         if (newStatus === 'Done') {
@@ -1241,21 +1244,7 @@ export default function TaskTable() {
                               const cardBorderColor = getColColor(colName);
 
 
-                              const canUpdateStatus = (() => {
-                                if (!profile) return false;
-                                const normalizeName = (name) => {
-                                  if (!name) return '';
-                                  return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
-                                };
-                                const myName = normalizeName(profile.name);
-                                const myEmail = String(profile.email || '').trim().toLowerCase();
-                                if (!myName && !myEmail) return false;
-
-                                const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-                                const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-                                return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
-                              })();
+                              const canUpdateStatus = canAccessTask(task);
 
                               return (
                                 <div
@@ -1269,7 +1258,13 @@ export default function TaskTable() {
                                     handleDragStart(e, task.id);
                                   }}
                                   onDragEnd={handleDragEnd}
-                                  onClick={() => navigate(`/tasks/${task.id}`)}
+                                  onClick={() => {
+                                    if (!canAccessTask(task)) {
+                                      setUnauthorizedTaskTitle(task.title)
+                                      return
+                                    }
+                                    navigate(`/tasks/${task.id}`)
+                                  }}
                                   style={{
                                     background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
                                     boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
@@ -1690,6 +1685,32 @@ export default function TaskTable() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {unauthorizedTaskTitle && (
+        <div className="fixed inset-0 z-[400] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-gray-200">
+            <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 bg-gray-50">
+              <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                <span className="material-symbols-outlined text-red-500 text-[20px]">lock</span>
+              </div>
+              <h2 className="text-[15px] font-bold text-gray-800">Access Restricted</h2>
+            </div>
+            <div className="px-6 py-5 bg-white">
+              <p className="text-[13px] text-gray-600 leading-relaxed">
+                You are not assigned to <span className="font-bold text-gray-800">"{unauthorizedTaskTitle}"</span>. Only assigned users, admins, or managers can access this task.
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setUnauthorizedTaskTitle(null)}
+                className="px-5 py-2 bg-gray-800 text-white rounded-lg text-[12px] font-bold hover:bg-gray-700 transition-all"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>
