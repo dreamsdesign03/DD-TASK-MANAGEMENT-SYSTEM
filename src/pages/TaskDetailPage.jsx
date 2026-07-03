@@ -105,7 +105,6 @@ export default function TaskDetailPage() {
   const [isSendingReply, setIsSendingReply] = useState(false)
   const replyFileInputRef = useRef(null)
   const [linkUrl, setLinkUrl] = useState('')
-  const [localStatus, setLocalStatus] = useState(task?.status || 'Pending')
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false)
   const [selectedAssignees, setSelectedAssignees] = useState([])
   const [attachmentToDelete, setAttachmentToDelete] = useState(null)
@@ -598,13 +597,13 @@ export default function TaskDetailPage() {
     updateTask(task.id, { comments: updated })
   }
 
-  const handleSaveStatus = () => {
+  const handleStatusChange = (newStatus) => {
     updateTask(task.id, {
-      status: localStatus,
-      done: localStatus === 'Done',
+      status: newStatus,
+      done: newStatus === 'Done',
     })
 
-    if (localStatus === 'Done') {
+    if (newStatus === 'Done') {
       const due = new Date(task.dueDate)
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -621,7 +620,7 @@ export default function TaskDetailPage() {
 
     setInfoModal({
       title: 'Status Updated',
-      message: `Status saved: ${localStatus}`,
+      message: `Status saved: ${newStatus}`,
       icon: 'check_circle',
       color: 'text-[#25d366]'
     })
@@ -1354,14 +1353,7 @@ export default function TaskDetailPage() {
                       </h3>
                     </div>
                     <div className="p-5 flex flex-col gap-4">
-                      <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
-
-                      <button
-                        onClick={handleSaveStatus}
-                        className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95"
-                      >
-                        Save Status
-                      </button>
+                      <SelectDropdown value={task.status} onChange={handleStatusChange} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
                     </div>
                   </div>
                 )
