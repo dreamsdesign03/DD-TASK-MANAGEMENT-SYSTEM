@@ -45,7 +45,7 @@ const STATUS_ICON = {
 }
 
 /* ─── Filter tabs ───────────────────────────────────────────────────────── */
-const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
+const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done My Part', 'Done', 'Blocked']
 
 function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
   const [open, setOpen] = React.useState(false)
@@ -315,7 +315,13 @@ export default function TaskTable() {
       // Exclude Sub Tasks from main table view
       if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
 
-      const matchesStatus = activeFilter === 'All' || t.status === activeFilter
+      const matchesStatus = (() => {
+        if (activeFilter === 'All') return true;
+        if (activeFilter === 'Done My Part') {
+          return t.description?.completedBy?.includes(profile?.name);
+        }
+        return t.status === activeFilter;
+      })();
       const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient
       const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser)
       const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment
@@ -1082,7 +1088,30 @@ export default function TaskTable() {
                                       onChange={(newStatus) => {
                                         if (newStatus === 'MyPartComplete') {
                                           const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
-                                          updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+                                          const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
+                                          updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy, completedParts: newCompletedParts } });
+                                          
+                                          const payload = {
+                                            id: 'msg_' + Date.now(),
+                                            action: 'send',
+                                            roomId: String(task.id),
+                                            senderId: 'system',
+                                            senderName: 'System',
+                                            message: `${profile?.name} has marked their part as complete.`,
+                                            timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2'),
+                                            type: 'task_reply',
+                                            groupName: task.title
+                                          };
+                                          import('../context/AppContext.jsx').then(({ mqttClient }) => {
+                                            if (mqttClient && mqttClient.connected) {
+                                              mqttClient.publish('dd_chat_engine_v1/' + task.id, JSON.stringify(payload));
+                                            }
+                                          });
+                                          fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                            body: JSON.stringify(payload)
+                                          }).catch(e => console.warn(e));
                                           return;
                                         }
                                         updateTask(task.id, { status: newStatus })

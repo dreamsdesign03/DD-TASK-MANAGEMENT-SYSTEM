@@ -601,7 +601,31 @@ export default function TaskDetailPage() {
   const handleSaveStatus = () => {
     if (localStatus === 'My Part Complete') {
       const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
-      updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+      const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
+      updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy, completedParts: newCompletedParts } });
+      
+      const payload = {
+        id: 'msg_' + Date.now(),
+        action: 'send',
+        roomId: String(task.id),
+        senderId: 'system',
+        senderName: 'System',
+        message: `${profile?.name} has marked their part as complete.`,
+        timestamp: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2'),
+        type: 'task_reply',
+        groupName: task.title
+      };
+      import('../context/AppContext.jsx').then(({ mqttClient }) => {
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish('dd_chat_engine_v1/' + task.id, JSON.stringify(payload));
+        }
+      });
+      fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      }).catch(e => console.warn(e));
+
       setLocalStatus(task.status);
       setInfoModal({
         title: 'Status Updated',
@@ -1281,18 +1305,32 @@ export default function TaskDetailPage() {
                       {(task.assignedTo || 'Unassigned').split(',').map((assignee, idx) => {
                         const trimmedAssignee = assignee.trim()
                         if (!trimmedAssignee) return null
+                        
+                        let completedDateStr = task.description?.completedParts?.[trimmedAssignee];
+                        if (!completedDateStr && task.description?.completedBy?.includes(trimmedAssignee)) {
+                          completedDateStr = 'Completed';
+                        }
+                        
                         return (
-                          <div key={idx} className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-[#1E1B2E]">{trimmedAssignee}</span>
-                            {trimmedAssignee === profile.name && profile.avatar ? (
-                              <img
-                                className="w-6 h-6 rounded-full object-cover"
-                                src={profile.avatar}
-                                alt={trimmedAssignee}
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              renderAvatar(null, trimmedAssignee, "w-6 h-6 rounded-full text-[10px]")
+                          <div key={idx} className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-bold text-[#1E1B2E]">{trimmedAssignee}</span>
+                              {trimmedAssignee === profile.name && profile.avatar ? (
+                                <img
+                                  className="w-6 h-6 rounded-full object-cover"
+                                  src={profile.avatar}
+                                  alt={trimmedAssignee}
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                renderAvatar(null, trimmedAssignee, "w-6 h-6 rounded-full text-[10px]")
+                              )}
+                            </div>
+                            {completedDateStr && (
+                              <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1 mt-0.5 shadow-sm border border-green-100">
+                                <span className="material-symbols-outlined text-[12px]">done_all</span>
+                                {completedDateStr === 'Completed' ? 'Done My Part' : `Done: ${new Date(completedDateStr).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
+                              </span>
                             )}
                           </div>
                         )
@@ -1328,6 +1366,17 @@ export default function TaskDetailPage() {
                     <span className="text-[13px] text-gray-500 w-1/3">Assigned Date</span>
                     <span className="text-[13px] font-bold text-[#1E1B2E]">{task.assigned}</span>
                   </div>
+                  {task.status === 'Done' && task.statusUpdatedOn && (
+                    <div className="flex justify-between items-center bg-green-50/50 -mx-5 px-5 py-2 border-y border-green-100">
+                      <span className="text-[13px] font-bold text-green-700 w-1/3 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">event_available</span>
+                        Completed
+                      </span>
+                      <span className="text-[12px] font-bold text-green-800 bg-white px-2.5 py-1 rounded-md border border-green-200 shadow-sm text-right">
+                        {new Date(task.statusUpdatedOn).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500 w-1/3">Due Date</span>
                     <span className="text-[13px] font-bold text-[#1E1B2E]">{task.dueDate}</span>
