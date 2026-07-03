@@ -12,7 +12,6 @@ export default function TeamPage() {
   const { setSearchQuery, profile, employees: dynamicEmployees, tasks, addToast } = useApp()
   const navigate = useNavigate()
   const [localEmployees, setLocalEmployees] = useState([])
-  const [activeDept, setActiveDept] = useState('All')
   const [search, setSearch] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
@@ -59,14 +58,12 @@ export default function TeamPage() {
 
   // Filter Employees
   const filtered = employees.filter((e) => {
-    const dept = (e.department || '').toLowerCase().trim()
-    const matchesDept = activeDept === 'All' || dept === activeDept.toLowerCase().trim()
     const query = search.toLowerCase()
-    const matchesSearch =
+    return (
       (e.name || '').toLowerCase().includes(query) ||
       (e.role || '').toLowerCase().includes(query) ||
       (e.department || '').toLowerCase().includes(query)
-    return matchesDept && matchesSearch
+    )
   })
 
   const getStatusColor = (status) => {
@@ -107,32 +104,15 @@ export default function TeamPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
           <div className="w-full">
 
-            {/* Filter and Search controls */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-              
-              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
-                {['All', 'Development', 'Design', 'Marketing', 'Management'].map(dept => (
-                  <button
-                    key={dept}
-                    onClick={() => setActiveDept(dept)}
-                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
-                      activeDept === dept 
-                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
-                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
-                    }`}
-                  >
-                    {dept}
-                  </button>
-                ))}
-              </div>
-
+            {/* Search controls */}
+            <div className="flex flex-col md:flex-row items-center justify-end gap-4 mb-8">
               <div className="relative w-full md:w-80">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">
                   search
                 </span>
                 <input
                   type="text"
-                  placeholder="Search by name, role..."
+                  placeholder="Search by name, role, department..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full bg-white border border-[#E5E7EB] rounded-full pl-10 pr-4 py-2 text-[13px] font-semibold text-[#1E1B2E] focus:ring-2 focus:ring-[#702c91]/20 focus:border-[#702c91] outline-none transition-all shadow-sm"
@@ -146,7 +126,7 @@ export default function TeamPage() {
                 <div className="col-span-full text-center py-16">
                   <span className="material-symbols-outlined text-[#D1D5DB] text-[64px] mb-4">group_off</span>
                   <h3 className="text-[#4B5563] font-semibold text-lg m-0">No team members found</h3>
-                  <p className="text-[#9CA3AF] text-sm mt-1 m-0">Try adjusting your search or filters.</p>
+                  <p className="text-[#9CA3AF] text-sm mt-1 m-0">Try adjusting your search query.</p>
                 </div>
               ) : (
                 filtered.map((emp, idx) => {

@@ -648,7 +648,7 @@ export default function TaskDetailPage() {
         text: c.text,
         time: c.time
       }
-    }) 
+    })
 
   const allMessages = [...legacyComments, ...processedMessages]
 
@@ -763,8 +763,8 @@ export default function TaskDetailPage() {
                     <span className="bg-purple-50 text-purple-700 border border-purple-100 text-[12px] font-bold px-3 py-1.5 rounded-full">{task.client}</span>
                   )}
                   <span className={`border text-[12px] font-bold px-3 py-1.5 rounded-full ${task.priority === 'High' ? 'bg-red-50 text-red-600 border-red-100' :
-                      task.priority === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                        'bg-blue-50 text-blue-600 border-blue-100'
+                    task.priority === 'Medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                      'bg-blue-50 text-blue-600 border-blue-100'
                     }`}>
                     {task.priority || 'Medium'} Priority
                   </span>
@@ -777,13 +777,12 @@ export default function TaskDetailPage() {
                       if (updated > due) isDoneLate = true;
                     }
                     return (
-                      <span className={`text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border ${
-                        task.status === 'Done' 
+                      <span className={`text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border ${task.status === 'Done'
                           ? (isDoneLate ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-green-50 text-green-600 border-green-100')
-                          : task.status === 'In Progress' ? 'bg-blue-50 text-blue-600 border-blue-100' 
-                          : task.status === 'In Review' ? 'bg-purple-50 text-purple-600 border-purple-100' 
-                          : 'bg-gray-100 text-gray-600 border-gray-200'
-                      }`}>
+                          : task.status === 'In Progress' ? 'bg-blue-50 text-blue-600 border-blue-100'
+                            : task.status === 'In Review' ? 'bg-purple-50 text-purple-600 border-purple-100'
+                              : 'bg-gray-100 text-gray-600 border-gray-200'
+                        }`}>
                         {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
                         {task.status === 'Done' && isDoneLate ? 'Done (Late)' : (task.status || 'To Do')}
                       </span>
@@ -956,7 +955,7 @@ export default function TaskDetailPage() {
                   <div className="space-y-2">
                     {subtasks.map((st) => (
                       <div key={st.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-[#E5E7EB] rounded-xl transition-colors hover:border-[#702c91]/30">
-                          <input
+                        <input
                           type="checkbox"
                           checked={st.status === 'Done'}
                           disabled={(() => {
@@ -989,9 +988,9 @@ export default function TaskDetailPage() {
                         </div>
                         {st.priority && (
                           <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold shrink-0 ${st.priority === 'Urgent' ? 'bg-urgent-red/10 border-urgent-red/30 text-urgent-red' :
-                              st.priority === 'High' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' :
-                                st.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' :
-                                  'bg-blue-500/10 border-blue-500/30 text-blue-600'
+                            st.priority === 'High' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' :
+                              st.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' :
+                                'bg-blue-500/10 border-blue-500/30 text-blue-600'
                             }`}>
                             <span className="material-symbols-outlined text-[12px]">flag</span>
                             {st.priority}
@@ -1212,67 +1211,67 @@ export default function TaskDetailPage() {
                       </div>
                     )}
                     <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
-                    <textarea
-                      ref={replyInputRef}
-                      className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] bg-[#F9F4FB] focus:bg-[#F3E8F7] transition-colors"
-                      placeholder="Write your reply... (type @ to mention)"
-                      value={reply}
-                      onChange={handleReplyChange}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          sendReply()
-                        }
-                      }}
-                    ></textarea>
-                    <div className="bg-gray-50 p-3 border-t border-[#E5E7EB] flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="file"
-                          ref={replyFileInputRef}
-                          className="hidden"
-                          onChange={handleReplyFileChange}
-                        />
-                        <button
-                          onClick={() => replyFileInputRef.current?.click()}
-                          className={`bg-transparent border-none flex items-center justify-center cursor-pointer transition-colors p-1 ${replyAttachment ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                          title="Attach file"
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            {replyAttachment ? 'attach_file_add' : 'attach_file'}
+                      <textarea
+                        ref={replyInputRef}
+                        className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] bg-[#F9F4FB] focus:bg-[#F3E8F7] transition-colors"
+                        placeholder="Write your reply... (type @ to mention)"
+                        value={reply}
+                        onChange={handleReplyChange}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault()
+                            sendReply()
+                          }
+                        }}
+                      ></textarea>
+                      <div className="bg-gray-50 p-3 border-t border-[#E5E7EB] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="file"
+                            ref={replyFileInputRef}
+                            className="hidden"
+                            onChange={handleReplyFileChange}
+                          />
+                          <button
+                            onClick={() => replyFileInputRef.current?.click()}
+                            className={`bg-transparent border-none flex items-center justify-center cursor-pointer transition-colors p-1 ${replyAttachment ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                            title="Attach file"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">
+                              {replyAttachment ? 'attach_file_add' : 'attach_file'}
+                            </span>
+                          </button>
+                          {replyAttachment && (
+                            <div className="flex items-center gap-2 bg-primary/10 px-2 py-1 rounded">
+                              <span className="text-[11px] text-primary font-medium truncate max-w-[150px]">{replyAttachment.name}</span>
+                              <button onClick={() => setReplyAttachment(null)} className="text-primary hover:text-red-500">
+                                <span className="material-symbols-outlined text-[14px]">close</span>
+                              </button>
+                            </div>
+                          )}
+                          <span className="text-[12px] text-gray-400 font-medium">
+                            {reply.length} / 1000
                           </span>
+                        </div>
+                        <button
+                          onClick={sendReply}
+                          disabled={isSendingReply || (!reply.trim() && !replyAttachment)}
+                          className="btn-gradient border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
+                          {isSendingReply ? (
+                            <>
+                              <span className="material-symbols-outlined text-[16px] animate-spin">refresh</span>
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-[16px]">send</span>
+                              Send Reply
+                            </>
+                          )}
                         </button>
-                        {replyAttachment && (
-                          <div className="flex items-center gap-2 bg-primary/10 px-2 py-1 rounded">
-                            <span className="text-[11px] text-primary font-medium truncate max-w-[150px]">{replyAttachment.name}</span>
-                            <button onClick={() => setReplyAttachment(null)} className="text-primary hover:text-red-500">
-                              <span className="material-symbols-outlined text-[14px]">close</span>
-                            </button>
-                          </div>
-                        )}
-                        <span className="text-[12px] text-gray-400 font-medium">
-                          {reply.length} / 1000
-                        </span>
                       </div>
-                      <button
-                        onClick={sendReply}
-                        disabled={isSendingReply || (!reply.trim() && !replyAttachment)}
-                        className="btn-gradient border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
-                        {isSendingReply ? (
-                          <>
-                            <span className="material-symbols-outlined text-[16px] animate-spin">refresh</span>
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            <span className="material-symbols-outlined text-[16px]">send</span>
-                            Send Reply
-                          </>
-                        )}
-                      </button>
                     </div>
-                  </div>
                   </div>
                 </div>
               </div>
@@ -1841,8 +1840,8 @@ export default function TaskDetailPage() {
           <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-[400px] overflow-hidden animate-scale-in flex flex-col border border-outline-variant">
             <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant bg-surface-container-low">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center ${infoModal.color?.includes('error') ? 'bg-error/10 text-error' :
-                  infoModal.color?.includes('warning') || infoModal.color?.includes('f59e0b') ? 'bg-warning/10 text-[#f59e0b]' :
-                    'bg-primary/10 text-primary'
+                infoModal.color?.includes('warning') || infoModal.color?.includes('f59e0b') ? 'bg-warning/10 text-[#f59e0b]' :
+                  'bg-primary/10 text-primary'
                 }`}>
                 <span className="material-symbols-outlined text-[20px]">{infoModal.icon || 'info'}</span>
               </div>
@@ -1892,9 +1891,8 @@ export default function TaskDetailPage() {
                       setChatBackgrounds(newBgs)
                       localStorage.setItem('dd_chat_bgs_tasks', JSON.stringify(newBgs))
                     }}
-                    className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${
-                      currentBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
-                    }`}
+                    className={`relative aspect-[3/4] rounded-xl overflow-hidden border-[3px] transition-all cursor-pointer ${currentBgId === bg.id ? 'border-[#702c91] scale-105 shadow-md z-10' : 'border-transparent hover:border-gray-300 shadow-sm'
+                      }`}
                     style={{
                       backgroundColor: bg.bgColor,
                       backgroundImage: bg.bgImage,
