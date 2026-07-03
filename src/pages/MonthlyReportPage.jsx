@@ -579,13 +579,25 @@ export default function MonthlyReportPage() {
                             {row.assignedTo || 'Unassigned'}
                           </td>
                           <td className="py-4 px-5">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              row.status === 'Done' ? 'text-green-600 bg-green-50' : 
-                              row.status === 'Blocked' ? 'text-red-600 bg-red-50' : 
-                              'text-pink-600 bg-pink-50'
-                            }`}>
-                              {row.status}
-                            </span>
+                            {(() => {
+                               let isDoneLate = false;
+                               if (row.status === 'Done' && row.dueDate && row.statusUpdatedOn) {
+                                  const due = new Date(row.dueDate);
+                                  const updated = new Date(row.statusUpdatedOn);
+                                  due.setHours(23, 59, 59, 999);
+                                  if (updated > due) isDoneLate = true;
+                               }
+                               return (
+                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                   row.status === 'Done' 
+                                     ? (isDoneLate ? 'text-amber-700 bg-amber-100' : 'text-green-600 bg-green-50') 
+                                     : row.status === 'Blocked' ? 'text-red-600 bg-red-50' 
+                                     : 'text-pink-600 bg-pink-50'
+                                 }`}>
+                                   {row.status === 'Done' && isDoneLate ? 'Done (Late)' : row.status}
+                                 </span>
+                               )
+                            })()}
                           </td>
                           <td className="py-4 px-5 text-right">
                             <button 

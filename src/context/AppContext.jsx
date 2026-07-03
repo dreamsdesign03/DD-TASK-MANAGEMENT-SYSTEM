@@ -141,6 +141,7 @@ const mapWebhookTaskToApp = (item) => {
     assignedTo: data["Assigned To"] || data.assignedTo || 'Unassigned',
     assignedBy: data["Assigned By"] || data.assignedBy || 'Mansi Shah',
     timeTaken: data["Time Taken"] || data.timeTaken || '0h 0m',
+    statusUpdatedOn: data["Status Updated On"] || data.statusUpdatedOn || null,
     daysOverdue: daysOverdueStr,
     employeeId: data["Employee ID"] || data.employeeId || '',
     assignedEmail: data["Assigned Email"] || data.assignedEmail || '',

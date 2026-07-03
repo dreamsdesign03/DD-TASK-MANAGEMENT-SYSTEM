@@ -808,6 +808,7 @@ export default function TaskTable() {
                             {/* Tasks for this Department */}
                             {deptTasks.map((task) => {
                               let isTaskOverdue = false
+                              let isDoneLate = false
                               if (task.status !== 'Done' && task.dueDate) {
                                 const due = new Date(task.dueDate)
                                 const today = new Date()
@@ -815,13 +816,22 @@ export default function TaskTable() {
                                 if (due < today) {
                                   isTaskOverdue = true
                                 }
+                              } else if (task.status === 'Done' && task.dueDate && task.statusUpdatedOn) {
+                                const due = new Date(task.dueDate)
+                                const updated = new Date(task.statusUpdatedOn)
+                                due.setHours(23, 59, 59, 999)
+                                if (updated > due) {
+                                  isDoneLate = true
+                                }
                               }
 
                               const rowClass = isTaskOverdue
                                 ? 'bg-error-container'
-                                : task.status === 'Done'
-                                  ? 'opacity-60'
-                                  : ''
+                                : isDoneLate
+                                  ? 'bg-[#FFF8F0]'
+                                  : task.status === 'Done'
+                                    ? 'opacity-60'
+                                    : ''
 
                               const firstTdClass = isTaskOverdue
                                 ? 'border-l-4 border-urgent-red'
@@ -831,10 +841,10 @@ export default function TaskTable() {
                                 <tr
                                   key={task.id}
                                   className={`block md:table-row ${rowClass} mb-4 md:mb-0 border-b border-[#F9F9FF] md:border-none rounded-lg md:rounded-none transition-all cursor-pointer relative group overflow-hidden`}
-                                  style={{ opacity: task.status === 'Done' ? 0.4 : 1 }}
+                                  style={{ opacity: task.status === 'Done' ? (isDoneLate ? 0.8 : 0.4) : 1 }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
-                                      e.currentTarget.style.background = isTaskOverdue ? 'var(--color-error-container)' : 'white'
+                                      e.currentTarget.style.background = isTaskOverdue ? 'var(--color-error-container)' : isDoneLate ? '#FFF8F0' : 'white'
                                       e.currentTarget.style.transform = 'scale(1.01)'
                                       e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)'
                                       e.currentTarget.style.zIndex = 10

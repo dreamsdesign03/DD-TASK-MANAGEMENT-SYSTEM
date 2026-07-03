@@ -742,15 +742,27 @@ export default function TaskDetailPage() {
                     }`}>
                     {task.priority || 'Medium'} Priority
                   </span>
-                  <span className={`text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border ${task.status === 'Done' ? 'bg-green-50 text-green-600 border-green-100' :
-                      task.status === 'In Progress' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                        task.status === 'In Review' ? 'bg-purple-50 text-purple-600 border-purple-100' :
-                          'bg-gray-50 text-gray-600 border-gray-100'
-                    }`}>
-                    {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
-                    {task.status || 'To Do'}
-                  </span>
-
+                  {(() => {
+                    let isDoneLate = false;
+                    if (task.status === 'Done' && task.dueDate && task.statusUpdatedOn) {
+                      const due = new Date(task.dueDate);
+                      const updated = new Date(task.statusUpdatedOn);
+                      due.setHours(23, 59, 59, 999);
+                      if (updated > due) isDoneLate = true;
+                    }
+                    return (
+                      <span className={`text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border ${
+                        task.status === 'Done' 
+                          ? (isDoneLate ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-green-50 text-green-600 border-green-100')
+                          : task.status === 'In Progress' ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                          : task.status === 'In Review' ? 'bg-purple-50 text-purple-600 border-purple-100' 
+                          : 'bg-gray-100 text-gray-600 border-gray-200'
+                      }`}>
+                        {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
+                        {task.status === 'Done' && isDoneLate ? 'Done (Late)' : (task.status || 'To Do')}
+                      </span>
+                    )
+                  })()}
                   {task.dueDate && (
                     <button className="bg-gray-50 border border-gray-200 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 cursor-pointer transition-colors border-none" title={`Due: ${task.dueDate}`}>
                       <span className="material-symbols-outlined text-[16px]">calendar_today</span>
