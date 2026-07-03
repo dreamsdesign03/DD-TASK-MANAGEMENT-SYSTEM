@@ -30,7 +30,6 @@ const STATUS_STYLES = {
   Review: 'bg-blue-100 text-blue-700',
   Done: 'bg-green-100 text-green-700',
   Pending: 'bg-gray-100 text-gray-700',
-  'Partially Completed': 'bg-emerald-100 text-emerald-700',
 }
 
 const STATUS_CONFIG = {
@@ -39,7 +38,6 @@ const STATUS_CONFIG = {
   'Review': { bg: '#EFF6FF', color: '#2563EB' },
   'Done': { bg: '#F0FDF4', color: '#16A34A' },
   'Blocked': { bg: '#FEF2F2', color: '#DC2626' },
-  'Partially Completed': { bg: '#D1FAE5', color: '#059669' },
 }
 
 const STATUS_ICON = {
@@ -47,9 +45,9 @@ const STATUS_ICON = {
 }
 
 /* ─── Filter tabs ───────────────────────────────────────────────────────── */
-const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done My Part', 'Done', 'Blocked']
+const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
 
-function InlineStatusSelect({ value, onChange, disabled, task, profile, employees }) {
+function InlineStatusSelect({ value, onChange, disabled }) {
   const [open, setOpen] = React.useState(false)
   const [rect, setRect] = React.useState(null)
   const ref = React.useRef(null)
@@ -82,13 +80,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
     }
   }
 
-  let displayValue = value?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : value;
-  const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
-  if (haveICompletedMyPart && value !== 'Done') {
-    displayValue = 'Partially Completed';
-  }
-  const cfg = STATUS_CONFIG[displayValue] || STATUS_CONFIG['Pending']
-
+  const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
   return (
     <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
       <div
@@ -108,7 +100,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
         onMouseLeave={e => { if (!open) e.currentTarget.style.boxShadow = open ? `0 0 0 3px ${cfg.color}22` : 'none' }}
         title={disabled ? 'Only assigned users can update status' : ''}
       >
-        <span className="truncate">{displayValue}</span>
+        <span>{value}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
       </div>
       {open && rect && createPortal(
@@ -119,60 +111,24 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
           border: '1px solid #F3F4F6', zIndex: 999999,
           display: 'flex', flexDirection: 'column', padding: 6, gap: 2,
         }}>
-          {Object.entries(STATUS_CONFIG).map(([status, style]) => {
-            if (status === 'Partially Completed') return null;
-            return (
-              <div
-                key={status}
-                onClick={() => { onChange(status); setOpen(false) }}
-                style={{
-                  padding: '8px 10px', fontSize: 12, fontWeight: 700,
-                  color: status === value ? style.color : '#4B5563',
-                  background: status === value ? style.bg : 'transparent',
-                  borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                onMouseEnter={e => { if (status !== value) { e.currentTarget.style.background = style.bg; e.currentTarget.style.color = style.color } }}
-                onMouseLeave={e => { if (status !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4B5563' } }}
-              >
-                {status}
-                {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
-              </div>
-            );
-          })}
-          {(() => {
-            const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
-            const myName = normalizeName(profile?.name);
-            const myEmail = String(profile?.email || '').trim().toLowerCase();
-            const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-            const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-            
-            const isMultiAssignee = task?.assignedTo && task.assignedTo.includes(',');
-            const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
-            const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
-
-            if (isMultiAssignee && amIAssigned && task?.status !== 'Done' && !haveICompletedMyPart) {
-              return (
-                <div
-                  onClick={() => { onChange('MyPartComplete'); setOpen(false) }}
-                  style={{
-                    padding: '8px 10px', fontSize: 12, fontWeight: 700,
-                    color: '#16A34A', background: 'transparent',
-                    borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    borderTop: '1px solid #E5E7EB',
-                    marginTop: 4,
-                    paddingTop: 8
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#F0FDF4'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Done by Me</span>
-                </div>
-              );
-            }
-            return null;
-          })()}
+          {Object.entries(STATUS_CONFIG).map(([status, style]) => (
+            <div
+              key={status}
+              onClick={() => { onChange(status); setOpen(false) }}
+              style={{
+                padding: '8px 10px', fontSize: 12, fontWeight: 700,
+                color: status === value ? style.color : '#4B5563',
+                background: status === value ? style.bg : 'transparent',
+                borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}
+              onMouseEnter={e => { if (status !== value) { e.currentTarget.style.background = style.bg; e.currentTarget.style.color = style.color } }}
+              onMouseLeave={e => { if (status !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4B5563' } }}
+            >
+              {status}
+              {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
+            </div>
+          ))}
         </div>,
         document.body
       )}
@@ -326,13 +282,7 @@ export default function TaskTable() {
       // Exclude Sub Tasks from main table view
       if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
 
-      const matchesStatus = (() => {
-        if (activeFilter === 'All') return true;
-        if (activeFilter === 'Done My Part') {
-          return t.description?.completedBy?.includes(profile?.name);
-        }
-        return t.status === activeFilter;
-      })();
+      const matchesStatus = activeFilter === 'All' || t.status === activeFilter
       const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient
       const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser)
       const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment
@@ -439,24 +389,7 @@ export default function TaskTable() {
 
     if (boardGrouping === 'Process Stage') {
       if (task.status !== colName) {
-        const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-        const nowISO = new Date().toISOString();
-        const statusHistoryEntry = {
-          from: prevStatus,
-          to: colName,
-          changedBy: profile?.name || 'System',
-          timestamp: nowISO,
-          type: 'status_change'
-        };
-        const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-        updateTask(taskId, { 
-          status: colName,
-          done: colName === 'Done',
-          description: {
-            ...task.description,
-            statusHistory: newStatusHistory
-          }
-        })
+        updateTask(taskId, { status: colName })
         if (colName === 'Done') {
           const due = new Date(task.dueDate)
           const today = new Date()
@@ -471,26 +404,7 @@ export default function TaskTable() {
     } else {
       if (colName === 'COMPLETE') {
         if (task.status !== 'Done') {
-          const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-          const nowISO = new Date().toISOString();
-          const statusHistoryEntry = {
-            from: prevStatus,
-            to: 'Done',
-            changedBy: profile?.name || 'System',
-            timestamp: nowISO,
-            type: 'status_change'
-          };
-          const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-          
-          updateTask(taskId, { 
-            status: 'Done',
-            done: true,
-            department: task.department || 'COMMON',
-            description: {
-              ...task.description,
-              statusHistory: newStatusHistory
-            }
-          })
+          updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
 
           // Celebration Effect Check
           const due = new Date(task.dueDate)
@@ -504,27 +418,7 @@ export default function TaskTable() {
         }
       } else {
         if (task.department !== colName || task.status === 'Done') {
-          const newStatus = task.status === 'Done' ? 'Pending' : task.status;
-          
-          let updatedFields = { department: colName };
-          if (task.status === 'Done') {
-            const prevStatus = 'Done';
-            const nowISO = new Date().toISOString();
-            const statusHistoryEntry = {
-              from: prevStatus,
-              to: 'Pending',
-              changedBy: profile?.name || 'System',
-              timestamp: nowISO,
-              type: 'status_change'
-            };
-            updatedFields.status = 'Pending';
-            updatedFields.done = false;
-            updatedFields.description = {
-              ...task.description,
-              statusHistory: [...(task.description?.statusHistory || []), statusHistoryEntry]
-            };
-          }
-          updateTask(taskId, updatedFields)
+          updateTask(taskId, { department: colName, status: task.status === 'Done' ? 'Pending' : task.status })
         }
       }
     }
@@ -934,12 +828,11 @@ export default function TaskTable() {
                                 }
                               }
 
-                              const userDoneMyPart = profile?.name && task.description?.completedBy?.includes(profile.name);
                               const rowClass = isTaskOverdue
                                 ? 'bg-error-container'
                                 : isDoneLate
                                   ? 'bg-[#FFF8F0]'
-                                  : task.status === 'Done' || userDoneMyPart
+                                  : task.status === 'Done'
                                     ? 'opacity-60'
                                     : ''
 
@@ -951,7 +844,7 @@ export default function TaskTable() {
                                 <tr
                                   key={task.id}
                                   className={`block md:table-row ${rowClass} mb-4 md:mb-0 border-b border-[#F9F9FF] md:border-none rounded-lg md:rounded-none transition-all cursor-pointer relative group overflow-hidden`}
-                                  style={{ opacity: task.status === 'Done' || userDoneMyPart ? (isDoneLate || (userDoneMyPart && task.status !== 'Done') ? 0.6 : 0.4) : 1 }}
+                                  style={{ opacity: task.status === 'Done' ? (isDoneLate ? 0.8 : 0.4) : 1 }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
                                       e.currentTarget.style.background = isTaskOverdue ? 'var(--color-error-container)' : isDoneLate ? '#FFF8F0' : 'white'
@@ -1079,25 +972,14 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Assigned To</span>
                                     <div className="flex items-center gap-2 text-right">
                                       {(() => {
-                                        const assignees = (task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean);
-                                        const completedBy = task.description?.completedBy || [];
+                                        const assignees = (task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
                                         return (
                                           <div className="flex items-center">
-                                            {assignees.map((a, idx) => {
-                                              const hasCompleted = completedBy.includes(a);
-                                              return (
-                                                <div key={idx} className="relative -ml-2 first:ml-0" title={`${a}${hasCompleted ? ' ✓ Done' : ''}`}>
-                                                  <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }}>
-                                                    {getInitials(a)}
-                                                  </div>
-                                                  {hasCompleted && (
-                                                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full flex items-center justify-center shadow-sm">
-                                                      <span className="material-symbols-outlined text-[8px] text-white font-bold" style={{ fontSize: 8 }}>check</span>
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              );
-                                            })}
+                                            {assignees.map((a, idx) => (
+                                              <div key={idx} className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }} title={a}>
+                                                {getInitials(a)}
+                                              </div>
+                                            ))}
                                           </div>
                                         )
                                       })()}
@@ -1147,9 +1029,6 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <InlineStatusSelect
                                       value={task.status}
-                                      task={task}
-                                      profile={profile}
-                                      employees={employees}
                                       disabled={(() => {
                                         if (!profile) return true;
                                         const normalizeName = (name) => {
@@ -1166,96 +1045,7 @@ export default function TaskTable() {
                                         return !(assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail)));
                                       })()}
                                       onChange={(newStatus) => {
-                                        if (newStatus === 'MyPartComplete') {
-                                          const nowISO = new Date().toISOString();
-                                          const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
-                                          const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: nowISO };
-                                          const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
-                                          const originalStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-                                          
-                                          // Check if ALL assignees have completed
-                                          const allAssignees = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean);
-                                          const allCompleted = allAssignees.length > 0 && allAssignees.every(a => newCompletedBy.includes(a));
-                                          
-                                          let newStatus, isFullyDone;
-                                          if (allCompleted) {
-                                            newStatus = 'Done';
-                                            isFullyDone = true;
-                                          } else {
-                                            newStatus = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
-                                            isFullyDone = false;
-                                          }
-                                          
-                                          const statusHistoryEntry = {
-                                            from: originalStatus,
-                                            to: newStatus,
-                                            changedBy: profile?.name,
-                                            timestamp: nowISO,
-                                            type: isFullyDone ? 'all_completed' : 'part_complete'
-                                          };
-                                          const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-                                          
-                                          updateTask(task.id, { 
-                                            status: newStatus,
-                                            done: isFullyDone,
-                                            description: { 
-                                              ...task.description, 
-                                              originalStatus: originalStatus,
-                                              completedBy: newCompletedBy, 
-                                              completedParts: newCompletedParts,
-                                              completedEmpIds: newCompletedEmpIds,
-                                              statusHistory: newStatusHistory
-                                            } 
-                                          });
-                                          
-                                          const nowFormatted = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2');
-                                          const payload = {
-                                            id: 'msg_' + Date.now(),
-                                            action: 'send',
-                                            roomId: String(task.id),
-                                            senderId: 'system',
-                                            senderName: 'System',
-                                            message: isFullyDone ? `All assignees have completed their parts. Task is now Done.` : `${profile?.name} has marked their part as complete.`,
-                                            timestamp: nowFormatted,
-                                            type: 'task_reply',
-                                            groupName: task.title
-                                          };
-                                          import('../context/AppContext.jsx').then(({ mqttClient }) => {
-                                            if (mqttClient && mqttClient.connected) {
-                                              mqttClient.publish('dd_chat_engine_v1/' + task.id, JSON.stringify(payload));
-                                            }
-                                          });
-                                          fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                                            body: JSON.stringify(payload)
-                                          }).catch(e => console.warn(e));
-                                          
-                                          if (isFullyDone && (!task.dueDate || new Date(task.dueDate) >= new Date(new Date().toDateString()))) {
-                                            import('canvas-confetti').then((confetti) => {
-                                              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
-                                            })
-                                          }
-                                          return;
-                                        }
-                                        const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-                                        const nowISO = new Date().toISOString();
-                                        const statusHistoryEntry = {
-                                          from: prevStatus,
-                                          to: newStatus,
-                                          changedBy: profile?.name,
-                                          timestamp: nowISO,
-                                          type: 'status_change'
-                                        };
-                                        const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-                                        updateTask(task.id, { 
-                                          status: newStatus,
-                                          done: newStatus === 'Done',
-                                          description: {
-                                            ...task.description,
-                                            statusHistory: newStatusHistory
-                                          }
-                                        })
+                                        updateTask(task.id, { status: newStatus })
                                         if (newStatus === 'Done') {
                                           const due = new Date(task.dueDate)
                                           const today = new Date()
@@ -1496,21 +1286,11 @@ export default function TaskTable() {
 
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
                                     <div style={{ display: 'flex' }}>
-                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => {
-                                        const hasCompleted = (task.description?.completedBy || []).includes(a);
-                                        return (
-                                          <div key={i} style={{ position: 'relative', marginLeft: i > 0 ? -10 : 0 }} title={`${a}${hasCompleted ? ' ✓ Done' : ''}`}>
-                                            <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                              {getInitials(a)}
-                                            </div>
-                                            {hasCompleted && (
-                                              <span style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, backgroundColor: '#10B981', border: '2px solid white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
-                                                <span className="material-symbols-outlined" style={{ fontSize: 7, color: 'white', fontWeight: 700 }}>check</span>
-                                              </span>
-                                            )}
-                                          </div>
-                                        );
-                                      })}
+                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
+                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
+                                          {getInitials(a)}
+                                        </div>
+                                      ))}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
                                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>

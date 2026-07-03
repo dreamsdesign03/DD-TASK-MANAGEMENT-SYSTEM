@@ -599,118 +599,9 @@ export default function TaskDetailPage() {
   }
 
   const handleSaveStatus = () => {
-    const nowISO = new Date().toISOString();
-    const nowFormatted = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d+)\/(\d+)\/(\d+),/, '$3-$1-$2');
-
-    if (localStatus === 'My Part Complete') {
-      const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
-      const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: nowISO };
-      const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
-      const originalStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-
-      // Check if ALL assignees have completed their part
-      const allAssignees = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean);
-      const allCompleted = allAssignees.length > 0 && allAssignees.every(a => newCompletedBy.includes(a));
-
-      let newStatus, isFullyDone;
-      if (allCompleted) {
-        newStatus = 'Done';
-        isFullyDone = true;
-      } else {
-        newStatus = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
-        isFullyDone = false;
-      }
-
-      const statusHistoryEntry = {
-        from: originalStatus,
-        to: newStatus,
-        changedBy: profile?.name,
-        timestamp: nowISO,
-        type: isFullyDone ? 'all_completed' : 'part_complete'
-      };
-      const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-
-      updateTask(task.id, { 
-        status: newStatus,
-        done: isFullyDone,
-        description: { 
-          ...task.description, 
-          originalStatus: originalStatus,
-          completedBy: newCompletedBy, 
-          completedParts: newCompletedParts,
-          completedEmpIds: newCompletedEmpIds,
-          statusHistory: newStatusHistory
-        } 
-      });
-      
-      const payload = {
-        id: 'msg_' + Date.now(),
-        action: 'send',
-        roomId: String(task.id),
-        senderId: 'system',
-        senderName: 'System',
-        message: isFullyDone ? `All assignees have completed their parts. Task is now Done.` : `${profile?.name} has marked their part as complete.`,
-        timestamp: nowFormatted,
-        type: 'task_reply',
-        groupName: task.title
-      };
-      import('../context/AppContext.jsx').then(({ mqttClient }) => {
-        if (mqttClient && mqttClient.connected) {
-          mqttClient.publish('dd_chat_engine_v1/' + task.id, JSON.stringify(payload));
-        }
-      });
-      fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      }).catch(e => console.warn(e));
-
-      if (isFullyDone) {
-        setInfoModal({
-          title: 'All Parts Completed!',
-          message: 'All assignees have completed their parts. Task is now Done.',
-          icon: 'check_circle',
-          color: 'text-[#16A34A]'
-        });
-        const due = new Date(task.dueDate)
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        if (!task.dueDate || today <= due) {
-          setTimeout(() => {
-            import('canvas-confetti').then((confetti) => {
-              confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
-            })
-          }, 300)
-        }
-      } else {
-        setLocalStatus(task.status);
-        setInfoModal({
-          title: 'Status Updated',
-          message: 'Your part marked as complete.',
-          icon: 'check_circle',
-          color: 'text-[#16A34A]'
-        });
-      }
-      return;
-    }
-
-    const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
-    const statusHistoryEntry = {
-      from: prevStatus,
-      to: localStatus,
-      changedBy: profile?.name,
-      timestamp: nowISO,
-      type: 'status_change'
-    };
-    const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
-
     updateTask(task.id, {
       status: localStatus,
       done: localStatus === 'Done',
-      description: {
-        ...task.description,
-        statusHistory: newStatusHistory
-      }
     })
 
     if (localStatus === 'Done') {
@@ -868,22 +759,7 @@ export default function TaskDetailPage() {
                           : 'bg-gray-100 text-gray-600 border-gray-200'
                       }`}>
                         {task.status === 'Done' && <span className="material-symbols-outlined text-[14px]">check_circle</span>}
-                        {(() => {
-                          if (task.status === 'Done' && isDoneLate) return 'Done (Late)';
-                          let displayStatus = task.status || 'To Do';
-                          if (displayStatus.startsWith('Task part done by')) {
-                            displayStatus = displayStatus.split(', ').map(part => {
-                              const empIdMatch = part.match(/EMP-\d+/);
-                              if (empIdMatch && employees) {
-                                const empId = empIdMatch[0];
-                                const emp = employees.find(e => e.id === empId);
-                                if (emp) return `Done by ${emp.name}`;
-                              }
-                              return part;
-                            }).join(', ');
-                          }
-                          return <span className="truncate max-w-[200px] block">{displayStatus}</span>;
-                        })()}
+                        {task.status === 'Done' && isDoneLate ? 'Done (Late)' : (task.status || 'To Do')}
                       </span>
                     )
                   })()}
@@ -900,23 +776,32 @@ export default function TaskDetailPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   {(() => {
-                    const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
-                    const myName = normalizeName(profile?.name);
-                    const myEmail = String(profile?.email || '').trim().toLowerCase();
-                    const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-                    const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-                    
                     const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
-                    const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
+                    const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
                     const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                     
-                      if (isMultiAssignee && amIAssigned && task.status !== 'Done' && haveICompletedMyPart) {
-                      return (
-                        <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                          Done by Me
-                        </span>
-                      );
+                    if (isMultiAssignee && amIAssigned && task.status !== 'Done') {
+                      if (haveICompletedMyPart) {
+                        return (
+                          <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            My Part Completed
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => {
+                              const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+                              updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+                            }}
+                            className="bg-white border border-green-200 text-green-600 hover:bg-green-50 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">done_all</span>
+                            Mark My Part Complete
+                          </button>
+                        );
+                      }
                     }
                     return null;
                   })()}
@@ -999,90 +884,6 @@ export default function TaskDetailPage() {
                   )}
                 </div>
               </div>
-
-              {/* Status Update History */}
-              {(() => {
-                const statusHistory = task.description?.statusHistory || [];
-                if (statusHistory.length === 0) return null;
-                return (
-                  <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
-                    <h3 className="text-[13px] font-black text-[#4B5563] uppercase tracking-wider mb-3 flex items-center gap-2 m-0">
-                      <span className="material-symbols-outlined text-[16px] text-[#6B7280]">history</span>
-                      Status Update History
-                    </h3>
-                    <div className="flex flex-col gap-2">
-                      {statusHistory.map((entry, idx) => {
-                        const date = new Date(entry.timestamp);
-                        const formattedDate = date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-                        let icon = 'radio_button_checked';
-                        let color = 'text-gray-500';
-                        let bgColor = 'bg-gray-50';
-                        let borderColor = 'border-gray-200';
-                        if (entry.type === 'part_complete') {
-                          icon = 'done_all';
-                          color = 'text-green-600';
-                          bgColor = 'bg-green-50';
-                          borderColor = 'border-green-100';
-                        } else if (entry.type === 'all_completed') {
-                          icon = 'check_circle';
-                          color = 'text-green-700';
-                          bgColor = 'bg-green-100';
-                          borderColor = 'border-green-300';
-                        } else if (entry.to === 'Done') {
-                          icon = 'check_circle';
-                          color = 'text-green-600';
-                          bgColor = 'bg-green-50';
-                          borderColor = 'border-green-100';
-                        } else if (entry.to === 'Blocked') {
-                          icon = 'block';
-                          color = 'text-red-600';
-                          bgColor = 'bg-red-50';
-                          borderColor = 'border-red-100';
-                        } else if (entry.to === 'In Progress') {
-                          icon = 'play_arrow';
-                          color = 'text-blue-600';
-                          bgColor = 'bg-blue-50';
-                          borderColor = 'border-blue-100';
-                        } else if (entry.to === 'Review') {
-                          icon = 'rate_review';
-                          color = 'text-purple-600';
-                          bgColor = 'bg-purple-50';
-                          borderColor = 'border-purple-100';
-                        }
-                        const isPartComplete = entry.type === 'part_complete';
-                        const isAllCompleted = entry.type === 'all_completed';
-                        const displayFrom = entry.from?.startsWith('Task part done by') ? 'In Progress' : (entry.from || '-');
-                        const displayTo = entry.to?.startsWith('Task part done by') ? 'In Progress' : entry.to;
-                        return (
-                          <div key={idx} className={`flex items-start gap-3 ${bgColor} border ${borderColor} rounded-lg px-3 py-2.5`}>
-                            <span className={`material-symbols-outlined text-[16px] mt-0.5 ${color}`}>{icon}</span>
-                            <div className="flex-1 min-w-0">
-                              {isPartComplete ? (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[12px] font-bold text-green-700">Task part completed by {entry.changedBy}</span>
-                                </div>
-                              ) : isAllCompleted ? (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[12px] font-bold text-green-700">All assignees have completed their parts</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[12px] font-bold text-[#1E1B2E]">{entry.changedBy}</span>
-                                  <span className="text-[11px] text-gray-400">changed status from</span>
-                                  <span className="text-[11px] font-bold text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200">{displayFrom}</span>
-                                  <span className="text-[11px] text-gray-400">to</span>
-                                  <span className={`text-[11px] font-bold ${entry.to === 'Done' ? 'text-green-700' : entry.to === 'Blocked' ? 'text-red-600' : 'text-[#702c91]'} bg-white px-2 py-0.5 rounded border border-gray-200`}>{displayTo}</span>
-                                </div>
-                              )}
-                              <span className="text-[10px] text-gray-400 mt-1 block">{formattedDate}</span>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })()}
 
               {/* Description */}
               <section>
@@ -1476,32 +1277,18 @@ export default function TaskDetailPage() {
                       {(task.assignedTo || 'Unassigned').split(',').map((assignee, idx) => {
                         const trimmedAssignee = assignee.trim()
                         if (!trimmedAssignee) return null
-                        
-                        let completedDateStr = task.description?.completedParts?.[trimmedAssignee];
-                        if (!completedDateStr && task.description?.completedBy?.includes(trimmedAssignee)) {
-                          completedDateStr = 'Completed';
-                        }
-                        
                         return (
-                          <div key={idx} className="flex flex-col items-end gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-bold text-[#1E1B2E]">{trimmedAssignee}</span>
-                              {trimmedAssignee === profile.name && profile.avatar ? (
-                                <img
-                                  className="w-6 h-6 rounded-full object-cover"
-                                  src={profile.avatar}
-                                  alt={trimmedAssignee}
-                                  referrerPolicy="no-referrer"
-                                />
-                              ) : (
-                                renderAvatar(null, trimmedAssignee, "w-6 h-6 rounded-full text-[10px]")
-                              )}
-                            </div>
-                            {completedDateStr && (
-                              <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1 mt-0.5 shadow-sm border border-green-100">
-                                <span className="material-symbols-outlined text-[12px]">done_all</span>
-                                {completedDateStr === 'Completed' ? 'Done by Me' : `Done: ${new Date(completedDateStr).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
-                              </span>
+                          <div key={idx} className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-[#1E1B2E]">{trimmedAssignee}</span>
+                            {trimmedAssignee === profile.name && profile.avatar ? (
+                              <img
+                                className="w-6 h-6 rounded-full object-cover"
+                                src={profile.avatar}
+                                alt={trimmedAssignee}
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              renderAvatar(null, trimmedAssignee, "w-6 h-6 rounded-full text-[10px]")
                             )}
                           </div>
                         )
@@ -1537,17 +1324,6 @@ export default function TaskDetailPage() {
                     <span className="text-[13px] text-gray-500 w-1/3">Assigned Date</span>
                     <span className="text-[13px] font-bold text-[#1E1B2E]">{task.assigned}</span>
                   </div>
-                  {task.status === 'Done' && task.statusUpdatedOn && (
-                    <div className="flex justify-between items-center bg-green-50/50 -mx-5 px-5 py-2 border-y border-green-100">
-                      <span className="text-[13px] font-bold text-green-700 w-1/3 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">event_available</span>
-                        Completed
-                      </span>
-                      <span className="text-[12px] font-bold text-green-800 bg-white px-2.5 py-1 rounded-md border border-green-200 shadow-sm text-right">
-                        {new Date(task.statusUpdatedOn).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500 w-1/3">Due Date</span>
                     <span className="text-[13px] font-bold text-[#1E1B2E]">{task.dueDate}</span>
@@ -1608,34 +1384,7 @@ export default function TaskDetailPage() {
                       </h3>
                     </div>
                     <div className="p-5 flex flex-col gap-4">
-                      {(() => {
-                        const statusOptions = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
-                        const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
-                        const myName = normalizeName(profile?.name);
-                        const myEmail = String(profile?.email || '').trim().toLowerCase();
-                        const assignees = (task?.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-                        const assigneeEmails = (task?.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-                        
-                        const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
-                        const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
-                        const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
-                        
-                        if (isMultiAssignee && amIAssigned && task.status !== 'Done' && !haveICompletedMyPart) {
-                          statusOptions.push({
-                            value: 'My Part Complete',
-                            label: 'Done by Me',
-                            icon: 'done_all',
-                            color: '#16A34A',
-                            hoverBg: '#F0FDF4',
-                            style: { borderTop: '1px solid #E5E7EB', marginTop: 4, paddingTop: 12 }
-                          });
-                        }
-                        let displayLocalStatus = localStatus?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : localStatus;
-
-                        return (
-                          <SelectDropdown value={displayLocalStatus} onChange={setLocalStatus} options={statusOptions} />
-                        )
-                      })()}
+                      <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
 
                       <button
                         onClick={handleSaveStatus}
