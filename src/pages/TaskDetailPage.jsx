@@ -1006,7 +1006,7 @@ export default function TaskDetailPage() {
                     <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {/* Assignee Selector */}
-                        <SelectDropdown value={newSubtaskAssignee} onChange={setNewSubtaskAssignee} options={[{ value: '', label: 'Unassigned' }, ...uniqueTeamMembers.map(m => ({ value: m, label: m }))]} style={{ minHeight: 32, fontSize: 12 }} />
+                        <SelectDropdown value={newSubtaskAssignee} onChange={setNewSubtaskAssignee} options={[{ value: '', label: 'Unassigned' }, ...(task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean).map(m => ({ value: m, label: m }))]} style={{ minHeight: 32, fontSize: 12 }} />
 
                         {/* Due Date Selector */}
                         <div className="relative group flex items-center bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 rounded-lg h-[32px] overflow-hidden transition-colors w-[120px]">
