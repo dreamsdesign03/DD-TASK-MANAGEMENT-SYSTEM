@@ -403,13 +403,6 @@ export default function TaskDetailPage() {
     }
   }
 
-  // Sync local status when task changes
-  useEffect(() => {
-    if (task && task.status) {
-      setLocalStatus(task.status)
-    }
-  }, [task?.status])
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
