@@ -30,6 +30,7 @@ const STATUS_STYLES = {
   Review: 'bg-blue-100 text-blue-700',
   Done: 'bg-green-100 text-green-700',
   Pending: 'bg-gray-100 text-gray-700',
+  'Partially Completed': 'bg-emerald-100 text-emerald-700',
 }
 
 const STATUS_CONFIG = {
@@ -38,6 +39,7 @@ const STATUS_CONFIG = {
   'Review': { bg: '#EFF6FF', color: '#2563EB' },
   'Done': { bg: '#F0FDF4', color: '#16A34A' },
   'Blocked': { bg: '#FEF2F2', color: '#DC2626' },
+  'Partially Completed': { bg: '#D1FAE5', color: '#059669' },
 }
 
 const STATUS_ICON = {
@@ -81,6 +83,10 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
   }
 
   let displayValue = value?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : value;
+  const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
+  if (haveICompletedMyPart && value !== 'Done') {
+    displayValue = 'Partially Completed';
+  }
   const cfg = STATUS_CONFIG[displayValue] || STATUS_CONFIG['Pending']
 
   return (
@@ -142,7 +148,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
             const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
             const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
 
-            if (isMultiAssignee && amIAssigned && task?.status !== 'Done') {
+            if (isMultiAssignee && amIAssigned && task?.status !== 'Done' && !haveICompletedMyPart) {
               return (
                 <div
                   onClick={() => { onChange('MyPartComplete'); setOpen(false) }}
@@ -869,11 +875,12 @@ export default function TaskTable() {
                                 }
                               }
 
+                              const userDoneMyPart = profile?.name && task.description?.completedBy?.includes(profile.name);
                               const rowClass = isTaskOverdue
                                 ? 'bg-error-container'
                                 : isDoneLate
                                   ? 'bg-[#FFF8F0]'
-                                  : task.status === 'Done'
+                                  : task.status === 'Done' || userDoneMyPart
                                     ? 'opacity-60'
                                     : ''
 
@@ -885,7 +892,7 @@ export default function TaskTable() {
                                 <tr
                                   key={task.id}
                                   className={`block md:table-row ${rowClass} mb-4 md:mb-0 border-b border-[#F9F9FF] md:border-none rounded-lg md:rounded-none transition-all cursor-pointer relative group overflow-hidden`}
-                                  style={{ opacity: task.status === 'Done' ? (isDoneLate ? 0.8 : 0.4) : 1 }}
+                                  style={{ opacity: task.status === 'Done' || userDoneMyPart ? (isDoneLate || (userDoneMyPart && task.status !== 'Done') ? 0.6 : 0.4) : 1 }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
                                       e.currentTarget.style.background = isTaskOverdue ? 'var(--color-error-container)' : isDoneLate ? '#FFF8F0' : 'white'
@@ -1013,14 +1020,25 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Assigned To</span>
                                     <div className="flex items-center gap-2 text-right">
                                       {(() => {
-                                        const assignees = (task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
+                                        const assignees = (task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean);
+                                        const completedBy = task.description?.completedBy || [];
                                         return (
                                           <div className="flex items-center">
-                                            {assignees.map((a, idx) => (
-                                              <div key={idx} className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }} title={a}>
-                                                {getInitials(a)}
-                                              </div>
-                                            ))}
+                                            {assignees.map((a, idx) => {
+                                              const hasCompleted = completedBy.includes(a);
+                                              return (
+                                                <div key={idx} className="relative -ml-2 first:ml-0" title={`${a}${hasCompleted ? ' ✓ Done' : ''}`}>
+                                                  <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }}>
+                                                    {getInitials(a)}
+                                                  </div>
+                                                  {hasCompleted && (
+                                                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full flex items-center justify-center shadow-sm">
+                                                      <span className="material-symbols-outlined text-[8px] text-white font-bold" style={{ fontSize: 8 }}>check</span>
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              );
+                                            })}
                                           </div>
                                         )
                                       })()}
@@ -1402,11 +1420,21 @@ export default function TaskTable() {
 
                                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
                                     <div style={{ display: 'flex' }}>
-                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
-                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
-                                          {getInitials(a)}
-                                        </div>
-                                      ))}
+                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => {
+                                        const hasCompleted = (task.description?.completedBy || []).includes(a);
+                                        return (
+                                          <div key={i} style={{ position: 'relative', marginLeft: i > 0 ? -10 : 0 }} title={`${a}${hasCompleted ? ' ✓ Done' : ''}`}>
+                                            <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                              {getInitials(a)}
+                                            </div>
+                                            {hasCompleted && (
+                                              <span style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, backgroundColor: '#10B981', border: '2px solid white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: 7, color: 'white', fontWeight: 700 }}>check</span>
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
                                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
