@@ -816,6 +816,9 @@ export default function TaskTable() {
                                 if (due < today) {
                                   isTaskOverdue = true
                                 }
+                                if (isTaskOverdue && profile?.name && task.description?.completedBy?.includes(profile.name)) {
+                                  isTaskOverdue = false
+                                }
                               } else if (task.status === 'Done' && task.dueDate && task.statusUpdatedOn) {
                                 const due = new Date(task.dueDate)
                                 const updated = new Date(task.statusUpdatedOn)

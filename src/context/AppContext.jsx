@@ -155,6 +155,7 @@ const mapWebhookTaskToApp = (item) => {
       bullets: Array.isArray(descObj?.bullets) ? descObj.bullets : [],
       outro: descObj?.outro || (remarks ? `Remarks: ${remarks}` : ''),
       subtasks: Array.isArray(descObj?.subtasks) ? descObj.subtasks : [],
+      completedBy: Array.isArray(descObj?.completedBy) ? descObj.completedBy : [],
       editedAt: descObj?.editedAt || null
     },
     comments: comments,
@@ -1710,8 +1711,10 @@ export function AppProvider({ children }) {
                 notifiedHistory = JSON.parse(localStorage.getItem('dd_overdue_notified') || '{}')
               } catch (e) { }
 
-              const isCompletedOrBlocked = nt.status === 'Done' || nt.status === 'Blocked'
-
+              let isCompletedOrBlocked = nt.status === 'Done' || nt.status === 'Blocked'
+              if (profile?.name && nt.description?.completedBy?.includes(profile.name)) {
+                isCompletedOrBlocked = true;
+              }
               if (nt.overdue && !isCompletedOrBlocked) {
                 if (notifiedHistory[nt.id] !== todayStr && isRelated) {
                   notifiedHistory[nt.id] = todayStr

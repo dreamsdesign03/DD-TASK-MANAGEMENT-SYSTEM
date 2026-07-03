@@ -775,6 +775,36 @@ export default function TaskDetailPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {(() => {
+                    const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
+                    const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+                    const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
+                    
+                    if (isMultiAssignee && amIAssigned && task.status !== 'Done') {
+                      if (haveICompletedMyPart) {
+                        return (
+                          <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            My Part Completed
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <button
+                            onClick={() => {
+                              const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+                              updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+                            }}
+                            className="bg-white border border-green-200 text-green-600 hover:bg-green-50 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">done_all</span>
+                            Mark My Part Complete
+                          </button>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
                   {task.assignedBy && (
                     <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[12px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[14px]">assignment_ind</span>
