@@ -1184,8 +1184,8 @@ export default function TaskDetailPage() {
 
                 {/* Bottom Input */}
                 <div className="mt-6">
-                  <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5 relative">
-                    {/* Mention Dropdown */}
+                  <div className="relative">
+                    {/* Mention Dropdown — outside overflow-hidden div so it's not clipped */}
                     {mentionIndex !== -1 && (
                       <div
                         ref={mentionDropdownRef}
@@ -1210,6 +1210,7 @@ export default function TaskDetailPage() {
                         </div>
                       </div>
                     )}
+                    <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
                     <textarea
                       ref={replyInputRef}
                       className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] bg-[#F9F4FB] focus:bg-[#F3E8F7] transition-colors"
@@ -1270,6 +1271,7 @@ export default function TaskDetailPage() {
                         )}
                       </button>
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>
