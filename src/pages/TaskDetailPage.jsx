@@ -922,16 +922,30 @@ export default function TaskDetailPage() {
                   <div className="space-y-2">
                     {subtasks.map((st) => (
                       <div key={st.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-[#E5E7EB] rounded-xl transition-colors hover:border-[#702c91]/30">
-                        <input
+                          <input
                           type="checkbox"
                           checked={st.status === 'Done'}
                           onChange={(e) => {
-                            updateTask(st.id, { status: e.target.checked ? 'Done' : 'Pending' })
+                            const newStatus = e.target.checked ? 'Done' : 'Pending'
+                            updateTask(st.id, { status: newStatus, statusUpdatedOn: newStatus === 'Done' ? new Date().toISOString() : '' })
+                            if (newStatus === 'Done') {
+                              const allDone = subtasks
+                                .filter(s => s.id !== st.id)
+                                .every(s => s.status === 'Done')
+                              if (allDone) {
+                                updateTask(task.id, { status: 'Done', statusUpdatedOn: new Date().toISOString() })
+                              }
+                            }
                           }}
                           className="w-5 h-5 accent-primary cursor-pointer rounded"
                         />
                         <div className={`flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
                           <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
+                          {st.status === 'Done' && st.statusUpdatedOn && (
+                            <p className="text-[10px] text-gray-400 mt-0.5 font-normal">
+                              {new Date(st.statusUpdatedOn).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
                         </div>
                         {st.priority && (
                           <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold shrink-0 ${st.priority === 'Urgent' ? 'bg-urgent-red/10 border-urgent-red/30 text-urgent-red' :

@@ -937,10 +937,12 @@ export default function TaskTable() {
                                       {(() => {
                                         const subtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'))
                                         if (subtasks.length > 0) {
+                                          const doneCount = subtasks.filter(s => s.status === 'Done').length
+                                          const allDone = doneCount === subtasks.length
                                           return (
-                                            <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                            <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${allDone ? 'bg-green-50 text-green-600 border-green-200' : 'bg-primary/10 text-primary border-primary/20'}`}>
                                               <span className="material-symbols-outlined text-[10px]">account_tree</span>
-                                              {subtasks.length} sub task{subtasks.length > 1 ? 's' : ''}
+                                              {doneCount}/{subtasks.length}
                                             </span>
                                           )
                                         }
@@ -973,11 +975,26 @@ export default function TaskTable() {
                                         const assignees = (task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
                                         return (
                                           <div className="flex items-center">
-                                            {assignees.map((a, idx) => (
-                                              <div key={idx} className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 -ml-2 first:ml-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }} title={a}>
-                                                {getInitials(a)}
-                                              </div>
-                                            ))}
+                                            {assignees.map((a, idx) => {
+                                              const userSubtasks = tasks.filter(t =>
+                                                String(t.mainTaskId) === String(task.id) &&
+                                                (t.taskType === 'Sub Task' || t.taskType === 'Subtask') &&
+                                                String(t.assignedTo).trim().toLowerCase() === a.toLowerCase()
+                                              )
+                                              const allUserDone = userSubtasks.length > 0 && userSubtasks.every(s => s.status === 'Done')
+                                              return (
+                                                <div key={idx} className="relative -ml-2 first:ml-0">
+                                                  <div className="w-8 h-8 rounded-full text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.05)]" style={{ backgroundColor: getUserColor(a) }} title={a}>
+                                                    {getInitials(a)}
+                                                  </div>
+                                                  {allUserDone && (
+                                                    <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                                                      <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              )
+                                            })}
                                           </div>
                                         )
                                       })()}
@@ -1278,17 +1295,46 @@ export default function TaskTable() {
                                     onMouseEnter={(e) => { e.currentTarget.style.color = '#702c91'; e.currentTarget.style.textDecoration = 'underline'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.color = '#1E1B2E'; e.currentTarget.style.textDecoration = 'none'; }}
                                   >
-                                    {task.title}
-                                  </h3>
-                                  <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.client}</p>
-
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
-                                    <div style={{ display: 'flex' }}>
-                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => (
-                                        <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', marginLeft: i > 0 ? -10 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
-                                          {getInitials(a)}
-                                        </div>
-                                      ))}
+                                                                    {task.title}
+                                                                  </h3>
+                                                                  {(() => {
+                                                                    const bSubtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'))
+                                                                    if (bSubtasks.length > 0) {
+                                                                      const doneCount = bSubtasks.filter(s => s.status === 'Done').length
+                                                                      const allDone = doneCount === bSubtasks.length
+                                                                      return (
+                                                                        <span style={{ fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 6px', borderRadius: 999, marginBottom: 8, background: allDone ? '#ECFDF5' : '#F0F3FF', color: allDone ? '#059669' : '#702c91', border: allDone ? '1px solid #A7F3D0' : '1px solid rgba(112,44,145,0.2)' }}>
+                                                                          <span className="material-symbols-outlined" style={{ fontSize: 10 }}>account_tree</span>
+                                                                          {doneCount}/{bSubtasks.length}
+                                                                        </span>
+                                                                      )
+                                                                    }
+                                                                    return null;
+                                                                  })()}
+                                                                  <p style={{ fontSize: 13, color: '#6B7280', margin: '0 0 16px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{task.client}</p>
+                                                                  
+                                                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 0 }}>
+                                                                    <div style={{ display: 'flex' }}>
+                                                                      {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).map((a, i) => {
+                                        const userSubtasks = tasks.filter(t =>
+                                          String(t.mainTaskId) === String(task.id) &&
+                                          (t.taskType === 'Sub Task' || t.taskType === 'Subtask') &&
+                                          String(t.assignedTo).trim().toLowerCase() === a.toLowerCase()
+                                        )
+                                        const allUserDone = userSubtasks.length > 0 && userSubtasks.every(s => s.status === 'Done')
+                                        return (
+                                          <div key={i} style={{ position: 'relative', marginLeft: i > 0 ? -10 : 0 }}>
+                                            <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: getUserColor(a), border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} title={a}>
+                                              {getInitials(a)}
+                                            </div>
+                                            {allUserDone && (
+                                              <span style={{ position: 'absolute', bottom: -2, right: -2, width: 14, height: 14, backgroundColor: '#10B981', border: '2px solid white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span className="material-symbols-outlined" style={{ fontSize: 8, color: 'white' }}>check</span>
+                                              </span>
+                                            )}
+                                          </div>
+                                        )
+                                      })}
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6B7280' }}>
                                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>calendar_today</span>
