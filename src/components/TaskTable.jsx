@@ -82,19 +82,6 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
 
   const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
 
-  let displayValue = value;
-  if (displayValue?.startsWith('Task part done by')) {
-    displayValue = displayValue.split(', ').map(part => {
-      const empIdMatch = part.match(/EMP-\d+/);
-      if (empIdMatch && employees) {
-        const empId = empIdMatch[0];
-        const emp = employees.find(e => e.id === empId);
-        if (emp) return `Done by ${emp.name}`;
-      }
-      return part;
-    }).join(', ');
-  }
-
   return (
     <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
       <div
@@ -114,7 +101,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
         onMouseLeave={e => { if (!open) e.currentTarget.style.boxShadow = open ? `0 0 0 3px ${cfg.color}22` : 'none' }}
         title={disabled ? 'Only assigned users can update status' : ''}
       >
-        <span className="truncate">{displayValue}</span>
+        <span>{value}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
       </div>
       {open && rect && createPortal(
@@ -1105,10 +1092,12 @@ export default function TaskTable() {
                                           const newCompletedBy = [...(task.description?.completedBy || []), profile?.name].filter((v, i, a) => a.indexOf(v) === i && v);
                                           const newCompletedParts = { ...(task.description?.completedParts || {}), [profile?.name]: new Date().toISOString() };
                                           const newCompletedEmpIds = [...(task.description?.completedEmpIds || []), profile?.empId].filter((v, i, a) => a.indexOf(v) === i && v);
-                                          const newStatusStr = newCompletedEmpIds.map(id => `Task part done by ${id}`).join(', ');
+                                          
+                                          const allAssignees = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean);
+                                          const isAllDone = allAssignees.length > 0 && allAssignees.every(name => newCompletedBy.includes(name));
                                           
                                           updateTask(task.id, { 
-                                            status: newStatusStr,
+                                            status: isAllDone ? 'Done' : task.status,
                                             description: { 
                                               ...task.description, 
                                               completedBy: newCompletedBy, 
