@@ -439,7 +439,24 @@ export default function TaskTable() {
 
     if (boardGrouping === 'Process Stage') {
       if (task.status !== colName) {
-        updateTask(taskId, { status: colName })
+        const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
+        const nowISO = new Date().toISOString();
+        const statusHistoryEntry = {
+          from: prevStatus,
+          to: colName,
+          changedBy: profile?.name || 'System',
+          timestamp: nowISO,
+          type: 'status_change'
+        };
+        const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
+        updateTask(taskId, { 
+          status: colName,
+          done: colName === 'Done',
+          description: {
+            ...task.description,
+            statusHistory: newStatusHistory
+          }
+        })
         if (colName === 'Done') {
           const due = new Date(task.dueDate)
           const today = new Date()
@@ -454,7 +471,26 @@ export default function TaskTable() {
     } else {
       if (colName === 'COMPLETE') {
         if (task.status !== 'Done') {
-          updateTask(taskId, { status: 'Done', department: task.department || 'COMMON' })
+          const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
+          const nowISO = new Date().toISOString();
+          const statusHistoryEntry = {
+            from: prevStatus,
+            to: 'Done',
+            changedBy: profile?.name || 'System',
+            timestamp: nowISO,
+            type: 'status_change'
+          };
+          const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
+          
+          updateTask(taskId, { 
+            status: 'Done',
+            done: true,
+            department: task.department || 'COMMON',
+            description: {
+              ...task.description,
+              statusHistory: newStatusHistory
+            }
+          })
 
           // Celebration Effect Check
           const due = new Date(task.dueDate)
@@ -468,7 +504,27 @@ export default function TaskTable() {
         }
       } else {
         if (task.department !== colName || task.status === 'Done') {
-          updateTask(taskId, { department: colName, status: task.status === 'Done' ? 'Pending' : task.status })
+          const newStatus = task.status === 'Done' ? 'Pending' : task.status;
+          
+          let updatedFields = { department: colName };
+          if (task.status === 'Done') {
+            const prevStatus = 'Done';
+            const nowISO = new Date().toISOString();
+            const statusHistoryEntry = {
+              from: prevStatus,
+              to: 'Pending',
+              changedBy: profile?.name || 'System',
+              timestamp: nowISO,
+              type: 'status_change'
+            };
+            updatedFields.status = 'Pending';
+            updatedFields.done = false;
+            updatedFields.description = {
+              ...task.description,
+              statusHistory: [...(task.description?.statusHistory || []), statusHistoryEntry]
+            };
+          }
+          updateTask(taskId, updatedFields)
         }
       }
     }
@@ -1182,7 +1238,24 @@ export default function TaskTable() {
                                           }
                                           return;
                                         }
-                                        updateTask(task.id, { status: newStatus })
+                                        const prevStatus = task.status?.startsWith('Task part done by') ? (task.description?.originalStatus || 'Pending') : task.status;
+                                        const nowISO = new Date().toISOString();
+                                        const statusHistoryEntry = {
+                                          from: prevStatus,
+                                          to: newStatus,
+                                          changedBy: profile?.name,
+                                          timestamp: nowISO,
+                                          type: 'status_change'
+                                        };
+                                        const newStatusHistory = [...(task.description?.statusHistory || []), statusHistoryEntry];
+                                        updateTask(task.id, { 
+                                          status: newStatus,
+                                          done: newStatus === 'Done',
+                                          description: {
+                                            ...task.description,
+                                            statusHistory: newStatusHistory
+                                          }
+                                        })
                                         if (newStatus === 'Done') {
                                           const due = new Date(task.dueDate)
                                           const today = new Date()
