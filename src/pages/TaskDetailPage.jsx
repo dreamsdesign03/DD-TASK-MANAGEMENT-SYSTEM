@@ -653,7 +653,8 @@ export default function TaskDetailPage() {
 
   const mentionableUsers = Array.from(new Set([
     ...(task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean),
-    (task.assignedBy || '').trim()
+    (task.assignedBy || '').trim(),
+    ...(employees || []).map(e => e.name).filter(Boolean)
   ].filter(Boolean)))
 
   const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
