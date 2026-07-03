@@ -599,6 +599,19 @@ export default function TaskDetailPage() {
   }
 
   const handleSaveStatus = () => {
+    if (localStatus === 'My Part Complete') {
+      const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+      updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+      setLocalStatus(task.status);
+      setInfoModal({
+        title: 'Status Updated',
+        message: 'Your part marked as complete.',
+        icon: 'check_circle',
+        color: 'text-[#16A34A]'
+      });
+      return;
+    }
+
     updateTask(task.id, {
       status: localStatus,
       done: localStatus === 'Done',
@@ -780,28 +793,13 @@ export default function TaskDetailPage() {
                     const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
                     const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                     
-                    if (isMultiAssignee && amIAssigned && task.status !== 'Done') {
-                      if (haveICompletedMyPart) {
-                        return (
-                          <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                            My Part Completed
-                          </span>
-                        );
-                      } else {
-                        return (
-                          <button
-                            onClick={() => {
-                              const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
-                              updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
-                            }}
-                            className="bg-white border border-green-200 text-green-600 hover:bg-green-50 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">done_all</span>
-                            Mark My Part Complete
-                          </button>
-                        );
-                      }
+                    if (isMultiAssignee && amIAssigned && task.status !== 'Done' && haveICompletedMyPart) {
+                      return (
+                        <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                          My Part Completed
+                        </span>
+                      );
                     }
                     return null;
                   })()}
@@ -1384,7 +1382,19 @@ export default function TaskDetailPage() {
                       </h3>
                     </div>
                     <div className="p-5 flex flex-col gap-4">
-                      <SelectDropdown value={localStatus} onChange={setLocalStatus} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
+                      {(() => {
+                        const statusOptions = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
+                        const isMultiAssignee = task.assignedTo && task.assignedTo.includes(',');
+                        const amIAssigned = task.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+                        const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
+                        
+                        if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task.status !== 'Done') {
+                          statusOptions.push('My Part Complete');
+                        }
+                        return (
+                          <SelectDropdown value={localStatus} onChange={setLocalStatus} options={statusOptions} />
+                        )
+                      })()}
 
                       <button
                         onClick={handleSaveStatus}

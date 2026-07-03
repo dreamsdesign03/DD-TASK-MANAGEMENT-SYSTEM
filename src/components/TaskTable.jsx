@@ -47,7 +47,7 @@ const STATUS_ICON = {
 /* ─── Filter tabs ───────────────────────────────────────────────────────── */
 const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
 
-function InlineStatusSelect({ value, onChange, disabled }) {
+function InlineStatusSelect({ value, onChange, disabled, task, profile }) {
   const [open, setOpen] = React.useState(false)
   const [rect, setRect] = React.useState(null)
   const ref = React.useRef(null)
@@ -129,6 +129,33 @@ function InlineStatusSelect({ value, onChange, disabled }) {
               {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
             </div>
           ))}
+          {(() => {
+            const isMultiAssignee = task?.assignedTo && task.assignedTo.includes(',');
+            const amIAssigned = task?.assignedTo && profile?.name && task.assignedTo.toLowerCase().includes(profile.name.toLowerCase());
+            const haveICompletedMyPart = task?.description?.completedBy?.includes(profile?.name);
+
+            if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task?.status !== 'Done') {
+              return (
+                <div
+                  onClick={() => { onChange('MyPartComplete'); setOpen(false) }}
+                  style={{
+                    padding: '8px 10px', fontSize: 12, fontWeight: 700,
+                    color: '#16A34A', background: 'transparent',
+                    borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    borderTop: '1px solid #E5E7EB',
+                    marginTop: 4,
+                    paddingTop: 8
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F0FDF4'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Mark My Part Complete</span>
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>,
         document.body
       )}
@@ -1029,6 +1056,8 @@ export default function TaskTable() {
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Status</span>
                                     <InlineStatusSelect
                                       value={task.status}
+                                      task={task}
+                                      profile={profile}
                                       disabled={(() => {
                                         if (!profile) return true;
                                         const normalizeName = (name) => {
@@ -1045,6 +1074,11 @@ export default function TaskTable() {
                                         return !(assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail)));
                                       })()}
                                       onChange={(newStatus) => {
+                                        if (newStatus === 'MyPartComplete') {
+                                          const newCompletedBy = [...(task.description?.completedBy || []), profile?.name];
+                                          updateTask(task.id, { description: { ...task.description, completedBy: newCompletedBy } });
+                                          return;
+                                        }
                                         updateTask(task.id, { status: newStatus })
                                         if (newStatus === 'Done') {
                                           const due = new Date(task.dueDate)
