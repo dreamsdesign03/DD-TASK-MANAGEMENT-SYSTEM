@@ -834,7 +834,7 @@ export default function TaskTable() {
                                   style={{ opacity: task.status === 'Done' ? 0.4 : 1 }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
-                                      e.currentTarget.style.background = 'white'
+                                      e.currentTarget.style.background = isTaskOverdue ? 'var(--color-error-container)' : 'white'
                                       e.currentTarget.style.transform = 'scale(1.01)'
                                       e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)'
                                       e.currentTarget.style.zIndex = 10
@@ -842,7 +842,7 @@ export default function TaskTable() {
                                   }}
                                   onMouseLeave={(e) => {
                                     if (window.innerWidth >= 768) {
-                                      e.currentTarget.style.background = 'transparent'
+                                      e.currentTarget.style.background = ''
                                       e.currentTarget.style.transform = 'scale(1)'
                                       e.currentTarget.style.boxShadow = 'none'
                                       e.currentTarget.style.zIndex = 1
