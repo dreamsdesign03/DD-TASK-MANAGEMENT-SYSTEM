@@ -103,7 +103,9 @@ export default function SelectDropdown({ value, onChange, options, style = {}, p
           msOverflowStyle: 'none',
           scrollbarWidth: 'none'
         }}>
-          {options.map(opt => (
+          {options.map(opt => {
+            const isSelected = (opt.value || opt) === value;
+            return (
             <div
               key={opt.value || opt}
               onClick={() => { onChange(opt.value || opt); setIsOpen(false) }}
@@ -111,22 +113,26 @@ export default function SelectDropdown({ value, onChange, options, style = {}, p
                 padding: '10px 12px',
                 fontSize: 13,
                 fontWeight: 600,
-                color: (opt.value || opt) === value ? '#702c91' : '#4B5563',
-                background: (opt.value || opt) === value ? '#F5F3FF' : 'transparent',
+                color: isSelected ? '#702c91' : (opt.color || '#4B5563'),
+                background: isSelected ? '#F5F3FF' : 'transparent',
                 borderRadius: 8,
                 cursor: 'pointer',
                 transition: 'all 0.15s',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                ...(opt.style || {})
               }}
-              onMouseEnter={e => { if ((opt.value || opt) !== value) e.currentTarget.style.background = '#F9FAFB' }}
-              onMouseLeave={e => { if ((opt.value || opt) !== value) e.currentTarget.style.background = 'transparent' }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = opt.hoverBg || '#F9FAFB' }}
+              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
             >
-              {opt.label || opt.value || opt}
-              {(opt.value || opt) === value && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {opt.icon && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{opt.icon}</span>}
+                {opt.label || opt.value || opt}
+              </div>
+              {isSelected && <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

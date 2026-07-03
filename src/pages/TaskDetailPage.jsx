@@ -1389,7 +1389,14 @@ export default function TaskDetailPage() {
                         const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                         
                         if (isMultiAssignee && amIAssigned && !haveICompletedMyPart && task.status !== 'Done') {
-                          statusOptions.push('My Part Complete');
+                          statusOptions.push({
+                            value: 'My Part Complete',
+                            label: 'Mark My Part Complete',
+                            icon: 'done_all',
+                            color: '#16A34A',
+                            hoverBg: '#F0FDF4',
+                            style: { borderTop: '1px solid #E5E7EB', marginTop: 4, paddingTop: 12 }
+                          });
                         }
                         return (
                           <SelectDropdown value={localStatus} onChange={setLocalStatus} options={statusOptions} />
