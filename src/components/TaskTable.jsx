@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/refs */
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
@@ -48,17 +49,42 @@ const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
 
 function InlineStatusSelect({ value, onChange, disabled }) {
   const [open, setOpen] = React.useState(false)
+  const [rect, setRect] = React.useState(null)
   const ref = React.useRef(null)
+  const menuRef = React.useRef(null)
+
   React.useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const handler = (e) => { 
+      if (ref.current && ref.current.contains(e.target)) return;
+      if (menuRef.current && menuRef.current.contains(e.target)) return;
+      setOpen(false) 
+    }
+    const scrollHandler = () => setOpen(false);
+
     document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    window.addEventListener('scroll', scrollHandler, true)
+    window.addEventListener('resize', scrollHandler)
+    return () => {
+      document.removeEventListener('mousedown', handler)
+      window.removeEventListener('scroll', scrollHandler, true)
+      window.removeEventListener('resize', scrollHandler)
+    }
   }, [])
+
+  const handleOpen = () => {
+    if (!disabled) {
+      if (!open && ref.current) {
+        setRect(ref.current.getBoundingClientRect())
+      }
+      setOpen(o => !o)
+    }
+  }
+
   const cfg = STATUS_CONFIG[value] || STATUS_CONFIG['Pending']
   return (
     <div ref={ref} style={{ position: 'relative', width: 130 }} onClick={e => e.stopPropagation()}>
       <div
-        onClick={() => { if (!disabled) setOpen(o => !o) }}
+        onClick={handleOpen}
         style={{
           padding: '6px 10px 6px 14px', borderRadius: 999,
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -77,12 +103,12 @@ function InlineStatusSelect({ value, onChange, disabled }) {
         <span>{value}</span>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
       </div>
-      {open && (
-        <div className="animate-fade-in-up" style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6,
+      {open && rect && createPortal(
+        <div ref={menuRef} className="animate-fade-in-up" style={{
+          position: 'fixed', top: rect.bottom + 6, left: rect.left, width: rect.width,
           background: 'white', borderRadius: 12,
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          border: '1px solid #F3F4F6', zIndex: 999,
+          border: '1px solid #F3F4F6', zIndex: 999999,
           display: 'flex', flexDirection: 'column', padding: 6, gap: 2,
         }}>
           {Object.entries(STATUS_CONFIG).map(([status, style]) => (
@@ -103,7 +129,8 @@ function InlineStatusSelect({ value, onChange, disabled }) {
               {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
