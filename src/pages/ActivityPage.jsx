@@ -134,9 +134,16 @@ export default function ActivityPage() {
   const dayStats = useMemo(() => {
     const stats = {}
     
-    // Filter activities belonging to selected employee ID
+    // Filter activities belonging to selected employee
     const userActivities = activities.filter(act => {
-      return String(act["Employee ID"]).trim() === String(selectedEmpId).trim()
+      // Primary: match by Employee ID
+      if (String(act["Employee ID"]).trim() === String(selectedEmpId).trim()) return true
+      // Fallback: match by Full Name (handles cases where the same person
+      // has multiple Employee IDs across different sheets/records)
+      const actName = String(act["Full Name"] || act["Name"] || act.name || '').trim().toLowerCase()
+      const selName = String(selectedEmployee?.name || '').trim().toLowerCase()
+      if (selName && actName && actName === selName) return true
+      return false
     })
 
     for (let d = 1; d <= daysInMonth; d++) {
