@@ -910,11 +910,11 @@ export default function TaskDetailPage() {
                     const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                     const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                     
-                    if (isMultiAssignee && amIAssigned && task.status !== 'Done' && haveICompletedMyPart) {
+                      if (isMultiAssignee && amIAssigned && task.status !== 'Done' && haveICompletedMyPart) {
                       return (
                         <span className="bg-green-50 border border-green-200 text-green-600 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                          Done My Part
+                          Done by Me
                         </span>
                       );
                     }
@@ -1049,19 +1049,31 @@ export default function TaskDetailPage() {
                           bgColor = 'bg-purple-50';
                           borderColor = 'border-purple-100';
                         }
+                        const isPartComplete = entry.type === 'part_complete';
+                        const isAllCompleted = entry.type === 'all_completed';
                         const displayFrom = entry.from?.startsWith('Task part done by') ? 'In Progress' : (entry.from || '-');
-                        const displayTo = entry.to?.startsWith('Task part done by') ? 'Partially Completed' : entry.to;
+                        const displayTo = entry.to?.startsWith('Task part done by') ? 'In Progress' : entry.to;
                         return (
                           <div key={idx} className={`flex items-start gap-3 ${bgColor} border ${borderColor} rounded-lg px-3 py-2.5`}>
                             <span className={`material-symbols-outlined text-[16px] mt-0.5 ${color}`}>{icon}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[12px] font-bold text-[#1E1B2E]">{entry.changedBy}</span>
-                                <span className="text-[11px] text-gray-400">changed status from</span>
-                                <span className="text-[11px] font-bold text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200">{displayFrom}</span>
-                                <span className="text-[11px] text-gray-400">to</span>
-                                <span className={`text-[11px] font-bold ${entry.to === 'Done' ? 'text-green-700' : entry.to === 'Blocked' ? 'text-red-600' : 'text-[#702c91]'} bg-white px-2 py-0.5 rounded border border-gray-200`}>{displayTo}</span>
-                              </div>
+                              {isPartComplete ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[12px] font-bold text-green-700">Task part completed by {entry.changedBy}</span>
+                                </div>
+                              ) : isAllCompleted ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[12px] font-bold text-green-700">All assignees have completed their parts</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[12px] font-bold text-[#1E1B2E]">{entry.changedBy}</span>
+                                  <span className="text-[11px] text-gray-400">changed status from</span>
+                                  <span className="text-[11px] font-bold text-gray-600 bg-white px-2 py-0.5 rounded border border-gray-200">{displayFrom}</span>
+                                  <span className="text-[11px] text-gray-400">to</span>
+                                  <span className={`text-[11px] font-bold ${entry.to === 'Done' ? 'text-green-700' : entry.to === 'Blocked' ? 'text-red-600' : 'text-[#702c91]'} bg-white px-2 py-0.5 rounded border border-gray-200`}>{displayTo}</span>
+                                </div>
+                              )}
                               <span className="text-[10px] text-gray-400 mt-1 block">{formattedDate}</span>
                             </div>
                           </div>
@@ -1488,7 +1500,7 @@ export default function TaskDetailPage() {
                             {completedDateStr && (
                               <span className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full flex items-center gap-1 mt-0.5 shadow-sm border border-green-100">
                                 <span className="material-symbols-outlined text-[12px]">done_all</span>
-                                {completedDateStr === 'Completed' ? 'Done My Part' : `Done: ${new Date(completedDateStr).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
+                                {completedDateStr === 'Completed' ? 'Done by Me' : `Done: ${new Date(completedDateStr).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
                               </span>
                             )}
                           </div>
@@ -1608,10 +1620,10 @@ export default function TaskDetailPage() {
                         const amIAssigned = assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
                         const haveICompletedMyPart = task.description?.completedBy?.includes(profile?.name);
                         
-                        if (isMultiAssignee && amIAssigned && task.status !== 'Done') {
+                        if (isMultiAssignee && amIAssigned && task.status !== 'Done' && !haveICompletedMyPart) {
                           statusOptions.push({
                             value: 'My Part Complete',
-                            label: 'Done My Part',
+                            label: 'Done by Me',
                             icon: 'done_all',
                             color: '#16A34A',
                             hoverBg: '#F0FDF4',

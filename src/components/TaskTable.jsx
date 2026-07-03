@@ -119,24 +119,27 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
           border: '1px solid #F3F4F6', zIndex: 999999,
           display: 'flex', flexDirection: 'column', padding: 6, gap: 2,
         }}>
-          {Object.entries(STATUS_CONFIG).map(([status, style]) => (
-            <div
-              key={status}
-              onClick={() => { onChange(status); setOpen(false) }}
-              style={{
-                padding: '8px 10px', fontSize: 12, fontWeight: 700,
-                color: status === value ? style.color : '#4B5563',
-                background: status === value ? style.bg : 'transparent',
-                borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}
-              onMouseEnter={e => { if (status !== value) { e.currentTarget.style.background = style.bg; e.currentTarget.style.color = style.color } }}
-              onMouseLeave={e => { if (status !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4B5563' } }}
-            >
-              {status}
-              {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
-            </div>
-          ))}
+          {Object.entries(STATUS_CONFIG).map(([status, style]) => {
+            if (status === 'Partially Completed') return null;
+            return (
+              <div
+                key={status}
+                onClick={() => { onChange(status); setOpen(false) }}
+                style={{
+                  padding: '8px 10px', fontSize: 12, fontWeight: 700,
+                  color: status === value ? style.color : '#4B5563',
+                  background: status === value ? style.bg : 'transparent',
+                  borderRadius: 8, cursor: 'pointer', transition: 'all 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+                onMouseEnter={e => { if (status !== value) { e.currentTarget.style.background = style.bg; e.currentTarget.style.color = style.color } }}
+                onMouseLeave={e => { if (status !== value) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4B5563' } }}
+              >
+                {status}
+                {status === value && <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>}
+              </div>
+            );
+          })}
           {(() => {
             const normalizeName = (name) => name ? String(name).toLowerCase().replace(/[^\w]/g, '').trim() : '';
             const myName = normalizeName(profile?.name);
@@ -164,7 +167,7 @@ function InlineStatusSelect({ value, onChange, disabled, task, profile, employee
                   onMouseEnter={e => { e.currentTarget.style.background = '#F0FDF4'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Done My Part</span>
+                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: 14 }}>done_all</span> Done by Me</span>
                 </div>
               );
             }
