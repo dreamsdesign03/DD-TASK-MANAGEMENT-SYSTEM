@@ -50,7 +50,7 @@ export default function Sidebar() {
 
     setIsSubmittingClient(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbw9z0VML0zBtMAa4VHmVB9E-RjmCdHpashF-V28cThhx-rbw8T_sbbrB4sajSJw2nSf/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -354,7 +354,7 @@ export default function Sidebar() {
             onClick={() => {
               if (profile?.email) {
                 logLogout(profile.email)
-                fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
+                fetch('https://script.google.com/macros/s/AKfycbw9z0VML0zBtMAa4VHmVB9E-RjmCdHpashF-V28cThhx-rbw8T_sbbrB4sajSJw2nSf/exec', {
                   method: 'POST',
                   headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                   body: JSON.stringify({ action: 'logout', email: profile.email })
