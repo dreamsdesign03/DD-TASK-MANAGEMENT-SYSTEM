@@ -82,7 +82,7 @@ export default function MyTasksPage() {
     const newTask = {
       id: nextIdStr,
       title: title.trim(),
-      client: client || companyList[0] || 'Unknown Client',
+      client: client || companyList[0] || 'General',
       project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),

@@ -293,7 +293,7 @@ export default function TaskTable() {
   }, [searchQuery, activeFilter, selectedClient, selectedUser, selectedDepartment, sortBy, tasksPerPage])
 
   // Extract unique clients
-  const uniqueClients = ['All Clients', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal'))]
+  const uniqueClients = ['All Clients', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal' && c.toLowerCase() !== 'unknown client'))]
 
   // Extract unique users
   const uniqueUsers = ['All Users', ...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)))]

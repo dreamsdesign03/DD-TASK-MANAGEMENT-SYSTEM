@@ -52,7 +52,7 @@ const mapWebhookTaskToApp = (item) => {
     finalId = `T-${employeeId || 'SYNC'}-${rand}`
   }
 
-  const finalClient = client || 'Unknown Client'
+  const finalClient = client || 'General'
   const finalProject = data.Project || data.project || data.Month || data.month || 'June 2025'
 
   const formatDate = (dateStr) => {
@@ -301,7 +301,7 @@ export function AppProvider({ children }) {
   }, [activeTimer])
 
   const [sessionSecs, setSessionSecs] = useState(0)
-  
+
   useEffect(() => {
     let interval;
     if (activeTimer) {
@@ -402,7 +402,7 @@ export function AppProvider({ children }) {
       fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'update_status', email: profile.email, status: 'Online' })
-      }).catch(() => {})
+      }).catch(() => { })
 
       heartbeatRef.current = setInterval(() => {
         updateHeartbeat(profile.email)
@@ -467,7 +467,7 @@ export function AppProvider({ children }) {
         fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
           method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'logout', email: prevEmail })
-        }).catch(() => {})
+        }).catch(() => { })
 
         prevProfileEmailRef.current = null
       }
@@ -683,7 +683,7 @@ export function AppProvider({ children }) {
     let toastType = 'info'
     if (category === 'Status Updates' || title.toLowerCase().includes('success') || title.toLowerCase().includes('done')) toastType = 'success'
     if (title.toLowerCase().includes('overdue') || category === 'Error') toastType = 'error'
-    
+
     // Don't show toast if it's just a general system sync unless important
     addToast(`${title} - ${subtitle}`, toastType)
 
@@ -1393,7 +1393,7 @@ export function AppProvider({ children }) {
             if (!isNaN(newTime) && newTime > room.maxReadTime) {
               newMaxReadTime = newTime
             }
-            
+
             const updatedReadIds = { ...(room.readIds || {}) }
             if (payload.messageId) {
               updatedReadIds[payload.messageId] = true
@@ -1461,11 +1461,11 @@ export function AppProvider({ children }) {
                 )
               }
             }
-          } 
+          }
           // 3. Instant Notification & Unread Badge for Personal/Group Chats
           else if (payload.type === 'personal' || payload.type === 'group') {
             const isActiveAndFocused = String(roomId) === String(chatsRef.current.activeChatSession?.id) && document.visibilityState === 'visible'
-            
+
             if (!isActiveAndFocused) {
               // Update unread badges instantly
               if (payload.type === 'personal') {
@@ -1693,7 +1693,7 @@ export function AppProvider({ children }) {
       }
       ipcRenderer.on('timer-stop-from-overlay', handler)
       return () => ipcRenderer.removeListener('timer-stop-from-overlay', handler)
-    } catch (e) {}
+    } catch (e) { }
   }, [activeTimer, toggleTimer, profile])
 
   const addTask = async (newTask) => {
@@ -1862,7 +1862,7 @@ export function AppProvider({ children }) {
               if (oldData.priority && oldData.priority !== nt.priority) updatedFields.push(`priority to ${nt.priority}`)
               if (oldData.dueDate && oldData.dueDate !== nt.dueDate) updatedFields.push(`due date to ${nt.dueDate}`)
               if (oldData.title && oldData.title !== nt.title) updatedFields.push(`title changed`)
-              
+
               const oldEditedAt = oldData.description?.editedAt || ''
               const newEditedAt = nt.description?.editedAt || ''
               if (newEditedAt && newEditedAt !== oldEditedAt) {
