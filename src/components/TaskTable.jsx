@@ -656,7 +656,7 @@ export default function TaskTable() {
           </button>
           <div
             onMouseEnter={e => {
-              e.currentTarget.style.width = 'auto';
+              e.currentTarget.style.maxWidth = '300px';
               e.currentTarget.style.gap = '8px';
               e.currentTarget.style.padding = '0 20px 0 14px';
               e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
@@ -664,7 +664,7 @@ export default function TaskTable() {
               if (text) { text.style.maxWidth = '120px'; text.style.opacity = '1'; }
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.width = '44px';
+              e.currentTarget.style.maxWidth = '44px';
               e.currentTarget.style.gap = '0';
               e.currentTarget.style.padding = '0';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
@@ -674,12 +674,12 @@ export default function TaskTable() {
             onClick={() => setShowNewTaskModal(true)}
             style={{
               height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 44,
+              maxWidth: 44,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
               boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
               overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
-              transition: 'width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
+              transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
             }}
             title="Add Task"
           >
