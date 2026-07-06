@@ -294,7 +294,7 @@ export default function ActivityPage() {
                     <thead>
                       <tr className="bg-gray-50 border-b border-[#E5E7EB]">
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[12%]">DATE</th>
-                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[54%]">PUNCHES</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[54%]">PUNCHES</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[12%]">WORKHOURS</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[12%]">EXTRA TIME</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[10%]">OP LOGS</th>
@@ -350,77 +350,86 @@ export default function ActivityPage() {
                               {dateFormatted}
                             </td>
 
-                            {/* PUNCHES TIMELINE BAR */}
-                            <td className="py-6 px-6">
-                              <div className="relative w-full h-[14px] bg-[#E2E8F0]/50 rounded-full select-none">
-                                {/* Hour Tick Marks (full hours within 09:30-19:00 window) */}
-                                <div className="absolute inset-0 pointer-events-none">
-                                  {(() => {
-                                    const ticks = []
-                                    for (let h = 10; h <= 18; h++) {
-                                      const secs = h * 3600
-                                      const pct = toWindowPercent(secs)
-                                      ticks.push(
+                            {/* PUNCHES TIMELINE BAR — Vertical */}
+                            <td className="py-2 px-6">
+                              <div className="flex items-start gap-4 select-none" style={{ height: 130 }}>
+                                {/* Vertical Bar */}
+                                <div className="relative flex-shrink-0" style={{ width: 40, height: '100%' }}>
+                                  {/* Background track */}
+                                  <div className="absolute inset-0 bg-[#E2E8F0]/50 rounded-full overflow-hidden" style={{ width: 8, left: 16 }}>
+                                    {/* Hour tick marks */}
+                                    <div className="absolute inset-0 pointer-events-none">
+                                      {[8, 10, 12, 14, 16, 18, 20].map(h => {
+                                        const secs = h * 3600
+                                        const pct = toWindowPercent(secs)
+                                        return (
+                                          <div
+                                            key={h}
+                                            className="absolute w-full bg-[#94A3B8]/40"
+                                            style={{ bottom: `${pct}%`, height: 1 }}
+                                          />
+                                        )
+                                      })}
+                                    </div>
+
+                                    {/* Session segments */}
+                                    {processedSessions.map((s, idx) => {
+                                      const bottomPct = toWindowPercent(s.loginSecs)
+                                      const topPct = toWindowPercent(s.logoutSecs)
+                                      const heightPct = topPct - bottomPct
+                                      if (heightPct <= 0) return null
+
+                                      return (
                                         <div
-                                          key={h}
-                                          className={`absolute top-0 w-px ${h === 10 || h === 13 || h === 16 ? 'h-1/2' : 'h-1/3'} bg-[#94A3B8]/40`}
-                                          style={{ left: `${pct}%`, bottom: 0 }}
+                                          key={s.id || idx}
+                                          className={`absolute left-0 w-full rounded-full transition-all duration-300 ${
+                                            s.isStillActive
+                                              ? 'bg-gradient-to-t from-[#2563EB] to-[#60A5FA] animate-shimmer shadow-[0_0_8px_rgba(37,99,235,0.4)]'
+                                              : 'bg-[#2563EB] hover:bg-blue-600'
+                                          }`}
+                                          style={{
+                                            bottom: `${bottomPct}%`,
+                                            height: `${Math.max(3, heightPct)}%`
+                                          }}
+                                          title={`${s.loginTimeStr} - ${s.logoutTimeStr}${s.isStillActive ? ' (Active)' : ''}`}
                                         />
                                       )
-                                    }
-                                    return ticks
-                                  })()}
+                                    })}
+                                  </div>
+
+                                  {/* Time labels along the bar */}
+                                  <div className="absolute left-0 w-full h-full pointer-events-none" style={{ fontSize: 9 }}>
+                                    {processedSessions.length > 0 && (
+                                      <>
+                                        <span className="absolute text-[#2563EB] font-bold whitespace-nowrap" style={{ bottom: `${toWindowPercent(processedSessions[0].loginSecs)}%`, left: 0, transform: 'translateY(50%)' }}>
+                                          {processedSessions[0].loginTimeStr}
+                                        </span>
+                                        <span className="absolute text-[#2563EB] font-bold whitespace-nowrap" style={{ bottom: `${toWindowPercent(processedSessions[processedSessions.length - 1].logoutSecs)}%`, left: 0, transform: 'translateY(-50%)' }}>
+                                          {processedSessions[processedSessions.length - 1].isStillActive ? 'NOW' : processedSessions[processedSessions.length - 1].logoutTimeStr}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
 
-                                {/* Session Segments (positioned relative to 09:30-19:00 window) */}
-                                {processedSessions.map((s, idx) => {
-                                  const leftPct = toWindowPercent(s.loginSecs)
-                                  const rightPct = toWindowPercent(s.logoutSecs)
-                                  const widthPct = rightPct - leftPct
-                                  if (widthPct <= 0) return null
-
-                                  return (
-                                    <div
-                                      key={s.id || idx}
-                                      className={`absolute top-0 h-full rounded-full transition-all duration-300 ${
-                                        s.isStillActive
-                                          ? 'bg-gradient-to-r from-[#2563EB] to-[#60A5FA] animate-shimmer shadow-[0_0_8px_rgba(37,99,235,0.4)]'
-                                          : 'bg-[#2563EB] hover:bg-blue-600'
-                                      }`}
-                                      style={{
-                                        left: `${leftPct}%`,
-                                        width: `${Math.max(1.5, widthPct)}%`
-                                      }}
-                                      title={`${s.loginTimeStr} - ${s.logoutTimeStr}${s.isStillActive ? ' (Active)' : ''}`}
-                                    />
-                                  )
-                                })}
-
-                                {/* Check-in & Check-out Chevrons */}
-                                {processedSessions.length > 0 && (
-                                  <>
-                                    <span 
-                                      className="material-symbols-outlined text-[#2563EB] text-[15px] absolute font-black flex items-center justify-center"
-                                      style={{
-                                        left: `${firstPercent}%`,
-                                        transform: 'translateX(-50%)',
-                                        top: '10px'
-                                      }}
-                                    >
-                                      keyboard_arrow_up
-                                    </span>
-                                    <span 
-                                      className="material-symbols-outlined text-[#2563EB] text-[15px] absolute font-black flex items-center justify-center"
-                                      style={{
-                                        left: `${lastPercent}%`,
-                                        transform: 'translateX(-50%)',
-                                        top: '10px'
-                                      }}
-                                    >
-                                      keyboard_arrow_up
-                                    </span>
-                                  </>
-                                )}
+                                {/* Session info */}
+                                <div className="flex flex-col gap-1.5 pt-1" style={{ fontSize: 11 }}>
+                                  {processedSessions.length > 0 ? (
+                                    processedSessions.slice(0, 2).map((s, idx) => (
+                                      <div key={s.id || idx} className="flex items-center gap-2">
+                                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.isStillActive ? 'bg-[#2563EB] animate-shimmer' : 'bg-[#2563EB]'}`} />
+                                        <span className="font-semibold text-[#374151]">
+                                          {s.loginTimeStr} – {s.isStillActive ? 'Active' : s.logoutTimeStr}
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <span className="text-[#9CA3AF] italic">No punches</span>
+                                  )}
+                                  {processedSessions.length > 2 && (
+                                    <span className="text-[#9CA3AF] font-semibold mt-0.5">+{processedSessions.length - 2} more</span>
+                                  )}
+                                </div>
                               </div>
                             </td>
 
