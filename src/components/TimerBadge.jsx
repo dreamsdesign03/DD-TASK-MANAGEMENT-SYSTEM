@@ -144,26 +144,18 @@ export default function TimerBadge() {
         zIndex: 9999,
         cursor: 'grab',
         userSelect: 'none',
-        background: 'linear-gradient(135deg, rgba(70, 20, 102, 0.95), rgba(112, 44, 145, 0.92))',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(70, 20, 102, 0.4), 0 0 0 1px rgba(255,255,255,0.08)',
-        padding: '10px 16px 10px 18px',
         display: 'flex',
         alignItems: 'center',
-        gap: 14,
-        willChange: 'left, top',
-        transition: 'box-shadow 0.3s',
+        gap: 12,
       }}
     >
       <div className="timer-pulse-dot" style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0 }} />
 
       <span
         style={{
-          fontSize: 26,
+          fontSize: 15,
           fontWeight: 700,
-          color: '#f0f0f0',
+          color: '#fff',
           fontVariantNumeric: 'tabular-nums',
           letterSpacing: '0.04em',
           lineHeight: 1,
@@ -179,11 +171,11 @@ export default function TimerBadge() {
           if (task) toggleTimer(task, profile?.name)
         }}
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
+          width: 28,
+          height: 28,
+          borderRadius: '50%',
           border: 'none',
-          background: 'rgba(255, 255, 255, 0.15)',
+          background: 'rgba(255, 255, 255, 0.2)',
           color: '#fff',
           cursor: 'pointer',
           display: 'flex',
@@ -191,13 +183,12 @@ export default function TimerBadge() {
           justifyContent: 'center',
           flexShrink: 0,
           transition: 'all 0.2s',
-          backdropFilter: 'blur(4px)',
         }}
         onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.85)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
         title="Stop Timer"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>stop</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>stop</span>
       </button>
     </div>
   )

@@ -383,7 +383,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .timer-fade-in {
-  animation: timerFadeIn 0.3s ease-out;
+  padding: 8px 24px !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(to right, rgb(112, 44, 145) 0%, rgb(236, 0, 140) 50%, rgb(112, 44, 145) 100%) left center / 200% !important;
+  color: white;
+  box-shadow: rgba(91, 33, 182, 0.3) 0px 4px 12px !important;
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-family: Inter, sans-serif;
+  animation: timerFadeIn .3s ease-out;
 }
 
 @keyframes timerFadeIn {
