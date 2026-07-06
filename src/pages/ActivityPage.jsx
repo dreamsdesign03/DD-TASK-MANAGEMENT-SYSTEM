@@ -464,13 +464,13 @@ export default function ActivityPage() {
       {/* Detailed Day Modal */}
       {showDayModal && selectedDay && (
         <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[500px] overflow-hidden animate-scale-in flex flex-col">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[600px] overflow-hidden animate-scale-in flex flex-col">
             
             {/* Modal Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
               <h2 className="text-[17px] font-bold text-[#702c91] flex items-center gap-2 m-0">
                 <span className="material-symbols-outlined text-[20px]">calendar_today</span>
-                Punches Detail - {selectedDay}
+                Day Timeline - {selectedDay}
               </h2>
               <button
                 onClick={() => setShowDayModal(false)}
@@ -481,7 +481,7 @@ export default function ActivityPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+            <div className="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar space-y-5">
               <div className="mb-4 bg-purple-50 rounded-xl p-4 border border-purple-100 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#702c91] flex items-center justify-center text-white text-[14px] font-bold shadow-md">
                   {selectedEmployee.name.substring(0, 2).toUpperCase()}
@@ -493,40 +493,155 @@ export default function ActivityPage() {
               </div>
 
               {dayStats[selectedDay]?.sessions?.length > 0 ? (
-                dayStats[selectedDay].sessions.map((s, idx) => (
-                  <div 
-                    key={s.id || idx} 
-                    className="bg-[#F8FAFC] rounded-xl p-4 border border-slate-100 transition-all hover:border-[#702c91]/20"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[12px] font-extrabold text-[#702c91] uppercase bg-purple-50 px-2.5 py-1 rounded-md">
-                        Session #{idx + 1}
-                      </span>
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        s.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {s.isStillActive ? 'Active Now' : 'Logged Out'}
-                      </span>
+                <>
+                  {/* Vertical Timeline */}
+                  <div className="bg-white rounded-xl border border-slate-200 p-5">
+                    <h3 className="text-[13px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-[#702c91">timeline</span>
+                      Session Timeline (IST)
+                    </h3>
+                    <div className="relative flex gap-5" style={{ height: 260 }}>
+                      {/* Time axis labels */}
+                      <div className="flex flex-col justify-between text-right flex-shrink-0" style={{ width: 38, fontSize: 10, fontWeight: 600, color: '#94A3B8' }}>
+                        {[22, 20, 18, 16, 14, 12, 10, 8, 6].map(h => (
+                          <span key={h}>{String(h).padStart(2, '0')}:00</span>
+                        ))}
+                      </div>
+
+                      {/* Vertical track */}
+                      <div className="relative flex-grow bg-[#F1F5F9] rounded-full" style={{ width: 14, minWidth: 14 }}>
+                        {/* Hour lines */}
+                        {[6, 8, 10, 12, 14, 16, 18, 20, 22].map(h => {
+                          const secs = h * 3600
+                          const pct = ((secs - WINDOW_START) / WINDOW_DURATION) * 100
+                          return (
+                            <div key={h} className="absolute left-0 right-0 border-t border-[#CBD5E1]/40" style={{ bottom: `${pct}%` }} />
+                          )
+                        })}
+
+                        {/* Session segments */}
+                        {dayStats[selectedDay].sessions.map((s, idx) => {
+                          const bottomPct = toWindowPercent(s.loginSecs)
+                          const topPct = toWindowPercent(s.logoutSecs)
+                          const heightPct = topPct - bottomPct
+                          if (heightPct <= 0) return null
+
+                          return (
+                            <div
+                              key={s.id || idx}
+                              className={`absolute left-1/2 -translate-x-1/2 w-full rounded-full transition-all duration-300 ${
+                                s.isStillActive
+                                  ? 'bg-gradient-to-t from-[#2563EB] to-[#60A5FA] animate-shimmer shadow-[0_0_10px_rgba(37,99,235,0.5)]'
+                                  : 'bg-[#3B82F6]'
+                              }`}
+                              style={{
+                                bottom: `${bottomPct}%`,
+                                height: `${Math.max(4, heightPct)}%`,
+                                minWidth: 8,
+                              }}
+                              title={`${s.loginTimeStr} - ${s.logoutTimeStr || 'Active'}`}
+                            />
+                          )
+                        })}
+                      </div>
+
+                      {/* Session time labels */}
+                      <div className="flex flex-col justify-between flex-grow" style={{ fontSize: 11 }}>
+                        {dayStats[selectedDay].sessions.map((s, idx) => {
+                          const bottomPct = toWindowPercent(s.loginSecs)
+                          const topPct = toWindowPercent(s.logoutSecs)
+                          const midPct = (bottomPct + topPct) / 2
+
+                          return (
+                            <div
+                              key={s.id || idx}
+                              className="absolute flex items-center gap-2"
+                              style={{ bottom: `${midPct}%`, transform: 'translateY(50%)' }}
+                            >
+                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.isStillActive ? 'bg-[#2563EB]' : 'bg-[#3B82F6]'}`} />
+                              <div>
+                                <span className="font-bold text-[#1E1B2E]">
+                                  {s.loginTimeStr} – {s.isStillActive ? 'Active' : s.logoutTimeStr}
+                                </span>
+                                <span className="text-[#6B7280] ml-2">
+                                  ({formatDuration(s.logoutSecs - s.loginSecs)})
+                                </span>
+                              </div>
+                              <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                s.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {s.isStillActive ? 'LIVE' : `#${idx + 1}`}
+                              </span>
+                            </div>
+                          )
+                        })}
+
+                        {/* Empty state if no sessions visible */}
+                        {dayStats[selectedDay].sessions.length === 0 && (
+                          <span className="text-[#9CA3AF]">No sessions</span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-[13px]">
-                      <div>
-                        <span className="text-[#64748B] block text-[11px] font-bold uppercase tracking-wider mb-0.5">Punch In</span>
-                        <span className="font-semibold text-slate-800">{s.loginTimeStr || '-'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#64748B] block text-[11px] font-bold uppercase tracking-wider mb-0.5">Punch Out</span>
-                        <span className="font-semibold text-slate-800">{s.isStillActive ? 'Still Punching' : s.logoutTimeStr}</span>
-                      </div>
-                      <div className="col-span-2 pt-2 border-t border-slate-100/50 flex justify-between items-center">
-                        <span className="text-[#64748B] text-[11px] font-bold uppercase tracking-wider">Duration</span>
-                        <span className="font-bold text-[#702c91]">
-                          {formatDuration(s.logoutSecs - s.loginSecs)}
-                        </span>
-                      </div>
+                    {/* Summary bar */}
+                    <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-[12px] font-bold text-[#6B7280] uppercase tracking-wider">Total Time</span>
+                      <span className="text-[18px] font-black text-[#702c91]">
+                        {formatDuration(dayStats[selectedDay].totalSeconds)}
+                      </span>
                     </div>
                   </div>
-                ))
+
+                  {/* Session detail cards */}
+                  <div className="space-y-3">
+                    <h3 className="text-[13px] font-bold text-[#1E1B2E] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-[#702c91]">list_alt</span>
+                      All Sessions ({dayStats[selectedDay].sessions.length})
+                    </h3>
+                    {dayStats[selectedDay].sessions.map((s, idx) => (
+                      <div 
+                        key={s.id || idx} 
+                        className="bg-[#F8FAFC] rounded-xl p-4 border border-slate-100 transition-all hover:border-[#702c91]/20"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[12px] font-extrabold text-[#702c91] uppercase bg-purple-50 px-2.5 py-1 rounded-md">
+                            Session #{idx + 1}
+                          </span>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            s.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {s.isStillActive ? 'Active Now' : 'Logged Out'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 text-[13px]">
+                          <div className="bg-white rounded-lg p-3 border border-slate-100">
+                            <span className="text-[#64748B] block text-[10px] font-bold uppercase tracking-wider mb-1">
+                              <span className="material-symbols-outlined text-[14px] align-text-bottom">login</span> Punch In
+                            </span>
+                            <span className="font-bold text-slate-800 text-[15px]">{s.loginTimeStr || '-'}</span>
+                            <span className="block text-[10px] text-[#94A3B8] mt-0.5">IST</span>
+                          </div>
+                          <div className="bg-white rounded-lg p-3 border border-slate-100">
+                            <span className="text-[#64748B] block text-[10px] font-bold uppercase tracking-wider mb-1">
+                              <span className="material-symbols-outlined text-[14px] align-text-bottom">logout</span> Punch Out
+                            </span>
+                            <span className="font-bold text-slate-800 text-[15px]">{s.isStillActive ? '—' : s.logoutTimeStr}</span>
+                            <span className="block text-[10px] text-[#94A3B8] mt-0.5">IST</span>
+                          </div>
+                          <div className="col-span-2 bg-[#702c91]/5 rounded-lg p-3 border border-[#702c91]/10 flex items-center justify-between">
+                            <span className="text-[#64748B] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[14px]">schedule</span> Duration
+                            </span>
+                            <span className="font-black text-[#702c91] text-[16px]">
+                              {formatDuration(s.logoutSecs - s.loginSecs)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="text-center py-8 text-gray-400">
                   <span className="material-symbols-outlined text-[40px] mb-2">info</span>
