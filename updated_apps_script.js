@@ -214,7 +214,7 @@ function doPost(e) {
         }
 
         if (payload.action === 'logout') {
-          teamSheet.getRange(i + 1, 9).setValue("No");
+          teamSheet.getRange(i + 1, 11).setValue("Offline");
           recordActivityLogout(ss, payload.email);
           return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
         }
@@ -224,6 +224,7 @@ function doPost(e) {
         }
 
         teamSheet.getRange(i + 1, 9).setValue("Yes");
+        teamSheet.getRange(i + 1, 11).setValue("Online");
         recordActivityLogin(ss, row[0], row[1], row[4], row[5]);
 
         var userObj = {
@@ -248,6 +249,28 @@ function doPost(e) {
     }
 
     return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Invalid email or password" })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // -------------------------
+  // 3.5. HANDLE STATUS UPDATE
+  // -------------------------
+  if (payload.action === 'update_status') {
+    var teamSheet = ss.getSheetByName("Team");
+    if (!teamSheet) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Team sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    var data = teamSheet.getDataRange().getValues();
+    var emailToMatch = String(payload.email).trim().toLowerCase();
+    var newStatus = payload.status === 'Online' ? 'Online' : 'Offline';
+
+    for (var i = 1; i < data.length; i++) {
+      var rowEmail = String(data[i][2]).trim().toLowerCase();
+      if (rowEmail === emailToMatch) {
+        teamSheet.getRange(i + 1, 11).setValue(newStatus);
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "User not found" })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // -------------------------

@@ -398,6 +398,11 @@ export function AppProvider({ children }) {
           timestamp: Date.now()
         }))
       }
+      // Update the sheet to reflect online status (also covers page refresh)
+      fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'update_status', email: profile.email, status: 'Online' })
+      }).catch(() => {})
 
       heartbeatRef.current = setInterval(() => {
         updateHeartbeat(profile.email)
@@ -414,6 +419,11 @@ export function AppProvider({ children }) {
             timestamp: Date.now()
           }))
         }
+        // Update the sheet on tab close
+        try {
+          const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+          navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
+        } catch (e) { console.warn('sendBeacon failed:', e) }
       }
       window.addEventListener('beforeunload', handleBeforeUnload)
 
@@ -430,6 +440,11 @@ export function AppProvider({ children }) {
             timestamp: Date.now()
           }))
         }
+        // Update the sheet on unmount
+        try {
+          const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+          navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
+        } catch (e) { console.warn('sendBeacon failed:', e) }
       }
     } else {
       // Logout: mark the previous user as Offline
@@ -448,6 +463,11 @@ export function AppProvider({ children }) {
             timestamp: Date.now()
           }))
         }
+        // Update the sheet when user logs out
+        fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'logout', email: prevEmail })
+        }).catch(() => {})
 
         prevProfileEmailRef.current = null
       }
