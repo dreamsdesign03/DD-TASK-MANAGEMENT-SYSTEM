@@ -373,9 +373,17 @@ export function AppProvider({ children }) {
   // Activity tracking: log login on profile set, heartbeat every 30s
   const heartbeatRef = useRef(null)
   const loggedLoginRef = useRef(false)
+  const prevProfileEmailRef = useRef(null)
 
   useEffect(() => {
     if (profile?.email) {
+      prevProfileEmailRef.current = profile.email
+
+      // Mark employee as Online in team directory
+      setEmployees(prev => prev.map(e =>
+        e.email === profile.email ? { ...e, status: 'Online' } : e
+      ))
+
       if (!loggedLoginRef.current) {
         logLogin(profile.email, profile.name)
         loggedLoginRef.current = true
@@ -396,6 +404,15 @@ export function AppProvider({ children }) {
         logShutdown(profile.email)
       }
     } else {
+      // Logout: mark the previous user as Offline
+      const prevEmail = prevProfileEmailRef.current
+      if (prevEmail) {
+        setEmployees(prev => prev.map(e =>
+          e.email === prevEmail ? { ...e, status: 'Offline' } : e
+        ))
+        prevProfileEmailRef.current = null
+      }
+
       loggedLoginRef.current = false
       if (heartbeatRef.current) {
         clearInterval(heartbeatRef.current)
@@ -1922,11 +1939,16 @@ export function AppProvider({ children }) {
   const updateTeamAndChats = useCallback((fetchedTeam) => {
     const combined = fetchedTeam && fetchedTeam.length > 0 ? fetchedTeam : STATIC_EMPLOYEES
 
+    // Always mark the logged-in user as Online
+    const withStatus = combined.map(e =>
+      e.email === profile?.email ? { ...e, status: 'Online' } : e
+    )
+
     setEmployees(prev => {
-      if (prev.length === combined.length && prev.every((e, i) => e.id === combined[i].id)) {
+      if (prev.length === withStatus.length && prev.every((e, i) => e.id === withStatus[i].id)) {
         return prev
       }
-      return combined
+      return withStatus
     })
 
     setPersonalChats(prev => {

@@ -12,7 +12,6 @@ export default function TeamPage() {
   const { setSearchQuery, profile, employees: dynamicEmployees, tasks, addToast } = useApp()
   const navigate = useNavigate()
   const [localEmployees, setLocalEmployees] = useState([])
-  const [activeDept, setActiveDept] = useState('All')
   const [search, setSearch] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
 
@@ -57,16 +56,13 @@ export default function TeamPage() {
     return { ...emp, taskCount }
   })
 
-  // Filter Employees
+  // Filter Employees (search only)
   const filtered = employees.filter((e) => {
-    const dept = (e.department || '').toLowerCase().trim()
-    const matchesDept = activeDept === 'All' || dept === activeDept.toLowerCase().trim()
     const query = search.toLowerCase()
-    const matchesSearch =
+    return !query ||
       (e.name || '').toLowerCase().includes(query) ||
       (e.role || '').toLowerCase().includes(query) ||
       (e.department || '').toLowerCase().includes(query)
-    return matchesDept && matchesSearch
   })
 
   const getStatusColor = (status) => {
@@ -109,23 +105,7 @@ export default function TeamPage() {
 
             {/* Filter and Search controls */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
-              
-              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
-                {['All', 'Development', 'Design', 'Marketing', 'Management'].map(dept => (
-                  <button
-                    key={dept}
-                    onClick={() => setActiveDept(dept)}
-                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
-                      activeDept === dept 
-                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
-                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
-                    }`}
-                  >
-                    {dept}
-                  </button>
-                ))}
-              </div>
-
+              <div></div>
               <div className="relative w-full md:w-80">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">
                   search
