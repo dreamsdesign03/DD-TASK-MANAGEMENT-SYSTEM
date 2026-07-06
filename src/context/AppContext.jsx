@@ -526,6 +526,7 @@ export function AppProvider({ children }) {
           time: '10:45 AM',
           preview: 'No messages yet.',
           avatar: m.avatar,
+          online: true,
           unread: 0,
           active: idx === 0
         }
@@ -1413,6 +1414,11 @@ export function AppProvider({ children }) {
 
         const isMe = (pSender !== '' && pSender === myName) || (pEmail !== '' && pEmail === myEmail)
 
+        // Only process personal messages where current user is a participant
+        const myEmailTrimmed = profileRef.current?.email?.toLowerCase().trim()
+        const isParticipant = payload.type !== 'personal' || (myEmailTrimmed && roomId && (roomId.startsWith(myEmailTrimmed + '_') || roomId.endsWith('_' + myEmailTrimmed)))
+        if (!isParticipant) return
+
         const cleanText = cleanPreviewText(payload.message || '') || payload.message || ''
         const shortText = cleanText.length > 50 ? cleanText.substring(0, 50) + '...' : cleanText
         const nowTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
@@ -2026,6 +2032,7 @@ export function AppProvider({ children }) {
             time: existing?.time || '10:45 AM',
             preview: existing?.preview || 'No messages yet.',
             avatar: m.avatar,
+            online: (existing && existing.online !== undefined) ? existing.online : m.status === 'Online',
             unread: existing?.unread || 0,
             active: existing ? existing.active : (idx === 0)
           }
