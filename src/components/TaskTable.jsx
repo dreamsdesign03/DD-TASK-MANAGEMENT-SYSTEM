@@ -656,12 +656,11 @@ export default function TaskTable() {
           </button>
           <button
             onClick={() => setShowNewTaskModal(true)}
-            className="add-task-expand"
             style={{
               height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 44,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
-              boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), gap 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
               overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
             }}
@@ -686,7 +685,7 @@ export default function TaskTable() {
             title="Add Task"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
-            <span className="add-task-text" style={{ width: 0, opacity: 0, overflow: 'hidden', transition: 'all 0.25s', whiteSpace: 'nowrap' }}>Add Task</span>
+            <span className="add-task-text" style={{ width: 0, opacity: 0, overflow: 'hidden', transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s', whiteSpace: 'nowrap' }}>Add Task</span>
           </button>
         </div>
       </div>
