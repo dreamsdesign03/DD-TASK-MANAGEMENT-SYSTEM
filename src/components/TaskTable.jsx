@@ -659,8 +659,7 @@ export default function TaskTable() {
               e.currentTarget.style.width = 'auto';
               e.currentTarget.style.gap = '8px';
               e.currentTarget.style.padding = '0 20px 0 14px';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.25)';
-              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
               const text = e.currentTarget.querySelector('.add-task-text');
               if (text) { text.style.maxWidth = '120px'; text.style.opacity = '1'; }
             }}
@@ -669,7 +668,6 @@ export default function TaskTable() {
               e.currentTarget.style.gap = '0';
               e.currentTarget.style.padding = '0';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
-              e.currentTarget.style.transform = 'scale(1)';
               const text = e.currentTarget.querySelector('.add-task-text');
               if (text) { text.style.maxWidth = '0'; text.style.opacity = '0'; }
             }}
@@ -681,12 +679,12 @@ export default function TaskTable() {
               boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
               overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
-              transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), gap 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s',
+              transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), gap 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s',
             }}
             title="Add Task"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
-            <span className="add-task-text" style={{ maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s', whiteSpace: 'nowrap', display: 'inline-block' }}>Add Task</span>
+            <span className="add-task-text" style={{ maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease', whiteSpace: 'nowrap', display: 'inline-block' }}>Add Task</span>
           </div>
         </div>
       </div>
