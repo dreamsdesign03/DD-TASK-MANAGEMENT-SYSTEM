@@ -151,15 +151,7 @@ export default function MyTasksPage() {
           </div>
         </div>
 
-        {/* Floating Action Button - outside scroll container so it stays fixed */}
-        <button
-          onClick={() => setShowNewTaskModal(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 rounded-full text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
-          style={{ background: 'linear-gradient(to right, #702c91, #ec008c)' }}
-          title="New Task"
-        >
-          <span className="material-symbols-outlined text-[28px]">add</span>
-        </button>
+
       </main>
 
       {/* New Task Modal — Dreamsdesk Layout style */}

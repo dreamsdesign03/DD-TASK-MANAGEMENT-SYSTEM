@@ -654,6 +654,22 @@ export default function TaskTable() {
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
           </button>
+          <button
+            onClick={() => setShowNewTaskModal(true)}
+            style={{
+              height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
+              padding: '0 20px',
+              background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
+              boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.2s',
+              fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.25)'; e.currentTarget.style.transform = 'scale(1.02)' }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)'; e.currentTarget.style.transform = 'scale(1)' }}
+            title="Add Task"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>add</span>
+            <span>Add Task</span>
+          </button>
         </div>
       </div>
 

@@ -86,7 +86,7 @@ export default function TimerBadge() {
       startX: rect.left,
       startY: rect.top,
     }
-    badgeRef.current.style.transition = 'none'
+    badgeRef.current.style.setProperty('transition', 'none', 'important')
     document.body.style.cursor = 'grabbing'
     document.body.style.userSelect = 'none'
   }, [])
@@ -109,7 +109,7 @@ export default function TimerBadge() {
       const d = dragRef.current
       if (!d.active) return
       d.active = false
-      el.style.transition = ''
+      el.style.removeProperty('transition')
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
       const x = parseInt(el.style.left, 10) || 0
