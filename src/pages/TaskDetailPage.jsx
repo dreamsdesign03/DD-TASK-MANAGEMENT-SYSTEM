@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import SelectDropdown from '../components/SelectDropdown'
-import { useApp } from '../context/AppContext'
+import { useApp, parseMultiUserTimeStr, formatTimeStr } from '../context/AppContext'
 import { processMessagesList, renderMessageText } from './ChatPage'
 import { renderAvatar } from '../utils/avatar'
 import { formatTime, formatDateTime } from '../utils/dateFormat'
@@ -87,7 +87,7 @@ const getPriorityConfig = (priority) => {
 export default function TaskDetailPage() {
   const { taskId } = useParams()
   const navigate = useNavigate()
-  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast } = useApp()
+  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast, activeTimer, sessionSecs: globalSessionSecs, toggleTimer } = useApp()
 
   const task = (tasks || []).find((t) => t.id === taskId) || (tasks && tasks.length > 0 ? tasks[0] : {})
 
@@ -187,85 +187,8 @@ export default function TaskDetailPage() {
     setNewSubtaskDueDate(val);
   }
 
-  const parseTimeStr = (str) => {
-    if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return 0;
-    let secs = 0;
-    const hMatch = str.match(/(\d+)h/i);
-    const mMatch = str.match(/(\d+)m/i);
-    const sMatch = str.match(/(\d+)s/i);
-    if (hMatch) secs += parseInt(hMatch[1]) * 3600;
-    if (mMatch) secs += parseInt(mMatch[1]) * 60;
-    if (sMatch) secs += parseInt(sMatch[1]);
-    return secs;
-  };
-
-  const parseMultiUserTimeStr = (str) => {
-    if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return {};
-    const data = {};
-    if (!str.includes(':')) {
-      data['legacy'] = parseTimeStr(str);
-      return data;
-    }
-    const parts = str.split(',');
-    parts.forEach(part => {
-      const [name, time] = part.split(':');
-      if (name && time) {
-        data[name.trim()] = parseTimeStr(time.trim());
-      }
-    });
-    return data;
-  }
-
-  const buildMultiUserTimeStr = (data) => {
-    return Object.entries(data).map(([name, secs]) => {
-      if (name === 'legacy') return formatTimeStr(secs);
-      return `${name}: ${formatTimeStr(secs)}`;
-    }).join(', ');
-  }
-
-  const formatTimeStr = (totalSecs) => {
-    const h = Math.floor(totalSecs / 3600);
-    const m = Math.floor((totalSecs % 3600) / 60);
-    const s = totalSecs % 60;
-    if (h > 0) return `${h}h ${m}m`;
-    if (m > 0) return `${m}m`;
-    return `${s}s`;
-  };
-
-  const [isTracking, setIsTracking] = useState(false);
-  const [sessionSecs, setSessionSecs] = useState(0);
-  const timerRef = useRef(null);
-
-  const handleToggleTimer = () => {
-    if (isTracking) {
-      clearInterval(timerRef.current);
-      setIsTracking(false);
-
-      const timeData = parseMultiUserTimeStr(task.timeTaken);
-      const myName = profile?.name || 'Mansi Shah';
-
-      if (timeData[myName]) {
-        timeData[myName] += sessionSecs;
-      } else {
-        timeData[myName] = sessionSecs;
-      }
-
-      updateTask(task.id, { timeTaken: buildMultiUserTimeStr(timeData) });
-      setSessionSecs(0);
-    } else {
-      setIsTracking(true);
-      timerRef.current = setInterval(() => {
-        setSessionSecs(prev => prev + 1);
-      }, 1000);
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
+  const isTracking = activeTimer?.taskId === task.id;
+  const sessionSecs = isTracking ? globalSessionSecs : 0;
 
 
   const handleSaveAssignees = () => {
@@ -860,7 +783,7 @@ export default function TaskDetailPage() {
                   {canManageTimer && (
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => { if (!isTracking) handleToggleTimer() }}
+                        onClick={() => toggleTimer(task, profile?.name)}
                         disabled={isTracking}
                         className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${!isTracking ? 'bg-[#EF4444] hover:bg-[#DC2626] text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
                       >
@@ -868,7 +791,7 @@ export default function TaskDetailPage() {
                         Start
                       </button>
                       <button
-                        onClick={() => { if (isTracking) handleToggleTimer() }}
+                        onClick={() => toggleTimer(task, profile?.name)}
                         disabled={!isTracking}
                         className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${isTracking ? 'bg-gray-800 hover:bg-black text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
                       >

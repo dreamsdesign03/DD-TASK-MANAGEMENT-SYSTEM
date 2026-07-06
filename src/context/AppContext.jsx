@@ -224,6 +224,51 @@ const insertDateDividers_util = (msgList) => {
   return withDividers
 }
 
+export const parseTimeStr = (str) => {
+  if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return 0;
+  let secs = 0;
+  const hMatch = str.match(/(\d+)h/i);
+  const mMatch = str.match(/(\d+)m/i);
+  const sMatch = str.match(/(\d+)s/i);
+  if (hMatch) secs += parseInt(hMatch[1]) * 3600;
+  if (mMatch) secs += parseInt(mMatch[1]) * 60;
+  if (sMatch) secs += parseInt(sMatch[1]);
+  return secs;
+};
+
+export const parseMultiUserTimeStr = (str) => {
+  if (!str || str === '0h 0m' || str === 'No' || typeof str !== 'string') return {};
+  const data = {};
+  if (!str.includes(':')) {
+    data['legacy'] = parseTimeStr(str);
+    return data;
+  }
+  const parts = str.split(',');
+  parts.forEach(part => {
+    const [name, time] = part.split(':');
+    if (name && time) {
+      data[name.trim()] = parseTimeStr(time.trim());
+    }
+  });
+  return data;
+}
+
+export const formatTimeStr = (totalSecs) => {
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m`;
+  return `${s}s`;
+};
+
+export const buildMultiUserTimeStr = (data) => {
+  return Object.entries(data).map(([name, secs]) => {
+    if (name === 'legacy') return formatTimeStr(secs);
+    return `${name}: ${formatTimeStr(secs)}`;
+  }).join(', ');
+}
+
 export function AppProvider({ children }) {
   const { addToast } = useToast()
   const [tasks, setTasks] = useState(() => {
@@ -239,6 +284,38 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('dd_tasks_v1', JSON.stringify(tasks))
   }, [tasks])
+
+  const [activeTimer, setActiveTimer] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_active_timer')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+
+  useEffect(() => {
+    if (activeTimer) {
+      localStorage.setItem('dd_active_timer', JSON.stringify(activeTimer))
+    } else {
+      localStorage.removeItem('dd_active_timer')
+    }
+  }, [activeTimer])
+
+  const [sessionSecs, setSessionSecs] = useState(0)
+  
+  useEffect(() => {
+    let interval;
+    if (activeTimer) {
+      setSessionSecs(Math.floor((Date.now() - activeTimer.startTime) / 1000));
+      interval = setInterval(() => {
+        setSessionSecs(Math.floor((Date.now() - activeTimer.startTime) / 1000));
+      }, 1000);
+    } else {
+      setSessionSecs(0);
+    }
+    return () => clearInterval(interval);
+  }, [activeTimer])
+
+
 
   const tasksRef = useRef(tasks)
   useEffect(() => {
@@ -1495,6 +1572,31 @@ export function AppProvider({ children }) {
     setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
+  const toggleTimer = useCallback((taskToToggle, profileName) => {
+    if (activeTimer && activeTimer.taskId === taskToToggle.id) {
+      // Stop timer
+      const elapsed = Math.floor((Date.now() - activeTimer.startTime) / 1000);
+      const timeData = parseMultiUserTimeStr(taskToToggle.timeTaken);
+      const myName = profileName || 'Mansi Shah';
+
+      if (timeData[myName]) {
+        timeData[myName] += elapsed;
+      } else {
+        timeData[myName] = elapsed;
+      }
+
+      updateTask(taskToToggle.id, { timeTaken: buildMultiUserTimeStr(timeData) });
+      setActiveTimer(null);
+    } else {
+      // Start timer
+      if (activeTimer) {
+        addToast("Please stop the active timer before starting a new one.", "error");
+        return;
+      }
+      setActiveTimer({ taskId: taskToToggle.id, taskTitle: taskToToggle.title, startTime: Date.now() });
+    }
+  }, [activeTimer, profile, addToast])
+
   const addTask = async (newTask) => {
     setTasks((prev) => [newTask, ...prev])
 
@@ -2057,6 +2159,9 @@ export function AppProvider({ children }) {
         logLogout,
         logShutdown,
         fetchActivities,
+        activeTimer,
+        sessionSecs,
+        toggleTimer
       }}
     >
       {children}
