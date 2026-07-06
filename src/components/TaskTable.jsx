@@ -229,6 +229,10 @@ export default function TaskTable() {
 
   const handleDeptUploadClick = (e, dept) => {
     e.stopPropagation()
+    if (!selectedClient || selectedClient === 'All Clients') {
+      addToast('Please select a client before uploading files', 'error')
+      return
+    }
     setUploadDept(dept)
     if (fileInputRef.current) {
       fileInputRef.current.click()
@@ -238,14 +242,6 @@ export default function TaskTable() {
   const handleDeptFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file || !uploadDept) return
-
-    if (!selectedClient || selectedClient === 'All Clients') {
-      addToast('Please select a client before uploading files', 'error')
-      setIsUploading(false)
-      setUploadDept(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-      return
-    }
 
     setIsUploading(true)
     try {
