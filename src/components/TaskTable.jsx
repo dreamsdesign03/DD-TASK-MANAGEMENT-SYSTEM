@@ -654,39 +654,40 @@ export default function TaskTable() {
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
           </button>
-          <button
+          <div
+            onMouseEnter={e => {
+              e.currentTarget.style.width = 'auto';
+              e.currentTarget.style.gap = '8px';
+              e.currentTarget.style.padding = '0 20px 0 14px';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.25)';
+              e.currentTarget.style.transform = 'scale(1.02)';
+              const text = e.currentTarget.querySelector('.add-task-text');
+              if (text) { text.style.maxWidth = '120px'; text.style.opacity = '1'; }
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.width = '44px';
+              e.currentTarget.style.gap = '0';
+              e.currentTarget.style.padding = '0';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
+              e.currentTarget.style.transform = 'scale(1)';
+              const text = e.currentTarget.querySelector('.add-task-text');
+              if (text) { text.style.maxWidth = '0'; text.style.opacity = '0'; }
+            }}
             onClick={() => setShowNewTaskModal(true)}
             style={{
               height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 44,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
-              boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), gap 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s',
+              boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
               overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.width = 'auto';
-              e.currentTarget.style.padding = '0 20px';
-              e.currentTarget.style.gap = '8px';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(91,33,182,0.25)';
-              e.currentTarget.style.transform = 'scale(1.02)';
-              const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.width = 'auto'; text.style.opacity = '1'; text.style.marginLeft = '0'; }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.width = '44px';
-              e.currentTarget.style.padding = '0';
-              e.currentTarget.style.gap = '0';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
-              e.currentTarget.style.transform = 'scale(1)';
-              const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.width = '0'; text.style.opacity = '0'; text.style.marginLeft = '0'; }
+              transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), padding 0.4s cubic-bezier(0.25, 1, 0.5, 1), gap 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s, transform 0.3s',
             }}
             title="Add Task"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
-            <span className="add-task-text" style={{ width: 0, opacity: 0, overflow: 'hidden', transition: 'width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s', whiteSpace: 'nowrap' }}>Add Task</span>
-          </button>
+            <span className="add-task-text" style={{ maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s', whiteSpace: 'nowrap', display: 'inline-block' }}>Add Task</span>
+          </div>
         </div>
       </div>
 
