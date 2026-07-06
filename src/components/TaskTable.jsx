@@ -659,7 +659,7 @@ export default function TaskTable() {
             className="add-task-expand"
             style={{
               height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 44,
+              width: 48, minWidth: 48,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
               boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
@@ -667,6 +667,7 @@ export default function TaskTable() {
             }}
             onMouseEnter={e => {
               e.currentTarget.style.width = 'auto';
+              e.currentTarget.style.minWidth = '48px';
               e.currentTarget.style.padding = '0 20px';
               e.currentTarget.style.gap = '8px';
               e.currentTarget.style.justifyContent = 'flex-start';
@@ -676,7 +677,8 @@ export default function TaskTable() {
               if (text) text.style.opacity = '1';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.width = '44px';
+              e.currentTarget.style.width = '48px';
+              e.currentTarget.style.minWidth = '48px';
               e.currentTarget.style.padding = '0';
               e.currentTarget.style.gap = '0';
               e.currentTarget.style.justifyContent = 'center';
@@ -687,7 +689,7 @@ export default function TaskTable() {
             }}
             title="Add Task"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
+            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0, fontWeight: 400 }}>+</span>
             <span className="add-task-text" style={{ opacity: 0, transition: 'opacity 0.2s' }}>Add Task</span>
           </button>
         </div>
