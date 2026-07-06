@@ -673,7 +673,7 @@ export default function TaskTable() {
             }}
             onClick={() => setShowNewTaskModal(true)}
             style={{
-              height: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               maxWidth: 44,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
               boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
