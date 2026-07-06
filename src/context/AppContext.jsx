@@ -399,7 +399,7 @@ export function AppProvider({ children }) {
         }))
       }
       // Update the sheet to reflect online status (also covers page refresh)
-      fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'update_status', email: profile.email, status: 'Online' })
       }).catch(() => {})
@@ -421,7 +421,7 @@ export function AppProvider({ children }) {
         }
         // Update the sheet on tab close
         try {
-          const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+          const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
           navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
         } catch (e) { console.warn('sendBeacon failed:', e) }
       }
@@ -442,7 +442,7 @@ export function AppProvider({ children }) {
         }
         // Update the sheet on unmount
         try {
-          const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+          const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
           navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
         } catch (e) { console.warn('sendBeacon failed:', e) }
       }
@@ -464,7 +464,7 @@ export function AppProvider({ children }) {
           }))
         }
         // Update the sheet when user logs out
-        fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+        fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
           method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'logout', email: prevEmail })
         }).catch(() => {})
@@ -793,7 +793,7 @@ export function AppProvider({ children }) {
         timestamp: new Date().toISOString(),
         type: 'personal'
       }
-      fetch('https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(sheetPayload)
@@ -892,7 +892,7 @@ export function AppProvider({ children }) {
   // Fetch messages from n8n CHAT_ENGINE Webhook
   const fetchMessages = useCallback(async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
 
       let res = null;
       try {
@@ -1589,7 +1589,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1705,7 +1705,7 @@ export function AppProvider({ children }) {
     // Prevent this new task from being wiped out by an immediate sync
     recentTaskUpdates.current[newTask.id] = { timestamp: Date.now(), fields: newTask, isNew: true }
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1751,7 +1751,7 @@ export function AppProvider({ children }) {
 
   const deleteTask = async (id) => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1965,7 +1965,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec?action=get_tasks&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec?action=get_tasks&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2060,7 +2060,7 @@ export function AppProvider({ children }) {
     let success = false
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec?action=get_team&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec?action=get_team&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2095,7 +2095,7 @@ export function AppProvider({ children }) {
 
   const fetchClients = async () => {
     try {
-      const url = `https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec?action=get_clients&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec?action=get_clients&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2119,7 +2119,7 @@ export function AppProvider({ children }) {
 
   const fetchActivities = async () => {
     try {
-      const url = `https://script.google.com/macros/s/AKfycbzoPANyvEXQSWJwKT3pcNOFM7lyxIcL_qkGiQe7XrSxkP-ZXSDmxmIu-4rkBHCmc-Sz/exec?action=get_activities&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec?action=get_activities&t=${Date.now()}`
       const res = await fetch(url)
       if (res.ok) {
         const text = await res.text()
