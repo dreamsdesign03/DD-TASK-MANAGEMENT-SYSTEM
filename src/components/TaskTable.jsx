@@ -239,6 +239,14 @@ export default function TaskTable() {
     const file = e.target.files?.[0]
     if (!file || !uploadDept) return
 
+    if (!selectedClient || selectedClient === 'All Clients') {
+      addToast('Please select a client before uploading files', 'error')
+      setIsUploading(false)
+      setUploadDept(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setIsUploading(true)
     try {
       const base64Data = await new Promise((resolve, reject) => {
@@ -248,7 +256,7 @@ export default function TaskTable() {
         reader.readAsDataURL(file)
       })
 
-      const currentClient = selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || 'General')
+      const currentClient = selectedClient
 
       const url = 'https://script.google.com/macros/s/AKfycbyEEO403qIFB-RduELnH0qXgG5Vm_rxJu0ky0hImM_2UWQtsgRnu2oUpyJ84vce-dUA/exec'
       const res = await fetch(url, {

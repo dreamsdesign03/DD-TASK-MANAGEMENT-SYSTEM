@@ -1419,7 +1419,14 @@ export default function ChatPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-1">
                             <span className="text-[13px] font-semibold text-[#1E1B2E] truncate">{c.name}</span>
-                            <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-2">{c.time}</span>
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                              {c.unread > 0 && (
+                                <span className="min-w-[16px] h-[16px] px-1 bg-[#25d366] text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                                  {c.unread > 99 ? '99+' : c.unread}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-[#9CA3AF]">{c.time}</span>
+                            </div>
                           </div>
                           <p className={`text-[12px] truncate m-0 ${c.unread > 0 ? 'text-[#1E1B2E] font-semibold' : 'text-[#9CA3AF]'}`}>{c.preview}</p>
                         </div>
@@ -1466,7 +1473,14 @@ export default function ChatPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-1">
                               <span className="text-[13px] font-semibold text-[#1E1B2E] truncate">{g.name}</span>
-                              <span className="text-[10px] text-[#9CA3AF] shrink-0 ml-2">{g.time}</span>
+                              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                {g.unread > 0 && (
+                                  <span className="min-w-[16px] h-[16px] px-1 bg-[#25d366] text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm">
+                                    {g.unread > 99 ? '99+' : g.unread}
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-[#9CA3AF]">{g.time}</span>
+                              </div>
                             </div>
                             <p className={`text-[12px] truncate m-0 ${g.unread > 0 ? 'text-[#1E1B2E] font-semibold' : 'text-[#9CA3AF]'}`}>{g.preview}</p>
                           </div>

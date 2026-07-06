@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
 
-function formatHms(totalSecs) {
-  const h = Math.floor(totalSecs / 3600)
-  const m = Math.floor((totalSecs % 3600) / 60)
+function formatAdaptive(totalSecs) {
+  if (totalSecs < 60) return String(totalSecs)
+  const m = Math.floor(totalSecs / 60)
   const s = totalSecs % 60
-  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':')
+  if (totalSecs < 3600) return [m, s].map(v => String(v).padStart(2, '0')).join(':')
+  const h = Math.floor(totalSecs / 3600)
+  return [h, m % 60, s].map(v => String(v).padStart(2, '0')).join(':')
 }
 
 let restoreTitle = null
@@ -38,7 +40,7 @@ export default function TimerBadge() {
         const interval = setInterval(() => {
           if (document.hidden) {
             const elapsed = Math.floor((Date.now() - activeTimer.startTime) / 1000)
-            document.title = `\u23F1 ${formatHms(elapsed)} - Dreamsdesk`
+            document.title = `\u23F1 ${formatAdaptive(elapsed)} - Dreamsdesk`
           }
         }, 1000)
         restoreTitle = () => { clearInterval(interval); document.title = orig }
@@ -64,7 +66,7 @@ export default function TimerBadge() {
         const { ipcRenderer } = window.require('electron')
         ipcRenderer.send('timer-update', {
           active: !!activeTimer,
-          time: formatHms(sessionSecs),
+          time: formatAdaptive(sessionSecs),
           taskTitle: activeTimer?.taskTitle || '',
           taskId: activeTimer?.taskId || null,
         })
@@ -142,15 +144,15 @@ export default function TimerBadge() {
         zIndex: 9999,
         cursor: 'grab',
         userSelect: 'none',
-        background: 'rgba(18, 16, 28, 0.92)',
+        background: 'linear-gradient(135deg, rgba(70, 20, 102, 0.95), rgba(112, 44, 145, 0.92))',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
         borderRadius: 16,
-        boxShadow: '0 8px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)',
-        padding: '12px 18px 12px 20px',
+        boxShadow: '0 8px 32px rgba(70, 20, 102, 0.4), 0 0 0 1px rgba(255,255,255,0.08)',
+        padding: '10px 16px 10px 18px',
         display: 'flex',
         alignItems: 'center',
-        gap: 16,
+        gap: 14,
         willChange: 'left, top',
         transition: 'box-shadow 0.3s',
       }}
@@ -168,7 +170,7 @@ export default function TimerBadge() {
           fontFamily: "'Inter', 'SF Mono', 'Fira Code', monospace",
         }}
       >
-        {formatHms(sessionSecs)}
+        {formatAdaptive(sessionSecs)}
       </span>
 
       <button
@@ -177,11 +179,11 @@ export default function TimerBadge() {
           if (task) toggleTimer(task, profile?.name)
         }}
         style={{
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           borderRadius: 10,
           border: 'none',
-          background: 'rgba(239, 68, 68, 0.9)',
+          background: 'rgba(255, 255, 255, 0.15)',
           color: '#fff',
           cursor: 'pointer',
           display: 'flex',
@@ -189,12 +191,13 @@ export default function TimerBadge() {
           justifyContent: 'center',
           flexShrink: 0,
           transition: 'all 0.2s',
+          backdropFilter: 'blur(4px)',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = '#EF4444'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.85)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
         title="Stop Timer"
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>stop</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>stop</span>
       </button>
     </div>
   )

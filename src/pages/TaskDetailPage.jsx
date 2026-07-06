@@ -285,6 +285,12 @@ export default function TaskDetailPage() {
     const files = e.target.files
     if (!files || files.length === 0) return
 
+    const clientName = task.client || ''
+    if (!clientName || clientName.toLowerCase() === 'internal') {
+      addToast('Please select a client for this task before uploading files', 'error')
+      return
+    }
+
     setIsUploading(true)
     try {
       const newAttachments = []
@@ -310,7 +316,7 @@ export default function TaskDetailPage() {
             filename: file.name,
             mimeType: file.type,
             base64: base64Data.split(',')[1], // remove data:image/...;base64,
-            projectName: task.client || 'General',
+            projectName: clientName,
             department: task.department || 'COMMON'
           })
         })

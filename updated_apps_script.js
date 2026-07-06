@@ -484,6 +484,7 @@ function doGet(e) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
         teamSheet.getRange(i + 1, 9).setValue("Yes"); // Change Is Active to Yes
+        teamSheet.getRange(i + 1, 11).setValue("Online"); // Set Status to Online
         found = true;
         break;
       }
