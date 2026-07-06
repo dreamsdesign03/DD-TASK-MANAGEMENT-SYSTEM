@@ -389,12 +389,31 @@ export function AppProvider({ children }) {
         loggedLoginRef.current = true
       }
 
+      // Broadcast online status via MQTT
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
+          action: 'user_online',
+          email: profile.email,
+          name: profile.name,
+          timestamp: Date.now()
+        }))
+      }
+
       heartbeatRef.current = setInterval(() => {
         updateHeartbeat(profile.email)
       }, 30000)
 
       const handleBeforeUnload = () => {
         logShutdown(profile.email)
+        // Broadcast offline on tab close
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
+            action: 'user_offline',
+            email: profile.email,
+            name: profile.name,
+            timestamp: Date.now()
+          }))
+        }
       }
       window.addEventListener('beforeunload', handleBeforeUnload)
 
@@ -402,6 +421,15 @@ export function AppProvider({ children }) {
         clearInterval(heartbeatRef.current)
         window.removeEventListener('beforeunload', handleBeforeUnload)
         logShutdown(profile.email)
+        // Broadcast offline on unmount
+        if (mqttClient && mqttClient.connected && profile?.email) {
+          mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
+            action: 'user_offline',
+            email: profile.email,
+            name: profile.name,
+            timestamp: Date.now()
+          }))
+        }
       }
     } else {
       // Logout: mark the previous user as Offline
@@ -410,6 +438,17 @@ export function AppProvider({ children }) {
         setEmployees(prev => prev.map(e =>
           e.email === prevEmail ? { ...e, status: 'Offline' } : e
         ))
+
+        // Broadcast offline status via MQTT
+        if (mqttClient && mqttClient.connected) {
+          mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
+            action: 'user_offline',
+            email: prevEmail,
+            name: '',
+            timestamp: Date.now()
+          }))
+        }
+
         prevProfileEmailRef.current = null
       }
 
@@ -2111,16 +2150,51 @@ export function AppProvider({ children }) {
 
     // Listen for realtime sync triggers from other clients
     mqttClient.subscribe('dd_task_engine_v1/sync')
+    // Listen for realtime online/offline status changes
+    mqttClient.subscribe('dd_status_engine_v1/status')
+
     const handleSyncMessage = (topic, message) => {
-      if (topic === 'dd_task_engine_v1/sync') {
-        try {
-          const payload = JSON.parse(message.toString())
+      try {
+        const payload = JSON.parse(message.toString())
+
+        if (topic === 'dd_task_engine_v1/sync') {
           if (payload.action === 'sync') {
             fetchSyncedTasks()
             fetchTeam()
             fetchClients()
           }
-        } catch (e) {
+        } else if (topic === 'dd_status_engine_v1/status') {
+          const { action, email, name } = payload
+          if (!email) return
+          // Ignore own status broadcasts
+          if (email === profile?.email) return
+
+          if (action === 'user_online') {
+            setEmployees(prev => {
+              const exists = prev.some(e => e.email === email)
+              if (!exists) return prev
+              return prev.map(e =>
+                e.email === email ? { ...e, status: 'Online' } : e
+              )
+            })
+            if (name) {
+              addToast(`${name} is now online`, 'info')
+            }
+          } else if (action === 'user_offline') {
+            setEmployees(prev => {
+              const exists = prev.some(e => e.email === email)
+              if (!exists) return prev
+              return prev.map(e =>
+                e.email === email ? { ...e, status: 'Offline' } : e
+              )
+            })
+            if (name) {
+              addToast(`${name} went offline`, 'info')
+            }
+          }
+        }
+      } catch (e) {
+        if (topic === 'dd_task_engine_v1/sync') {
           console.warn('Failed to parse task sync message:', e)
         }
       }
@@ -2133,6 +2207,7 @@ export function AppProvider({ children }) {
       clearInterval(clientInterval)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       mqttClient.unsubscribe('dd_task_engine_v1/sync')
+      mqttClient.unsubscribe('dd_status_engine_v1/status')
       mqttClient.removeListener('message', handleSyncMessage)
     }
   }, [profile])
