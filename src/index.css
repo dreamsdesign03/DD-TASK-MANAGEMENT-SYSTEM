@@ -372,3 +372,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   scrollbar-width: none;
 }
 
+.timer-pulse-dot {
+  background: #25d366;
+  animation: timerPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+.timer-fade-in {
+  animation: timerFadeIn 0.3s ease-out;
+}
+
+@keyframes timerFadeIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+

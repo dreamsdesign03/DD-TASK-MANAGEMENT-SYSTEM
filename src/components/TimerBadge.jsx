@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useRef, useCallback, useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 
 function formatHms(totalSecs) {
@@ -9,120 +9,146 @@ function formatHms(totalSecs) {
 }
 
 export default function TimerBadge() {
-  const navigate = useNavigate()
   const { activeTimer, sessionSecs, toggleTimer, tasks, profile } = useApp()
+  const badgeRef = useRef(null)
+  const [dragging, setDragging] = useState(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+  const [pos, setPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_timer_pos')
+      return saved ? JSON.parse(saved) : null
+    } catch { return null }
+  })
+
+  useEffect(() => {
+    if (window.require) {
+      try {
+        const { ipcRenderer } = window.require('electron')
+        ipcRenderer.send('timer-update', {
+          active: !!activeTimer,
+          time: formatHms(sessionSecs),
+          taskTitle: activeTimer?.taskTitle || '',
+          taskId: activeTimer?.taskId || null,
+        })
+      } catch (e) {}
+    }
+  }, [activeTimer, sessionSecs])
+
+  const handleMouseDown = useCallback((e) => {
+    if (e.button !== 0) return
+    setDragging(true)
+    const rect = badgeRef.current.getBoundingClientRect()
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+  }, [])
+
+  const handleMouseMove = useCallback((e) => {
+    if (!dragging) return
+    const x = Math.max(0, Math.min(window.innerWidth - badgeRef.current.offsetWidth, e.clientX - dragOffset.current.x))
+    const y = Math.max(0, Math.min(window.innerHeight - badgeRef.current.offsetHeight, e.clientY - dragOffset.current.y))
+    setPos({ x, y })
+  }, [dragging])
+
+  const handleMouseUp = useCallback(() => {
+    if (dragging) {
+      setDragging(false)
+      if (badgeRef.current) {
+        const rect = badgeRef.current.getBoundingClientRect()
+        localStorage.setItem('dd_timer_pos', JSON.stringify({ x: rect.left, y: rect.top }))
+      }
+    }
+  }, [dragging])
 
   if (!activeTimer) return null
 
   const task = tasks?.find(t => t.id === activeTimer.taskId)
+  const baseStyle = pos
+    ? { left: pos.x, top: pos.y }
+    : { bottom: 24, right: 24 }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        zIndex: 9999,
-        background: '#1e1b2e',
-        borderRadius: 16,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-        padding: '12px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 14,
-        animation: 'fadeInUp 0.3s ease',
-      }}
-    >
+    <>
+      {dragging && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9998, cursor: 'grabbing',
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        />
+      )}
       <div
+        ref={badgeRef}
+        onMouseDown={handleMouseDown}
+        className="timer-fade-in"
         style={{
-          width: 10,
-          height: 10,
-          borderRadius: '50%',
-          background: '#25d366',
-          animation: 'pulse 1.5s ease-in-out infinite',
-          flexShrink: 0,
+          position: 'fixed',
+          ...baseStyle,
+          zIndex: 9999,
+          cursor: dragging ? 'grabbing' : 'grab',
+          userSelect: 'none',
+          background: 'rgba(18, 16, 28, 0.92)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: 16,
+          boxShadow: '0 8px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)',
+          padding: '12px 18px 12px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          transition: dragging ? 'none' : 'box-shadow 0.3s',
         }}
-      />
+      >
+        <div
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            flexShrink: 0,
+          }}
+          className="timer-pulse-dot"
+        />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
           style={{
-            fontSize: 11,
+            fontSize: 26,
             fontWeight: 700,
-            color: 'rgba(255,255,255,0.5)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            lineHeight: 1,
-          }}
-        >
-          Tracking
-        </span>
-        <span
-          onClick={() => task && navigate(`/tasks/${task.id}`)}
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#fff',
-            lineHeight: 1.3,
-            cursor: task ? 'pointer' : 'default',
-            maxWidth: 180,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-          title={activeTimer.taskTitle}
-        >
-          {activeTimer.taskTitle}
-        </span>
-        <span
-          style={{
-            fontSize: 18,
-            fontWeight: 900,
-            color: '#25d366',
+            color: '#f0f0f0',
             fontVariantNumeric: 'tabular-nums',
+            letterSpacing: '0.04em',
             lineHeight: 1,
-            letterSpacing: '0.02em',
+            fontFamily: "'Inter', 'SF Mono', 'Fira Code', monospace",
           }}
         >
           {formatHms(sessionSecs)}
         </span>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            if (task) toggleTimer(task, profile?.name)
+          }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            border: 'none',
+            background: 'rgba(239, 68, 68, 0.9)',
+            color: '#fff',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = '#EF4444'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'}
+          title="Stop Timer"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>stop</span>
+        </button>
       </div>
-
-      <button
-        onClick={() => {
-          if (task) toggleTimer(task, profile?.name)
-        }}
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: '50%',
-          border: 'none',
-          background: '#EF4444',
-          color: '#fff',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'background 0.2s, transform 0.15s',
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = '#DC2626'}
-        onMouseLeave={e => e.currentTarget.style.background = '#EF4444'}
-        title="Stop Timer"
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>stop</span>
-      </button>
-
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-      `}</style>
-    </div>
+    </>
   )
 }

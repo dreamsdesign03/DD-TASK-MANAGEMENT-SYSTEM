@@ -315,7 +315,24 @@ export function AppProvider({ children }) {
     return () => clearInterval(interval);
   }, [activeTimer])
 
-
+  // Listen for timer stop from Electron overlay
+  useEffect(() => {
+    if (!window.require) return
+    try {
+      const { ipcRenderer } = window.require('electron')
+      const handler = () => {
+        if (activeTimer) {
+          const foundTask = tasksRef.current.find(t => t.id === activeTimer.taskId)
+          if (foundTask) {
+            const name = profile?.name || 'Mansi Shah'
+            toggleTimer(foundTask, name)
+          }
+        }
+      }
+      ipcRenderer.on('timer-stop-from-overlay', handler)
+      return () => ipcRenderer.removeListener('timer-stop-from-overlay', handler)
+    } catch (e) {}
+  }, [activeTimer, toggleTimer, profile])
 
   const tasksRef = useRef(tasks)
   useEffect(() => {
