@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useMemo, useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import Sidebar from '../components/Sidebar'
@@ -8,9 +8,12 @@ import SelectDropdown from '../components/SelectDropdown'
 export default function ProjectOverviewPage() {
   const { projectName } = useParams()
   const navigate = useNavigate()
-  const { tasks, messagesByChatId, fetchMessages } = useApp()
+  const { tasks, messagesByChatId, fetchMessages, addToast } = useApp()
   const [driveDocs, setDriveDocs] = useState([])
   const [isLoadingDocs, setIsLoadingDocs] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
+  const [uploadDept, setUploadDept] = useState(null)
 
   const [filterTaskId, setFilterTaskId] = useState('All Tasks')
   const [filterDept, setFilterDept] = useState('All Departments')
@@ -189,6 +192,53 @@ export default function ProjectOverviewPage() {
   const totalTasks = projectTasks.length
   const completedTasks = projectTasks.filter(t => t.status === 'Done').length
   const progressPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+  const handleUploadClick = () => {
+    if (filterDept === 'All Departments') {
+      addToast('Please select a specific department from the filter first.', 'error')
+      return
+    }
+    setUploadDept(filterDept)
+    if (fileInputRef.current) fileInputRef.current.click()
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !uploadDept) return
+    setIsUploading(true)
+    try {
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('https://script.google.com/macros/s/AKfycby_ki8cx1_LhpISCCmltuC8Eu6yWKM1CemxtCFbZMjmpNz7zGqzyXpLHB75l3ypUEw/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'upload_file',
+          filename: file.name,
+          mimeType: file.type,
+          base64: base64Data.split(',')[1],
+          projectName,
+          department: uploadDept
+        })
+      })
+      const data = await res.json()
+      if (data.ok) {
+        addToast('File uploaded to Drive successfully!', 'success')
+      } else {
+        throw new Error(data.error || 'Upload failed')
+      }
+    } catch (error) {
+      addToast('Upload failed: ' + error.message, 'error')
+    } finally {
+      setIsUploading(false)
+      setUploadDept(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
@@ -467,9 +517,15 @@ export default function ProjectOverviewPage() {
                     </div>
                   )}
                 </div>
-                <div className="p-4 bg-white shrink-0">
-                  <button className="w-full py-2.5 rounded-lg border border-[#E5E7EB] border-dashed text-[13px] font-bold text-[#6B7280] hover:text-[#702c91] hover:border-[#702c91] transition-colors">
-                    View All Files
+                <div className="p-4 bg-white shrink-0 flex gap-3">
+                  <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                  <button
+                    onClick={handleUploadClick}
+                    disabled={isUploading}
+                    className="flex-1 py-2.5 rounded-lg border border-[#E5E7EB] border-dashed text-[13px] font-bold text-[#6B7280] hover:text-[#702c91] hover:border-[#702c91] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">{isUploading ? 'sync' : 'upload'}</span>
+                    {isUploading ? 'Uploading...' : 'Upload File'}
                   </button>
                 </div>
               </div>

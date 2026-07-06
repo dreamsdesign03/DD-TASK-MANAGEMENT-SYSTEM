@@ -1157,15 +1157,12 @@ export default function TaskTable() {
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="flex items-center gap-2">
                   <span className="text-label-sm text-secondary font-medium">Tasks per page:</span>
-                  <select
-                    value={tasksPerPage}
-                    onChange={(e) => setTasksPerPage(Number(e.target.value))}
-                    className="bg-surface-container-lowest border border-outline-variant rounded-md px-2 py-1 text-sm outline-none cursor-pointer focus:border-primary text-on-surface"
-                  >
-                    <option value={10}>10</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
+                  <SelectDropdown
+                    value={String(tasksPerPage)}
+                    onChange={(v) => setTasksPerPage(Number(v))}
+                    options={['10', '50', '100']}
+                    style={{ width: 80, padding: '8px 12px', borderRadius: 12, border: '1px solid #E5E7EB', background: 'white', fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', minHeight: 40 }}
+                  />
                 </div>
 
                 <div className="flex items-center gap-2">
