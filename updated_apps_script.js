@@ -584,7 +584,7 @@ function doGet(e) {
     if (sheet) {
       var taskData = sheet.getDataRange().getValues();
       if (taskData.length > 1) {
-        var taskHeaders = ["Task ID", "Client", "Month", "Task Title", "Task Type", "Main Task ID", "Description", "Assigned By", "Assigned To", "Employee IDs", "Assigned Emails", "Department", "Assigned Date", "Due Date", "Priority", "Status", "Status Updated On", "Time Taken", "Days Overdue", "Remarks", "Post", "Attachment"];
+        var taskHeaders = ["Task ID", "Client", "Month", "Task Title", "Task Type", "Main Task ID", "Description", "Assigned By", "Assigned To", "Employee IDs", "Assigned Emails", "Department", "Assigned Date", "Due Date", "Priority", "Status", "Status Updated On", "Time Taken", "Days Overdue", "Remarks", "Post", "Attachment", "Is Recurring", "Recurring Schedule", "Recurring Day", "Recurring Months", "Last Auto-Generated Date"];
         for (var i = 1; i < taskData.length; i++) {
           var row = taskData[i];
           var obj = {};
