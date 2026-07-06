@@ -545,41 +545,36 @@ export default function ActivityPage() {
                         })}
                       </div>
 
-                      {/* Session time labels */}
-                      <div className="flex flex-col justify-between flex-grow" style={{ fontSize: 11 }}>
-                        {dayStats[selectedDay].sessions.map((s, idx) => {
-                          const bottomPct = toWindowPercent(s.loginSecs)
-                          const topPct = toWindowPercent(s.logoutSecs)
-                          const midPct = (bottomPct + topPct) / 2
+                      {/* Session list — plain vertical, decoupled from chart y-axis */}
+                      <div className="flex flex-col justify-center flex-grow gap-y-3 overflow-y-auto" style={{ fontSize: 11, minHeight: 0 }}>
+                        {dayStats[selectedDay].sessions
+                          .slice()
+                          .reverse()
+                          .map((s, idx) => {
+                          const total = dayStats[selectedDay].sessions.length
+                          const realIdx = total - 1 - idx
 
                           return (
-                            <div
-                              key={s.id || idx}
-                              className="absolute flex items-center gap-2"
-                              style={{ bottom: `${midPct}%`, transform: 'translateY(50%)' }}
-                            >
-                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${s.isStillActive ? 'bg-[#2563EB]' : 'bg-[#3B82F6]'}`} />
-                              <div>
-                                <span className="font-bold text-[#1E1B2E]">
-                                  {s.loginTimeStr} – {s.isStillActive ? 'Active' : s.logoutTimeStr}
-                                </span>
-                                <span className="text-[#6B7280] ml-2">
-                                  ({formatDuration(s.logoutSecs - s.loginSecs)})
-                                </span>
+                            <div key={s.id || realIdx} className="flex items-center justify-between border-b border-slate-100 pb-2.5 last:border-b-0 last:pb-0" style={{ minHeight: 40 }}>
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${s.isStillActive ? 'bg-[#22C55E] shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-[#3B82F6]'}`} />
+                                <div className="min-w-0">
+                                  <span className="font-bold text-[#1E1B2E] whitespace-nowrap">
+                                    {s.loginTimeStr} – {s.isStillActive ? 'Active' : s.logoutTimeStr}
+                                  </span>
+                                  <span className="text-[#94A3B8] ml-1.5 whitespace-nowrap">
+                                    ({formatDuration(s.logoutSecs - s.loginSecs)})
+                                  </span>
+                                </div>
                               </div>
-                              <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                 s.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                               }`}>
-                                {s.isStillActive ? 'LIVE' : `#${idx + 1}`}
+                                {s.isStillActive ? 'LIVE' : `#${realIdx + 1}`}
                               </span>
                             </div>
                           )
                         })}
-
-                        {/* Empty state if no sessions visible */}
-                        {dayStats[selectedDay].sessions.length === 0 && (
-                          <span className="text-[#9CA3AF]">No sessions</span>
-                        )}
                       </div>
                     </div>
 
