@@ -1161,6 +1161,7 @@ export default function TaskTable() {
                     value={String(tasksPerPage)}
                     onChange={(v) => setTasksPerPage(Number(v))}
                     options={['10', '50', '100']}
+                    dropdownUp
                     style={{ width: 80, padding: '8px 12px', borderRadius: 12, border: '1px solid #E5E7EB', background: 'white', fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', minHeight: 40 }}
                   />
                 </div>

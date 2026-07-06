@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-export default function SelectDropdown({ value, onChange, options, style = {}, placeholder, disabled = false }) {
+export default function SelectDropdown({ value, onChange, options, style = {}, placeholder, disabled = false, dropdownUp = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const selectRef = useRef(null)
 
@@ -82,12 +82,12 @@ export default function SelectDropdown({ value, onChange, options, style = {}, p
         <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6B7280', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
       </div>
       {isOpen && (
-        <div className="animate-fade-in-up hide-scrollbar" style={{
+        <div className={`hide-scrollbar ${dropdownUp ? '' : 'animate-fade-in-up'}`} style={{
           position: 'absolute',
-          top: '100%',
+          [dropdownUp ? 'bottom' : 'top']: '100%',
           left: 0,
           width: '100%',
-          marginTop: 8,
+          [dropdownUp ? 'marginBottom' : 'marginTop']: 8,
           background: 'white',
           borderRadius: 12,
           boxShadow: '0 12px 32px rgba(91,33,182,0.15)',
