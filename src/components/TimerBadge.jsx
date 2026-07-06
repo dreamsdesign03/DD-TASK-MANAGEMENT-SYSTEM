@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { useApp } from '../context/AppContext'
 
 function formatHms(totalSecs) {
@@ -8,18 +8,56 @@ function formatHms(totalSecs) {
   return [h, m, s].map(v => String(v).padStart(2, '0')).join(':')
 }
 
+let restoreTitle = null
+
 export default function TimerBadge() {
   const { activeTimer, sessionSecs, toggleTimer, tasks, profile } = useApp()
   const badgeRef = useRef(null)
-  const [dragging, setDragging] = useState(false)
-  const dragOffset = useRef({ x: 0, y: 0 })
-  const [pos, setPos] = useState(() => {
+  const dragRef = useRef({ active: false, offsetX: 0, offsetY: 0, startX: 0, startY: 0 })
+  const posRef = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
     try {
       const saved = localStorage.getItem('dd_timer_pos')
-      return saved ? JSON.parse(saved) : null
-    } catch { return null }
-  })
+      if (saved) posRef.current = JSON.parse(saved)
+    } catch {}
+    setVisible(true)
+  }, [])
 
+  // ── Document title timer when tab is hidden ──
+  useEffect(() => {
+    if (!activeTimer) {
+      if (restoreTitle) { restoreTitle(); restoreTitle = null }
+      return
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        const orig = document.title
+        const interval = setInterval(() => {
+          if (document.hidden) {
+            const elapsed = Math.floor((Date.now() - activeTimer.startTime) / 1000)
+            document.title = `\u23F1 ${formatHms(elapsed)} - Dreamsdesk`
+          }
+        }, 1000)
+        restoreTitle = () => { clearInterval(interval); document.title = orig }
+      } else {
+        if (restoreTitle) restoreTitle()
+        restoreTitle = null
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      if (restoreTitle) restoreTitle()
+      restoreTitle = null
+      document.title = 'Dreamsdesk'
+    }
+  }, [activeTimer])
+
+  // ── IPC to Electron ──
   useEffect(() => {
     if (window.require) {
       try {
@@ -34,121 +72,130 @@ export default function TimerBadge() {
     }
   }, [activeTimer, sessionSecs])
 
-  const handleMouseDown = useCallback((e) => {
+  // ── Smooth drag with direct DOM ──
+  const onMouseDown = useCallback((e) => {
     if (e.button !== 0) return
-    setDragging(true)
+    e.preventDefault()
     const rect = badgeRef.current.getBoundingClientRect()
-    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    dragRef.current = {
+      active: true,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      startX: rect.left,
+      startY: rect.top,
+    }
+    badgeRef.current.style.transition = 'none'
+    document.body.style.cursor = 'grabbing'
+    document.body.style.userSelect = 'none'
   }, [])
 
-  const handleMouseMove = useCallback((e) => {
-    if (!dragging) return
-    const x = Math.max(0, Math.min(window.innerWidth - badgeRef.current.offsetWidth, e.clientX - dragOffset.current.x))
-    const y = Math.max(0, Math.min(window.innerHeight - badgeRef.current.offsetHeight, e.clientY - dragOffset.current.y))
-    setPos({ x, y })
-  }, [dragging])
+  useEffect(() => {
+    if (!activeTimer) return
+    const el = badgeRef.current
+    if (!el) return
 
-  const handleMouseUp = useCallback(() => {
-    if (dragging) {
-      setDragging(false)
-      if (badgeRef.current) {
-        const rect = badgeRef.current.getBoundingClientRect()
-        localStorage.setItem('dd_timer_pos', JSON.stringify({ x: rect.left, y: rect.top }))
-      }
+    const onMove = (e) => {
+      const d = dragRef.current
+      if (!d.active) return
+      const x = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, e.clientX - d.offsetX))
+      const y = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, e.clientY - d.offsetY))
+      el.style.left = x + 'px'
+      el.style.top = y + 'px'
     }
-  }, [dragging])
 
-  if (!activeTimer) return null
+    const onUp = () => {
+      const d = dragRef.current
+      if (!d.active) return
+      d.active = false
+      el.style.transition = ''
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+      const x = parseInt(el.style.left, 10) || 0
+      const y = parseInt(el.style.top, 10) || 0
+      try { localStorage.setItem('dd_timer_pos', JSON.stringify({ x, y })) } catch {}
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [activeTimer])
+
+  if (!activeTimer || !visible) return null
 
   const task = tasks?.find(t => t.id === activeTimer.taskId)
-  const baseStyle = pos
-    ? { left: pos.x, top: pos.y }
+  const savedPos = posRef.current
+  const baseStyle = savedPos
+    ? { left: savedPos.x, top: savedPos.y }
     : { bottom: 24, right: 24 }
 
   return (
-    <>
-      {dragging && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9998, cursor: 'grabbing',
-          }}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        />
-      )}
-      <div
-        ref={badgeRef}
-        onMouseDown={handleMouseDown}
-        className="timer-fade-in"
+    <div
+      ref={badgeRef}
+      onMouseDown={onMouseDown}
+      className="timer-fade-in"
+      style={{
+        position: 'fixed',
+        ...baseStyle,
+        zIndex: 9999,
+        cursor: 'grab',
+        userSelect: 'none',
+        background: 'rgba(18, 16, 28, 0.92)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        borderRadius: 16,
+        boxShadow: '0 8px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)',
+        padding: '12px 18px 12px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        willChange: 'left, top',
+        transition: 'box-shadow 0.3s',
+      }}
+    >
+      <div className="timer-pulse-dot" style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0 }} />
+
+      <span
         style={{
-          position: 'fixed',
-          ...baseStyle,
-          zIndex: 9999,
-          cursor: dragging ? 'grabbing' : 'grab',
-          userSelect: 'none',
-          background: 'rgba(18, 16, 28, 0.92)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderRadius: 16,
-          boxShadow: '0 8px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)',
-          padding: '12px 18px 12px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          transition: dragging ? 'none' : 'box-shadow 0.3s',
+          fontSize: 26,
+          fontWeight: 700,
+          color: '#f0f0f0',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '0.04em',
+          lineHeight: 1,
+          fontFamily: "'Inter', 'SF Mono', 'Fira Code', monospace",
         }}
       >
-        <div
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: '50%',
-            flexShrink: 0,
-          }}
-          className="timer-pulse-dot"
-        />
+        {formatHms(sessionSecs)}
+      </span>
 
-        <span
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            color: '#f0f0f0',
-            fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '0.04em',
-            lineHeight: 1,
-            fontFamily: "'Inter', 'SF Mono', 'Fira Code', monospace",
-          }}
-        >
-          {formatHms(sessionSecs)}
-        </span>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            if (task) toggleTimer(task, profile?.name)
-          }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            border: 'none',
-            background: 'rgba(239, 68, 68, 0.9)',
-            color: '#fff',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            transition: 'all 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#EF4444'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'}
-          title="Stop Timer"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>stop</span>
-        </button>
-      </div>
-    </>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (task) toggleTimer(task, profile?.name)
+        }}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 10,
+          border: 'none',
+          background: 'rgba(239, 68, 68, 0.9)',
+          color: '#fff',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = '#EF4444'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'}
+        title="Stop Timer"
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>stop</span>
+      </button>
+    </div>
   )
 }
