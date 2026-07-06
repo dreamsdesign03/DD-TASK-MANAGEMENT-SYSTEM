@@ -123,7 +123,7 @@ export default function TimerBadge() {
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [activeTimer])
+  }, [activeTimer, visible])
 
   if (!activeTimer || !visible) return null
 
