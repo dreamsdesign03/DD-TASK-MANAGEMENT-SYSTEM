@@ -14,6 +14,7 @@ import ProjectOverviewPage from './pages/ProjectOverviewPage'
 import TeamPage from './pages/TeamPage'
 import ClientsPage from './pages/ClientsPage'
 import ActivityPage from './pages/ActivityPage'
+import TimerBadge from './components/TimerBadge'
 
 function GlobalNav() {
   const navigate = useNavigate()
@@ -106,6 +107,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <GlobalNav />
+      <TimerBadge />
       <Routes>
         {/* Default */}
         <Route path="/" element={<RootRedirect />} />
