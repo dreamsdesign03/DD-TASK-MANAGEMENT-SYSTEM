@@ -661,7 +661,7 @@ export default function TaskTable() {
               e.currentTarget.style.padding = '0 20px 0 14px';
               e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
               const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.maxWidth = '120px'; text.style.opacity = '1'; }
+              if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
             }}
             onMouseLeave={e => {
               e.currentTarget.style.maxWidth = '44px';
@@ -669,7 +669,7 @@ export default function TaskTable() {
               e.currentTarget.style.padding = '0';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
               const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.maxWidth = '0'; text.style.opacity = '0'; }
+              if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
             }}
             onClick={() => setShowNewTaskModal(true)}
             style={{
@@ -684,7 +684,7 @@ export default function TaskTable() {
             title="Add Task"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
-            <span className="add-task-text" style={{ maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap', display: 'inline-block' }}>Add Task</span>
+            <span className="add-task-text" style={{ width: 0, maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap' }}>Add Task</span>
           </div>
         </div>
       </div>
