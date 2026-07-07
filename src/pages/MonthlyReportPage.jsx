@@ -173,7 +173,7 @@ export default function MonthlyReportPage() {
 
             {/* Filter Tabs & Date Range */}
             <div className="flex flex-col md:flex-row md:justify-between gap-4 items-start md:items-center mb-8 flex-wrap">
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex flex-col gap-3">
                 <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
                   {['Overall', 'Company', 'User'].map(type => (
                     <button
