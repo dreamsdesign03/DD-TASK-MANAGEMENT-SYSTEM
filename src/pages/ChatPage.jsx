@@ -53,7 +53,7 @@ export function renderMessageTextWithMentions(text, isSent = false, employeeName
 }
 
 // Render message text with quoted reply and file attachment parsing
-export function renderMessageText(text, isSent = false, isDeleted = false, employeeNames = []) {
+export function renderMessageText(text, isSent = false, isDeleted = false, employeeNames = [], onImageClick, onReplyClick) {
   if (isDeleted) {
     return (
       <div className={`flex items-center gap-1 italic text-[13px] ${isSent ? 'text-white/70' : 'text-outline/70'}`}>
@@ -68,13 +68,15 @@ export function renderMessageText(text, isSent = false, isDeleted = false, emplo
   let currentText = text
   let replyNode = null
 
-  // Parse Quote Reply [Reply:sender|messageText]
-  const replyMatch = currentText.match(/^\[Reply:([^|]+)\|([^\]]+)\](.*)/)
+  // Parse Quote Reply [Reply:sender|messageText] or [Reply:sender|messageText|messageId]
+  const replyMatch = currentText.match(/^\[Reply:([^|]+)\|([^|]+)(?:\|([^\]]+))?\](.*)/)
   if (replyMatch) {
-    const [_, rSender, rText, rest] = replyMatch
+    const [_, rSender, rText, rMsgId, rest] = replyMatch
     replyNode = (
-      <div className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-surface-container-lowest/10 text-white' : 'border-primary bg-black/5 text-on-surface'
-        }`}>
+      <div
+        className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-surface-container-lowest/10 text-white' : 'border-primary bg-black/5 text-on-surface'} ${rMsgId && onReplyClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+        onClick={rMsgId && onReplyClick ? (e) => { e.stopPropagation(); onReplyClick(rMsgId) } : undefined}
+      >
         <span className={`font-bold block ${isSent ? 'text-white' : 'text-primary'}`}>{rSender}</span>
         <span className={`truncate block ${isSent ? 'text-white/80' : 'text-outline'}`}>{rText}</span>
       </div>
@@ -93,9 +95,9 @@ export function renderMessageText(text, isSent = false, isDeleted = false, emplo
         {replyNode}
         <div className="bg-black/5 rounded-lg p-2 flex flex-col gap-2 max-w-[240px] md:max-w-[320px]">
           {isImage ? (
-            <a href={dataUrl} download={name} className="block overflow-hidden rounded border border-outline-variant hover:opacity-90 transition-opacity">
+            <div className="block overflow-hidden rounded border border-outline-variant hover:opacity-90 transition-opacity cursor-pointer" onClick={() => onImageClick && onImageClick(dataUrl)}>
               <img src={dataUrl} alt={name} className="max-h-[160px] object-contain mx-auto" />
-            </a>
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[32px]">
@@ -318,6 +320,7 @@ export default function ChatPage() {
   const [replyTarget, setReplyTarget] = useState(null)
   const [editingMessage, setEditingMessage] = useState(null)
   const [hoveredMessageId, setHoveredMessageId] = useState(null)
+  const [lightboxUrl, setLightboxUrl] = useState(null)
   const [showMoreDropdown, setShowMoreDropdown] = useState(false)
   const moreDropdownRef = useRef(null)
   const messagesContainerRef = useRef(null)
@@ -569,6 +572,11 @@ export default function ChatPage() {
     prevChatIdRef.current = selectedChatId
     prevMessagesLengthRef.current = currentLength
   }, [messagesByChatId, selectedChatId])
+
+  const scrollToMessage = (msgId) => {
+    const el = document.getElementById(`msg-${msgId}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -953,7 +961,7 @@ export default function ChatPage() {
     } else {
       // Normal message Mode (possibly with Reply and/or Attachment)
       if (replyTarget) {
-        finalMessageText = `[Reply:${replyTarget.sender || 'You'}|${replyTarget.text}]${finalMessageText}`
+        finalMessageText = `[Reply:${replyTarget.sender || 'You'}|${replyTarget.text}|${replyTarget.id}]${finalMessageText}`
       }
       if (attachedFile) {
         finalMessageText = `[Attachment:${attachedFile.name}|${attachedFile.type}|${attachedFile.dataUrl}]${finalMessageText}`
@@ -1629,6 +1637,7 @@ export default function ChatPage() {
                       return (
                         <div
                           key={index}
+                          id={`msg-${m.id}`}
                           onMouseEnter={() => setHoveredMessageId(m.id)}
                           onMouseLeave={() => setHoveredMessageId(null)}
                           onDoubleClick={() => setReplyTarget(m)}
@@ -1653,7 +1662,7 @@ export default function ChatPage() {
                             )}
                             {/* Bubble */}
                             <div className="bg-white border border-[#E5E7EB] rounded-[12px] rounded-tl-none p-3 shadow-sm" style={{ maxWidth: '100%' }}>
-                              {renderMessageText(m.text, false, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
+                              {renderMessageText(m.text, false, m.isDeleted, ALL_EMPLOYEES.map(e => e.name), (url) => setLightboxUrl(url), scrollToMessage)}
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span className="text-[10px] text-secondary leading-none">{m.time}</span>
                               </div>
@@ -1662,10 +1671,11 @@ export default function ChatPage() {
                         </div>
                       )
                     }
-                    // Sent message â€” WhatsApp style with right tail
+                    // Sent message — WhatsApp style with right tail
                     return (
                       <div
                         key={index}
+                        id={`msg-${m.id}`}
                         onMouseEnter={() => setHoveredMessageId(m.id)}
                         onMouseLeave={() => setHoveredMessageId(null)}
                         onDoubleClick={() => setReplyTarget(m)}
@@ -1686,11 +1696,11 @@ export default function ChatPage() {
                           )}
                           {/* Bubble */}
                           <div className="bg-[#702c91] text-white rounded-[12px] rounded-tr-none p-3 shadow-sm" style={{ maxWidth: '100%' }}>
-                            {renderMessageText(m.text, true, m.isDeleted, ALL_EMPLOYEES.map(e => e.name))}
+                            {renderMessageText(m.text, true, m.isDeleted, ALL_EMPLOYEES.map(e => e.name), (url) => setLightboxUrl(url), scrollToMessage)}
                             <div className="flex items-center justify-end gap-1 mt-1">
                               {m.isEdited && <span className="text-[9px] text-white/60 italic">edited</span>}
                               <span className="text-[10px] text-white/70 leading-none">{m.time}</span>
-                              {/* Double tick â€” sent indicator */}
+                              {/* Double tick — sent indicator */}
                               <span className="text-[10px] text-white/80 leading-none">{getMessageTicks(m)}</span>
                             </div>
                           </div>
@@ -2049,6 +2059,18 @@ export default function ChatPage() {
           }}
           allChats={[...personalChats, ...groupChats]}
         />
+      )}
+
+      {/* Image Lightbox */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors bg-transparent border-none cursor-pointer" onClick={() => setLightboxUrl(null)}>
+              <span className="material-symbols-outlined text-[28px]">close</span>
+            </button>
+            <img src={lightboxUrl} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+          </div>
+        </div>
       )}
 
       {/* Background Selection Modal */}

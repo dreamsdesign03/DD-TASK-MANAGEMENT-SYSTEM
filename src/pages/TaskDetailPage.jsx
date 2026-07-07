@@ -129,6 +129,7 @@ export default function TaskDetailPage() {
   const [newSubtaskPriority, setNewSubtaskPriority] = useState('Medium')
   const [isSubtaskInputActive, setIsSubtaskInputActive] = useState(false)
   const [infoModal, setInfoModal] = useState(null)
+  const [lightboxUrl, setLightboxUrl] = useState(null)
   const [taskToDelete, setTaskToDelete] = useState(null)
   const [subtaskToDelete, setSubtaskToDelete] = useState(null)
 
@@ -556,6 +557,13 @@ export default function TaskDetailPage() {
         reader.readAsDataURL(blob)
         return
       }
+    }
+  }
+
+  const scrollToMessage = (msgId) => {
+    const el = document.getElementById(`msg-${msgId}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
@@ -1102,7 +1110,7 @@ export default function TaskDetailPage() {
 
                     if (m.type === 'received') {
                       return (
-                        <div key={index} className="flex items-start gap-3">
+                        <div key={index} id={`msg-${m.id}`} className="flex items-start gap-3">
                           {renderAvatar(null, m.sender, "w-9 h-9 rounded-full mt-1")}
                           <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2">
@@ -1114,7 +1122,7 @@ export default function TaskDetailPage() {
                               </span>
                             </div>
                             <div className="bg-white p-4 rounded-xl rounded-tl-none border border-[#E5E7EB] max-w-md shadow-sm">
-                              {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name))}
+                              {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url))}
                             </div>
                           </div>
                         </div>
@@ -1123,7 +1131,7 @@ export default function TaskDetailPage() {
 
                     // Self message (type === 'sent')
                     return (
-                      <div key={index} className="flex flex-col items-end gap-1">
+                      <div key={index} id={`msg-${m.id}`} className="flex flex-col items-end gap-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[11px] font-normal font-['Inter'] text-[#6B6B6B]">
                             {m.time}
@@ -1135,7 +1143,7 @@ export default function TaskDetailPage() {
                         </div>
                         <div className="bg-[#702c91] p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
                           <div className="text-white text-body-sm">
-                            {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name))}
+                            {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url))}
                           </div>
                         </div>
                       </div>
@@ -1887,9 +1895,21 @@ export default function TaskDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Image Lightbox */}
+      {lightboxUrl && (
+        <div className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setLightboxUrl(null)}>
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <button className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors bg-transparent border-none cursor-pointer" onClick={() => setLightboxUrl(null)}>
+              <span className="material-symbols-outlined text-[28px]">close</span>
+            </button>
+            <img src={lightboxUrl} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" />
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
-
 
 
