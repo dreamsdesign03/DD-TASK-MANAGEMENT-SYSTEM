@@ -315,7 +315,6 @@ export default function ChatPage() {
   const [showModal, setShowModal] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [attachedFile, setAttachedFile] = useState(null)
-  const fileInputRef = useRef(null)
   const emojiPickerRef = useRef(null)
   const [replyTarget, setReplyTarget] = useState(null)
   const [editingMessage, setEditingMessage] = useState(null)
@@ -574,28 +573,13 @@ export default function ChatPage() {
   }, [messagesByChatId, selectedChatId])
 
   const scrollToMessage = (msgId) => {
+    document.querySelectorAll('.reply-highlight').forEach(el => el.classList.remove('reply-highlight'))
     const el = document.getElementById(`msg-${msgId}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    if (file.size > 4 * 1024 * 1024) {
-      addToast('File size should be less than 4MB', 'error')
-      return
+    if (el) {
+      el.classList.add('reply-highlight')
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => el.classList.remove('reply-highlight'), 2500)
     }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setAttachedFile({
-        name: file.name,
-        type: file.type,
-        dataUrl: event.target.result
-      })
-    }
-    reader.readAsDataURL(file)
   }
 
   const handlePaste = (e) => {
@@ -961,7 +945,12 @@ export default function ChatPage() {
     } else {
       // Normal message Mode (possibly with Reply and/or Attachment)
       if (replyTarget) {
-        finalMessageText = `[Reply:${replyTarget.sender || 'You'}|${replyTarget.text}|${replyTarget.id}]${finalMessageText}`
+        const replyPreview = (replyTarget.text || '')
+          .replace(/\[(?:Attachment|Reply|Meeting|Edit):[^\]]*\]/g, '')
+          .trim()
+          .replace(/\|/g, '\uFF5C')
+          .substring(0, 150) || '(media)'
+        finalMessageText = `[Reply:${replyTarget.sender || 'You'}|${replyPreview}|${replyTarget.id}]${finalMessageText}`
       }
       if (attachedFile) {
         finalMessageText = `[Attachment:${attachedFile.name}|${attachedFile.type}|${attachedFile.dataUrl}]${finalMessageText}`
@@ -1016,7 +1005,6 @@ export default function ChatPage() {
     setAttachedFile(null)
     setReplyTarget(null)
     setEditingMessage(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
 
     sendWebhookPayload(payload, payload.id)
   }
@@ -1832,22 +1820,6 @@ export default function ChatPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Hidden File Input */}
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-
-                    {/* Attachment Button */}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-none cursor-pointer bg-transparent flex items-center justify-center text-[#9CA3AF] hover:text-[#702c91] transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[20px]" style={{ transform: 'rotate(-45deg)' }}>attach_file</span>
-                    </button>
 
                     <input
                       ref={textInputRef}

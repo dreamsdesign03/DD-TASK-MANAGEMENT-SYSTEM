@@ -118,7 +118,6 @@ export default function TaskDetailPage() {
   const [reply, setReply] = useState('')
   const [replyAttachment, setReplyAttachment] = useState(null)
   const [isSendingReply, setIsSendingReply] = useState(false)
-  const replyFileInputRef = useRef(null)
   const [linkUrl, setLinkUrl] = useState('')
   const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false)
   const [selectedAssignees, setSelectedAssignees] = useState([])
@@ -500,32 +499,7 @@ export default function TaskDetailPage() {
       addToast("Failed to send reply: " + err.message, 'error')
     } finally {
       setIsSendingReply(false)
-      if (replyFileInputRef.current) replyFileInputRef.current.value = ''
     }
-  }
-
-  const handleReplyFileChange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    if (file.size > 4 * 1024 * 1024) {
-      setInfoModal({
-        title: 'File Too Large',
-        message: 'File size should be less than 4MB',
-        icon: 'warning',
-        color: 'text-[#f59e0b]'
-      })
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setReplyAttachment({
-        name: file.name,
-        type: file.type,
-        dataUrl: event.target.result,
-        file: file
-      })
-    }
-    reader.readAsDataURL(file)
   }
 
   const handleReplyPaste = (e) => {
@@ -1122,7 +1096,7 @@ export default function TaskDetailPage() {
                               </span>
                             </div>
                             <div className="bg-white p-4 rounded-xl rounded-tl-none border border-[#E5E7EB] max-w-md shadow-sm">
-                              {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url))}
+                              {renderMessageText(m.text, false, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url), scrollToMessage)}
                             </div>
                           </div>
                         </div>
@@ -1143,7 +1117,7 @@ export default function TaskDetailPage() {
                         </div>
                         <div className="bg-[#702c91] p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
                           <div className="text-white text-body-sm">
-                            {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url))}
+                            {renderMessageText(m.text, true, m.isDeleted, employees.map(e => e.name), (url) => setLightboxUrl(url), scrollToMessage)}
                           </div>
                         </div>
                       </div>
@@ -1196,29 +1170,6 @@ export default function TaskDetailPage() {
                       ></textarea>
                       <div className="bg-gray-50 p-3 border-t border-[#E5E7EB] flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <input
-                            type="file"
-                            ref={replyFileInputRef}
-                            className="hidden"
-                            onChange={handleReplyFileChange}
-                          />
-                          <button
-                            onClick={() => replyFileInputRef.current?.click()}
-                            className={`bg-transparent border-none flex items-center justify-center cursor-pointer transition-colors p-1 ${replyAttachment ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-                            title="Attach file"
-                          >
-                            <span className="material-symbols-outlined text-[20px]">
-                              {replyAttachment ? 'attach_file_add' : 'attach_file'}
-                            </span>
-                          </button>
-                          {replyAttachment && (
-                            <div className="flex items-center gap-2 bg-primary/10 px-2 py-1 rounded">
-                              <span className="text-[11px] text-primary font-medium truncate max-w-[150px]">{replyAttachment.name}</span>
-                              <button onClick={() => setReplyAttachment(null)} className="text-primary hover:text-red-500">
-                                <span className="material-symbols-outlined text-[14px]">close</span>
-                              </button>
-                            </div>
-                          )}
                           <span className="text-[12px] text-gray-400 font-medium">
                             {reply.length} / 1000
                           </span>

@@ -354,6 +354,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .stagger-4 { animation-delay: 0.4s; opacity: 0; }
 .stagger-5 { animation-delay: 0.5s; opacity: 0; }
 
+/* Reply highlight flash */
+@keyframes replyHighlight {
+  0% { background-color: rgba(112, 44, 145, 0.15); }
+  50% { background-color: rgba(112, 44, 145, 0.08); }
+  100% { background-color: transparent; }
+}
+.reply-highlight {
+  animation: replyHighlight 2.5s ease-out forwards;
+  border-radius: 12px;
+}
+
 /* Interactive Hover States for Global Use */
 .hover-scale {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
