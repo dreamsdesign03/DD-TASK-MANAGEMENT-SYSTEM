@@ -172,21 +172,31 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* Filter Tabs & Date Range */}
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8 flex-wrap">
-              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
-                {['Overall', 'Company', 'User'].map(type => (
-                  <button
-                    key={type}
-                    onClick={() => handleFilterChange(type)}
-                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
-                      filterType === type 
-                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
-                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
+            <div className="flex flex-col md:flex-row md:justify-between gap-4 items-start md:items-center mb-8 flex-wrap">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
+                  {['Overall', 'Company', 'User'].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => handleFilterChange(type)}
+                      className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
+                        filterType === type 
+                          ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
+                          : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Dynamic Dropdown based on filter type */}
+                {filterType === 'Company' && (
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200 }} />
+                )}
+                {filterType === 'User' && (
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200 }} />
+                )}
               </div>
 
               {/* Date Range Inputs styled like SelectDropdown */}
@@ -266,14 +276,6 @@ export default function MonthlyReportPage() {
                   }}>To</span>
                 </div>
               </div>
-
-              {/* Dynamic Dropdown based on filter type */}
-              {filterType === 'Company' && (
-                <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200 }} />
-              )}
-              {filterType === 'User' && (
-                <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200 }} />
-              )}
             </div>
 
             {/* Summary Cards */}
