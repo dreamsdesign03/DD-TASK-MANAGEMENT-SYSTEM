@@ -59,21 +59,6 @@ export default function TimerBadge() {
     }
   }, [activeTimer])
 
-  // ── IPC to Electron ──
-  useEffect(() => {
-    if (window.require) {
-      try {
-        const { ipcRenderer } = window.require('electron')
-        ipcRenderer.send('timer-update', {
-          active: !!activeTimer,
-          time: formatAdaptive(sessionSecs),
-          taskTitle: activeTimer?.taskTitle || '',
-          taskId: activeTimer?.taskId || null,
-        })
-      } catch (e) {}
-    }
-  }, [activeTimer, sessionSecs])
-
   // ── Smooth drag with direct DOM ──
   const onMouseDown = useCallback((e) => {
     if (e.button !== 0) return

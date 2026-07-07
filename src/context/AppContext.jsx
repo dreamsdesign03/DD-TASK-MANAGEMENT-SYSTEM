@@ -315,6 +315,30 @@ export function AppProvider({ children }) {
     return () => clearInterval(interval);
   }, [activeTimer])
 
+  // ── IPC to Electron overlay (always runs when in Electron) ──
+  useEffect(() => {
+    if (window.require) {
+      try {
+        const { ipcRenderer } = window.require('electron')
+        const displayTime = (() => {
+          const s = sessionSecs
+          if (s < 60) return String(s)
+          const m = Math.floor(s / 60)
+          const sec = s % 60
+          if (s < 3600) return [m, sec].map(v => String(v).padStart(2, '0')).join(':')
+          const h = Math.floor(s / 3600)
+          return [h, m % 60, sec].map(v => String(v).padStart(2, '0')).join(':')
+        })()
+        ipcRenderer.send('timer-update', {
+          active: !!activeTimer,
+          time: displayTime,
+          taskTitle: activeTimer?.taskTitle || '',
+          taskId: activeTimer?.taskId || null,
+        })
+      } catch (e) {}
+    }
+  }, [activeTimer, sessionSecs])
+
   const tasksRef = useRef(tasks)
   useEffect(() => {
     tasksRef.current = tasks

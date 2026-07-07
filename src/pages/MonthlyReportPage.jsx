@@ -11,9 +11,14 @@ import { jsPDF } from 'jspdf'
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
   const { tasks, addToast } = useApp()
-  const [filterType, setFilterType] = useState('Overall') // 'Overall', 'Company', 'User'
+  const [filterType, setFilterType] = useState('Overall')
   const [selectedValue, setSelectedValue] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+
+  // Date range filter state
+  const todayStr = () => new Date().toISOString().split('T')[0]
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   // Derive unique months from task due dates
   const availableMonths = useMemo(() => {
@@ -31,10 +36,8 @@ export default function MonthlyReportPage() {
     return ['All Months', ...monthArray]
   }, [tasks])
 
-  // Initialize with 'All Months' or the most recent month
   const [currentMonth, setCurrentMonth] = useState('All Months')
 
-  // Derive unique clients and users
   const clients = [...new Set((tasks || []).map((t) => t?.client).filter(c => c && String(c).toLowerCase() !== 'internal'))].sort()
   const users = [...new Set((tasks || []).flatMap((t) => String(t?.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
 
@@ -45,13 +48,25 @@ export default function MonthlyReportPage() {
     else if (type === 'User') setSelectedValue(users[0] || '')
   }
 
-  // Filter tasks based on selection
+  const isInDateRange = (task) => {
+    if (!dateFrom && !dateTo) return true
+    const d = task.dueDate ? new Date(task.dueDate) : null
+    if (!d || isNaN(d.getTime())) return !dateFrom && !dateTo
+    const from = dateFrom ? new Date(dateFrom) : null
+    const to = dateTo ? new Date(dateTo) : null
+    if (from && d < from) return false
+    if (to) {
+      const toEnd = new Date(to)
+      toEnd.setHours(23, 59, 59, 999)
+      if (d > toEnd) return false
+    }
+    return true
+  }
+
   const filteredTasks = useMemo(() => {
     return (tasks || []).filter((t) => {
-      // Exclude Internal projects from the report completely
       if (t?.client && String(t.client).toLowerCase() === 'internal') return false
 
-      // Month filter
       if (currentMonth !== 'All Months') {
         if (!t.dueDate) return false
         const d = new Date(t.dueDate)
@@ -59,6 +74,8 @@ export default function MonthlyReportPage() {
         const taskMonth = d.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
         if (taskMonth !== currentMonth) return false
       }
+
+      if (!isInDateRange(t)) return false
 
       if (filterType === 'Company' && selectedValue) {
         return t.client === selectedValue
@@ -68,7 +85,7 @@ export default function MonthlyReportPage() {
       }
       return true
     })
-  }, [tasks, filterType, selectedValue, currentMonth])
+  }, [tasks, filterType, selectedValue, currentMonth, dateFrom, dateTo])
 
   // Compute metrics
   const totalTasks = filteredTasks.length
@@ -172,10 +189,30 @@ export default function MonthlyReportPage() {
           <div id="report-content" className="w-full">
             
             {/* Header Row */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
               <h2 className="text-[26px] font-bold text-[#702c91] m-0">Monthly Report Analysis</h2>
               
-              <SelectDropdown value={currentMonth} onChange={setCurrentMonth} options={availableMonths} style={{ width: 220 }} />
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-[11px] font-bold text-gray-500 uppercase">From</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={e => setDateFrom(e.target.value)}
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-[13px] text-[#1E1B2E] outline-none focus:border-[#702c91]"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-[11px] font-bold text-gray-500 uppercase">To</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={e => setDateTo(e.target.value)}
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-[13px] text-[#1E1B2E] outline-none focus:border-[#702c91]"
+                  />
+                </div>
+                <SelectDropdown value={currentMonth} onChange={setCurrentMonth} options={availableMonths} style={{ width: 180 }} />
+              </div>
             </div>
 
             {/* Filter Tabs */}
@@ -521,6 +558,89 @@ export default function MonthlyReportPage() {
               </div>
             </div>
           </div>
+
+          {/* Company & User Breakdown */}
+            <div className="mb-10">
+              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#702c91] text-[20px]">group_work</span>
+                Company & User Breakdown
+              </h3>
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                <div className="overflow-x-auto hide-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Company</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">User</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Total</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Done</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">In Progress</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Pending</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Blocked</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Overdue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const breakdown = {}
+                        filteredTasks.forEach(t => {
+                          const company = t.client || 'General'
+                          const assignedUsers = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
+                          if (assignedUsers.length === 0) assignedUsers.push('Unassigned')
+                          assignedUsers.forEach(u => {
+                            if (!breakdown[company]) breakdown[company] = {}
+                            if (!breakdown[company][u]) {
+                              breakdown[company][u] = { total: 0, done: 0, inProgress: 0, pending: 0, blocked: 0, overdue: 0 }
+                            }
+                            breakdown[company][u].total++
+                            if (t.status === 'Done') breakdown[company][u].done++
+                            else if (t.status === 'In Progress' || t.status === 'Review') breakdown[company][u].inProgress++
+                            else if (t.status === 'Pending') breakdown[company][u].pending++
+                            else if (t.status === 'Blocked') breakdown[company][u].blocked++
+                            if (t.overdue && t.status !== 'Done') breakdown[company][u].overdue++
+                          })
+                        })
+                        const companyNames = Object.keys(breakdown).sort()
+                        if (companyNames.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan="8" className="text-center py-8 text-secondary text-sm">No data for this selection.</td>
+                            </tr>
+                          )
+                        }
+                        const rows = []
+                        companyNames.forEach((company, ci) => {
+                          const userNames = Object.keys(breakdown[company]).sort()
+                          userNames.forEach((u, ui) => {
+                            const d = breakdown[company][u]
+                            rows.push(
+                              <tr key={`${company}-${u}`} className={`border-b border-[#E5E7EB] ${ci === companyNames.length - 1 && ui === userNames.length - 1 ? 'border-b-0' : ''} transition-all hover:bg-purple-50/40`}>
+                                {ui === 0 && (
+                                  <td className="py-4 px-5 text-[13px] font-bold text-[#702c91]" rowSpan={userNames.length}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="material-symbols-outlined text-[18px]">business</span>
+                                      {company}
+                                    </div>
+                                  </td>
+                                )}
+                                <td className="py-4 px-5 text-[13px] text-[#4B5563] font-semibold">{u}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#1E1B2E] font-bold text-right">{d.total}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#10B981] font-semibold text-right">{d.done}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#F59E0B] font-semibold text-right">{d.inProgress}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#3B82F6] font-semibold text-right">{d.pending}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#EF4444] font-semibold text-right">{d.blocked}</td>
+                                <td className="py-4 px-5 text-[13px] text-[#EF4444] font-semibold text-right">{d.overdue}</td>
+                              </tr>
+                            )
+                          })
+                        })
+                        return rows
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
 
           {/* All Tasks Activity */}
             <div className="mb-10">

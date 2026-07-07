@@ -107,7 +107,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <GlobalNav />
-      <TimerBadge />
+      {typeof window !== 'undefined' && !window.require && <TimerBadge />}
       <Routes>
         {/* Default */}
         <Route path="/" element={<RootRedirect />} />

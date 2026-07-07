@@ -80,6 +80,10 @@ function createWindow() {
     // Serve files via HTTP to bypass file:// protocol restrictions in Google OAuth
     const expressApp = express()
     expressApp.use(express.static(path.join(__dirname, 'dist')))
+    // SPA fallback: serve index.html for any unmatched route
+    expressApp.get('*', (_req, res) => {
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+    })
     
     const localServer = http.createServer(expressApp)
     const PORT = 8000
@@ -126,9 +130,10 @@ function createTray() {
   })
 }
 
-// ── Timer Overlay Window ──
+
+
+// ── Timer Overlay Window (always-on-top pill) ──
 let timerOverlay = null
-let timerOverlayData = { active: false, time: '00:00:00', taskTitle: '', taskId: null }
 
 function createTimerOverlay() {
   if (timerOverlay && !timerOverlay.isDestroyed()) {
@@ -139,10 +144,10 @@ function createTimerOverlay() {
   const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize
 
   timerOverlay = new BrowserWindow({
-    width: 240,
-    height: 70,
-    x: screenW - 260,
-    y: screenH - 90,
+    width: 150,
+    height: 44,
+    x: screenW - 174,
+    y: screenH - 68,
     alwaysOnTop: true,
     skipTaskbar: true,
     frame: false,
@@ -160,10 +165,12 @@ function createTimerOverlay() {
 <html>
 <head>
 <meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: transparent;
     overflow: hidden;
     height: 100vh;
@@ -174,13 +181,11 @@ function createTimerOverlay() {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 18px;
-    background: rgba(18, 16, 28, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+    padding: 8px 12px;
+    background: linear-gradient(90deg, #702c91 0%, #ec008c 50%, #702c91 100%);
+    background-size: 200% 100%;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(91, 33, 182, 0.3);
     height: 100%;
     -webkit-app-region: drag;
   }
@@ -189,28 +194,28 @@ function createTimerOverlay() {
     height: 10px;
     border-radius: 50%;
     background: #25d366;
-    animation: pulse 1.8s ease-in-out infinite;
+    animation: timerPulse 1.8s ease-in-out infinite;
     flex-shrink: 0;
   }
-  @keyframes pulse {
+  @keyframes timerPulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.4; transform: scale(0.75); }
   }
   .time {
-    font-size: 26px;
+    font-size: 15px;
     font-weight: 700;
-    color: #f0f0f0;
+    color: #fff;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.04em;
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-    flex: 1;
+    line-height: 1;
+    font-family: 'Inter', 'SF Mono', 'Fira Code', monospace;
   }
   .stop-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     border: none;
-    background: rgba(239, 68, 68, 0.85);
+    background: rgba(255, 255, 255, 0.2);
     color: #fff;
     cursor: pointer;
     display: flex;
@@ -219,10 +224,13 @@ function createTimerOverlay() {
     flex-shrink: 0;
     transition: background 0.2s;
     -webkit-app-region: no-drag;
-    font-size: 18px;
   }
-  .stop-btn:hover { background: #EF4444; }
-  .stop-btn svg { width: 18px; height: 18px; }
+  .stop-btn:hover { background: rgba(239, 68, 68, 0.85); }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-size: 14px;
+    font-variation-settings: 'FILL' 0, 'wght' 400;
+  }
 </style>
 </head>
 <body>
@@ -230,7 +238,7 @@ function createTimerOverlay() {
   <div class="dot"></div>
   <span class="time" id="timerDisplay">00:00:00</span>
   <button class="stop-btn" id="stopBtn" title="Stop Timer">
-    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+    <span class="material-symbols-outlined">stop</span>
   </button>
 </div>
 <script>
@@ -255,13 +263,12 @@ function createTimerOverlay() {
 }
 
 function updateTimerOverlay(data) {
-  timerOverlayData = data
   if (timerOverlay && !timerOverlay.isDestroyed()) {
     timerOverlay.webContents.send('overlay-update', data)
   }
 }
 
-ipcMain.on('timer-update', (event, data) => {
+ipcMain.on('timer-update', (_event, data) => {
   if (data.active) {
     if (!timerOverlay || timerOverlay.isDestroyed()) {
       createTimerOverlay()
@@ -272,7 +279,6 @@ ipcMain.on('timer-update', (event, data) => {
       timerOverlay.close()
     }
     timerOverlay = null
-    timerOverlayData = { active: false, time: '00:00:00', taskTitle: '', taskId: null }
   }
 })
 
