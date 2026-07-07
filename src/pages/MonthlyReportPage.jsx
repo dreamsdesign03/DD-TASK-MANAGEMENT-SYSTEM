@@ -194,14 +194,17 @@ export default function MonthlyReportPage() {
                 <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200, flexShrink: 0 }} />
               )}
               {filterType === 'User' && (
-                <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200, flexShrink: 0 }} />
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT USER:</span>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 160, flexShrink: 0 }} />
+                </div>
               )}
 
               <div style={{ flex: '1 1 0' }} />
 
               {/* Date Range Inputs styled like SelectDropdown */}
               <div className="flex items-center gap-3">
-                <div style={{ position: 'relative', width: 160 }}>
+                <div style={{ position: 'relative', width: 160, overflow: 'visible', paddingTop: 8 }}>
                   <input
                     type="date"
                     value={dateFrom}
@@ -227,7 +230,7 @@ export default function MonthlyReportPage() {
                   <span style={{
                     position: 'absolute',
                     left: 12,
-                    top: -8,
+                    top: 0,
                     fontSize: 10,
                     fontWeight: 700,
                     color: '#9CA3AF',
@@ -236,9 +239,10 @@ export default function MonthlyReportPage() {
                     background: 'white',
                     padding: '0 4px',
                     pointerEvents: 'none',
+                    lineHeight: 1,
                   }}>From</span>
                 </div>
-                <div style={{ position: 'relative', width: 160 }}>
+                <div style={{ position: 'relative', width: 160, overflow: 'visible', paddingTop: 8 }}>
                   <input
                     type="date"
                     value={dateTo}
@@ -264,7 +268,7 @@ export default function MonthlyReportPage() {
                   <span style={{
                     position: 'absolute',
                     left: 12,
-                    top: -8,
+                    top: 0,
                     fontSize: 10,
                     fontWeight: 700,
                     color: '#9CA3AF',
@@ -273,6 +277,7 @@ export default function MonthlyReportPage() {
                     background: 'white',
                     padding: '0 4px',
                     pointerEvents: 'none',
+                    lineHeight: 1,
                   }}>To</span>
                 </div>
               </div>
