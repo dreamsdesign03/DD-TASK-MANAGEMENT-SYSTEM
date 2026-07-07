@@ -466,7 +466,6 @@ export default function MonthlyReportPage() {
             {/* Project Progress Lists */}
             <div className="mb-10">
               <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#702c91] text-[20px]">view_list</span>
                 Project Progress Lists
               </h3>
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
@@ -598,7 +597,6 @@ export default function MonthlyReportPage() {
           {/* Company & User Breakdown */}
             <div className="mb-10">
               <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#702c91] text-[20px]">group_work</span>
                 Company & User Breakdown
               </h3>
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
