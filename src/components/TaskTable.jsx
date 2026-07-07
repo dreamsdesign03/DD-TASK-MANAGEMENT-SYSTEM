@@ -295,7 +295,7 @@ export default function TaskTable() {
   const uniqueUsers = ['All Users', ...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)))]
 
   // Extract unique departments
-  const uniqueDepartments = ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', ...new Set(tasks.map(t => (t.department || 'COMMON').toUpperCase()))]
+  const uniqueDepartments = ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(tasks.map(t => (t.department || 'COMMON').toUpperCase()))]
   const deduplicatedDepartments = [...new Set(uniqueDepartments)]
 
   // 1. Filter tasks
@@ -801,7 +801,7 @@ export default function TaskTable() {
                     </tr>
                   ) : (
                     (() => {
-                      const DEPARTMENTS = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES'];
+                      const DEPARTMENTS = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES'];
                       const taskDepts = [...new Set(currentTasks.map(t => (t.department || 'COMMON').toUpperCase()))];
                       taskDepts.sort((a, b) => {
                         const idxA = DEPARTMENTS.indexOf(a);
@@ -1197,7 +1197,7 @@ export default function TaskTable() {
           >
             <div className="flex gap-4 min-w-max items-start">
               {(() => {
-                const deptCols = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', 'COMPLETE'];
+                const deptCols = ['COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', 'COMPLETE'];
                 const processCols = ['Pending', 'In Progress', 'Review', 'Done', 'Blocked'];
 
                 const baseCols = boardGrouping === 'Process Stage' ? processCols : deptCols;

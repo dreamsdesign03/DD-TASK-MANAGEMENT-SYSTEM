@@ -63,7 +63,7 @@ export default function ProjectOverviewPage() {
 
   const uniqueDepts = useMemo(() => {
     const rawDepts = projectTasks.map(t => t.department || 'COMMON')
-    return ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'SALES', ...new Set(rawDepts.map(d => d.toUpperCase()))]
+    return ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(rawDepts.map(d => d.toUpperCase()))]
   }, [projectTasks])
   const deduplicatedDepts = [...new Set(uniqueDepts)]
 
