@@ -534,10 +534,30 @@ export default function TaskDetailPage() {
     }
   }
 
-  const scrollToMessage = (msgId) => {
-    const el = document.getElementById(`msg-${msgId}`)
+  const scrollToMessage = (msgId, sender, text) => {
+    document.querySelectorAll('.reply-highlight').forEach(el => el.classList.remove('reply-highlight'))
+
+    let el = null
+    if (msgId) {
+      el = document.getElementById(`msg-${msgId}`)
+    }
+
+    if (!el && sender && text) {
+      const candidates = document.querySelectorAll('[id^="msg-"]')
+      for (const candidate of candidates) {
+        if (candidate.textContent.includes(sender) && candidate.textContent.includes(text.substring(0, 30))) {
+          el = candidate
+          break
+        }
+      }
+    }
+
     if (el) {
+      el.classList.add('reply-highlight')
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => el.classList.remove('reply-highlight'), 2500)
+    } else {
+      addToast('Original message not available', 'warning')
     }
   }
 

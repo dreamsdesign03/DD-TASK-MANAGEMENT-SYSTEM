@@ -72,13 +72,14 @@ export function renderMessageText(text, isSent = false, isDeleted = false, emplo
   const replyMatch = currentText.match(/^\[Reply:([^|]+)\|([^|]+)(?:\|([^\]]+))?\](.*)/)
   if (replyMatch) {
     const [_, rSender, rText, rMsgId, rest] = replyMatch
+    const cleanReplyText = rText.replace(/\[(?:Attachment|Reply|Meeting|Edit):[^\]]*\]/g, '').trim() || '(media)'
     replyNode = (
       <div
-        className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-surface-container-lowest/10 text-white' : 'border-primary bg-black/5 text-on-surface'} ${rMsgId && onReplyClick ? 'cursor-pointer hover:opacity-80' : ''}`}
-        onClick={rMsgId && onReplyClick ? (e) => { e.stopPropagation(); onReplyClick(rMsgId) } : undefined}
+        className={`border-l-2 pl-2 py-1 pr-1.5 rounded mb-2 text-left text-[11px] max-w-[280px] md:max-w-[340px] ${isSent ? 'border-white/50 bg-surface-container-lowest/10 text-white' : 'border-primary bg-black/5 text-on-surface'} ${onReplyClick ? 'cursor-pointer hover:opacity-80' : ''}`}
+        onClick={onReplyClick ? (e) => { e.stopPropagation(); onReplyClick(rMsgId, rSender, cleanReplyText) } : undefined}
       >
         <span className={`font-bold block ${isSent ? 'text-white' : 'text-primary'}`}>{rSender}</span>
-        <span className={`truncate block ${isSent ? 'text-white/80' : 'text-outline'}`}>{rText}</span>
+        <span className={`truncate block ${isSent ? 'text-white/80' : 'text-outline'}`}>{cleanReplyText}</span>
       </div>
     )
     currentText = rest.trim()
@@ -572,13 +573,30 @@ export default function ChatPage() {
     prevMessagesLengthRef.current = currentLength
   }, [messagesByChatId, selectedChatId])
 
-  const scrollToMessage = (msgId) => {
+  const scrollToMessage = (msgId, sender, text) => {
     document.querySelectorAll('.reply-highlight').forEach(el => el.classList.remove('reply-highlight'))
-    const el = document.getElementById(`msg-${msgId}`)
+
+    let el = null
+    if (msgId) {
+      el = document.getElementById(`msg-${msgId}`)
+    }
+
+    if (!el && sender && text) {
+      const candidates = document.querySelectorAll('[id^="msg-"]')
+      for (const candidate of candidates) {
+        if (candidate.textContent.includes(sender) && candidate.textContent.includes(text.substring(0, 30))) {
+          el = candidate
+          break
+        }
+      }
+    }
+
     if (el) {
       el.classList.add('reply-highlight')
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setTimeout(() => el.classList.remove('reply-highlight'), 2500)
+    } else {
+      addToast('Original message not available', 'warning')
     }
   }
 

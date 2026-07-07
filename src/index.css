@@ -356,13 +356,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Reply highlight flash */
 @keyframes replyHighlight {
-  0% { background-color: rgba(112, 44, 145, 0.15); }
-  50% { background-color: rgba(112, 44, 145, 0.08); }
-  100% { background-color: transparent; }
+  0% { box-shadow: inset 0 0 0 2px rgba(112, 44, 145, 0.5), 0 0 16px rgba(112, 44, 145, 0.25); background-color: rgba(112, 44, 145, 0.08); }
+  40% { box-shadow: inset 0 0 0 2px rgba(112, 44, 145, 0.3), 0 0 10px rgba(112, 44, 145, 0.12); background-color: rgba(112, 44, 145, 0.04); }
+  100% { box-shadow: inset 0 0 0 0px transparent, 0 0 0px transparent; background-color: transparent; }
 }
 .reply-highlight {
   animation: replyHighlight 2.5s ease-out forwards;
-  border-radius: 12px;
+  border-radius: 12px !important;
 }
 
 /* Interactive Hover States for Global Use */
