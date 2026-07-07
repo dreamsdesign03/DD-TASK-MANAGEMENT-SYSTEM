@@ -193,13 +193,13 @@ export default function MonthlyReportPage() {
               {filterType === 'Company' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT COMPANY:</span>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 160, flexShrink: 0 }} />
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 220, flexShrink: 0 }} />
                 </div>
               )}
               {filterType === 'User' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT USER:</span>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 160, flexShrink: 0 }} />
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 220, flexShrink: 0 }} />
                 </div>
               )}
 

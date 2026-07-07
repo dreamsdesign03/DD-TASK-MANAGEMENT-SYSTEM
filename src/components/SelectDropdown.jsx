@@ -61,7 +61,8 @@ export default function SelectDropdown({ value, onChange, options, style = {}, p
           color: value ? '#1E1B2E' : '#9CA3AF',
           cursor: 'pointer',
           transition: 'all 0.15s',
-          minHeight: 44
+          height: 44,
+          overflow: 'hidden'
         }}
         onMouseEnter={e => {
           if (!isOpen) {
