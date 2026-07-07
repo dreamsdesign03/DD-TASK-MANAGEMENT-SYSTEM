@@ -692,11 +692,11 @@ export default function MonthlyReportPage() {
                     <thead>
                       <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Task ID</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[35%]">Task Title</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[20%]">Client</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[30%]">Task Title</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[12%]">Due Date</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[18%]">Client</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Assigned To</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Status</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Due Date</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[10%]">Action</th>
                       </tr>
                     </thead>
@@ -732,6 +732,11 @@ export default function MonthlyReportPage() {
                           <td className="py-4 px-5 text-[13px] text-[#4B5563]">
                             <span className={row.status === 'Done' ? 'line-through text-[#9CA3AF]' : ''}>{row.title}</span>
                           </td>
+                          <td className="py-4 px-5">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${row.dueDate ? 'text-[#702c91] bg-purple-50 border border-purple-200' : 'text-[#9CA3AF]'}`}>
+                              {row.dueDate || '-'}
+                            </span>
+                          </td>
                           <td className="py-4 px-5 text-[12px] text-[#6B7280]">
                             {row.client}
                           </td>
@@ -758,12 +763,6 @@ export default function MonthlyReportPage() {
                                  </span>
                                )
                             })()}
-                          </td>
-                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
-                            <div className="flex items-center gap-1.5">
-                              <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                              {row.dueDate || '-'}
-                            </div>
                           </td>
                           <td className="py-4 px-5 text-right">
                             <button 
