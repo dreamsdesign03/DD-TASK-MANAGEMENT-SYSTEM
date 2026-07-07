@@ -403,6 +403,29 @@ function doPost(e) {
         "Yes",
         payload.services || ""
       ]);
+
+      // Create Drive folder for this client
+      try {
+        var driveFolderName = "Dreamsdesign's Projects Attachments";
+        var driveRootFolders = DriveApp.getFoldersByName(driveFolderName);
+        var driveRoot;
+        if (driveRootFolders.hasNext()) {
+          driveRoot = driveRootFolders.next();
+        } else {
+          driveRoot = DriveApp.createFolder(driveFolderName);
+          driveRoot.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        }
+        var clientProjectName = payload.projectName || "General";
+        var clientFolders = driveRoot.getFoldersByName(clientProjectName);
+        if (!clientFolders.hasNext()) {
+          var clientFolder = driveRoot.createFolder(clientProjectName);
+          clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        }
+      } catch (driveErr) {
+        // Non-critical: log but don't fail the client creation
+        console.error('Drive folder creation failed: ' + driveErr.message);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
