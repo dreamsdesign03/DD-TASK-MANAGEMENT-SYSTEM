@@ -16,27 +16,8 @@ export default function MonthlyReportPage() {
   const [isDownloading, setIsDownloading] = useState(false)
 
   // Date range filter state
-  const todayStr = () => new Date().toISOString().split('T')[0]
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-
-  // Derive unique months from task due dates
-  const availableMonths = useMemo(() => {
-    const months = new Set()
-    ;(tasks || []).forEach(t => {
-      if (t?.dueDate) {
-        const d = new Date(t.dueDate)
-        if (!isNaN(d.getTime())) {
-          months.add(d.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }))
-        }
-      }
-    })
-    const monthArray = Array.from(months)
-    monthArray.sort((a, b) => new Date(a) - new Date(b))
-    return ['All Months', ...monthArray]
-  }, [tasks])
-
-  const [currentMonth, setCurrentMonth] = useState('All Months')
 
   const clients = [...new Set((tasks || []).map((t) => t?.client).filter(c => c && String(c).toLowerCase() !== 'internal'))].sort()
   const users = [...new Set((tasks || []).flatMap((t) => String(t?.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
@@ -63,20 +44,17 @@ export default function MonthlyReportPage() {
     return true
   }
 
+  const sanitizedDateRange = useMemo(() => {
+    if (dateFrom && dateTo) return `${dateFrom} to ${dateTo}`
+    if (dateFrom) return `from ${dateFrom}`
+    if (dateTo) return `until ${dateTo}`
+    return 'All Dates'
+  }, [dateFrom, dateTo])
+
   const filteredTasks = useMemo(() => {
     return (tasks || []).filter((t) => {
       if (t?.client && String(t.client).toLowerCase() === 'internal') return false
-
-      if (currentMonth !== 'All Months') {
-        if (!t.dueDate) return false
-        const d = new Date(t.dueDate)
-        if (isNaN(d.getTime())) return false
-        const taskMonth = d.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
-        if (taskMonth !== currentMonth) return false
-      }
-
       if (!isInDateRange(t)) return false
-
       if (filterType === 'Company' && selectedValue) {
         return t.client === selectedValue
       }
@@ -85,7 +63,7 @@ export default function MonthlyReportPage() {
       }
       return true
     })
-  }, [tasks, filterType, selectedValue, currentMonth, dateFrom, dateTo])
+  }, [tasks, filterType, selectedValue, dateFrom, dateTo])
 
   // Compute metrics
   const totalTasks = filteredTasks.length
@@ -152,9 +130,9 @@ export default function MonthlyReportPage() {
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
 
-      const sanitizedMonth = currentMonth.replace(/\s+/g, '_')
+      const sanitizedRange = sanitizedDateRange.replace(/\s+/g, '_').replace(/-/g, '')
       const sanitizedValue = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
-      const fileName = `Dreamsdesk_Report_${sanitizedMonth}_${sanitizedValue}.pdf`
+      const fileName = `Dreamsdesk_Report_${sanitizedRange}_${sanitizedValue}.pdf`
 
       pdf.save(fileName)
     } catch (error) {
@@ -191,32 +169,10 @@ export default function MonthlyReportPage() {
             {/* Header Row */}
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
               <h2 className="text-[26px] font-bold text-[#702c91] m-0">Monthly Report Analysis</h2>
-              
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <label className="text-[11px] font-bold text-gray-500 uppercase">From</label>
-                  <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={e => setDateFrom(e.target.value)}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-[13px] text-[#1E1B2E] outline-none focus:border-[#702c91]"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-[11px] font-bold text-gray-500 uppercase">To</label>
-                  <input
-                    type="date"
-                    value={dateTo}
-                    onChange={e => setDateTo(e.target.value)}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-3 py-1.5 text-[13px] text-[#1E1B2E] outline-none focus:border-[#702c91]"
-                  />
-                </div>
-                <SelectDropdown value={currentMonth} onChange={setCurrentMonth} options={availableMonths} style={{ width: 180 }} />
-              </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
+            {/* Filter Tabs & Date Range */}
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8 flex-wrap">
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max">
                 {['Overall', 'Company', 'User'].map(type => (
                   <button
@@ -233,18 +189,90 @@ export default function MonthlyReportPage() {
                 ))}
               </div>
 
+              {/* Date Range Inputs styled like SelectDropdown */}
+              <div className="flex items-center gap-3">
+                <div style={{ position: 'relative', width: 160 }}>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={e => setDateFrom(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'white',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#1E1B2E',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      minHeight: 44,
+                      fontFamily: 'Inter, sans-serif',
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
+                    }}
+                    onFocus={e => { e.target.style.borderColor = '#702c91'; e.target.style.boxShadow = '0 0 0 3px rgba(112,44,145,0.1)' }}
+                    onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none' }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    left: 12,
+                    top: -8,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#9CA3AF',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    background: 'white',
+                    padding: '0 4px',
+                    pointerEvents: 'none',
+                  }}>From</span>
+                </div>
+                <div style={{ position: 'relative', width: 160 }}>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={e => setDateTo(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'white',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: 12,
+                      padding: '10px 12px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#1E1B2E',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      minHeight: 44,
+                      fontFamily: 'Inter, sans-serif',
+                      transition: 'border-color 0.2s, box-shadow 0.2s',
+                    }}
+                    onFocus={e => { e.target.style.borderColor = '#702c91'; e.target.style.boxShadow = '0 0 0 3px rgba(112,44,145,0.1)' }}
+                    onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none' }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    left: 12,
+                    top: -8,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#9CA3AF',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    background: 'white',
+                    padding: '0 4px',
+                    pointerEvents: 'none',
+                  }}>To</span>
+                </div>
+              </div>
+
               {/* Dynamic Dropdown based on filter type */}
               {filterType === 'Company' && (
-                <div className="flex items-center gap-3">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select Client:</label>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200 }} />
-                </div>
+                <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ minWidth: 200 }} />
               )}
               {filterType === 'User' && (
-                <div className="flex items-center gap-3">
-                  <label className="text-[12px] font-bold text-gray-500 uppercase tracking-wider">Select User:</label>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200 }} />
-                </div>
+                <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ minWidth: 200 }} />
               )}
             </div>
 
@@ -740,10 +768,10 @@ export default function MonthlyReportPage() {
           {(() => {
             let activityMonth = null;
             let activityYear = null;
-            if (currentMonth !== 'All Months') {
-              const parts = currentMonth.split(' ');
-              activityMonth = parts[0];
-              activityYear = parseInt(parts[1]);
+            if (dateFrom) {
+              const d = new Date(dateFrom)
+              activityMonth = d.getMonth() + 1
+              activityYear = d.getFullYear()
             }
             const monthlyData = getAllUsersMonthlyActivity(activityMonth, activityYear);
             const users = Object.keys(monthlyData);
@@ -751,7 +779,7 @@ export default function MonthlyReportPage() {
               return (
                 <div className="mb-10">
                   <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4">
-                    Working Hours {currentMonth !== 'All Months' ? `- ${currentMonth}` : ''}
+                    Working Hours {sanitizedDateRange !== 'All Dates' ? `- ${sanitizedDateRange}` : ''}
                   </h3>
                   <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                     <div className="overflow-x-auto hide-scrollbar">
