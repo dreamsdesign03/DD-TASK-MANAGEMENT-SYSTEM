@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 
+import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import { getAllUsersMonthlyActivity, formatDuration } from '../utils/activityLog'
 import html2canvas from 'html2canvas'
@@ -192,23 +193,13 @@ export default function MonthlyReportPage() {
               {filterType === 'Company' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT COMPANY:</span>
-                  <div style={{ position: 'relative', width: 220 }}>
-                    <div style={{ width: '100%', flexShrink: 0, background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.02)', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', fontSize: 13, fontWeight: 600, color: '#1E1B2E', cursor: 'pointer', transition: 'all 0.15s', height: 44, overflow: 'hidden' }}>
-                      <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 8 }}>{selectedValue || 'Select'}</span>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6B7280', transition: 'transform 0.2s', transform: 'rotate(0deg)' }}>expand_more</span>
-                    </div>
-                  </div>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 220, flexShrink: 0 }} />
                 </div>
               )}
               {filterType === 'User' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT USER:</span>
-                  <div style={{ position: 'relative', width: 220 }}>
-                    <div style={{ width: '100%', flexShrink: 0, background: 'white', border: '1px solid #E5E7EB', borderRadius: 12, boxShadow: '0 2px 6px rgba(0,0,0,0.02)', userSelect: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', fontSize: 13, fontWeight: 600, color: '#1E1B2E', cursor: 'pointer', transition: 'all 0.15s', height: 44, overflow: 'hidden' }}>
-                      <span style={{ display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 8 }}>{selectedValue || 'Select'}</span>
-                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6B7280', transition: 'transform 0.2s', transform: 'rotate(0deg)' }}>expand_more</span>
-                    </div>
-                  </div>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 220, flexShrink: 0 }} />
                 </div>
               )}
 
