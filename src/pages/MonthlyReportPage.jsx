@@ -622,8 +622,10 @@ export default function MonthlyReportPage() {
                         const breakdown = {}
                         filteredTasks.forEach(t => {
                           const company = t.client || 'General'
-                          const assignedUsers = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
+                          if (filterType === 'Company' && company !== selectedValue) return
+                          let assignedUsers = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
                           if (assignedUsers.length === 0) assignedUsers.push('Unassigned')
+                          if (filterType === 'User') assignedUsers = assignedUsers.filter(u => u === selectedValue)
                           assignedUsers.forEach(u => {
                             if (!breakdown[company]) breakdown[company] = {}
                             if (!breakdown[company][u]) {
@@ -694,13 +696,14 @@ export default function MonthlyReportPage() {
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[20%]">Client</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Assigned To</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Status</th>
+                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Due Date</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[10%]">Action</th>
                       </tr>
                     </thead>
                     <tbody>
                     {filteredTasks.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-secondary text-[14px]">
+                        <td colSpan="7" className="text-center py-8 text-secondary text-[14px]">
                           No tasks found for this selection.
                         </td>
                       </tr>
@@ -755,6 +758,12 @@ export default function MonthlyReportPage() {
                                  </span>
                                )
                             })()}
+                          </td>
+                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
+                            <div className="flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                              {row.dueDate || '-'}
+                            </div>
                           </td>
                           <td className="py-4 px-5 text-right">
                             <button 
