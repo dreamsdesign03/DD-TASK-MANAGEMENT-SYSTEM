@@ -574,7 +574,6 @@ export default function ChatPage() {
     const file = e.target.files[0]
     if (!file) return
 
-    // Limit to 4MB to keep payload size optimal
     if (file.size > 4 * 1024 * 1024) {
       addToast('File size should be less than 4MB', 'error')
       return
@@ -589,6 +588,32 @@ export default function ChatPage() {
       })
     }
     reader.readAsDataURL(file)
+  }
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault()
+        const blob = items[i].getAsFile()
+        if (!blob) continue
+        if (blob.size > 4 * 1024 * 1024) {
+          addToast('File size should be less than 4MB', 'error')
+          return
+        }
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          setAttachedFile({
+            name: blob.name || 'pasted-image.png',
+            type: blob.type,
+            dataUrl: event.target.result
+          })
+        }
+        reader.readAsDataURL(blob)
+        return
+      }
+    }
   }
 
   const webhookQueue = useRef(Promise.resolve())
@@ -1822,6 +1847,7 @@ export default function ChatPage() {
                       value={text}
                       onChange={(e) => handleTextChange(e.target.value, e.target.selectionStart)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }}
+                      onPaste={handlePaste}
                     />
                     <button
                       onClick={handleSend}

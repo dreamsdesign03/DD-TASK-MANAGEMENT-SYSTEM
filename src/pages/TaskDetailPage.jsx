@@ -527,6 +527,38 @@ export default function TaskDetailPage() {
     reader.readAsDataURL(file)
   }
 
+  const handleReplyPaste = (e) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        e.preventDefault()
+        const blob = items[i].getAsFile()
+        if (!blob) continue
+        if (blob.size > 4 * 1024 * 1024) {
+          setInfoModal({
+            title: 'File Too Large',
+            message: 'File size should be less than 4MB',
+            icon: 'warning',
+            color: 'text-[#f59e0b]'
+          })
+          return
+        }
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          setReplyAttachment({
+            name: blob.name || 'pasted-image.png',
+            type: blob.type,
+            dataUrl: event.target.result,
+            file: blob
+          })
+        }
+        reader.readAsDataURL(blob)
+        return
+      }
+    }
+  }
+
   const handleLike = (commentId) => {
     const updated = (task.comments || []).map((c) =>
       c.id === commentId ? { ...c, likes: (c.likes || 0) + 1 } : c
@@ -1152,6 +1184,7 @@ export default function TaskDetailPage() {
                             sendReply()
                           }
                         }}
+                        onPaste={handleReplyPaste}
                       ></textarea>
                       <div className="bg-gray-50 p-3 border-t border-[#E5E7EB] flex items-center justify-between">
                         <div className="flex items-center gap-3">
