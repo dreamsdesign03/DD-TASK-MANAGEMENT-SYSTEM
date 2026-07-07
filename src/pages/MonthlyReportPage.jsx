@@ -133,32 +133,40 @@ export default function MonthlyReportPage() {
 
       const pageWidth = pdf.internal.pageSize.getWidth()
       const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 8
+      const margin = 6
       const usableWidth = pageWidth - margin * 2
       const usableHeight = pageHeight - margin * 2
 
-      const imgWidth = usableWidth
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const contentRatio = canvas.height / canvas.width
+      const pageRatio = usableHeight / usableWidth
 
-      if (imgHeight <= usableHeight) {
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
+      if (contentRatio <= pageRatio) {
+        const imgHeight = usableWidth * contentRatio
+        const yOffset = margin + (usableHeight - imgHeight) / 2
+        pdf.addImage(imgData, 'PNG', margin, yOffset, usableWidth, imgHeight)
       } else {
-        let remainingHeight = canvas.height
-        let srcY = 0
-        let pageNum = 0
-        while (remainingHeight > 0) {
-          if (pageNum > 0) pdf.addPage()
-          const pageCanvas = document.createElement('canvas')
-          pageCanvas.width = canvas.width
-          pageCanvas.height = Math.min(canvas.height - srcY, (usableHeight / imgHeight) * canvas.height)
-          const ctx = pageCanvas.getContext('2d')
-          ctx.drawImage(canvas, 0, srcY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height)
-          const pageImgData = pageCanvas.toDataURL('image/png')
-          const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width
-          pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, pageImgHeight)
-          srcY += pageCanvas.height
-          remainingHeight -= pageCanvas.height
-          pageNum++
+        const totalPages = (contentRatio * usableWidth) / usableHeight
+        if (totalPages <= 1.35) {
+          const scale = usableHeight / (usableWidth * contentRatio)
+          pdf.addImage(imgData, 'PNG', margin, margin, usableWidth * scale, usableHeight)
+        } else {
+          const sliceH = Math.round((usableHeight * canvas.width) / usableWidth)
+          let remaining = canvas.height
+          let srcY = 0
+          while (remaining > 0) {
+            if (srcY > 0) pdf.addPage()
+            const pageH = Math.min(remaining, sliceH)
+            const pageCanvas = document.createElement('canvas')
+            pageCanvas.width = canvas.width
+            pageCanvas.height = pageH
+            const ctx = pageCanvas.getContext('2d')
+            ctx.drawImage(canvas, 0, srcY, canvas.width, pageH, 0, 0, canvas.width, pageH)
+            const pageImgData = pageCanvas.toDataURL('image/png')
+            const pageImgH = (pageH / canvas.width) * usableWidth
+            pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, pageImgH)
+            srcY += pageH
+            remaining -= pageH
+          }
         }
       }
 
