@@ -98,21 +98,27 @@ export default function MonthlyReportPage() {
             clonedElement.style.backgroundColor = '#fbf9f8'
             clonedElement.style.padding = '40px'
 
-            // Fix vertical clipping bug caused by truncate / overflow: hidden
             const truncates = clonedElement.querySelectorAll('.truncate')
             truncates.forEach(el => {
               el.classList.remove('truncate', 'max-w-[150px]', 'inline-block')
             })
 
-            // Fix vertical clipping and bad rendering of <select> elements in html2canvas
             const selects = clonedElement.querySelectorAll('select')
             selects.forEach(sel => {
               const selectedText = sel.options[sel.selectedIndex]?.text || ''
               const span = clonedDoc.createElement('span')
               span.innerText = selectedText
               span.className = sel.className + ' inline-block'
-              // Strip borders/backgrounds for a cleaner PDF look or keep them
               sel.parentNode.replaceChild(span, sel)
+            })
+
+            const dateInputs = clonedElement.querySelectorAll('input[type="date"]')
+            dateInputs.forEach(input => {
+              const span = clonedDoc.createElement('span')
+              span.innerText = input.value || '—'
+              span.style.cssText = input.style.cssText +
+                ' display: inline-flex; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; min-height: 44px;'
+              input.parentNode.replaceChild(span, input)
             })
           }
         }
@@ -120,15 +126,41 @@ export default function MonthlyReportPage() {
 
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: 'landscape',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 8
+      const usableWidth = pageWidth - margin * 2
+      const usableHeight = pageHeight - margin * 2
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+      const imgWidth = usableWidth
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+      if (imgHeight <= usableHeight) {
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight)
+      } else {
+        let remainingHeight = canvas.height
+        let srcY = 0
+        let pageNum = 0
+        while (remainingHeight > 0) {
+          if (pageNum > 0) pdf.addPage()
+          const pageCanvas = document.createElement('canvas')
+          pageCanvas.width = canvas.width
+          pageCanvas.height = Math.min(canvas.height - srcY, (usableHeight / imgHeight) * canvas.height)
+          const ctx = pageCanvas.getContext('2d')
+          ctx.drawImage(canvas, 0, srcY, canvas.width, pageCanvas.height, 0, 0, canvas.width, pageCanvas.height)
+          const pageImgData = pageCanvas.toDataURL('image/png')
+          const pageImgHeight = (pageCanvas.height * imgWidth) / canvas.width
+          pdf.addImage(pageImgData, 'PNG', margin, margin, imgWidth, pageImgHeight)
+          srcY += pageCanvas.height
+          remainingHeight -= pageCanvas.height
+          pageNum++
+        }
+      }
 
       const sanitizedRange = sanitizedDateRange.replace(/\s+/g, '_').replace(/-/g, '')
       const sanitizedValue = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
