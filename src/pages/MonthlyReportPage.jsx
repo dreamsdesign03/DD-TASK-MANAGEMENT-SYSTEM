@@ -97,6 +97,8 @@ export default function MonthlyReportPage() {
           if (clonedElement) {
             clonedElement.style.backgroundColor = '#fbf9f8'
             clonedElement.style.padding = '40px'
+            clonedElement.style.lineHeight = '1.5'
+            clonedElement.style.fontFamily = 'Arial, Helvetica, sans-serif'
 
             const truncates = clonedElement.querySelectorAll('.truncate')
             truncates.forEach(el => {
@@ -108,7 +110,7 @@ export default function MonthlyReportPage() {
               const selectedText = sel.options[sel.selectedIndex]?.text || ''
               const span = clonedDoc.createElement('span')
               span.innerText = selectedText
-              span.className = sel.className + ' inline-block'
+              span.style.cssText = 'display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; line-height: 1.4; white-space: nowrap;'
               sel.parentNode.replaceChild(span, sel)
             })
 
@@ -116,9 +118,48 @@ export default function MonthlyReportPage() {
             dateInputs.forEach(input => {
               const span = clonedDoc.createElement('span')
               span.innerText = input.value || '—'
-              span.style.cssText = input.style.cssText +
-                ' display: inline-flex; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; min-height: 44px;'
+              span.style.cssText = 'display: inline-flex; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; line-height: 1.4;'
               input.parentNode.replaceChild(span, input)
+            })
+
+            const dropdownTriggers = clonedElement.querySelectorAll('[style*="overflow: hidden"]')
+            dropdownTriggers.forEach(el => {
+              if (el.style.overflow === 'hidden') el.style.overflow = 'visible'
+              el.style.lineHeight = '1.4'
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+            })
+
+            const badges = clonedElement.querySelectorAll('span[class*="rounded-full"], span[class*="rounded"]')
+            badges.forEach(el => {
+              el.style.paddingTop = '4px'
+              el.style.paddingBottom = '4px'
+              el.style.lineHeight = '1.3'
+            })
+
+            const allSpans = clonedElement.querySelectorAll('span')
+            allSpans.forEach(el => {
+              if (el.classList.contains('material-symbols-outlined') || (el.className && el.className.includes('material-symbols'))) return
+              el.style.lineHeight = '1.5'
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+            })
+
+            const allTdTh = clonedElement.querySelectorAll('td, th')
+            allTdTh.forEach(el => {
+              el.style.lineHeight = '1.5'
+              el.style.paddingTop = '14px'
+              el.style.paddingBottom = '14px'
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+            })
+
+            const headings = clonedElement.querySelectorAll('h2, h3, h4')
+            headings.forEach(el => {
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+            })
+
+            const labels = clonedElement.querySelectorAll('label, p, button')
+            labels.forEach(el => {
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+              el.style.lineHeight = '1.5'
             })
           }
         }
