@@ -2281,12 +2281,29 @@ export function AppProvider({ children }) {
     const role = profile.systemRole || 'Employee';
     if (role === 'Admin') return tasks;
 
+    const normalizeName = (name) => {
+      if (!name) return '';
+      return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
+    };
+    const myName = normalizeName(profile.name);
+    const myEmail = String(profile.email || '').trim().toLowerCase();
+
     return tasks.filter(t => {
       const dept = (t.department || '').toUpperCase();
       if (['HR', 'ACCOUNT', 'SALES'].includes(dept)) {
         if (role === 'HR' && dept === 'HR') return true;
         if (role === 'Accountant' && dept === 'ACCOUNT') return true;
         if (role === 'Sales' && dept === 'SALES') return true;
+        
+        // If the current user is assigned to the task, they should always see it
+        if (myName || myEmail) {
+          const assignees = (t.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
+          const assigneeEmails = (t.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+          if (assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail))) {
+            return true;
+          }
+        }
+        
         return false;
       }
       return true;
