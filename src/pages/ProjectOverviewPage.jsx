@@ -8,7 +8,7 @@ import SelectDropdown from '../components/SelectDropdown'
 export default function ProjectOverviewPage() {
   const { projectName } = useParams()
   const navigate = useNavigate()
-  const { tasks, messagesByChatId, fetchMessages, addToast } = useApp()
+  const { tasks, messagesByChatId, fetchMessages, addToast, profile } = useApp()
   const [driveDocs, setDriveDocs] = useState([])
   const [isLoadingDocs, setIsLoadingDocs] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -18,6 +18,14 @@ export default function ProjectOverviewPage() {
   const [filterTaskId, setFilterTaskId] = useState('All Tasks')
   const [filterDept, setFilterDept] = useState('All Departments')
   const [docsViewMode, setDocsViewMode] = useState('List') // 'List' | 'Grid'
+
+  useEffect(() => {
+    const role = profile?.systemRole || 'Employee'
+    const hidden = role === 'Admin' ? [] : role === 'HR' ? ['ACCOUNT', 'SALES'] : role === 'Accountant' ? ['HR', 'SALES'] : role === 'Sales' ? ['HR', 'ACCOUNT'] : ['HR', 'ACCOUNT', 'SALES']
+    if (hidden.includes(filterDept)) {
+      setFilterDept('All Departments')
+    }
+  }, [profile?.systemRole, filterDept])
 
   const getDriveFileId = (url) => {
     if (!url) return null
@@ -63,8 +71,11 @@ export default function ProjectOverviewPage() {
 
   const uniqueDepts = useMemo(() => {
     const rawDepts = projectTasks.map(t => t.department || 'COMMON')
-    return ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(rawDepts.map(d => d.toUpperCase()))]
-  }, [projectTasks])
+    const allDepts = ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(rawDepts.map(d => d.toUpperCase()))]
+    const role = profile?.systemRole || 'Employee'
+    const hidden = role === 'Admin' ? [] : role === 'HR' ? ['ACCOUNT', 'SALES'] : role === 'Accountant' ? ['HR', 'SALES'] : role === 'Sales' ? ['HR', 'ACCOUNT'] : ['HR', 'ACCOUNT', 'SALES']
+    return allDepts.filter(d => !hidden.includes(d))
+  }, [projectTasks, profile?.systemRole])
   const deduplicatedDepts = [...new Set(uniqueDepts)]
 
   const recentTasks = useMemo(() => {
