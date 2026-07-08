@@ -497,13 +497,36 @@ export default function ClientsPage() {
 
               <div>
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">REGISTRATION DATE</label>
-                <input
-                  type="text"
-                  value={newClientForm.registrationDate}
-                  onChange={e => setNewClientForm({ ...newClientForm, registrationDate: e.target.value })}
-                  placeholder="e.g. 2026-07-08 14:30:00"
-                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
-                />
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="date"
+                      value={newClientForm.registrationDate ? newClientForm.registrationDate.split(' ')[0] : ''}
+                      onChange={e => {
+                        const dateVal = e.target.value
+                        const timePart = newClientForm.registrationDate && newClientForm.registrationDate.includes(' ') ? newClientForm.registrationDate.split(' ')[1] : '00:00:00'
+                        setNewClientForm({ ...newClientForm, registrationDate: dateVal ? `${dateVal} ${timePart}` : '' })
+                      }}
+                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none flex items-center gap-1 text-[13px]">
+                      <span className="material-symbols-outlined text-[18px]">calendar_today</span>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date()
+                      const todayStr = now.toLocaleDateString('en-CA')
+                      const timePart = newClientForm.registrationDate && newClientForm.registrationDate.includes(' ') ? newClientForm.registrationDate.split(' ')[1] : now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                      setNewClientForm({ ...newClientForm, registrationDate: `${todayStr} ${timePart}` })
+                    }}
+                    className="px-3 py-2.5 text-[12px] font-bold text-[#702c91] bg-[#702c91]/10 border border-[#702c91]/20 rounded-lg hover:bg-[#702c91]/20 transition-colors whitespace-nowrap flex items-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">today</span>
+                    Today
+                  </button>
+                </div>
               </div>
 
               <div>
