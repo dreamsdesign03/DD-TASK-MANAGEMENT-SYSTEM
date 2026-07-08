@@ -598,6 +598,21 @@ function doGet(e) {
   if (action === 'get_clients') {
     var sheet = ss.getSheetByName("Clients");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ clients: [] })).setMimeType(ContentService.MimeType.JSON);
+    // Ensure canonical header order so dynamic key mapping reads correct columns
+    var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+    var existingHeaders = sheet.getDataRange().getValues()[0];
+    var needsUpdate = existingHeaders.length !== requiredHeaders.length;
+    if (!needsUpdate) {
+      for (var hi = 0; hi < requiredHeaders.length; hi++) {
+        if (String(existingHeaders[hi]).trim().toLowerCase() !== requiredHeaders[hi].toLowerCase()) {
+          needsUpdate = true;
+          break;
+        }
+      }
+    }
+    if (needsUpdate) {
+      sheet.getRange(1, 1, 1, requiredHeaders.length).setValues([requiredHeaders]);
+    }
     var data = sheet.getDataRange().getValues();
     var clients = [];
     if (data.length > 1) {
