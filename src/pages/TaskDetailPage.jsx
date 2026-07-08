@@ -232,6 +232,18 @@ export default function TaskDetailPage() {
         if (v.includes('@')) emails.push(v)
       }
     })
+    // Always keep current user assigned
+    if (profile?.email && !emails.some(e => e.toLowerCase() === profile.email.toLowerCase())) {
+      const selfEmp = employees?.find(e => e.email?.toLowerCase() === profile.email.toLowerCase())
+      if (selfEmp) {
+        names.push(selfEmp.name)
+        emails.push(selfEmp.email)
+      } else if (profile.name) {
+        names.push(profile.name)
+        emails.push(profile.email)
+      }
+      addToast('You cannot remove yourself from the task', 'warning')
+    }
     updateTask(task.id, {
       assignedTo: names.join(', '),
       assignedEmail: emails.join(', ')
@@ -1606,15 +1618,17 @@ export default function TaskDetailPage() {
                 const memberEmail = m.email || ''
                 const isChecked = selectedAssignees.some(v => v === memberEmail || v === m.name)
                 const value = memberEmail || m.name
+                const isSelf = memberEmail && profile?.email && memberEmail.toLowerCase() === profile.email.toLowerCase()
                 return (
-                  <label key={memberEmail || m.name} className="flex items-center gap-4 px-3 py-2.5 hover:bg-purple-50/50 cursor-pointer rounded-lg transition-colors group">
+                  <label key={memberEmail || m.name} className={`flex items-center gap-4 px-3 py-2.5 rounded-lg transition-colors group ${isSelf ? 'opacity-70' : 'hover:bg-purple-50/50 cursor-pointer'}`}>
                     <input
                       type="checkbox"
                       checked={isChecked}
+                      disabled={isSelf}
                       onChange={(e) => {
                         if (e.target.checked) {
                           setSelectedAssignees([...selectedAssignees.filter(v => v !== m.name && v !== memberEmail), value])
-                        } else {
+                        } else if (!isSelf) {
                           setSelectedAssignees(selectedAssignees.filter(v => v !== value && v !== m.name && v !== memberEmail))
                         }
                       }}
@@ -1623,6 +1637,7 @@ export default function TaskDetailPage() {
                     <div className="flex flex-col">
                       <span className="text-[14px] text-gray-700 font-medium group-hover:text-[#702c91] transition-colors">{m.name}</span>
                       {memberEmail && memberEmail !== m.name && <span className="text-[11px] text-gray-400">{memberEmail}</span>}
+                      {isSelf && <span className="text-[10px] text-gray-400 italic">(you)</span>}
                     </div>
                   </label>
                 )
