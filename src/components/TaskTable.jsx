@@ -168,7 +168,20 @@ export default function TaskTable() {
 
   const canAccessTask = (task) => {
     if (!profile) return false;
-    if (profile.systemRole !== 'Employee') return true;
+    if (profile.systemRole === 'Admin') return true;
+
+    const role = profile.systemRole || 'Employee';
+    const dept = (task.department || '').toUpperCase();
+    const isRestricted = ['HR', 'ACCOUNT', 'SALES'].includes(dept);
+
+    if (isRestricted) {
+      if (role === 'HR' && dept === 'HR') return true;
+      if (role === 'Accountant' && dept === 'ACCOUNT') return true;
+      if (role === 'Sales' && dept === 'SALES') return true;
+    } else if (role !== 'Employee') {
+      return true;
+    }
+
     const normalizeName = (name) => {
       if (!name) return '';
       return String(name).toLowerCase().replace(/[^\w]/g, '').trim();

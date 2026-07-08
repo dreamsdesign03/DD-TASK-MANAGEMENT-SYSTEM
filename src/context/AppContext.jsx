@@ -1645,7 +1645,7 @@ export function AppProvider({ children }) {
           assignedBy: mergedTask.assignedBy,
           assignedTo: mergedTask.assignedTo,
           employeeId: (employees?.filter(e => (mergedTask.assignedTo || '').split(',').map(s => s.trim()).includes(e.name)) || []).map(e => e.id).join(', '),
-          assignedEmail: (employees?.filter(e => (mergedTask.assignedTo || '').split(',').map(s => s.trim()).includes(e.name)) || []).map(e => e.email).join(', '),
+          assignedEmail: mergedTask.assignedEmail || '',
           department: mergedTask.department || 'COMMON',
           assignedDate: mergedTask.assignedDate || mergedTask.assigned || new Date().toISOString().split('T')[0],
           dueDate: mergedTask.dueDate,

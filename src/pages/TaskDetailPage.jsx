@@ -93,7 +93,24 @@ export default function TaskDetailPage() {
 
   const canViewTask = (() => {
     if (!profile || !task?.id) return true;
-    if (profile.systemRole !== 'Employee') return true;
+    if (profile.systemRole === 'Admin') return true;
+
+    const role = profile.systemRole || 'Employee';
+    const dept = (task.department || '').toUpperCase();
+    const isRestricted = ['HR', 'ACCOUNT', 'SALES'].includes(dept);
+
+    // Department-restricted tasks: only matching role or assigned user
+    if (isRestricted) {
+      if (role === 'HR' && dept === 'HR') return true;
+      if (role === 'Accountant' && dept === 'ACCOUNT') return true;
+      if (role === 'Sales' && dept === 'SALES') return true;
+      // Not the right department — fall through to assignment check
+    } else if (role !== 'Employee') {
+      // Non-restricted: all non-Employee roles can view
+      return true;
+    }
+
+    // Assignment check (email-first for all roles)
     const normalizeName = (name) => {
       if (!name) return '';
       return String(name).toLowerCase().replace(/[^\w]/g, '').trim();
@@ -202,7 +219,23 @@ export default function TaskDetailPage() {
 
 
   const handleSaveAssignees = () => {
-    updateTask(task.id, { assignedTo: selectedAssignees.join(', ') })
+    const names = []
+    const emails = []
+    selectedAssignees.filter(Boolean).forEach(v => {
+      const emp = employees?.find(e => e.email === v)
+      if (emp) {
+        names.push(emp.name)
+        emails.push(emp.email)
+      } else {
+        names.push(v)
+        // Only treat as email if it contains @, otherwise it's a fallback name
+        if (v.includes('@')) emails.push(v)
+      }
+    })
+    updateTask(task.id, {
+      assignedTo: names.join(', '),
+      assignedEmail: emails.join(', ')
+    })
     setIsAssigneeModalOpen(false)
   }
 
@@ -281,8 +314,13 @@ export default function TaskDetailPage() {
 
   const subtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'))
 
-  const teamMembers = employees ? employees.map(e => e.name) : []
-  const uniqueTeamMembers = [...new Set([...teamMembers, ...selectedAssignees].filter(Boolean))]
+  const teamMembers = employees ? employees.map(e => ({ name: e.name, email: e.email })) : []
+  const uniqueTeamMembers = [...new Map(
+    [...teamMembers, ...selectedAssignees.filter(Boolean).map(email => {
+      const emp = employees?.find(e => e.email === email)
+      return emp ? { name: emp.name, email: emp.email } : { name: email, email }
+    })].map(m => [String(m.email).toLowerCase(), m])
+  ).values()]
   const [isUploading, setIsUploading] = useState(false)
   const scrollRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -635,7 +673,11 @@ export default function TaskDetailPage() {
   const myEmailStr = String(profile?.email || '').trim().toLowerCase()
   const isAssignee = String(task?.assignedTo || '').toLowerCase().includes(myNameStr) || String(task?.assignedEmail || '').toLowerCase().includes(myEmailStr)
   const isAssigner = String(task?.assignedBy || '').toLowerCase() === myNameStr
-  const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
+  const restrictedDepts = ['HR', 'ACCOUNT', 'SALES']
+  const taskDept = (task?.department || '').toUpperCase()
+  const role = profile?.systemRole || 'Employee'
+  const isSameDept = (role === 'HR' && taskDept === 'HR') || (role === 'Accountant' && taskDept === 'ACCOUNT') || (role === 'Sales' && taskDept === 'SALES')
+  const canManageTimer = isAssignee || isAssigner || role === 'Admin' || isSameDept || (role !== 'Employee' && !restrictedDepts.includes(taskDept))
 
   if (!task || !task.id) {
     return (
@@ -1264,7 +1306,17 @@ export default function TaskDetailPage() {
                       })}
                       <button
                         onClick={() => {
-                          setSelectedAssignees((task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean))
+                          const emails = (task.assignedEmail || '').split(',').map(s => s.trim()).filter(Boolean)
+                          if (emails.length > 0) {
+                            setSelectedAssignees(emails)
+                          } else {
+                            const names = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)
+                            const matchedEmails = names.map(name => {
+                              const emp = employees?.find(e => e.name === name)
+                              return emp ? emp.email : null
+                            }).filter(Boolean)
+                            setSelectedAssignees(matchedEmails.length > 0 ? [...new Set(matchedEmails)] : names)
+                          }
                           setIsAssigneeModalOpen(true)
                         }}
                         className="bg-transparent border-none text-[#702c91] font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:underline mt-1 p-0 transition-colors"
@@ -1550,23 +1602,31 @@ export default function TaskDetailPage() {
               </button>
             </div>
             <div className="overflow-y-auto custom-scrollbar flex-1 space-y-1 py-2">
-              {uniqueTeamMembers.map((m) => (
-                <label key={m} className="flex items-center gap-4 px-3 py-2.5 hover:bg-purple-50/50 cursor-pointer rounded-lg transition-colors group">
-                  <input
-                    type="checkbox"
-                    checked={selectedAssignees.includes(m)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedAssignees([...selectedAssignees, m])
-                      } else {
-                        setSelectedAssignees(selectedAssignees.filter(name => name !== m))
-                      }
-                    }}
-                    className="w-4 h-4 cursor-pointer accent-[#702c91]"
-                  />
-                  <span className="text-[14px] text-gray-700 font-medium group-hover:text-[#702c91] transition-colors">{m}</span>
-                </label>
-              ))}
+              {uniqueTeamMembers.map((m) => {
+                const memberEmail = m.email || ''
+                const isChecked = selectedAssignees.some(v => v === memberEmail || v === m.name)
+                const value = memberEmail || m.name
+                return (
+                  <label key={memberEmail || m.name} className="flex items-center gap-4 px-3 py-2.5 hover:bg-purple-50/50 cursor-pointer rounded-lg transition-colors group">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedAssignees([...selectedAssignees.filter(v => v !== m.name && v !== memberEmail), value])
+                        } else {
+                          setSelectedAssignees(selectedAssignees.filter(v => v !== value && v !== m.name && v !== memberEmail))
+                        }
+                      }}
+                      className="w-4 h-4 cursor-pointer accent-[#702c91]"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-[14px] text-gray-700 font-medium group-hover:text-[#702c91] transition-colors">{m.name}</span>
+                      {memberEmail && memberEmail !== m.name && <span className="text-[11px] text-gray-400">{memberEmail}</span>}
+                    </div>
+                  </label>
+                )
+              })}
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
               <button
