@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
 import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate } from '../utils/activityLog'
@@ -380,9 +380,10 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('dd_profile')
       if (saved) {
         const parsed = JSON.parse(saved)
-        // Force reset the avatar to empty so the unwanted photo is removed
-        parsed.avatar = ''
-        return parsed
+        if (parsed && typeof parsed === 'object') {
+          parsed.avatar = ''
+          return parsed
+        }
       }
     } catch (err) {
       console.warn('Failed to parse saved profile:', err)
@@ -2276,7 +2277,7 @@ export function AppProvider({ children }) {
       mqttClient.removeListener('message', handleSyncMessage)
     }
   }, [profile])
-  const visibleTasks = React.useMemo(() => {
+  const visibleTasks = useMemo(() => {
     if (!profile) return tasks;
     const role = profile.systemRole || 'Employee';
     if (role === 'Admin') return tasks;
