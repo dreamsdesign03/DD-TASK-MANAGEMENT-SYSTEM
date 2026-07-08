@@ -19,6 +19,13 @@ const AVAILABLE_SERVICES = [
   "360 Project"
 ]
 
+const formatDate = (val) => {
+  if (!val) return '-'
+  const d = new Date(String(val).replace(' ', 'T'))
+  if (isNaN(d.getTime())) return String(val)
+  return d.toLocaleDateString('en-GB') // dd/mm/yyyy
+}
+
 export default function ClientsPage() {
   const { clients, fetchClients, profile, addToast } = useApp()
   const [isUpdating, setIsUpdating] = useState(false)
@@ -401,7 +408,7 @@ export default function ClientsPage() {
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT START DATE</label>
                 <p className="text-[14px] text-[#4B5563] m-0 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[16px] text-[#9CA3AF]">calendar_today</span>
-                  {viewingClient['Project start Date'] || '-'}
+                  {formatDate(viewingClient['Project start Date'])}
                 </p>
               </div>
 
@@ -428,7 +435,7 @@ export default function ClientsPage() {
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT COMPLETION DATE</label>
                   <p className="text-[14px] text-[#EF4444] m-0 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px]">event_busy</span>
-                    {viewingClient['Project Completion Date']}
+                    {formatDate(viewingClient['Project Completion Date'])}
                   </p>
                 </div>
               )}
