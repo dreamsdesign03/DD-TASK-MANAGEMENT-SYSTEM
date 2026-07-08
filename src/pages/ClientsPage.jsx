@@ -426,6 +426,22 @@ export default function ClientsPage() {
                   </p>
                 </div>
               )}
+
+              {/* Drive Folder Link (shown if set) */}
+              {(viewingClient['Drive Folder Link'] || viewingClient['Drive folder link']) && (
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">DRIVE FOLDER</label>
+                  <a
+                    href={viewingClient['Drive Folder Link'] || viewingClient['Drive folder link']}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[14px] text-[#702c91] hover:underline font-medium m-0 flex items-center gap-2 w-fit"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">folder_open</span>
+                    Open Project Folder
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">

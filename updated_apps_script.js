@@ -374,10 +374,10 @@ function doPost(e) {
       var sheet = ss.getSheetByName("Clients");
       if (!sheet) {
         sheet = ss.insertSheet("Clients");
-        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"]);
+        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date", "Drive Folder Link"]);
       } else {
         // Write the canonical header row so column order always matches appendRow indices
-        var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+        var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date", "Drive Folder Link"];
         var existingHeaders = sheet.getDataRange().getValues()[0];
         var needsUpdate = existingHeaders.length !== requiredHeaders.length;
         if (!needsUpdate) {
@@ -405,19 +405,7 @@ function doPost(e) {
       var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
       var projectStartDate = payload.projectStartDate || Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
 
-      sheet.appendRow([
-        newId,
-        payload.projectName || "",
-        payload.clientName || "",
-        payload.contactEmail || "",
-        formattedPhone,
-        projectStartDate,
-        payload.industry || "",
-        "Yes",
-        payload.services || "",
-        "" // Project Completion Date — set on deactivation
-      ]);
-
+      var folderUrl = "";
       // Create Drive folder for this client
       try {
         var driveFolderName = "Dreamsdesign's Projects Attachments";
@@ -434,11 +422,28 @@ function doPost(e) {
         if (!clientFolders.hasNext()) {
           var clientFolder = driveRoot.createFolder(clientProjectName);
           clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          folderUrl = clientFolder.getUrl();
+        } else {
+          folderUrl = clientFolders.next().getUrl();
         }
       } catch (driveErr) {
         // Non-critical: log but don't fail the client creation
         console.error('Drive folder creation failed: ' + driveErr.message);
       }
+
+      sheet.appendRow([
+        newId,
+        payload.projectName || "",
+        payload.clientName || "",
+        payload.contactEmail || "",
+        formattedPhone,
+        projectStartDate,
+        payload.industry || "",
+        "Yes",
+        payload.services || "",
+        "", // Project Completion Date — set on deactivation
+        folderUrl
+      ]);
 
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
@@ -601,7 +606,7 @@ function doGet(e) {
     var sheet = ss.getSheetByName("Clients");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ clients: [] })).setMimeType(ContentService.MimeType.JSON);
     // Ensure canonical header order so dynamic key mapping reads correct columns
-    var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+    var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date", "Drive Folder Link"];
     var existingHeaders = sheet.getDataRange().getValues()[0];
     var needsUpdate = existingHeaders.length !== requiredHeaders.length;
     if (!needsUpdate) {
