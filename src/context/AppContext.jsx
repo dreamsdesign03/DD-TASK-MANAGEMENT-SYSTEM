@@ -559,7 +559,21 @@ export function AppProvider({ children }) {
 
   const [groupChats, setGroupChats] = useState([])
   const [groupMembers, setGroupMembers] = useState({})
-  const [clients, setClients] = useState([])
+  
+  const [clients, setClients] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_clients_v1')
+      if (saved) return JSON.parse(saved)
+    } catch (err) {
+      console.warn('Failed to parse saved clients:', err)
+    }
+    return []
+  })
+
+  useEffect(() => {
+    localStorage.setItem('dd_clients_v1', JSON.stringify(clients))
+  }, [clients])
+
   const [messagesByChatId, setMessagesByChatId] = useState(INITIAL_MESSAGES)
   const [activeChatSession, setActiveChatSession] = useState(null)
   const [readReceiptsByChatId, setReadReceiptsByChatId] = useState({})
