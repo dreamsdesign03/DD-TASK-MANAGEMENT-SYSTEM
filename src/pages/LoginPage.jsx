@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode'
 import SelectDropdown from '../components/SelectDropdown'
 
 const LOGO_SRC = '/logo.png'
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwexJbwb_P_k1Wbv8EwsgRAsmB045lQ1vJvZxPgha5NFvWMPlR-FFxmZl75daK5B7o/exec'
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzOXpExkwSnjLLuLlE1yTddoUU-bBdMMJfYAtW70Xttqj_4WSH3BgQO1sJZrdy_yEod/exec'
 
 // Animated chevron arrow for the button
 const ChevronRight = () => (
