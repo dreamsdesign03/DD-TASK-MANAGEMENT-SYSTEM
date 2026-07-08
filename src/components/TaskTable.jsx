@@ -158,6 +158,15 @@ export default function TaskTable() {
     }
   }, [location.pathname, profile?.name])
 
+  // Reset department filter if current selection is hidden by role
+  useEffect(() => {
+    const role = profile?.systemRole || 'Employee'
+    const hidden = role === 'Admin' ? [] : role === 'HR' ? ['ACCOUNT', 'SALES'] : role === 'Accountant' ? ['HR', 'SALES'] : role === 'Sales' ? ['HR', 'ACCOUNT'] : ['HR', 'ACCOUNT', 'SALES']
+    if (hidden.includes(selectedDepartment)) {
+      setSelectedDepartment('All Departments')
+    }
+  }, [profile?.systemRole, selectedDepartment])
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
   const [tasksPerPage, setTasksPerPage] = useState(10)
@@ -320,7 +329,10 @@ export default function TaskTable() {
   const uniqueUsers = ['All Users', ...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)))]
 
   // Extract unique departments
-  const uniqueDepartments = ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(tasks.map(t => (t.department || 'COMMON').toUpperCase()))]
+  const allDepts = ['All Departments', 'COMMON', 'SOCIAL MEDIA', 'WEBSITE', 'SEO', 'GRAPHIC', 'HR', 'ACCOUNT', 'AMC', 'SALES', ...new Set(tasks.map(t => (t.department || 'COMMON').toUpperCase()))]
+  const role = profile?.systemRole || 'Employee'
+  const hiddenDepts = role === 'Admin' ? [] : role === 'HR' ? ['ACCOUNT', 'SALES'] : role === 'Accountant' ? ['HR', 'SALES'] : role === 'Sales' ? ['HR', 'ACCOUNT'] : ['HR', 'ACCOUNT', 'SALES']
+  const uniqueDepartments = allDepts.filter(d => !hiddenDepts.includes(d))
   const deduplicatedDepartments = [...new Set(uniqueDepartments)]
 
   // 1. Filter tasks
