@@ -426,7 +426,7 @@ export default function LoginPage() {
                     <label htmlFor="phone" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Phone Number</label>
                   </div>
                   <div className="relative">
-                    <SelectDropdown value={systemRole} onChange={setSystemRole} options={['Employee', 'Manager', 'Admin', 'Sales', 'HR', 'Accountant']} style={{ width: '100%', height: 54, fontSize: 14 }} />
+                    <SelectDropdown dropdownUp={true} value={systemRole} onChange={setSystemRole} options={['Employee', 'Manager', 'Admin', 'Sales', 'HR', 'Accountant']} style={{ width: '100%', height: 54, fontSize: 14 }} />
                   </div>
                 </>
               )}
