@@ -33,6 +33,7 @@ export default function ClientsPage() {
     industry: '',
     services: []
   })
+  const [viewingClient, setViewingClient] = useState(null)
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [newClientForm, setNewClientForm] = useState({
@@ -41,11 +42,18 @@ export default function ClientsPage() {
     emails: [''],
     phones: [''],
     industry: '',
-    services: []
+    services: [],
+    registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
   })
+
+  const openClientInfo = (client) => {
+    if (profile?.systemRole === 'Employee') return
+    setViewingClient(client)
+  }
 
   const openEditModal = (client) => {
     if (profile?.systemRole === 'Employee') return
+    setViewingClient(null)
     const emails = client['Contact Email'] ? String(client['Contact Email']).split(',').map(e => e.trim()) : ['']
     const phones = client['Phone'] ? String(client['Phone']).split(',').map(p => p.trim()) : ['']
     const servicesStr = client['Services'] || client['services'] || ''
@@ -105,6 +113,7 @@ export default function ClientsPage() {
   const handleToggleStatus = async (client) => {
     const isActive = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
     const newStatus = String(isActive).toLowerCase() === 'yes' ? 'No' : 'Yes'
+    const nowIST = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
 
     setIsUpdating(true)
     try {
@@ -121,6 +130,11 @@ export default function ClientsPage() {
       const data = await res.json()
       if (data.ok) {
         await fetchClients()
+        // Update viewingClient state immediately
+        setViewingClient(prev => {
+          if (!prev || String(prev['Client ID']) !== String(client['Client ID'])) return prev
+          return { ...prev, 'Is Active': newStatus, 'Project Completion Date': newStatus === 'No' ? nowIST : (prev['Project Completion Date'] || '') }
+        })
         if (mqttClient && mqttClient.connected) {
           setTimeout(() => {
             mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
@@ -153,6 +167,7 @@ export default function ClientsPage() {
           clientName: newClientForm.clientName.trim(),
           contactEmail: newClientForm.emails.filter(e => e.trim()).join(', '),
           phone: newClientForm.phones.filter(p => p.trim()).join(', '),
+          registrationDate: newClientForm.registrationDate,
           industry: newClientForm.industry.trim(),
           services: newClientForm.services.join(', '),
           userEmail: profile?.email
@@ -162,7 +177,10 @@ export default function ClientsPage() {
       if (data.ok) {
         addToast('Client added successfully!', 'success')
         setShowNewClientModal(false)
-        setNewClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
+        setNewClientForm({
+          projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [],
+          registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+        })
         await fetchClients()
         if (mqttClient && mqttClient.connected) {
           setTimeout(() => {
@@ -222,7 +240,10 @@ export default function ClientsPage() {
                   if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
                 }}
                 onClick={() => {
-                  setNewClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
+                  setNewClientForm({
+                    projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [],
+                    registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+                  })
                   setShowNewClientModal(true)
                 }}
                 title="Add Client"
@@ -299,7 +320,7 @@ export default function ClientsPage() {
                           <td
                             className="py-4 px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
                             onClick={() => {
-                              if (profile?.systemRole !== 'Employee') openEditModal(client)
+                              if (profile?.systemRole !== 'Employee') openClientInfo(client)
                             }}
                           >
                             {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
@@ -350,6 +371,85 @@ export default function ClientsPage() {
           </div>
       </main>
 
+      {/* Client Info Modal (click on row) */}
+      {viewingClient && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-[420px] rounded-2xl shadow-2xl p-6 flex flex-col gap-6 animate-scale-in">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">business</span>
+                {viewingClient['Project Name'] || 'Client'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setViewingClient(null)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              {/* Client Name */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">CLIENT NAME</label>
+                <p className="text-[16px] font-bold text-[#1E1B2E] m-0">{viewingClient['Client Name'] || viewingClient['Company Name'] || '-'}</p>
+              </div>
+
+              {/* Registration Date */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">REGISTRATION DATE</label>
+                <p className="text-[14px] text-[#4B5563] m-0 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[16px] text-[#9CA3AF]">calendar_today</span>
+                  {viewingClient['Registration Date'] || '-'}
+                </p>
+              </div>
+
+              {/* Active Status */}
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">ACTIVE STATUS</label>
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`relative inline-block w-11 h-6 align-middle select-none transition duration-200 ease-in cursor-pointer ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => { if (!isUpdating && profile?.systemRole !== 'Employee') handleToggleStatus(viewingClient) }}
+                  >
+                    <div className={`absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none transition-transform duration-300 ease-in-out z-10 ${(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'translate-x-5 border-[#10B981]' : 'translate-x-0 border-gray-300' })()}`}/>
+                    <div className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ease-in-out ${(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'bg-[#10B981]' : 'bg-gray-300' })()}`}/>
+                  </div>
+                  <span className={`text-[12px] font-bold ${(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'text-[#10B981]' : 'text-gray-400' })()}`}>
+                    {(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'Active' : 'Inactive' })()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Project Completion Date (shown if set) */}
+              {viewingClient['Project Completion Date'] && (
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT COMPLETION DATE</label>
+                  <p className="text-[14px] text-[#EF4444] m-0 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px]">event_busy</span>
+                    {viewingClient['Project Completion Date']}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => {
+                  openEditModal(viewingClient)
+                }}
+                className="px-5 py-2 btn-gradient border-none rounded-lg font-bold shadow-md text-[13px] cursor-pointer flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[16px]">edit_square</span>
+                Edit Full Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add New Client Modal */}
       {showNewClientModal && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -392,6 +492,16 @@ export default function ClientsPage() {
                   onChange={e => setNewClientForm({ ...newClientForm, clientName: e.target.value })}
                   placeholder="e.g. Dreamsdesign"
                   className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">REGISTRATION DATE</label>
+                <input
+                  type="text"
+                  value={newClientForm.registrationDate}
+                  readOnly
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-500 outline-none shadow-sm cursor-not-allowed"
                 />
               </div>
 

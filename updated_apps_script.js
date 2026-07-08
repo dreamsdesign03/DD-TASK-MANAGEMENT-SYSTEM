@@ -374,12 +374,24 @@ function doPost(e) {
       var sheet = ss.getSheetByName("Clients");
       if (!sheet) {
         sheet = ss.insertSheet("Clients");
-        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Industry", "Is Active"]);
+        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"]);
       } else {
-        // Rename the old headers to match the new schema
-        sheet.getRange("B1").setValue("Project Name");
-        sheet.getRange("C1").setValue("Client Name");
-        sheet.getRange("H1").setValue("Services");
+        // Ensure all required columns exist
+        var headers = sheet.getDataRange().getValues()[0];
+        var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+        for (var hi = 0; hi < requiredHeaders.length; hi++) {
+          var found = false;
+          for (var hj = 0; hj < headers.length; hj++) {
+            if (String(headers[hj]).trim().toLowerCase() === requiredHeaders[hi].toLowerCase()) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            sheet.getRange(1, headers.length + 1).setValue(requiredHeaders[hi]);
+            headers.push(requiredHeaders[hi]);
+          }
+        }
       }
 
       var data = sheet.getDataRange().getValues();
@@ -392,6 +404,7 @@ function doPost(e) {
       var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
 
       var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
+      var registrationDate = payload.registrationDate || Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
 
       sheet.appendRow([
         newId,
@@ -399,9 +412,11 @@ function doPost(e) {
         payload.clientName || "",
         payload.contactEmail || "",
         formattedPhone,
+        registrationDate,
         payload.industry || "",
         "Yes",
-        payload.services || ""
+        payload.services || "",
+        "" // Project Completion Date — set on deactivation
       ]);
 
       // Create Drive folder for this client
@@ -455,9 +470,17 @@ function doPost(e) {
             var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
             sheet.getRange(i + 1, 5).setValue(formattedPhone);
           }
-          if (payload.industry !== undefined) sheet.getRange(i + 1, 6).setValue(payload.industry);
-          if (payload.isActive !== undefined) sheet.getRange(i + 1, 7).setValue(payload.isActive);
-          if (payload.services !== undefined) sheet.getRange(i + 1, 8).setValue(payload.services);
+          if (payload.registrationDate !== undefined) sheet.getRange(i + 1, 6).setValue(payload.registrationDate);
+          if (payload.industry !== undefined) sheet.getRange(i + 1, 7).setValue(payload.industry);
+          if (payload.isActive !== undefined) {
+            sheet.getRange(i + 1, 8).setValue(payload.isActive);
+            // When deactivating, auto-set Project Completion Date to current IST time
+            if (String(payload.isActive).toLowerCase() === 'no' || payload.isActive === false) {
+              var completionTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+              sheet.getRange(i + 1, 10).setValue(completionTime);
+            }
+          }
+          if (payload.services !== undefined) sheet.getRange(i + 1, 9).setValue(payload.services);
           found = true;
           break;
         }
