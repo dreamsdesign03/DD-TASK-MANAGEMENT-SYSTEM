@@ -2,6 +2,9 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp, mqttClient } from '../context/AppContext'
+import { formatDateShort } from '../utils/dateFormat'
+
+const safeDate = (val) => val ? formatDateShort(val) : '-'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -18,13 +21,6 @@ const AVAILABLE_SERVICES = [
   "Ai Automation and Business Growth",
   "360 Project"
 ]
-
-const formatDate = (val) => {
-  if (!val) return '-'
-  const d = new Date(String(val).replace(' ', 'T'))
-  if (isNaN(d.getTime())) return String(val)
-  return d.toLocaleDateString('en-GB') // dd/mm/yyyy
-}
 
 export default function ClientsPage() {
   const { clients, fetchClients, profile, addToast } = useApp()
@@ -293,14 +289,11 @@ export default function ClientsPage() {
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Client Email(s)</th>
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Phone</th>
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Industry</th>
-                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center">Active Status</th>
+                      <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Project Start Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredClients.map((client, idx) => {
-                      const isActiveVal = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
-                      const isActive = String(isActiveVal).toLowerCase() === 'yes' || isActiveVal === true
-
                       return (
                         <tr 
                           key={client['Client ID'] || idx} 
@@ -348,15 +341,9 @@ export default function ClientsPage() {
                           <td className="py-4 px-6 text-[13px] text-[#6B7280]">
                             {client['Industry'] || '-'}
                           </td>
-                          {/* Active Status */}
-                          <td className="py-4 px-6 flex flex-col items-center justify-center gap-1">
-                            <div className={`relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in mt-1 ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`} onClick={() => { if (!isUpdating && profile?.systemRole !== 'Employee') handleToggleStatus(client) }}>
-                              <div className={`absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none transition-transform duration-300 ease-in-out z-10 ${isActive ? 'translate-x-5 border-[#10B981]' : 'translate-x-0 border-gray-300'}`}/>
-                              <div className={`block overflow-hidden h-5 rounded-full transition-colors duration-300 ease-in-out ${isActive ? 'bg-[#10B981]' : 'bg-gray-300'}`}/>
-                            </div>
-                            <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? 'text-[#10B981]' : 'text-gray-400'}`}>
-                              {isActive ? 'Active' : 'Inactive'}
-                            </span>
+                          {/* Project Start Date */}
+                          <td className="py-4 px-6 text-[13px] text-[#4B5563]">
+                            {safeDate(client['Project start Date'])}
                           </td>
                         </tr>
                       );
@@ -408,7 +395,7 @@ export default function ClientsPage() {
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT START DATE</label>
                 <p className="text-[14px] text-[#4B5563] m-0 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[16px] text-[#9CA3AF]">calendar_today</span>
-                  {formatDate(viewingClient['Project start Date'])}
+                  {safeDate(viewingClient['Project start Date'])}
                 </p>
               </div>
 
@@ -435,7 +422,7 @@ export default function ClientsPage() {
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT COMPLETION DATE</label>
                   <p className="text-[14px] text-[#EF4444] m-0 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px]">event_busy</span>
-                    {formatDate(viewingClient['Project Completion Date'])}
+                    {safeDate(viewingClient['Project Completion Date'])}
                   </p>
                 </div>
               )}
