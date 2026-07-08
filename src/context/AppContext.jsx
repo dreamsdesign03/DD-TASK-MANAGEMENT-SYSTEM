@@ -2290,9 +2290,19 @@ export function AppProvider({ children }) {
         if (myName || myEmail) {
           const assignees = (t.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
           const assigneeEmails = (t.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-          if (assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail))) {
-            return true;
+          
+          let hasAccess = false;
+          if (assignees.includes(myName)) {
+            if (assigneeEmails.length > 0 && myEmail) {
+              hasAccess = assigneeEmails.includes(myEmail);
+            } else {
+              hasAccess = true;
+            }
+          } else if (myEmail && assigneeEmails.includes(myEmail)) {
+            hasAccess = true;
           }
+
+          if (hasAccess) return true;
         }
         
         return false;

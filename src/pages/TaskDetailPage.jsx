@@ -102,7 +102,17 @@ export default function TaskDetailPage() {
     const myEmail = String(profile.email || '').trim().toLowerCase();
     const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
     const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
+    let hasAccess = false;
+    if (assignees.includes(myName)) {
+      if (assigneeEmails.length > 0 && myEmail) {
+        hasAccess = assigneeEmails.includes(myEmail);
+      } else {
+        hasAccess = true;
+      }
+    } else if (myEmail && assigneeEmails.includes(myEmail)) {
+      hasAccess = true;
+    }
+    return hasAccess;
   })();
 
   useEffect(() => {
@@ -1319,10 +1329,19 @@ export default function TaskDetailPage() {
                   if (profile.systemRole !== 'Employee') return true;
 
                   const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-                  const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-                  return assignees.includes(myName) || (myEmail && assigneeEmails.includes(myEmail));
-                })();
+    const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    let hasAccess = false;
+    if (assignees.includes(myName)) {
+      if (assigneeEmails.length > 0 && myEmail) {
+        hasAccess = assigneeEmails.includes(myEmail);
+      } else {
+        hasAccess = true;
+      }
+    } else if (myEmail && assigneeEmails.includes(myEmail)) {
+      hasAccess = true;
+    }
+    return hasAccess;
+  })();
 
                 if (!canUpdateStatus) {
                   return (
