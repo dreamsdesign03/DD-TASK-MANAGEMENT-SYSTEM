@@ -17,6 +17,10 @@ export default defineConfig({
   server: {
     port: 8000,
     strictPort: true,
-    allowedHosts: true
+    allowedHosts: true,
+    headers: {
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+    }
   }
 })
