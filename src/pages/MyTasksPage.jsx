@@ -31,7 +31,8 @@ export default function MyTasksPage() {
   // Form states
   const [title, setTitle] = useState('')
   const [client, setClient] = useState(() => companyList[0] || '')
-  const [department, setDepartment] = useState('COMMON')
+  const defaultDept = profile?.systemRole === 'HR' ? 'HR' : profile?.systemRole === 'Accountant' ? 'ACCOUNT' : profile?.systemRole === 'Sales' ? 'SALES' : 'COMMON'
+  const [department, setDepartment] = useState(defaultDept)
   const [assignedTo, setAssignedTo] = useState([profile?.name || ''])
   const uniqueTeamMembers = [...new Set([...teamNames, ...assignedTo].filter(Boolean))]
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false)
