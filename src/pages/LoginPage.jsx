@@ -29,7 +29,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [role, setRole] = useState('')
   const [department, setDepartment] = useState('')
   const [systemRole, setSystemRole] = useState('Employee')
 
@@ -145,7 +144,6 @@ export default function LoginPage() {
             email: email.trim(),
             name: name.trim(),
             phone: phone.trim(),
-            role: role.trim(),
             department: department.trim(),
             systemRole: systemRole
           })
@@ -404,13 +402,6 @@ export default function LoginPage() {
 
               {isRegisterMode && (
                 <>
-                  <div className="relative">
-                    <input
-                      id="role" required placeholder=" " value={role} onChange={(e) => setRole(e.target.value)}
-                      className="block w-full h-[54px] px-4 pt-2 text-[#1E1B2E] bg-transparent border border-gray-200 rounded-[10px] appearance-none focus:outline-none focus:ring-1 focus:ring-[#702c91] focus:border-[#702c91] peer transition-all duration-200"
-                    />
-                    <label htmlFor="role" className="absolute text-[14px] text-gray-400 duration-200 transform -translate-y-1/2 top-1/2 left-4 z-10 origin-[0] peer-focus:scale-[0.85] peer-focus:-translate-y-[24px] peer-focus:text-[#702c91] peer-focus:bg-white peer-focus:px-1 pointer-events-none peer-[:not(:placeholder-shown)]:scale-[0.85] peer-[:not(:placeholder-shown)]:-translate-y-[24px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1">Role (e.g. Designer)</label>
-                  </div>
                   <div className="relative">
                     <input
                       id="department" required placeholder=" " value={department} onChange={(e) => setDepartment(e.target.value)}

@@ -216,7 +216,7 @@ function doPost(e) {
       var row = data[i];
       var rowEmail = String(row[2]).trim().toLowerCase();
       var rowPassword = String(row[3]).trim();
-      var isActive = String(row[8]).trim(); // Column I (Is Active)
+      var isActive = String(row[7]).trim(); // Column H (Is Active at index 7)
 
       if (rowEmail === emailToMatch) {
         if (payload.action === 'login' && rowPassword !== String(payload.password).trim()) {
@@ -224,7 +224,7 @@ function doPost(e) {
         }
 
         if (payload.action === 'logout') {
-          teamSheet.getRange(i + 1, 11).setValue("Offline");
+          teamSheet.getRange(i + 1, 10).setValue("Offline");
           recordActivityLogout(ss, payload.email);
           return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
         }
@@ -233,20 +233,20 @@ function doPost(e) {
           return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Admin not approved" })).setMimeType(ContentService.MimeType.JSON);
         }
 
-        teamSheet.getRange(i + 1, 9).setValue("Yes");
-        teamSheet.getRange(i + 1, 11).setValue("Online");
-        recordActivityLogin(ss, row[0], row[1], row[4], row[5]);
+        teamSheet.getRange(i + 1, 8).setValue("Yes");        // Is Active
+        teamSheet.getRange(i + 1, 10).setValue("Online");    // Status
+        recordActivityLogin(ss, row[0], row[1], row[8], row[4]);
 
         var userObj = {
           "Employee ID": row[0],
           "Full Name": row[1],
           "Email Address": row[2],
-          "Role": row[4],
-          "Department": row[5],
-          "Phone": row[6],
-          "Joined Date": row[7],
+          "Role": row[8],
+          "Department": row[4],
+          "Phone": row[5],
+          "Joined Date": row[6],
           "Is Active": "Yes",
-          "System Role": row[9] || "Employee"
+          "System Role": row[8] || "Employee"
         };
         return ContentService.createTextOutput(JSON.stringify({
           "ok": true, "authenticated": true, "user": userObj
@@ -276,7 +276,7 @@ function doPost(e) {
     for (var i = 1; i < data.length; i++) {
       var rowEmail = String(data[i][2]).trim().toLowerCase();
       if (rowEmail === emailToMatch) {
-        teamSheet.getRange(i + 1, 11).setValue(newStatus);
+        teamSheet.getRange(i + 1, 10).setValue(newStatus);
         return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
       }
     }
@@ -290,7 +290,7 @@ function doPost(e) {
     var teamSheet = ss.getSheetByName("Team");
     if (!teamSheet) {
       teamSheet = ss.insertSheet("Team");
-      teamSheet.appendRow(["Employee ID", "Full Name", "Email Address", "Password Token", "Role", "Department", "Phone", "Joined Date", "Is Active", "System Role"]);
+      teamSheet.appendRow(["Employee ID", "Full Name", "Email Address", "Password Token", "Department", "Phone", "Joined Date", "Is Active", "Role", "Status"]);
     }
 
     var data = teamSheet.getDataRange().getValues();
@@ -312,12 +312,12 @@ function doPost(e) {
       payload.name || "",
       payload.email || "",
       "token_" + payload.name.split(" ")[0].toLowerCase() + "_" + newEmpId.split("-")[1],
-      payload.role || "Employee",
       payload.department || "General",
       formattedPhone,
       joinedDate,
       "Pending",
-      payload.systemRole || "Employee"
+      payload.systemRole || "Employee",
+      "Offline"
     ]);
 
     // Send RICH HTML Approval Email to Admin with a Button
@@ -545,8 +545,8 @@ function doGet(e) {
 
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
-        teamSheet.getRange(i + 1, 9).setValue("Yes"); // Change Is Active to Yes
-        teamSheet.getRange(i + 1, 11).setValue("Online"); // Set Status to Online
+        teamSheet.getRange(i + 1, 8).setValue("Yes"); // Is Active
+        teamSheet.getRange(i + 1, 10).setValue("Online"); // Status
         found = true;
         break;
       }
