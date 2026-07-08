@@ -415,14 +415,14 @@ function doPost(e) {
           driveRoot = driveRootFolders.next();
         } else {
           driveRoot = DriveApp.createFolder(driveFolderName);
-          try { driveRoot.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+          try { driveRoot.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { }
         }
         var clientProjectName = payload.projectName || "General";
         var clientFolders = driveRoot.getFoldersByName(clientProjectName);
         if (!clientFolders.hasNext()) {
           var clientFolder = driveRoot.createFolder(clientProjectName);
           folderUrl = clientFolder.getUrl();
-          try { clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
+          try { clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { }
         } else {
           folderUrl = clientFolders.next().getUrl();
         }
@@ -782,7 +782,7 @@ function recordActivityLogin(ss, employeeId, fullName, role, department) {
   }
   var now = new Date();
   var formattedTime = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
-  
+
   activitySheet.appendRow([
     employeeId,
     fullName,
@@ -798,7 +798,7 @@ function recordActivityLogout(ss, email) {
   var teamSheet = ss.getSheetByName("Team");
   var activitySheet = ss.getSheetByName("Activity");
   if (!teamSheet || !activitySheet) return;
-  
+
   var teamData = teamSheet.getDataRange().getValues();
   var empId = "";
   for (var i = 1; i < teamData.length; i++) {

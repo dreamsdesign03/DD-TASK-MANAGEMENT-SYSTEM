@@ -2276,11 +2276,27 @@ export function AppProvider({ children }) {
       mqttClient.removeListener('message', handleSyncMessage)
     }
   }, [profile])
+  const visibleTasks = React.useMemo(() => {
+    if (!profile) return tasks;
+    const role = profile.systemRole || 'Employee';
+    if (role === 'Admin') return tasks;
+
+    return tasks.filter(t => {
+      const dept = (t.department || '').toUpperCase();
+      if (['HR', 'ACCOUNT', 'SALES'].includes(dept)) {
+        if (role === 'HR' && dept === 'HR') return true;
+        if (role === 'Accountant' && dept === 'ACCOUNT') return true;
+        if (role === 'Sales' && dept === 'SALES') return true;
+        return false;
+      }
+      return true;
+    });
+  }, [tasks, profile]);
 
   return (
     <AppContext.Provider
       value={{
-        tasks,
+        tasks: visibleTasks,
         setTasks,
         updateTask,
         addTask,
