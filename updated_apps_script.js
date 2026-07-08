@@ -376,21 +376,20 @@ function doPost(e) {
         sheet = ss.insertSheet("Clients");
         sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"]);
       } else {
-        // Ensure all required columns exist
-        var headers = sheet.getDataRange().getValues()[0];
+        // Write the canonical header row so column order always matches appendRow indices
         var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"];
-        for (var hi = 0; hi < requiredHeaders.length; hi++) {
-          var found = false;
-          for (var hj = 0; hj < headers.length; hj++) {
-            if (String(headers[hj]).trim().toLowerCase() === requiredHeaders[hi].toLowerCase()) {
-              found = true;
+        var existingHeaders = sheet.getDataRange().getValues()[0];
+        var needsUpdate = existingHeaders.length !== requiredHeaders.length;
+        if (!needsUpdate) {
+          for (var hi = 0; hi < requiredHeaders.length; hi++) {
+            if (String(existingHeaders[hi]).trim().toLowerCase() !== requiredHeaders[hi].toLowerCase()) {
+              needsUpdate = true;
               break;
             }
           }
-          if (!found) {
-            sheet.getRange(1, headers.length + 1).setValue(requiredHeaders[hi]);
-            headers.push(requiredHeaders[hi]);
-          }
+        }
+        if (needsUpdate) {
+          sheet.getRange(1, 1, 1, requiredHeaders.length).setValues([requiredHeaders]);
         }
       }
 
