@@ -12,10 +12,8 @@ function isUserAuthorized(email, ss) {
   var data = teamSheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
-      var systemRole = String(data[i][9] || "").trim();
-      var regularRole = String(data[i][4] || "").trim();
-      if (systemRole === "Admin" || systemRole === "Manager") return true;
-      if (systemRole === "" && (regularRole === "Admin" || regularRole === "Manager")) return true;
+      var role = String(data[i][8] || "").trim();
+      if (role === "Admin" || role === "Manager") return true;
       return false;
     }
   }
