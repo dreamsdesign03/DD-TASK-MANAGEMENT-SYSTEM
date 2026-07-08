@@ -136,7 +136,7 @@ export default function ClientsPage() {
         // Update viewingClient state immediately
         setViewingClient(prev => {
           if (!prev || String(prev['Client ID']) !== String(client['Client ID'])) return prev
-          return { ...prev, 'Is Active': newStatus, 'Project Completion Date': newStatus === 'No' ? nowIST : (prev['Project Completion Date'] || '') }
+          return { ...prev, 'Is Active': newStatus, 'Project Completion Date': newStatus === 'No' ? nowIST : (prev['Project Completion Date'] || prev['Project Completion date'] || '') }
         })
         if (mqttClient && mqttClient.connected) {
           setTimeout(() => {
@@ -417,12 +417,12 @@ export default function ClientsPage() {
               </div>
 
               {/* Project Completion Date (shown if set) */}
-              {viewingClient['Project Completion Date'] && (
+              {(viewingClient['Project Completion Date'] || viewingClient['Project Completion date']) && (
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT COMPLETION DATE</label>
                   <p className="text-[14px] text-[#EF4444] m-0 flex items-center gap-2">
                     <span className="material-symbols-outlined text-[16px]">event_busy</span>
-                    {safeDate(viewingClient['Project Completion Date'])}
+                    {safeDate(viewingClient['Project Completion Date'] || viewingClient['Project Completion date'])}
                   </p>
                 </div>
               )}

@@ -382,7 +382,7 @@ function doPost(e) {
         var needsUpdate = existingHeaders.length !== requiredHeaders.length;
         if (!needsUpdate) {
           for (var hi = 0; hi < requiredHeaders.length; hi++) {
-            if (String(existingHeaders[hi]).trim().toLowerCase() !== requiredHeaders[hi].toLowerCase()) {
+            if (String(existingHeaders[hi]).trim() !== requiredHeaders[hi]) {
               needsUpdate = true;
               break;
             }
@@ -604,7 +604,7 @@ function doGet(e) {
     var needsUpdate = existingHeaders.length !== requiredHeaders.length;
     if (!needsUpdate) {
       for (var hi = 0; hi < requiredHeaders.length; hi++) {
-        if (String(existingHeaders[hi]).trim().toLowerCase() !== requiredHeaders[hi].toLowerCase()) {
+        if (String(existingHeaders[hi]).trim() !== requiredHeaders[hi]) {
           needsUpdate = true;
           break;
         }
