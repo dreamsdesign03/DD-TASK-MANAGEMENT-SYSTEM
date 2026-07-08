@@ -477,6 +477,8 @@ function doPost(e) {
             if (String(payload.isActive).toLowerCase() === 'no' || payload.isActive === false) {
               var completionTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
               sheet.getRange(i + 1, 10).setValue(completionTime);
+            } else {
+              sheet.getRange(i + 1, 10).setValue("");
             }
           }
           if (payload.services !== undefined) sheet.getRange(i + 1, 9).setValue(payload.services);

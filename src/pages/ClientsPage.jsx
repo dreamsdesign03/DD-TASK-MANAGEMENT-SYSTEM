@@ -136,7 +136,7 @@ export default function ClientsPage() {
         // Update viewingClient state immediately
         setViewingClient(prev => {
           if (!prev || String(prev['Client ID']) !== String(client['Client ID'])) return prev
-          return { ...prev, 'Is Active': newStatus, 'Project Completion Date': newStatus === 'No' ? nowIST : (prev['Project Completion Date'] || prev['Project Completion date'] || '') }
+          return { ...prev, 'Is Active': newStatus, 'Project Completion Date': newStatus === 'No' ? nowIST : '', 'Project Completion date': newStatus === 'No' ? nowIST : '' }
         })
         if (mqttClient && mqttClient.connected) {
           setTimeout(() => {
