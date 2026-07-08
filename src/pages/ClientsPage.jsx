@@ -500,8 +500,9 @@ export default function ClientsPage() {
                 <input
                   type="text"
                   value={newClientForm.registrationDate}
-                  readOnly
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-500 outline-none shadow-sm cursor-not-allowed"
+                  onChange={e => setNewClientForm({ ...newClientForm, registrationDate: e.target.value })}
+                  placeholder="e.g. 2026-07-08 14:30:00"
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
                 />
               </div>
 
