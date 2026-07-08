@@ -307,7 +307,7 @@ export default function TaskDetailPage() {
         })
 
         // Send to Apps Script
-        const url = 'https://script.google.com/macros/s/AKfycbwOtRwRXT0nx2RbnEa7umxfUpShjLgITMRheG7wyY43OBoe2PdKwBpWLjGObjWM8nTt/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbz-hznTNk4dESfQFQ3NqNC_8yesh5gdt3z_BG_dR_X8VSdRKaRffU4z8OgL1PVirR9m/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -417,7 +417,7 @@ export default function TaskDetailPage() {
           reader.readAsDataURL(replyAttachment.file)
         })
 
-        const url = 'https://script.google.com/macros/s/AKfycbwOtRwRXT0nx2RbnEa7umxfUpShjLgITMRheG7wyY43OBoe2PdKwBpWLjGObjWM8nTt/exec'
+        const url = 'https://script.google.com/macros/s/AKfycbz-hznTNk4dESfQFQ3NqNC_8yesh5gdt3z_BG_dR_X8VSdRKaRffU4z8OgL1PVirR9m/exec'
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -482,7 +482,7 @@ export default function TaskDetailPage() {
         }
       })
 
-      const url = 'https://script.google.com/macros/s/AKfycbwOtRwRXT0nx2RbnEa7umxfUpShjLgITMRheG7wyY43OBoe2PdKwBpWLjGObjWM8nTt/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbz-hznTNk4dESfQFQ3NqNC_8yesh5gdt3z_BG_dR_X8VSdRKaRffU4z8OgL1PVirR9m/exec'
       fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
