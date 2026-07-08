@@ -822,7 +822,7 @@ export default function TaskDetailPage() {
                       Assigned by: {task.assignedBy}
                     </span>
                   )}
-                  {profile?.systemRole !== 'Employee' && (
+                  {profile?.systemRole === 'Admin' && (
                     <button
                       onClick={() => setTaskToDelete(task.id)}
                       className="bg-white border border-red-200 text-red-500 hover:bg-red-50 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors"

@@ -1153,7 +1153,7 @@ export default function TaskTable() {
                                   <td className="flex md:table-cell items-center justify-between md:justify-end px-4 py-5 text-right whitespace-nowrap md:bg-transparent">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Actions</span>
                                     <div className="flex items-center justify-end gap-2 pr-2">
-                                      {profile?.systemRole !== 'Employee' && (
+                                      {profile?.systemRole === 'Admin' && (
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation()
@@ -1405,7 +1405,7 @@ export default function TaskTable() {
                                     </div>
                                   </div>
 
-                                  {profile?.systemRole !== 'Employee' && (
+                                  {profile?.systemRole === 'Admin' && (
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
