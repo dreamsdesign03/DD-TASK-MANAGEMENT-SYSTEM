@@ -33,6 +33,16 @@ export default function ClientsPage() {
     industry: '',
     services: []
   })
+  const [showNewClientModal, setShowNewClientModal] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newClientForm, setNewClientForm] = useState({
+    projectName: '',
+    clientName: '',
+    emails: [''],
+    phones: [''],
+    industry: '',
+    services: []
+  })
 
   const openEditModal = (client) => {
     if (profile?.systemRole === 'Employee') return
@@ -126,6 +136,49 @@ export default function ClientsPage() {
     }
   }
 
+  const handleAddClient = async (e) => {
+    e.preventDefault()
+    if (!newClientForm.projectName.trim()) {
+      addToast('Project Name is required', 'error')
+      return
+    }
+    setIsAdding(true)
+    try {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbx0-pJ8pMNoP15lmOALS1gABAlDQedZ17YQ-NVH9Jw9PSjHyChWM_WWz7ew1IKfdzRP/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'add_client',
+          projectName: newClientForm.projectName.trim(),
+          clientName: newClientForm.clientName.trim(),
+          contactEmail: newClientForm.emails.filter(e => e.trim()).join(', '),
+          phone: newClientForm.phones.filter(p => p.trim()).join(', '),
+          industry: newClientForm.industry.trim(),
+          services: newClientForm.services.join(', '),
+          userEmail: profile?.email
+        })
+      })
+      const data = await res.json()
+      if (data.ok) {
+        addToast('Client added successfully!', 'success')
+        setShowNewClientModal(false)
+        setNewClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
+        await fetchClients()
+        if (mqttClient && mqttClient.connected) {
+          setTimeout(() => {
+            mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
+          }, 1000)
+        }
+      } else {
+        addToast('Failed to add client: ' + (data.error || 'Unknown error'), 'error')
+      }
+    } catch (err) {
+      addToast('Error adding client: ' + err.message, 'error')
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
   const query = searchQuery.toLowerCase()
   const filteredClients = clients.filter(c => {
     return (
@@ -150,15 +203,28 @@ export default function ClientsPage() {
               <p className="text-[14px] text-[#6B7280] m-0">Manage client details and active status.</p>
             </div>
             
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
-              <input 
-                type="text" 
-                placeholder="Search clients..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[300px] h-[42px] pl-10 pr-4 rounded-full border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all shadow-sm"
-              />
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setNewClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
+                  setShowNewClientModal(true)
+                }}
+                className="h-[42px] px-5 btn-gradient rounded-full border-none font-bold text-[13px] shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                Add Client
+              </button>
+
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Search clients..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-[300px] h-[42px] pl-10 pr-4 rounded-full border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all shadow-sm"
+                />
+              </div>
             </div>
           </div>
 
@@ -258,6 +324,183 @@ export default function ClientsPage() {
             </div>
           </div>
       </main>
+
+      {/* Add New Client Modal */}
+      {showNewClientModal && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <form
+            onSubmit={handleAddClient}
+            className="bg-white w-full max-w-[520px] rounded-2xl shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-hidden animate-scale-in"
+          >
+            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">domain_add</span>
+                Add New Client
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowNewClientModal(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-5 pr-2">
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">PROJECT NAME *</label>
+                <input
+                  type="text"
+                  required
+                  value={newClientForm.projectName}
+                  onChange={e => setNewClientForm({ ...newClientForm, projectName: e.target.value })}
+                  placeholder="e.g. Dreamsdesign Redesign"
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">CLIENT NAME</label>
+                <input
+                  type="text"
+                  value={newClientForm.clientName}
+                  onChange={e => setNewClientForm({ ...newClientForm, clientName: e.target.value })}
+                  placeholder="e.g. Dreamsdesign"
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider">CLIENT EMAIL(S)</label>
+                  <button
+                    type="button"
+                    onClick={() => setNewClientForm({ ...newClientForm, emails: [...newClientForm.emails, ''] })}
+                    className="bg-transparent border-none text-[#702c91] cursor-pointer hover:bg-purple-50 p-0.5 rounded flex items-center transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {newClientForm.emails.map((email, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={e => {
+                          const n = [...newClientForm.emails]
+                          n[idx] = e.target.value
+                          setNewClientForm({ ...newClientForm, emails: n })
+                        }}
+                        placeholder="e.g. client@example.com"
+                        className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                      />
+                      {newClientForm.emails.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setNewClientForm({ ...newClientForm, emails: newClientForm.emails.filter((_, i) => i !== idx) })}
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md px-2.5 flex items-center border border-gray-200 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider">CLIENT PHONE(S)</label>
+                  <button
+                    type="button"
+                    onClick={() => setNewClientForm({ ...newClientForm, phones: [...newClientForm.phones, ''] })}
+                    className="bg-transparent border-none text-[#702c91] cursor-pointer hover:bg-purple-50 p-0.5 rounded flex items-center transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add</span>
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {newClientForm.phones.map((phone, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={phone}
+                        onChange={e => {
+                          const n = [...newClientForm.phones]
+                          n[idx] = e.target.value
+                          setNewClientForm({ ...newClientForm, phones: n })
+                        }}
+                        placeholder="+91 98000 00000"
+                        className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                      />
+                      {newClientForm.phones.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setNewClientForm({ ...newClientForm, phones: newClientForm.phones.filter((_, i) => i !== idx) })}
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md px-2.5 flex items-center border border-gray-200 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">INDUSTRY</label>
+                <input
+                  type="text"
+                  value={newClientForm.industry}
+                  onChange={e => setNewClientForm({ ...newClientForm, industry: e.target.value })}
+                  placeholder="e.g. Technology"
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">SERVICES</label>
+                <div className="bg-white border border-gray-200 rounded-lg p-4 max-h-[160px] overflow-y-auto custom-scrollbar flex flex-col gap-3 shadow-sm">
+                  {AVAILABLE_SERVICES.map(service => (
+                    <label key={service} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={newClientForm.services.includes(service)}
+                        onChange={e => setNewClientForm(prev => ({ ...prev, services: e.target.checked ? [...prev.services, service] : prev.services.filter(s => s !== service) }))}
+                        className="w-4 h-4 cursor-pointer accent-[#702c91] border-gray-300 rounded shrink-0"
+                      />
+                      <span className="text-[14px] text-gray-600 group-hover:text-gray-900 transition-colors select-none">{service}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setShowNewClientModal(false)}
+                className="px-6 py-2 border border-[#702c91] text-[#702c91] bg-white rounded-lg font-bold hover:bg-purple-50 transition-all text-[13px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isAdding}
+                className="px-6 py-2 btn-gradient border-none rounded-lg font-bold shadow-md text-[13px] cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              >
+                {isAdding ? (
+                  <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                )}
+                Save Client
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Edit Client Modal */}
       {/* Edit Client Modal */}
