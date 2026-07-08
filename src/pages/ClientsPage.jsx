@@ -204,16 +204,41 @@ export default function ClientsPage() {
             </div>
             
             <div className="flex items-center gap-4">
-              <button
+              <div
+                onMouseEnter={e => {
+                  e.currentTarget.style.maxWidth = '300px';
+                  e.currentTarget.style.gap = '8px';
+                  e.currentTarget.style.padding = '0 20px 0 14px';
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
+                  const text = e.currentTarget.querySelector('.add-client-text');
+                  if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.maxWidth = '44px';
+                  e.currentTarget.style.gap = '0';
+                  e.currentTarget.style.padding = '0';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
+                  const text = e.currentTarget.querySelector('.add-client-text');
+                  if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
+                }}
                 onClick={() => {
                   setNewClientForm({ projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [] })
                   setShowNewClientModal(true)
                 }}
-                className="h-[42px] px-5 btn-gradient rounded-full border-none font-bold text-[13px] shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+                title="Add Client"
+                style={{
+                  height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  maxWidth: 44,
+                  background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
+                  boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
+                  fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
+                  overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
+                  transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
+                }}
               >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-                Add Client
-              </button>
+                <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
+                <span className="add-client-text" style={{ width: 0, maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap' }}>Add Client</span>
+              </div>
 
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
