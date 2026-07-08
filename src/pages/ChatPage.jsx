@@ -1164,11 +1164,12 @@ export default function ChatPage() {
     // Ensure the creator is also in finalMembers
     const creatorMember = {
       name: profile?.name || 'Mansi Shah',
+      email: profile?.email || '',
       role: profile?.role || 'Designer',
       avatar: profile?.avatar || ''
     }
-    let finalMembers = [...members.map((m) => ({ name: m.name, role: m.role, avatar: m.avatar }))]
-    if (!finalMembers.some(m => m.name.toLowerCase() === creatorMember.name.toLowerCase())) {
+    let finalMembers = [...members.map((m) => ({ name: m.name, email: m.email, role: m.role, avatar: m.avatar }))]
+    if (!finalMembers.some(m => m.email?.toLowerCase() === creatorMember.email.toLowerCase())) {
       finalMembers.push(creatorMember)
     }
 
@@ -1181,7 +1182,8 @@ export default function ChatPage() {
       icon: 'groups',
       bg: 'bg-primary-container',
       active: false,
-      creator: profile?.name || 'Mansi Shah'
+      creator: profile?.name || 'Mansi Shah',
+      creatorEmail: creatorMember.email
     }
     setGroupChats((prev) => [...prev, newGroup])
 
@@ -1207,7 +1209,9 @@ export default function ChatPage() {
         id: String(newId),
         name: groupName || 'Unnamed Group',
         members: finalMembers.map(m => m.name),
-        creator: profile?.name || 'Mansi Shah'
+        memberEmails: finalMembers.map(m => m.email),
+        creator: profile?.name || 'Mansi Shah',
+        creatorEmail: profile?.email || ''
       }),
       timestamp: new Date().toISOString(),
       type: 'group_created',
@@ -1225,7 +1229,7 @@ export default function ChatPage() {
     setShowAddMemberDropdown(false)
 
     // 1. Add to groupMembers list
-    const updatedMembersList = [...(groupMembers[selectedChatId] || []), { name: member.name, role: member.role, avatar: member.avatar }]
+    const updatedMembersList = [...(groupMembers[selectedChatId] || []), { name: member.name, email: member.email || '', role: member.role, avatar: member.avatar }]
     setGroupMembers((prev) => ({
       ...prev,
       [selectedChatId]: updatedMembersList
@@ -1275,7 +1279,9 @@ export default function ChatPage() {
         id: String(selectedChatId),
         name: currentGroup?.name || 'Unnamed Group',
         members: updatedMembersList.map(m => m.name),
-        creator: currentGroup?.creator || profile?.name || 'Mansi Shah'
+        memberEmails: updatedMembersList.map(m => m.email),
+        creator: currentGroup?.creator || profile?.name || 'Mansi Shah',
+        creatorEmail: currentGroup?.creatorEmail || profile?.email || ''
       }),
       timestamp: nowIso,
       type: 'group_created',
@@ -1343,7 +1349,9 @@ export default function ChatPage() {
             id: String(selectedChatId),
             name: currentGroup?.name || 'Unnamed Group',
             members: updatedMembersList.map(m => m.name),
-            creator: currentGroup?.creator || profile?.name || 'Mansi Shah'
+            memberEmails: updatedMembersList.map(m => m.email),
+            creator: currentGroup?.creator || profile?.name || 'Mansi Shah',
+            creatorEmail: currentGroup?.creatorEmail || profile?.email || ''
           }),
           timestamp: nowIso,
           type: 'group_created',
@@ -1452,7 +1460,7 @@ export default function ChatPage() {
                         className={`flex items-center gap-3 h-16 px-4 cursor-pointer transition-colors border-l-4 ${isSelected ? 'bg-[#FAFAFF] border-[#702c91]' : 'bg-white border-transparent hover:bg-[#FAFAFF]'}`}
                       >
                         <div className="relative shrink-0">
-                          {renderAvatar(c.avatar, c.name, "w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold")}
+                          {renderAvatar(c.avatar, c.name, "w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold", "text-[13px]", c.email)}
                           {c.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-white rounded-full"></span>}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1739,7 +1747,7 @@ export default function ChatPage() {
                               <span className="material-symbols-outlined text-[14px]">groups</span>
                             </div>
                           ) : (
-                            renderAvatar(m.avatar, m.name, "w-6 h-6 rounded-full", "text-[9px]")
+                            renderAvatar(m.avatar, m.name, "w-6 h-6 rounded-full", "text-[9px]", m.email)
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="text-[13px] font-semibold text-[#1E1B2E] m-0 truncate leading-tight capitalize">{m.name}</p>
@@ -1914,7 +1922,7 @@ export default function ChatPage() {
                 <h3 className="text-[12px] font-bold text-[#6B7280] tracking-wider m-0">
                   MEMBERS ({activeMembersList.length})
                 </h3>
-                {activeChat?.creator === profile?.name && (
+                {(activeChat?.creator === profile?.name || activeChat?.creatorEmail === profile?.email) && (
                   <button
                     onClick={() => setShowAddMemberDropdown(!showAddMemberDropdown)}
                     className={`text-primary hover:opacity-80 transition-colors ${showAddMemberDropdown ? 'text-primary' : ''}`}
@@ -1928,13 +1936,13 @@ export default function ChatPage() {
                 {activeMembersList.map((m) => (
                   <li key={m.name} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      {renderAvatar(m.avatar, m.name, "w-8 h-8 rounded-full", "text-[11px]")}
+                      {renderAvatar(m.avatar, m.name, "w-8 h-8 rounded-full", "text-[11px]", m.email)}
                       <div>
                         <p className="text-label-md leading-none">{m.name}</p>
                         <span className="text-[11px] text-outline">{m.role}</span>
                       </div>
                     </div>
-                    {m.name !== profile?.name && activeChat?.creator === profile?.name && (
+                    {(m.name !== profile?.name && m.email !== profile?.email) && (activeChat?.creator === profile?.name || activeChat?.creatorEmail === profile?.email) && (
                       <button
                         onClick={() => handleRemoveMember(m.name)}
                         className="text-outline hover:text-error transition-all flex items-center justify-center p-1 rounded-full hover:bg-error/10 ml-auto"
@@ -1968,7 +1976,7 @@ export default function ChatPage() {
                         onClick={() => handleSelectAndAddMember(e)}
                         className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-container-low transition-colors w-full text-left"
                       >
-                        {renderAvatar(e.avatar, e.name, "w-8 h-8 rounded-full", "text-[11px]")}
+                        {renderAvatar(e.avatar, e.name, "w-8 h-8 rounded-full", "text-[11px]", e.email)}
                         <div className="min-w-0 flex-1">
                           <p className="text-label-md font-semibold truncate leading-tight">{e.name}</p>
                           <span className="text-[10px] text-outline truncate block">{e.role}</span>
@@ -1979,7 +1987,7 @@ export default function ChatPage() {
                 </div>
               )}
 
-              {activeChat?.creator === profile?.name && (
+              {(activeChat?.creator === profile?.name || activeChat?.creatorEmail === profile?.email) && (
                 <button
                   onClick={() => setShowAddMemberDropdown(!showAddMemberDropdown)}
                   className="w-full border border-primary text-primary py-2 rounded-lg font-label-md text-sm hover:bg-light-tint transition-all active:scale-95"
@@ -2467,7 +2475,7 @@ function CreateGroupModal({ onClose, onCreate, employees }) {
                     onChange={() => toggle(e.id)}
                     className="w-4 h-4 rounded cursor-pointer accent-[#702c91]"
                   />
-                  {renderAvatar(e.avatar, e.name, "w-8 h-8 rounded-full", "text-[11px]")}
+                  {renderAvatar(e.avatar, e.name, "w-8 h-8 rounded-full", "text-[11px]", e.email)}
                   <div className="flex-1">
                     <p className="text-[13px] font-bold text-gray-800 group-hover:text-[#702c91] transition-colors m-0">{e.name}</p>
                     <p className="text-[11px] text-gray-500 font-medium m-0">{e.role}</p>

@@ -529,7 +529,7 @@ export function AppProvider({ children }) {
 
   const [personalChats, setPersonalChats] = useState(() => {
     return STATIC_EMPLOYEES
-      .filter(m => m.name.toLowerCase() !== (profile?.name || '').toLowerCase())
+      .filter(m => m.email?.toLowerCase() !== (profile?.email || '').toLowerCase())
       .map((m, idx) => {
         const roomId = getPersonalChatRoomId(profile, m)
         return {
@@ -958,7 +958,9 @@ export function AppProvider({ children }) {
                 id: meta.id,
                 name: meta.name,
                 members: meta.members,
+                memberEmails: meta.memberEmails || [],
                 creator: meta.creator,
+                creatorEmail: meta.creatorEmail || '',
                 time: m.timestamp || m['timestamp ']
               })
             } catch (e) { }
@@ -1118,7 +1120,9 @@ export function AppProvider({ children }) {
             let changed = false
 
             Object.values(latestGroupMetadata).forEach(fg => {
-              const amIMember = (fg.members || []).some(mName => mName.toLowerCase() === (profileRef.current?.name || '').toLowerCase())
+              const myEmail = (profileRef.current?.email || '').toLowerCase()
+              const amIMember = (fg.members || []).some(mName => mName.toLowerCase() === (profileRef.current?.name || '').toLowerCase()) ||
+                (fg.memberEmails || []).some(e => e.toLowerCase() === myEmail)
               const existingIdx = newGroups.findIndex(g => String(g.id) === String(fg.id))
 
               if (amIMember) {
@@ -1131,7 +1135,8 @@ export function AppProvider({ children }) {
                     icon: 'groups',
                     bg: 'bg-primary-container',
                     active: false,
-                    creator: fg.creator
+                    creator: fg.creator,
+                    creatorEmail: fg.creatorEmail || ''
                   })
                   changed = true
                 } else if (newGroups[existingIdx].name !== fg.name) {

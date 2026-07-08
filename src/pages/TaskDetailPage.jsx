@@ -632,7 +632,8 @@ export default function TaskDetailPage() {
   ].filter(Boolean)))
 
   const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
-  const isAssignee = String(task?.assignedTo || '').toLowerCase().includes(myNameStr)
+  const myEmailStr = String(profile?.email || '').trim().toLowerCase()
+  const isAssignee = String(task?.assignedTo || '').toLowerCase().includes(myNameStr) || String(task?.assignedEmail || '').toLowerCase().includes(myEmailStr)
   const isAssigner = String(task?.assignedBy || '').toLowerCase() === myNameStr
   const canManageTimer = isAssignee || isAssigner || profile?.systemRole !== 'Employee'
 
@@ -1143,7 +1144,7 @@ export default function TaskDetailPage() {
                           <span className="text-[14px] font-semibold font-['Inter'] text-on-surface">
                             {m.sender || profile?.name}
                           </span>
-                          {renderAvatar(profile?.avatar, profile?.name, "w-9 h-9 rounded-full")}
+                          {renderAvatar(profile?.avatar, profile?.name, "w-9 h-9 rounded-full", "text-[14px]", profile?.email)}
                         </div>
                         <div className="bg-[#702c91] p-4 rounded-xl rounded-tr-none max-w-md shadow-sm">
                           <div className="text-white text-body-sm">

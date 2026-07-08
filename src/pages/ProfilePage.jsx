@@ -28,7 +28,7 @@ export default function ProfilePage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                         {/* Left side: Photo, Name, Designation, Mail */}
                         <div className="flex items-center gap-6">
-                          {renderAvatar(profile.avatar, profile.name, "w-24 h-24 rounded-full border-2 border-white shadow-sm text-[28px]", "text-[28px]")}
+                          {renderAvatar(profile.avatar, profile.name, "w-24 h-24 rounded-full border-2 border-white shadow-sm text-[28px]", "text-[28px]", profile.email)}
                           <div className="flex flex-col">
                             <h2 className="font-headline-sm text-headline-sm text-on-surface mb-1 font-bold text-[22px]">
                               {profile.name}

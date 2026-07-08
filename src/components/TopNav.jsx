@@ -70,7 +70,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
           className="cursor-pointer"
           title={profile?.name}
         >
-          {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]")}
+          {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]", profile?.email)}
         </div>
       </div>
     </header>

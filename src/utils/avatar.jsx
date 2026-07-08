@@ -20,11 +20,12 @@ export const AVATAR_COLORS = [
   '#f43f5e', // rose-500
 ]
 
-export function getUserColor(name) {
-  if (!name) return '#702c91' // Default Dreamsdesk purple fallback
+export function getUserColor(name, email) {
+  const key = email ? `${name}:${email}` : name
+  if (!key) return '#702c91'
   let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  for (let i = 0; i < key.length; i++) {
+    hash = key.charCodeAt(i) + ((hash << 5) - hash)
   }
   hash = Math.abs(hash)
   return AVATAR_COLORS[hash % AVATAR_COLORS.length]
@@ -38,7 +39,7 @@ export function getInitials(name) {
   return '?'
 }
 
-export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full", textClass = "text-[13px]") {
+export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full", textClass = "text-[13px]", email) {
   const isValidImage = avatar &&
     (avatar.startsWith('http') || avatar.startsWith('/') || avatar.startsWith('data:')) &&
     !avatar.includes('dicebear.com')
@@ -54,7 +55,7 @@ export function renderAvatar(avatar, name, sizeClass = "w-10 h-10 rounded-full",
   }
 
   const initials = getInitials(name)
-  const bgColor = getUserColor(name)
+  const bgColor = getUserColor(name, email)
 
   return (
     <div

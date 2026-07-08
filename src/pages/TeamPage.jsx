@@ -160,7 +160,8 @@ export default function TeamPage() {
                           emp.email === profile.email ? profile.avatar : emp.avatar,
                           emp.email === profile.email ? (profile.name || emp.name) : emp.name,
                           "w-16 h-16 rounded-full border-2 border-white shadow-sm",
-                          "text-[20px]"
+                          "text-[20px]",
+                          emp.email
                         )}
                         <div className="relative mt-1 mr-1">
                           {getStatusElement(emp.status)}
