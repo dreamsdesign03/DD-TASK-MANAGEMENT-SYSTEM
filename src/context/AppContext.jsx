@@ -2104,15 +2104,25 @@ export function AppProvider({ children }) {
         const items = Array.isArray(data) ? data : [data]
 
         if (items.length > 0 && items[0]) {
+          const nameCounts = {}
+          items.forEach(item => {
+            const name = (item["Full Name"] || item.Name || item.name || '').trim()
+            nameCounts[name] = (nameCounts[name] || 0) + 1
+          })
+
           fetchedTeam = items.map((item, idx) => {
-            const name = item["Full Name"] || item.Name || item.name || ''
+            let name = (item["Full Name"] || item.Name || item.name || '').trim()
+            const department = item.Department || item.department || 'Development'
+            if (nameCounts[name] > 1) {
+              name = `${name} (${department})`
+            }
+            
             const email = item["Email Address"] || item.Email || item.email || ''
             const role = item.Role || item.role || item.Designation || 'Team Member'
             const avatar = item.Avatar || item.avatar || item["Profile Image"] || ""
             const id = item["Employee ID"] || item.employeeId || item.id || `emp-${idx}`
             const isActive = item["Is Active"] || 'Yes'
             const status = isActive === 'No' ? 'Offline' : (item.Status || item.status || 'Online')
-            const department = item.Department || item.department || 'Development'
             const location = item.Location || item.location || 'Remote'
 
             return { id, name, email, role, avatar, status, department, location, isActive }
