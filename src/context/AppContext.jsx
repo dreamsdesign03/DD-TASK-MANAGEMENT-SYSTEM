@@ -505,21 +505,11 @@ export function AppProvider({ children }) {
     }
   }, [profile?.email])
 
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dd_dark_mode')
-      if (saved !== null) return JSON.parse(saved)
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-    } catch { return false }
-  })
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    localStorage.setItem('dd_dark_mode', JSON.stringify(isDarkMode))
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    localStorage.removeItem('dd_dark_mode')
+    document.documentElement.classList.remove('dark')
   }, [isDarkMode])
 
 
