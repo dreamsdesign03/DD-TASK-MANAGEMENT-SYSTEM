@@ -415,14 +415,14 @@ function doPost(e) {
           driveRoot = driveRootFolders.next();
         } else {
           driveRoot = DriveApp.createFolder(driveFolderName);
-          driveRoot.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          try { driveRoot.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
         }
         var clientProjectName = payload.projectName || "General";
         var clientFolders = driveRoot.getFoldersByName(clientProjectName);
         if (!clientFolders.hasNext()) {
           var clientFolder = driveRoot.createFolder(clientProjectName);
-          clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
           folderUrl = clientFolder.getUrl();
+          try { clientFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch(e){}
         } else {
           folderUrl = clientFolders.next().getUrl();
         }
