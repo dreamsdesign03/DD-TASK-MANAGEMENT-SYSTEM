@@ -43,7 +43,7 @@ export default function ClientsPage() {
     phones: [''],
     industry: '',
     services: [],
-    registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+    projectStartDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
   })
 
   const openClientInfo = (client) => {
@@ -167,7 +167,7 @@ export default function ClientsPage() {
           clientName: newClientForm.clientName.trim(),
           contactEmail: newClientForm.emails.filter(e => e.trim()).join(', '),
           phone: newClientForm.phones.filter(p => p.trim()).join(', '),
-          registrationDate: newClientForm.registrationDate,
+          projectStartDate: newClientForm.projectStartDate,
           industry: newClientForm.industry.trim(),
           services: newClientForm.services.join(', '),
           userEmail: profile?.email
@@ -179,7 +179,7 @@ export default function ClientsPage() {
         setShowNewClientModal(false)
         setNewClientForm({
           projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [],
-          registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+          projectStartDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
         })
         await fetchClients()
         if (mqttClient && mqttClient.connected) {
@@ -242,7 +242,7 @@ export default function ClientsPage() {
                 onClick={() => {
                   setNewClientForm({
                     projectName: '', clientName: '', emails: [''], phones: [''], industry: '', services: [],
-                    registrationDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+                    projectStartDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
                   })
                   setShowNewClientModal(true)
                 }}
@@ -396,12 +396,12 @@ export default function ClientsPage() {
                 <p className="text-[16px] font-bold text-[#1E1B2E] m-0">{viewingClient['Client Name'] || viewingClient['Company Name'] || '-'}</p>
               </div>
 
-              {/* Registration Date */}
+              {/* Project start Date */}
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">REGISTRATION DATE</label>
+                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">PROJECT START DATE</label>
                 <p className="text-[14px] text-[#4B5563] m-0 flex items-center gap-2">
                   <span className="material-symbols-outlined text-[16px] text-[#9CA3AF]">calendar_today</span>
-                  {viewingClient['Registration Date'] || '-'}
+                  {viewingClient['Project start Date'] || '-'}
                 </p>
               </div>
 
@@ -496,16 +496,16 @@ export default function ClientsPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">REGISTRATION DATE</label>
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">PROJECT START DATE</label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <input
                       type="date"
-                      value={newClientForm.registrationDate ? newClientForm.registrationDate.split(' ')[0] : ''}
+                      value={newClientForm.projectStartDate ? newClientForm.projectStartDate.split(' ')[0] : ''}
                       onChange={e => {
                         const dateVal = e.target.value
-                        const timePart = newClientForm.registrationDate && newClientForm.registrationDate.includes(' ') ? newClientForm.registrationDate.split(' ')[1] : '00:00:00'
-                        setNewClientForm({ ...newClientForm, registrationDate: dateVal ? `${dateVal} ${timePart}` : '' })
+                        const timePart = newClientForm.projectStartDate && newClientForm.projectStartDate.includes(' ') ? newClientForm.projectStartDate.split(' ')[1] : '00:00:00'
+                        setNewClientForm({ ...newClientForm, projectStartDate: dateVal ? `${dateVal} ${timePart}` : '' })
                       }}
                       className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 text-[14px] text-gray-800 outline-none focus:border-[#702c91] transition-colors shadow-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     />
@@ -518,8 +518,8 @@ export default function ClientsPage() {
                     onClick={() => {
                       const now = new Date()
                       const todayStr = now.toLocaleDateString('en-CA')
-                      const timePart = newClientForm.registrationDate && newClientForm.registrationDate.includes(' ') ? newClientForm.registrationDate.split(' ')[1] : now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-                      setNewClientForm({ ...newClientForm, registrationDate: `${todayStr} ${timePart}` })
+                      const timePart = newClientForm.projectStartDate && newClientForm.projectStartDate.includes(' ') ? newClientForm.projectStartDate.split(' ')[1] : now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                      setNewClientForm({ ...newClientForm, projectStartDate: `${todayStr} ${timePart}` })
                     }}
                     className="px-3 py-2.5 text-[12px] font-bold text-[#702c91] bg-[#702c91]/10 border border-[#702c91]/20 rounded-lg hover:bg-[#702c91]/20 transition-colors whitespace-nowrap flex items-center gap-1.5"
                   >

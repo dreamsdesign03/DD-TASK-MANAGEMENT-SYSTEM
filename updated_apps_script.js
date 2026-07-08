@@ -374,10 +374,10 @@ function doPost(e) {
       var sheet = ss.getSheetByName("Clients");
       if (!sheet) {
         sheet = ss.insertSheet("Clients");
-        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"]);
+        sheet.appendRow(["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"]);
       } else {
         // Write the canonical header row so column order always matches appendRow indices
-        var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+        var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"];
         var existingHeaders = sheet.getDataRange().getValues()[0];
         var needsUpdate = existingHeaders.length !== requiredHeaders.length;
         if (!needsUpdate) {
@@ -403,7 +403,7 @@ function doPost(e) {
       var newId = "C-" + ("000" + (lastId + 1)).slice(-3);
 
       var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
-      var registrationDate = payload.registrationDate || Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+      var projectStartDate = payload.projectStartDate || Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
 
       sheet.appendRow([
         newId,
@@ -411,7 +411,7 @@ function doPost(e) {
         payload.clientName || "",
         payload.contactEmail || "",
         formattedPhone,
-        registrationDate,
+        projectStartDate,
         payload.industry || "",
         "Yes",
         payload.services || "",
@@ -469,7 +469,7 @@ function doPost(e) {
             var formattedPhone = payload.phone ? (payload.phone.toString().startsWith("+") ? "'" + payload.phone : payload.phone) : "";
             sheet.getRange(i + 1, 5).setValue(formattedPhone);
           }
-          if (payload.registrationDate !== undefined) sheet.getRange(i + 1, 6).setValue(payload.registrationDate);
+          if (payload.projectStartDate !== undefined) sheet.getRange(i + 1, 6).setValue(payload.projectStartDate);
           if (payload.industry !== undefined) sheet.getRange(i + 1, 7).setValue(payload.industry);
           if (payload.isActive !== undefined) {
             sheet.getRange(i + 1, 8).setValue(payload.isActive);
@@ -599,7 +599,7 @@ function doGet(e) {
     var sheet = ss.getSheetByName("Clients");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ clients: [] })).setMimeType(ContentService.MimeType.JSON);
     // Ensure canonical header order so dynamic key mapping reads correct columns
-    var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Registration Date", "Industry", "Is Active", "Services", "Project Completion Date"];
+    var requiredHeaders = ["Client ID", "Project Name", "Client Name", "Contact Email", "Phone", "Project start Date", "Industry", "Is Active", "Services", "Project Completion Date"];
     var existingHeaders = sheet.getDataRange().getValues()[0];
     var needsUpdate = existingHeaders.length !== requiredHeaders.length;
     if (!needsUpdate) {
