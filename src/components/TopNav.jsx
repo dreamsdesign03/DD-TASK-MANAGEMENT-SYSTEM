@@ -31,11 +31,10 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        {!isPunchedIn ? (
-          <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
-        ) : (
-          <button onClick={handlePunchOut} style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out</button>
-        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={handlePunchIn} disabled={isPunchedIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: isPunchedIn ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: isPunchedIn ? 0.5 : 1 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
+          <button onClick={handlePunchOut} disabled={!isPunchedIn} style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: !isPunchedIn ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: !isPunchedIn ? 0.5 : 1 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out</button>
+        </div>
         {isSearchVisible && (
           <div style={{ position: 'relative', width: 300 }} className="hidden md:block">
             <span className="material-symbols-outlined" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 20 }}>search</span>
