@@ -44,15 +44,20 @@ function doPost(e) {
       hdrRange.setFontColor("#FFFFFF");  // White text
       hdrRange.setFontWeight("bold");
       hdrRange.setHorizontalAlignment("center");
+      hdrRange.setBorder(true, true, true, true, true, true); // Add border
       
       // 2. Add Light Green Column Headers
-      sheet.appendRow(["Date", "Project name", "Task / Remarks", "Status", "Start Time", "End Time", "Remark"]);
+      sheet.appendRow(["Date", "Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
       var colHeaderRowNumber = sheet.getLastRow();
       var ttlRange = sheet.getRange(colHeaderRowNumber, 1, 1, 7);
       ttlRange.setBackground("#c3e6cb"); // Light Green
       ttlRange.setFontColor("#000000");  // Black text
       ttlRange.setFontWeight("bold");
       ttlRange.setHorizontalAlignment("center");
+      ttlRange.setBorder(true, true, true, true, true, true); // Add border
+      
+      // Track where tasks start for drawing borders
+      var taskStartRow = sheet.getLastRow() + 1;
       
       // 3. Add Tasks
       if (tasks.length > 0) {
@@ -93,6 +98,14 @@ function doPost(e) {
         sheet.getRange(currentRow, 4).setHorizontalAlignment("center");
         sheet.getRange(currentRow, 5).setHorizontalAlignment("center");
         sheet.getRange(currentRow, 6).setHorizontalAlignment("center");
+      }
+      
+      // Draw borders around all task rows
+      var taskEndRow = sheet.getLastRow();
+      var numTasks = taskEndRow - taskStartRow + 1;
+      if (numTasks > 0) {
+        var taskRange = sheet.getRange(taskStartRow, 1, numTasks, 7);
+        taskRange.setBorder(true, true, true, true, true, true);
       }
       
       // Add a blank row for spacing
