@@ -407,11 +407,13 @@ export function AppProvider({ children }) {
   }, [isPunchedIn])
 
   const handlePunchIn = () => {
+    console.log('handlePunchIn called')
     setIsPunchedIn(true)
     addToast('Punched In successfully', 'success')
   }
 
   const handlePunchOut = () => {
+    console.log('handlePunchOut called')
     if (profile?.email) {
       logLogout(profile.email)
     }
@@ -428,6 +430,7 @@ export function AppProvider({ children }) {
       prevProfileEmailRef.current = profile.email
     }
 
+    console.log('useEffect fired - isPunchedIn:', isPunchedIn, 'profile?.email:', profile?.email)
     if (isPunchedIn && profile?.email) {
       // Mark employee as Online in team directory
       setEmployees(prev => prev.map(e =>
@@ -461,6 +464,7 @@ export function AppProvider({ children }) {
         }
       }
     } else {
+      console.log('else branch - prevProfileEmailRef.current:', prevProfileEmailRef.current, 'profile?.email:', profile?.email)
       // Punched out or logged out
       const prevEmail = prevProfileEmailRef.current || profile?.email
       if (prevEmail) {
