@@ -462,7 +462,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw-4byvMULEBY5SrFVlo6Nt_QsoPq4CmZeKhE_mf_WVzzgdtyP9bu-9LPzx3jJaE8cdRg/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw0VibmDWY3S0QK07TI5eLWtWUKUHIYvRVpf5RGmDXcJtOehJcaZImA8rYNYE4XZzlY/exec';
       
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_WEB_APP_URL, {
