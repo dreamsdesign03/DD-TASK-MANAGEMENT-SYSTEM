@@ -1,11 +1,9 @@
 // daily_task_sheet_script.js
 // INSTRUCTIONS:
-// 1. Create a NEW Google Sheet.
-// 2. Go to Extensions -> Apps Script.
-// 3. Paste this code into Code.gs (replace the default myFunction).
-// 4. Click Deploy -> New deployment -> Select type "Web App".
-// 5. Execute as: "Me" | Who has access: "Anyone".
-// 6. Copy the Web App URL and paste it into AppContext.jsx where it says 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE'
+// 1. In your Daily Task Sheet, go to Extensions -> Apps Script.
+// 2. Paste this code into Code.gs (replace the previous code).
+// 3. Click Deploy -> Manage deployments -> Edit (pencil icon) -> Select "New version" -> Deploy.
+// (You must select "New version" otherwise the URL won't update its behavior).
 
 function doPost(e) {
   try {
@@ -14,16 +12,21 @@ function doPost(e) {
 
     if (action === "log_daily_tasks") {
       var email = data.email;
-      var name = data.name;
+      var fullName = data.name || "Unknown";
       var date = data.date;
       var firstPunchIn = data.firstPunchIn;
       var lastPunchOut = data.lastPunchOut;
       var tasks = data.tasks;
       
+      // Use the first name for the sheet tab (e.g. "Mansi Shah" -> "Mansi")
+      var sheetName = fullName.split(" ")[0];
+      
       var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var sheet = ss.getSheetByName("Sheet1");
+      var sheet = ss.getSheetByName(sheetName);
+      
+      // If the sheet for this employee doesn't exist, create it automatically!
       if (!sheet) {
-        sheet = ss.getSheets()[0]; // Fallback to first sheet
+        sheet = ss.insertSheet(sheetName);
       }
       
       // Ensure headers exist
@@ -37,7 +40,7 @@ function doPost(e) {
         tasks.forEach(function(t) {
           sheet.appendRow([
             date,
-            name,
+            fullName,
             email,
             firstPunchIn,
             lastPunchOut,
@@ -49,7 +52,7 @@ function doPost(e) {
       } else {
         sheet.appendRow([
           date,
-          name,
+          fullName,
           email,
           firstPunchIn,
           lastPunchOut,
@@ -59,7 +62,7 @@ function doPost(e) {
         ]);
       }
       
-      return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", sheetCreated: sheetName })).setMimeType(ContentService.MimeType.JSON);
     }
     
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Unknown action" })).setMimeType(ContentService.MimeType.JSON);

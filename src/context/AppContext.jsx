@@ -462,11 +462,12 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyw6F4rluQTOx-lGapTtNbKcuSCfl-7koHZBbQz79MB1Wl4_nKJaGAXtSET2sWM9XJAKw/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzgy7z1CQtAr2CyMy_UmudiWpxu1AimI9JsmrrSaU1NDlSnhaHQpvC6inWaL-6vZioheQ/exec';
       
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_WEB_APP_URL, {
           method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'log_daily_tasks',
@@ -477,7 +478,7 @@ export function AppProvider({ children }) {
             lastPunchOut: outTime,
             tasks: tasksPayload
           })
-        }).then(r => r.text()).then(t => console.log('Daily tasks logged:', t)).catch(e => console.warn('Daily tasks log failed:', e))
+        }).catch(e => console.warn('Daily tasks log failed:', e))
       } else {
         console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }
