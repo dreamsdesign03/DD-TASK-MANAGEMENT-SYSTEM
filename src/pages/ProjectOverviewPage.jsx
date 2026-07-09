@@ -48,7 +48,7 @@ export default function ProjectOverviewPage() {
   useEffect(() => {
     if (!projectName) return
     setIsLoadingDocs(true)
-    const url = `https://script.google.com/macros/s/AKfycbwsI6zYm7_FYiNPTjNin8AH0UAMST_MVx7qRlVX3c5_lUPBZ3HfiXA_fswd_7VsiVfx/exec?action=get_project_files&projectName=${encodeURIComponent(projectName)}&t=${Date.now()}`
+    const url = `https://script.google.com/macros/s/AKfycbw3trkTZ9IaDE57yq4Hmwwao7WMZzvoJlryvwvTp2fjmh20JYGnhGAPKgJ6QJGXAToh/exec?action=get_project_files&projectName=${encodeURIComponent(projectName)}&t=${Date.now()}`
     fetch(url)
       .then(res => res.json())
       .then(data => {
@@ -224,7 +224,7 @@ export default function ProjectOverviewPage() {
         reader.onerror = reject
         reader.readAsDataURL(file)
       })
-      const res = await fetch('https://script.google.com/macros/s/AKfycbwsI6zYm7_FYiNPTjNin8AH0UAMST_MVx7qRlVX3c5_lUPBZ3HfiXA_fswd_7VsiVfx/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbw3trkTZ9IaDE57yq4Hmwwao7WMZzvoJlryvwvTp2fjmh20JYGnhGAPKgJ6QJGXAToh/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({

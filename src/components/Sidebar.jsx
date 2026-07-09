@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp, mqttClient } from '../context/AppContext'
-import { logLogout } from '../utils/activityLog'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -50,7 +49,7 @@ export default function Sidebar() {
 
     setIsSubmittingClient(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbwsI6zYm7_FYiNPTjNin8AH0UAMST_MVx7qRlVX3c5_lUPBZ3HfiXA_fswd_7VsiVfx/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbw3trkTZ9IaDE57yq4Hmwwao7WMZzvoJlryvwvTp2fjmh20JYGnhGAPKgJ6QJGXAToh/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -352,14 +351,6 @@ export default function Sidebar() {
 
           <button
             onClick={() => {
-              if (profile?.email) {
-                logLogout(profile.email)
-                fetch('https://script.google.com/macros/s/AKfycbwsI6zYm7_FYiNPTjNin8AH0UAMST_MVx7qRlVX3c5_lUPBZ3HfiXA_fswd_7VsiVfx/exec', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                  body: JSON.stringify({ action: 'logout', email: profile.email })
-                }).catch(e => console.warn(e))
-              }
               setProfile(null)
               localStorage.removeItem('dd_profile')
               navigate('/login')
