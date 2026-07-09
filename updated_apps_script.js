@@ -502,21 +502,26 @@ function doPost(e) {
   }
 
   // -------------------------
-  // 6. HANDLE CHAT (Fallback)
+  // 6. HANDLE CHAT
   // -------------------------
-  var sheetName = "Chat";
-  if (payload.roomId && payload.roomId.indexOf("group_") === 0) {
-    sheetName = payload.roomId;
+  if (payload.action === 'send' || payload.action === 'edit' || payload.action === 'delete' || payload.action === 'react') {
+    var sheetName = "Chat";
+    if (payload.roomId && payload.roomId.indexOf("group_") === 0) {
+      sheetName = payload.roomId;
+    }
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      sheet.appendRow(["id", "action", "roomId", "senderId", "senderName", "message", "timestamp", "type", "groupName"]);
+    }
+    sheet.appendRow([
+      payload.id || "", payload.action || "", payload.roomId || "", payload.senderId || "", payload.senderName || "", payload.message || "", payload.timestamp || "", payload.type || "", payload.groupName || ""
+    ]);
+    return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
   }
-  var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.appendRow(["id", "action", "roomId", "senderId", "senderName", "message", "timestamp", "type", "groupName"]);
-  }
-  sheet.appendRow([
-    payload.id || "", payload.action || "", payload.roomId || "", payload.senderId || "", payload.senderName || "", payload.message || "", payload.timestamp || "", payload.type || "", payload.groupName || ""
-  ]);
-  return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+
+  // If no action matched:
+  return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unknown action: " + payload.action })).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ============================================
