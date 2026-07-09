@@ -2,13 +2,15 @@
 
 ## Changes Made (This Session)
 
-### Daily Task Sheet on Punch Out
+### Daily Task Sheet: Formatting, Punch-In Logging & Block Updates
 - **`daily_task_sheet_script.js`**:
-  - Created a new Google Apps Script Web App payload processor.
-  - Automatically handles parsing task data and inserting new rows into a designated Google Sheet.
+  - Rewrote with helper functions (`makeHeaderText`, `makeDispDate`, `findHeaderRow`, `formatTime`).
+  - Added `log_punch_in` action: creates a minimal day block (dark green merged header, light green title row, one data row with start time) only if the date doesn't already exist.
+  - Updated `log_daily_tasks` to first check for an existing header via `findHeaderRow`. If found, deletes the old data rows and inserts new task rows with end time. If not found, creates a full block from scratch.
+  - Uses `getActiveSpreadsheet()` (runs on the active Daily Task List sheet).
 - **`src/context/AppContext.jsx`**:
-  - Updated `handlePunchOut` logic to gather the user's tasks, first punch in time, and last punch out time.
-  - Integrated a REST `fetch` call to ping the new Web App URL seamlessly on punch out.
+  - Updated `handlePunchIn` to send a `log_punch_in` request to the daily task sheet web app with the user's name, date, and start time.
+  - Existing `handlePunchOut` unchanged (already sends `log_daily_tasks` with full task data).
 
 ---
 

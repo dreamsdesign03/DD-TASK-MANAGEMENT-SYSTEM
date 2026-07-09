@@ -434,6 +434,21 @@ export function AppProvider({ children }) {
     const updated = [...todaysSessions, { in: inTime, out: null }]
     syncTodaysSessions(updated)
     addToast('Punched In successfully', 'success')
+
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxyt7e1ijH0csxYAhOUbIhcPQZ3vpFQx0z6LJGlAd9KPDU7DQq4ibr1OS-MiY8yT_4wsQ/exec';
+    if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      fetch(DAILY_SHEET_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'log_punch_in',
+          name: profile?.name || 'Unknown',
+          date: getISTDate(),
+          startTime: inTime
+        })
+      }).catch(e => console.warn('Daily task punch-in log failed:', e))
+    }
   }
 
   const handlePunchOut = () => {
