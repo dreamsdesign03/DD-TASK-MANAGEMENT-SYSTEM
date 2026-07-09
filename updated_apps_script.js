@@ -447,6 +447,62 @@ function doPost(e) {
         folderUrl
       ]);
 
+      // Send RICH HTML notification to ALL Admins
+      try {
+        var adminEmails = [];
+        var teamSheet = ss.getSheetByName("Team");
+        if (teamSheet) {
+          var teamData = teamSheet.getDataRange().getValues();
+          for (var ti = 1; ti < teamData.length; ti++) {
+            var roleStr = String(teamData[ti][8] || "").trim().toLowerCase();
+            var isActiveStr = String(teamData[ti][7] || "").trim().toLowerCase();
+            if (roleStr === "admin" && isActiveStr === "yes") {
+              var adminEmail = String(teamData[ti][2] || "").trim();
+              if (adminEmail) adminEmails.push(adminEmail);
+            }
+          }
+        }
+
+        if (adminEmails.length > 0) {
+          var subject = "New Client Created - " + (payload.projectName || "Untitled") + " - Dreamsdesk";
+
+          var displayPhone = payload.phone || "—";
+          var displayDate = payload.projectStartDate || Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+          var displayFolder = folderUrl ? "<a href='" + folderUrl + "' style='color: #702c91; font-weight: 600; text-decoration: none;'>Open Drive Folder</a>" : "—";
+
+          var htmlBody = "<div style='font-family: Inter, Arial, sans-serif; color: #333; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>" +
+            "<div style='text-align: center; margin-bottom: 24px;'>" +
+            "<h2 style='color: #461466; margin: 0; font-size: 24px; font-weight: 700;'>New Client Added</h2>" +
+            "<p style='color: #64748b; margin-top: 8px; font-size: 14px;'>A new client has been registered in Dreamsdesk.</p>" +
+            "</div>" +
+            "<div style='background-color: #f8fafc; border-radius: 8px; padding: 20px; margin-bottom: 30px;'>" +
+            "<table style='width: 100%; border-collapse: collapse; font-size: 14px;'>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 120px; font-weight: 700;'>Client ID</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + newId + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Project Name</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + (payload.projectName || "") + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Client Name</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + (payload.clientName || "") + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Client Email</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + (payload.contactEmail || "") + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Phone</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + displayPhone + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Industry</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + (payload.industry || "") + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 700;'>Project Start Date</td><td style='padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: #0f172a; font-weight: 600; text-align: right;'>" + displayDate + "</td></tr>" +
+            "<tr><td style='padding: 10px 0; color: #64748b; font-weight: 700;'>Drive Folder</td><td style='padding: 10px 0; color: #0f172a; font-weight: 600; text-align: right;'>" + displayFolder + "</td></tr>" +
+            "</table>" +
+            "</div>" +
+            "<div style='margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px;'>" +
+            "Dreamsdesk Automated System<br>You are receiving this because you are an admin." +
+            "</div>" +
+            "</div>";
+
+          MailApp.sendEmail({
+            to: Session.getActiveUser().getEmail(),
+            bcc: adminEmails.join(","),
+            subject: subject,
+            htmlBody: htmlBody
+          });
+        }
+      } catch (e) {
+        console.error("Admin notification mail error:", e.message);
+      }
+
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
