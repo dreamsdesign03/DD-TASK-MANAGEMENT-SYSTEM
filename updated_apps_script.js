@@ -20,9 +20,6 @@ function isUserAuthorized(email, ss) {
   return false;
 }
 
-// Webhook URL for the Daily Task List spreadsheet (separate Apps Script)
-var DAILY_TASK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzZ561Cx8QwR93MZOC94Nwu1jM11GK3bwWo0w_jZvwjlv2LL2DYGMy7PDW3J-2wOUQOYA/exec';
-
 function doPost(e) {
   if (!e || !e.postData) {
     return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No payload received." })).setMimeType(ContentService.MimeType.JSON);
@@ -367,17 +364,7 @@ function doPost(e) {
 
     // Create a sheet tab for the new user in the Daily Task List spreadsheet
     try {
-      var regResp = UrlFetchApp.fetch(DAILY_TASK_WEBHOOK_URL, {
-        method: "post",
-        contentType: "text/plain;charset=utf-8",
-        payload: JSON.stringify({
-          action: "create_user_sheet",
-          name: payload.name,
-          email: payload.email
-        }),
-        muteHttpExceptions: true
-      });
-      console.info("Daily task sheet register response: %s", regResp.getContentText());
+      createUserDailySheet(payload.name, payload.email);
     } catch (we) {
       console.error("Daily task sheet creation failed:", we.message);
     }
@@ -638,20 +625,10 @@ function doGet(e) {
     }
 
     if (found) {
-      // Notify the Daily Task Sheet web app to create a sheet tab for this user
+      // Create a sheet tab for the approved user in the Daily Task List spreadsheet
       try {
         if (approvedName) {
-          var approveResp = UrlFetchApp.fetch(DAILY_TASK_WEBHOOK_URL, {
-            method: "post",
-            contentType: "text/plain;charset=utf-8",
-            payload: JSON.stringify({
-              action: "create_user_sheet",
-              name: approvedName,
-              email: email
-            }),
-            muteHttpExceptions: true
-          });
-          console.info("Daily task sheet approve response: %s", approveResp.getContentText());
+          createUserDailySheet(approvedName, email);
         }
       } catch (e) {
         console.error("Daily task sheet creation failed:", e.message);
@@ -895,6 +872,31 @@ function recordActivityLogin(ss, employeeId, fullName, role, department) {
     formattedTime,
     "" // Logout Date and Time starts empty
   ]);
+}
+
+// Helper to create a user sheet in the Daily Task List spreadsheet
+function createUserDailySheet(fullName, email) {
+  var DAILY_LIST_SPREADSHEET_ID = '1TtffW2oS95WX5Xf0OtH7G-Vqsmv4eHXiTiKgnD_8lnQ';
+  var sheetName = (fullName || 'Unknown').split(' ')[0];
+
+  var ss = SpreadsheetApp.openById(DAILY_LIST_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+  }
+
+  // Ensure headers only if sheet is brand new
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1).setValue('Today Task :');
+    var headers = ['Date', 'Project Name', 'Task / Remarks', 'Status', 'Start Time', 'End Time', 'Remark'];
+    sheet.getRange(2, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(2, 1, 1, headers.length).setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(2);
+    for (var c = 1; c <= headers.length; c++) {
+      sheet.autoResizeColumn(c);
+    }
+  }
+  console.info('Daily sheet created/verified for: %s (tab: %s)', fullName, sheetName);
 }
 
 // Helper to record logout activity in the Activity sheet

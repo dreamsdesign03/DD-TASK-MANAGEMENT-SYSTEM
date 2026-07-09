@@ -7,7 +7,6 @@
 // 3. Deploy as Web App (Execute as "Me", Access "Anyone")
 // 4. Copy the deployed URL
 // 5. Update DAILY_SHEET_WEB_APP_URL in AppContext.jsx
-// 6. Update DAILY_TASK_WEBHOOK_URL in updated_apps_script.js
 
 // ─────────────────────────────────────────────────
 //  Spreadsheet ID — Replace with your actual ID
@@ -43,28 +42,6 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var action = data.action;
-
-    // ── Create a user sheet tab when a new user registers ──
-    if (action === 'create_user_sheet') {
-      var fullName = data.name || 'Unknown';
-      var sheetName = fullName.split(' ')[0]; // Use first name for sheet tab
-
-      if (SPREADSHEET_ID === 'YOUR_DAILY_TASK_LIST_SPREADSHEET_ID_HERE') {
-        return ContentService.createTextOutput(JSON.stringify({
-          status: 'error',
-          message: 'Please set SPREADSHEET_ID in daily_task_sheet_script.js'
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-
-      var result = getOrCreateSheet(SPREADSHEET_ID, sheetName);
-      ensureHeaders(result.sheet);
-
-      return ContentService.createTextOutput(JSON.stringify({
-        status: 'success',
-        message: 'Sheet created for ' + fullName,
-        sheetName: sheetName
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
 
     // ── Log daily tasks on punch out ──
     if (action === 'log_daily_tasks') {
