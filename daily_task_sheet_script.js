@@ -12,7 +12,7 @@
 // ─────────────────────────────────────────────────
 //  Spreadsheet ID — Replace with your actual ID
 // ─────────────────────────────────────────────────
-var SPREADSHEET_ID = 'YOUR_DAILY_TASK_LIST_SPREADSHEET_ID_HERE';
+var SPREADSHEET_ID = '1TtffW2oS95WX5Xf0OtH7G-Vqsmv4eHXiTiKgnD_8lnQ';
 
 function getOrCreateSheet(spreadsheetId, sheetName) {
   var ss = SpreadsheetApp.openById(spreadsheetId);

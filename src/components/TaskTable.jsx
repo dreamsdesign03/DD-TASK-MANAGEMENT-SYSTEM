@@ -288,7 +288,7 @@ export default function TaskTable() {
 
       const currentClient = selectedClient
 
-      const url = 'https://script.google.com/macros/s/AKfycbyha_CTlL6WbL1hDJSwcoxB4FDs2GP09p5zvD9EYo4LuOagpgY0abMaynR_PWN9firr/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbx2crHM6eTXcX7z5nabr4uKCbkzzuPZkxEqY60Ku2lljlzuaF-cT1HEOB4CyOrqeewT/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },

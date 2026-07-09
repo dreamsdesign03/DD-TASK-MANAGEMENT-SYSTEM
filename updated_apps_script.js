@@ -21,7 +21,7 @@ function isUserAuthorized(email, ss) {
 }
 
 // Webhook URL for the Daily Task List spreadsheet (separate Apps Script)
-var DAILY_TASK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyAgdUpa67GDKOQ3lGrw84sk5yA_t4x06okcszZL6FZukiOq-Bb16ovKc5YhrKLR7XHAQ/exec';
+var DAILY_TASK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw-4byvMULEBY5SrFVlo6Nt_QsoPq4CmZeKhE_mf_WVzzgdtyP9bu-9LPzx3jJaE8cdRg/exec';
 
 function doPost(e) {
   if (!e || !e.postData) {
