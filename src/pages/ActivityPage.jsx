@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
@@ -20,6 +20,16 @@ function timeToSeconds(timeStr) {
   return parseInt(parts[0] || 0) * 3600 + parseInt(parts[1] || 0) * 60 + parseInt(parts[2] || 0)
 }
 
+function fmtDuration(seconds) {
+  if (isNaN(seconds) || seconds <= 0) return '0h 0m'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
+}
+
 function fmtHMS(seconds) {
   if (isNaN(seconds) || seconds <= 0) return '00:00:00'
   const h = Math.floor(seconds / 3600)
@@ -28,9 +38,81 @@ function fmtHMS(seconds) {
   return [h, m, s].map(v => String(v).padStart(2, '0')).join(':')
 }
 
-export default function ActivityPage() {
-  const { profile, employees, fetchActivities } = useApp()
+function getISTTimeFromTs(ts) {
+  const d = new Date(ts)
+  const istOffset = 5.5 * 60 * 60 * 1000
+  const ist = new Date(d.getTime() + istOffset)
+  return [ist.getUTCHours(), ist.getUTCMinutes(), ist.getUTCSeconds()]
+    .map(v => String(v).padStart(2, '0')).join(':')
+}
 
+function getISTDateFromTs(ts) {
+  const d = new Date(ts)
+  const istOffset = 5.5 * 60 * 60 * 1000
+  const ist = new Date(d.getTime() + istOffset)
+  return `${ist.getUTCFullYear()}-${String(ist.getUTCMonth() + 1).padStart(2, '0')}-${String(ist.getUTCDate()).padStart(2, '0')}`
+}
+
+function SessionCard({ session }) {
+  const duration = Math.max(0, session.logoutSecs - session.loginSecs)
+  return (
+    <div className="flex items-center justify-between bg-white rounded-lg border border-slate-100 px-4 py-2.5 hover:border-[#702c91]/20 transition-colors">
+      <div className="flex items-center gap-3 min-w-0 flex-1 flex-wrap">
+        <div className="flex items-center gap-2 text-[12px] whitespace-nowrap">
+          <span className="text-green-600 font-medium">In:</span>
+          <span className="font-bold text-[#1E1B2E]">{session.loginTimeStr}</span>
+        </div>
+        <span className="material-symbols-outlined text-[12px] text-[#94A3B8]">arrow_forward</span>
+        <div className="flex items-center gap-2 text-[12px] whitespace-nowrap">
+          <span className="text-red-600 font-medium">Out:</span>
+          <span className="font-bold text-[#1E1B2E]">
+            {session.isStillActive ? (
+              <span className="text-green-600">Active Now</span>
+            ) : session.logoutTimeStr}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[12px] whitespace-nowrap bg-[#702c91]/5 rounded-md px-2.5 py-1 border border-[#702c91]/10">
+          <span className="text-blue-600 font-medium">Dur:</span>
+          <span className="font-bold text-[#702c91]">{fmtDuration(duration)}</span>
+        </div>
+      </div>
+      <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+        session.isStillActive ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+      }`}>
+        {session.isStillActive ? 'Active' : 'Done'}
+      </span>
+    </div>
+  )
+}
+
+function SessionView({ sessions }) {
+  return (
+    <div className="flex flex-col gap-1.5 max-h-[300px] overflow-y-auto">
+      {sessions.map((s, idx) => (
+        <div key={s.id || idx} className="flex items-center gap-2 text-[12px] px-1">
+          <span className="text-[10px] font-extrabold text-[#702c91] bg-purple-50 px-1.5 py-0.5 rounded min-w-[68px] text-center">
+            #{idx + 1}
+          </span>
+          <span className="text-green-600 font-medium">In:</span>
+          <span className="font-bold text-[#1E1B2E]">{s.loginTimeStr}</span>
+          <span className="material-symbols-outlined text-[12px] text-[#94A3B8]">arrow_forward</span>
+          <span className="text-red-600 font-medium">Out:</span>
+          <span className="font-bold text-[#1E1B2E]">
+            {s.isStillActive ? <span className="text-green-600">Active Now</span> : s.logoutTimeStr}
+          </span>
+          <span className="ml-auto font-bold text-[#702c91]">
+            {fmtDuration(Math.max(0, s.logoutSecs - s.loginSecs))}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function ActivityPage() {
+  const { profile, employees, fetchActivities, isPunchedIn } = useApp()
+
+  const [nowTs, setNowTs] = useState(Date.now())
   const now = new Date()
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
@@ -38,6 +120,34 @@ export default function ActivityPage() {
   const [selectedEmpId, setSelectedEmpId] = useState('')
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
+  const [expandedExtra, setExpandedExtra] = useState(new Set())
+  const extraRefs = useRef({})
+
+  // Live timer for active session durations
+  useEffect(() => {
+    const timer = setInterval(() => setNowTs(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Close expanded extras on click outside
+  const handleClickOutside = useCallback((e) => {
+    const target = e.target
+    let shouldClose = true
+    for (const key of Object.keys(extraRefs.current)) {
+      if (extraRefs.current[key] && extraRefs.current[key].contains(target)) {
+        shouldClose = false
+        break
+      }
+    }
+    if (shouldClose && expandedExtra.size > 0) {
+      setExpandedExtra(new Set())
+    }
+  }, [expandedExtra])
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [handleClickOutside])
 
   useEffect(() => {
     if (currentEmpId && !selectedEmpId) setSelectedEmpId(currentEmpId)
@@ -51,6 +161,7 @@ export default function ActivityPage() {
     setLoading(false)
   }
 
+  // Re-fetch when punch state changes (active session may have ended)
   useEffect(() => { loadData() }, [])
 
   const selectedEmployee = useMemo(() => {
@@ -76,8 +187,8 @@ export default function ActivityPage() {
     else setSelectedMonth(m => m + 1)
   }
 
-  const todayDateStr = getISTDate()
-  const currentISTTimeStr = getISTTime()
+  const todayDateStr = getISTDateFromTs(nowTs)
+  const currentISTTimeStr = getISTTimeFromTs(nowTs)
 
   const dayStats = useMemo(() => {
     const stats = {}
@@ -103,8 +214,12 @@ export default function ActivityPage() {
         let isStillActive = false
 
         if (!logoutTimeStr) {
-          if (dateStr === todayDateStr) { logoutTimeStr = currentISTTimeStr; isStillActive = true }
-          else logoutTimeStr = loginTimeStr
+          if (dateStr === todayDateStr) {
+            logoutTimeStr = currentISTTimeStr
+            isStillActive = true
+          } else {
+            logoutTimeStr = loginTimeStr
+          }
         }
 
         return {
@@ -128,6 +243,18 @@ export default function ActivityPage() {
     Object.values(dayStats).reduce((sum, d) => sum + d.totalSeconds, 0),
     [dayStats]
   )
+
+  const toggleExtra = useCallback((dateStr) => {
+    setExpandedExtra(prev => {
+      const next = new Set(prev)
+      if (next.has(dateStr)) next.delete(dateStr)
+      else {
+        next.clear()
+        next.add(dateStr)
+      }
+      return next
+    })
+  }, [])
 
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
@@ -195,7 +322,7 @@ export default function ActivityPage() {
                   </div>
                   <div className="flex items-center gap-6 mt-3 text-[13px]">
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[16px] text-[#702c91">work_history</span>
+                      <span className="material-symbols-outlined text-[16px] text-[#702c91]">work_history</span>
                       <span className="text-gray-500">Total Hours:</span>
                       <span className="font-bold text-[#1E1B2E]">{formatDuration(totalMonthSeconds)}</span>
                     </div>
@@ -217,7 +344,7 @@ export default function ActivityPage() {
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Date</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[22%]">Session #1</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[22%]">Session #2</th>
-                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[22%]">Session #3+</th>
+                        <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[22%]">Extra</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[10%]">Total</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[9%]"></th>
                       </tr>
@@ -229,93 +356,74 @@ export default function ActivityPage() {
                         const dateFormatted = `${String(day).padStart(2, '0')}/${String(selectedMonth).padStart(2, '0')}/${selectedYear}`
                         const stat = dayStats[dateStr] || { sessions: [], totalSeconds: 0 }
                         const hasSessions = stat.sessions.length > 0
-
                         const s1 = stat.sessions[0] || null
                         const s2 = stat.sessions[1] || null
-                        const extraCount = stat.sessions.length > 2 ? stat.sessions.length - 2 : 0
+                        const extraSessions = stat.sessions.length > 2 ? stat.sessions.slice(2) : []
+                        const extraCount = extraSessions.length
+                        const isExtraOpen = expandedExtra.has(dateStr)
 
                         return (
-                          <tr key={day} className={`hover:bg-gray-50/50 transition-colors ${!hasSessions ? 'opacity-50' : ''}`}>
-                            <td className="py-5 px-6 text-[13px] font-semibold text-[#374151] whitespace-nowrap">
-                              {dateFormatted}
-                            </td>
-                            <td className="py-5 px-6">
-                              {s1 ? (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-green-600 font-medium">{'Punch In'}:</span>
-                                    <span className="font-bold text-[#1E1B2E]">{s1.loginTimeStr}</span>
+                          <React.Fragment key={day}>
+                            <tr className={`hover:bg-gray-50/50 transition-colors ${!hasSessions ? 'opacity-50' : ''}`}>
+                              <td className="py-5 px-6 text-[13px] font-semibold text-[#374151] whitespace-nowrap">{dateFormatted}</td>
+                              <td className="py-5 px-6">
+                                {s1 ? <SessionCard session={s1} /> : <span className="text-[#9CA3AF] text-[12px] italic">—</span>}
+                              </td>
+                              <td className="py-5 px-6">
+                                {s2 ? <SessionCard session={s2} /> : <span className="text-[#9CA3AF] text-[12px] italic">—</span>}
+                              </td>
+                              <td className="py-5 px-6">
+                                {extraCount > 0 ? (
+                                  <div ref={el => extraRefs.current[dateStr] = el} style={{ position: 'relative' }}>
+                                    <button
+                                      onClick={() => toggleExtra(dateStr)}
+                                      className="text-[12px] font-bold text-[#702c91] bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors border-none flex items-center gap-1"
+                                    >
+                                      <span>+{extraCount} more</span>
+                                      <span className={`material-symbols-outlined text-[14px] transition-transform ${isExtraOpen ? 'rotate-180' : ''}`}>
+                                        expand_more
+                                      </span>
+                                    </button>
+                                    {isExtraOpen && (
+                                      <div
+                                        style={{
+                                          position: 'absolute', top: '100%', left: 0, zIndex: 50, marginTop: 4,
+                                          minWidth: 320, background: 'white',
+                                          borderRadius: 12, border: '1px solid #E5E7EB',
+                                          boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                                          padding: 12
+                                        }}
+                                      >
+                                        <div className="text-[11px] font-bold text-[#6B7280] uppercase mb-2 px-1">All Sessions</div>
+                                        <SessionView sessions={stat.sessions} />
+                                      </div>
+                                    )}
                                   </div>
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-red-600 font-medium">{'Punch Out'}:</span>
-                                    <span className="font-bold text-[#1E1B2E]">
-                                      {s1.isStillActive ? (
-                                        <span className="text-green-600">Active Now</span>
-                                      ) : s1.logoutTimeStr}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-blue-600 font-medium">Duration:</span>
-                                    <span className="font-bold text-[#702c91]">{formatDuration(s1.logoutSecs - s1.loginSecs)}</span>
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-[#9CA3AF] text-[12px] italic">—</span>
-                              )}
-                            </td>
-                            <td className="py-5 px-6">
-                              {s2 ? (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-green-600 font-medium">In:</span>
-                                    <span className="font-bold text-[#1E1B2E]">{s2.loginTimeStr}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-red-600 font-medium">Out:</span>
-                                    <span className="font-bold text-[#1E1B2E]">
-                                      {s2.isStillActive ? (
-                                        <span className="text-green-600">Active Now</span>
-                                      ) : s2.logoutTimeStr}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2 text-[12px]">
-                                    <span className="text-blue-600 font-medium">Duration:</span>
-                                    <span className="font-bold text-[#702c91]">{formatDuration(s2.logoutSecs - s2.loginSecs)}</span>
-                                  </div>
-                                </div>
-                              ) : (
-                                <span className="text-[#9CA3AF] text-[12px] italic">—</span>
-                              )}
-                            </td>
-                            <td className="py-5 px-6">
-                              {extraCount > 0 ? (
-                                <span className="text-[12px] font-bold text-[#702c91] bg-purple-50 px-3 py-1.5 rounded-lg">
-                                  +{extraCount} more sessions
-                                </span>
-                              ) : (
-                                <span className={`text-[12px] font-bold ${hasSessions ? 'text-gray-400' : 'text-[#9CA3AF] italic'}`}>
-                                  {hasSessions ? 'No more' : 'No punches'}
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-5 px-6 text-right">
-                              <span className="text-[14px] font-black text-[#1E1B2E]">{fmtHMS(stat.totalSeconds)}</span>
-                            </td>
-                            <td className="py-5 px-6 text-center">
-                              {s1 ? (
-                                <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full ${
-                                  s1.isStillActive
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-blue-100 text-blue-700'
-                                }`}>
-                                  <span className={`w-2 h-2 rounded-full ${s1.isStillActive ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`} />
-                                  {s1.isStillActive ? 'Active' : 'Done'}
-                                </span>
-                              ) : (
-                                <span className="text-gray-300 text-[13px]">—</span>
-                              )}
-                            </td>
-                          </tr>
+                                ) : (
+                                  <span className={`text-[12px] font-bold ${hasSessions ? 'text-gray-400' : 'text-[#9CA3AF] italic'}`}>
+                                    {hasSessions ? 'No more' : 'No punches'}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-5 px-6 text-right">
+                                <span className="text-[14px] font-black text-[#1E1B2E]">{fmtHMS(stat.totalSeconds)}</span>
+                              </td>
+                              <td className="py-5 px-6 text-center">
+                                {s1 ? (
+                                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full ${
+                                    stat.sessions.some(s => s.isStillActive)
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    <span className={`w-2 h-2 rounded-full ${stat.sessions.some(s => s.isStillActive) ? 'bg-green-500 animate-pulse' : 'bg-blue-500'}`} />
+                                    {stat.sessions.some(s => s.isStillActive) ? 'Active' : 'Done'}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-300 text-[13px]">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          </React.Fragment>
                         )
                       })}
                     </tbody>
