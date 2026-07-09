@@ -200,9 +200,10 @@ function doPost(e) {
   }
 
   // -------------------------
-  // 3. HANDLE LOGIN & LOGOUT
   // -------------------------
-  if (payload.action === 'login' || payload.action === 'google_login' || payload.action === 'logout') {
+  // 3. HANDLE LOGIN
+  // -------------------------
+  if (payload.action === 'login' || payload.action === 'google_login') {
     var teamSheet = ss.getSheetByName("Team");
     if (!teamSheet) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Team sheet not found" })).setMimeType(ContentService.MimeType.JSON);
@@ -221,20 +222,14 @@ function doPost(e) {
           return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Invalid email or password" })).setMimeType(ContentService.MimeType.JSON);
         }
 
-        if (payload.action === 'logout') {
-          teamSheet.getRange(i + 1, 10).setValue("Offline");
-          recordActivityLogout(ss, payload.email);
-          return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
-        }
+
 
         if (isActive === "Pending") {
           return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Admin not approved" })).setMimeType(ContentService.MimeType.JSON);
         }
 
-        teamSheet.getRange(i + 1, 8).setValue("Yes");        // Is Active
-        teamSheet.getRange(i + 1, 10).setValue("Online");    // Status
-        recordActivityLogin(ss, row[0], row[1], row[8], row[4]);
-
+        // Note: Login only authenticates the user now. It doesn't set them "Online".
+        // Punching in handles the "Online" status and activity logging.
         var userObj = {
           "Employee ID": row[0],
           "Full Name": row[1],
@@ -260,21 +255,28 @@ function doPost(e) {
   }
 
   // -------------------------
-  // 3.5. HANDLE STATUS UPDATE
   // -------------------------
-  if (payload.action === 'update_status') {
+  // 3.5. HANDLE PUNCH IN & PUNCH OUT
+  // -------------------------
+  if (payload.action === 'punch_in' || payload.action === 'punch_out') {
     var teamSheet = ss.getSheetByName("Team");
     if (!teamSheet) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Team sheet not found" })).setMimeType(ContentService.MimeType.JSON);
     }
     var data = teamSheet.getDataRange().getValues();
     var emailToMatch = String(payload.email).trim().toLowerCase();
-    var newStatus = payload.status === 'Online' ? 'Online' : 'Offline';
 
     for (var i = 1; i < data.length; i++) {
-      var rowEmail = String(data[i][2]).trim().toLowerCase();
+      var row = data[i];
+      var rowEmail = String(row[2]).trim().toLowerCase();
       if (rowEmail === emailToMatch) {
-        teamSheet.getRange(i + 1, 10).setValue(newStatus);
+        if (payload.action === 'punch_in') {
+          teamSheet.getRange(i + 1, 10).setValue("Online");
+          recordActivityLogin(ss, row[0], row[1], row[8], row[4]);
+        } else if (payload.action === 'punch_out') {
+          teamSheet.getRange(i + 1, 10).setValue("Offline");
+          recordActivityLogout(ss, payload.email);
+        }
         return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
       }
     }
