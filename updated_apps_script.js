@@ -20,6 +20,9 @@ function isUserAuthorized(email, ss) {
   return false;
 }
 
+// Webhook URL for the Daily Task List spreadsheet (separate Apps Script)
+var DAILY_TASK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyAgdUpa67GDKOQ3lGrw84sk5yA_t4x06okcszZL6FZukiOq-Bb16ovKc5YhrKLR7XHAQ/exec';
+
 function doPost(e) {
   if (!e || !e.postData) {
     return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No payload received." })).setMimeType(ContentService.MimeType.JSON);
@@ -606,9 +609,11 @@ function doGet(e) {
     var data = teamSheet.getDataRange().getValues();
     var found = false;
 
+    var approvedName = "";
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
         teamSheet.getRange(i + 1, 8).setValue("Yes"); // Is Active
+        approvedName = String(data[i][1] || "");
         // Status is not set here — user must punch in to become Online
         found = true;
         break;
@@ -616,6 +621,25 @@ function doGet(e) {
     }
 
     if (found) {
+      // Notify the Daily Task Sheet web app to create a sheet tab for this user
+      try {
+        var dailyTaskUrl = "YOUR_DAILY_TASK_SHEET_WEB_APP_URL_HERE";
+        if (dailyTaskUrl !== "YOUR_DAILY_TASK_SHEET_WEB_APP_URL_HERE" && approvedName) {
+          UrlFetchApp.fetch(dailyTaskUrl, {
+            method: "post",
+            contentType: "text/plain;charset=utf-8",
+            payload: JSON.stringify({
+              action: "create_user_sheet",
+              name: approvedName,
+              email: email
+            }),
+            muteHttpExceptions: true
+          });
+        }
+      } catch (e) {
+        console.error("Daily task sheet creation failed:", e.message);
+      }
+
       return HtmlService.createHtmlOutput(
         "<div style='font-family: Arial, sans-serif; text-align: center; margin-top: 80px;'>" +
         "<div style='background-color: #f0fdf4; border: 1px solid #bbf7d0; max-width: 400px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);'>" +
