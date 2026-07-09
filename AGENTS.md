@@ -1,3 +1,17 @@
+# Session Summary (Jul 9, 2026)
+
+## Changes Made (This Session)
+
+### Daily Task Sheet on Punch Out
+- **`daily_task_sheet_script.js`**:
+  - Created a new Google Apps Script Web App payload processor.
+  - Automatically handles parsing task data and inserting new rows into a designated Google Sheet.
+- **`src/context/AppContext.jsx`**:
+  - Updated `handlePunchOut` logic to gather the user's tasks, first punch in time, and last punch out time.
+  - Integrated a REST `fetch` call to ping the new Web App URL seamlessly on punch out.
+
+---
+
 # Session Summary (Jul 8, 2026)
 
 ## Changes Made (This Session)

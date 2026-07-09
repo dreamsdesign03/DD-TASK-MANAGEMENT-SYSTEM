@@ -437,7 +437,8 @@ export function AppProvider({ children }) {
   }
 
   const handlePunchOut = () => {
-    if (profile?.email) logLogout(profile.email)
+    const prevEmail = profile?.email
+    if (prevEmail) logLogout(prevEmail)
     setIsPunchedIn(false)
     setPunchInTime(null)
     localStorage.removeItem('dd_punch_in_time')
@@ -446,6 +447,41 @@ export function AppProvider({ children }) {
     if (updated.length > 0) updated[updated.length - 1].out = outTime
     syncTodaysSessions(updated)
     addToast('Punched Out successfully', 'success')
+
+    // Prepare Daily Task Sheet Data
+    if (prevEmail) {
+      const firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
+      const today = getISTDate();
+      
+      // Get tasks where user is assigned
+      const userTasks = tasksRef.current.filter(t => t.assignedEmail === prevEmail || t.assignedTo === profile?.name);
+      const tasksPayload = userTasks.map(t => ({
+        project: t.project || t.client || 'N/A',
+        title: t.title,
+        status: t.status
+      }));
+
+      // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyw6F4rluQTOx-lGapTtNbKcuSCfl-7koHZBbQz79MB1Wl4_nKJaGAXtSET2sWM9XJAKw/exec';
+      
+      if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        fetch(DAILY_SHEET_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'log_daily_tasks',
+            email: prevEmail,
+            name: profile?.name || 'Unknown',
+            date: today,
+            firstPunchIn: firstPunchIn,
+            lastPunchOut: outTime,
+            tasks: tasksPayload
+          })
+        }).then(r => r.text()).then(t => console.log('Daily tasks logged:', t)).catch(e => console.warn('Daily tasks log failed:', e))
+      } else {
+        console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
+      }
+    }
   }
 
   // Activity tracking: log punch in, heartbeat every 30s
