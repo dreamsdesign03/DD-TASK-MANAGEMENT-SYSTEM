@@ -15,6 +15,8 @@ import TeamPage from './pages/TeamPage'
 import ClientsPage from './pages/ClientsPage'
 import ActivityPage from './pages/ActivityPage'
 import TimerBadge from './components/TimerBadge'
+import Sidebar from './components/Sidebar'
+import TopNav from './components/TopNav'
 
 function GlobalNav() {
   const navigate = useNavigate()
@@ -74,7 +76,7 @@ function DesktopLauncher({ profile }) {
 }
 
 function ProtectedRoute({ children }) {
-  const { profile } = useApp()
+  const { profile, isPunchedIn } = useApp()
   const searchParams = new URLSearchParams(window.location.search)
 
   if (!profile) {
@@ -84,6 +86,28 @@ function ProtectedRoute({ children }) {
   if (searchParams.get('desktop') === 'true' && profile.email) {
     window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
     return <DesktopLauncher profile={profile} />
+  }
+
+  if (!isPunchedIn) {
+    return (
+      <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+        <Sidebar />
+        <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+          <TopNav title="" showSearch={false} />
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-10 text-center max-w-md">
+              <div className="w-16 h-16 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-5">
+                <span className="material-symbols-outlined text-[36px] text-[#702c91]">lock</span>
+              </div>
+              <h2 className="text-2xl font-black text-[#1E1B2E] mb-2">Please Punch In</h2>
+              <p className="text-[15px] text-gray-500 leading-relaxed">
+                You need to <strong className="text-[#702c91]">Punch In</strong> using the button in the top bar before you can access any pages.
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return children
