@@ -557,13 +557,7 @@ export default function ProjectOverviewPage() {
           </div>
         </div>
 
-        {/* Floating Action Button */}
-        <button
-          onClick={() => navigate('/my-tasks')}
-          className="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-105 transition-all z-50"
-        >
-          <span className="material-symbols-outlined text-[28px]">add</span>
-        </button>
+
           </>
         )}
       </main>
