@@ -365,6 +365,23 @@ function doPost(e) {
       console.error("Mail Error:", e.message);
     }
 
+    // Create a sheet tab for the new user in the Daily Task List spreadsheet
+    try {
+      var regResp = UrlFetchApp.fetch(DAILY_TASK_WEBHOOK_URL, {
+        method: "post",
+        contentType: "text/plain;charset=utf-8",
+        payload: JSON.stringify({
+          action: "create_user_sheet",
+          name: payload.name,
+          email: payload.email
+        }),
+        muteHttpExceptions: true
+      });
+      console.info("Daily task sheet register response: %s", regResp.getContentText());
+    } catch (we) {
+      console.error("Daily task sheet creation failed:", we.message);
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -623,9 +640,8 @@ function doGet(e) {
     if (found) {
       // Notify the Daily Task Sheet web app to create a sheet tab for this user
       try {
-        var dailyTaskUrl = "YOUR_DAILY_TASK_SHEET_WEB_APP_URL_HERE";
-        if (dailyTaskUrl !== "YOUR_DAILY_TASK_SHEET_WEB_APP_URL_HERE" && approvedName) {
-          UrlFetchApp.fetch(dailyTaskUrl, {
+        if (approvedName) {
+          var approveResp = UrlFetchApp.fetch(DAILY_TASK_WEBHOOK_URL, {
             method: "post",
             contentType: "text/plain;charset=utf-8",
             payload: JSON.stringify({
@@ -635,6 +651,7 @@ function doGet(e) {
             }),
             muteHttpExceptions: true
           });
+          console.info("Daily task sheet approve response: %s", approveResp.getContentText());
         }
       } catch (e) {
         console.error("Daily task sheet creation failed:", e.message);
