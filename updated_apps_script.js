@@ -26,7 +26,7 @@ function doPost(e) {
   }
 
   var payload = JSON.parse(e.postData.contents);
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById("1DLdlDT21vVwsggGlPg8xpSt2zjNJ_-z7W_GbFr7qIXs");
 
   // -------------------------
   // 1. HANDLE FILE UPLOAD 
@@ -529,7 +529,7 @@ function doPost(e) {
 // ============================================
 function doGet(e) {
   var action = (e && e.parameter) ? e.parameter.action : null;
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SpreadsheetApp.openById("1DLdlDT21vVwsggGlPg8xpSt2zjNJ_-z7W_GbFr7qIXs");
 
   // -------------------------
   // 0. HANDLE 1-CLICK EMAIL APPROVAL
