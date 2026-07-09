@@ -406,98 +406,106 @@ export function AppProvider({ children }) {
     localStorage.setItem('dd_punched_in', isPunchedIn)
   }, [isPunchedIn])
 
+  const [punchInTime, setPunchInTime] = useState(() => {
+    try { return localStorage.getItem('dd_punch_in_time') || null } catch { return null }
+  })
+  const [todaysSessions, setTodaysSessions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_todays_sessions')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        const today = getISTDate()
+        return parsed.date === today ? parsed.sessions : []
+      }
+    } catch {}
+    return []
+  })
+
+  const syncTodaysSessions = (sessions) => {
+    setTodaysSessions(sessions)
+    localStorage.setItem('dd_todays_sessions', JSON.stringify({ date: getISTDate(), sessions }))
+  }
+
   const handlePunchIn = () => {
-    console.log('handlePunchIn called')
     setIsPunchedIn(true)
+    const inTime = getISTTime()
+    setPunchInTime(inTime)
+    localStorage.setItem('dd_punch_in_time', inTime)
+    const updated = [...todaysSessions, { in: inTime, out: null }]
+    syncTodaysSessions(updated)
     addToast('Punched In successfully', 'success')
   }
 
   const handlePunchOut = () => {
-    console.log('handlePunchOut called')
-    if (profile?.email) {
-      logLogout(profile.email)
-    }
+    if (profile?.email) logLogout(profile.email)
     setIsPunchedIn(false)
+    setPunchInTime(null)
+    localStorage.removeItem('dd_punch_in_time')
+    const outTime = getISTTime()
+    const updated = [...todaysSessions]
+    if (updated.length > 0) updated[updated.length - 1].out = outTime
+    syncTodaysSessions(updated)
     addToast('Punched Out successfully', 'success')
   }
 
   // Activity tracking: log punch in, heartbeat every 30s
   const heartbeatRef = useRef(null)
   const prevProfileEmailRef = useRef(null)
+  const initialMountRef = useRef(true)
 
   useEffect(() => {
     if (profile?.email) {
       prevProfileEmailRef.current = profile.email
     }
 
-    console.log('useEffect fired - isPunchedIn:', isPunchedIn, 'profile?.email:', profile?.email)
+    // On initial mount, restore local state but skip API calls
+    if (initialMountRef.current) {
+      initialMountRef.current = false
+      if (isPunchedIn && profile?.email) {
+        setEmployees(prev => prev.map(e =>
+          e.email === profile.email ? { ...e, status: 'Online' } : e
+        ))
+        heartbeatRef.current = setInterval(() => updateHeartbeat(profile.email), 30000)
+      }
+      return
+    }
+
     if (isPunchedIn && profile?.email) {
-      // Mark employee as Online in team directory
       setEmployees(prev => prev.map(e =>
         e.email === profile.email ? { ...e, status: 'Online' } : e
       ))
-
       logLogin(profile.email, profile.name)
-
-      // Broadcast online status via MQTT
       if (mqttClient && mqttClient.connected) {
         mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
-          action: 'user_online',
-          email: profile.email,
-          name: profile.name,
-          timestamp: Date.now()
+          action: 'user_online', email: profile.email, name: profile.name, timestamp: Date.now()
         }))
       }
-      // Update the sheet to reflect online status
       fetch('https://script.google.com/macros/s/AKfycbyyJcUxvYxcwFm4E8mppUG98tJBBXDRsPjsKNEn3Kfu2oVQbmyYAwSpNZAJ-faK63ux/exec', {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'punch_in', email: profile.email })
       }).then(r => r.text()).then(t => console.log('Punch in response:', t)).catch(e => console.warn('Punch in failed:', e))
-
-      heartbeatRef.current = setInterval(() => {
-        updateHeartbeat(profile.email)
-      }, 30000)
-
+      heartbeatRef.current = setInterval(() => updateHeartbeat(profile.email), 30000)
       return () => {
-        if (heartbeatRef.current) {
-          clearInterval(heartbeatRef.current)
-        }
+        if (heartbeatRef.current) { clearInterval(heartbeatRef.current) }
       }
     } else {
-      console.log('else branch - prevProfileEmailRef.current:', prevProfileEmailRef.current, 'profile?.email:', profile?.email)
-      // Punched out or logged out
       const prevEmail = prevProfileEmailRef.current || profile?.email
       if (prevEmail) {
         setEmployees(prev => prev.map(e =>
           e.email === prevEmail ? { ...e, status: 'Offline' } : e
         ))
-
-        // Broadcast offline status via MQTT
         if (mqttClient && mqttClient.connected) {
           mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
-            action: 'user_offline',
-            email: prevEmail,
-            name: '',
-            timestamp: Date.now()
+            action: 'user_offline', email: prevEmail, name: '', timestamp: Date.now()
           }))
         }
-        
-        // Update the sheet when user punches out
         fetch('https://script.google.com/macros/s/AKfycbyyJcUxvYxcwFm4E8mppUG98tJBBXDRsPjsKNEn3Kfu2oVQbmyYAwSpNZAJ-faK63ux/exec', {
           method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'punch_out', email: prevEmail })
         }).then(r => r.text()).then(t => console.log('Punch out response:', t)).catch(e => console.warn('Punch out failed:', e))
       }
-
-      if (heartbeatRef.current) {
-        clearInterval(heartbeatRef.current)
-        heartbeatRef.current = null
-      }
-      
-      // Auto Punch-out if profile is removed
-      if (!profile?.email && isPunchedIn) {
-        setIsPunchedIn(false)
-      }
+      if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null }
+      if (!profile?.email && isPunchedIn) { setIsPunchedIn(false) }
     }
   }, [isPunchedIn, profile?.email])
 
@@ -2377,6 +2385,8 @@ export function AppProvider({ children }) {
         isPunchedIn,
         handlePunchIn,
         handlePunchOut,
+        punchInTime,
+        todaysSessions,
         activityLog: loadActivityLog(),
         getActiveUsers,
         getAllUsersMonthlyActivity,
