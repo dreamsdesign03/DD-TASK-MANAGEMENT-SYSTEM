@@ -395,24 +395,46 @@ export function AppProvider({ children }) {
     localStorage.setItem('dd_profile', JSON.stringify(profile))
   }, [profile])
 
-  // Activity tracking: log login on profile set, heartbeat every 30s
+  const [isPunchedIn, setIsPunchedIn] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_punched_in')
+      return saved === 'true'
+    } catch { return false }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('dd_punched_in', isPunchedIn)
+  }, [isPunchedIn])
+
+  const handlePunchIn = () => {
+    setIsPunchedIn(true)
+    addToast('Punched In successfully', 'success')
+  }
+
+  const handlePunchOut = () => {
+    if (profile?.email) {
+      logLogout(profile.email)
+    }
+    setIsPunchedIn(false)
+    addToast('Punched Out successfully', 'success')
+  }
+
+  // Activity tracking: log punch in, heartbeat every 30s
   const heartbeatRef = useRef(null)
-  const loggedLoginRef = useRef(false)
   const prevProfileEmailRef = useRef(null)
 
   useEffect(() => {
     if (profile?.email) {
       prevProfileEmailRef.current = profile.email
+    }
 
+    if (isPunchedIn && profile?.email) {
       // Mark employee as Online in team directory
       setEmployees(prev => prev.map(e =>
         e.email === profile.email ? { ...e, status: 'Online' } : e
       ))
 
-      if (!loggedLoginRef.current) {
-        logLogin(profile.email, profile.name)
-        loggedLoginRef.current = true
-      }
+      logLogin(profile.email, profile.name)
 
       // Broadcast online status via MQTT
       if (mqttClient && mqttClient.connected) {
@@ -423,7 +445,7 @@ export function AppProvider({ children }) {
           timestamp: Date.now()
         }))
       }
-      // Update the sheet to reflect online status (also covers page refresh)
+      // Update the sheet to reflect online status
       fetch('https://script.google.com/macros/s/AKfycbznr7k0Y90x-UxODSQkm77hfZeAvlGcWLc0FmhsBT0V3yGqA7Oq71x1Fz1R1c0AMrnU/exec', {
         method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'update_status', email: profile.email, status: 'Online' })
@@ -433,47 +455,14 @@ export function AppProvider({ children }) {
         updateHeartbeat(profile.email)
       }, 30000)
 
-      const handleBeforeUnload = () => {
-        logShutdown(profile.email)
-        // Broadcast offline on tab close
-        if (mqttClient && mqttClient.connected) {
-          mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
-            action: 'user_offline',
-            email: profile.email,
-            name: profile.name,
-            timestamp: Date.now()
-          }))
-        }
-        // Update the sheet on tab close
-        try {
-          const url = 'https://script.google.com/macros/s/AKfycbznr7k0Y90x-UxODSQkm77hfZeAvlGcWLc0FmhsBT0V3yGqA7Oq71x1Fz1R1c0AMrnU/exec'
-          navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
-        } catch (e) { console.warn('sendBeacon failed:', e) }
-      }
-      window.addEventListener('beforeunload', handleBeforeUnload)
-
       return () => {
-        clearInterval(heartbeatRef.current)
-        window.removeEventListener('beforeunload', handleBeforeUnload)
-        logShutdown(profile.email)
-        // Broadcast offline on unmount
-        if (mqttClient && mqttClient.connected && profile?.email) {
-          mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
-            action: 'user_offline',
-            email: profile.email,
-            name: profile.name,
-            timestamp: Date.now()
-          }))
+        if (heartbeatRef.current) {
+          clearInterval(heartbeatRef.current)
         }
-        // Update the sheet on unmount
-        try {
-          const url = 'https://script.google.com/macros/s/AKfycbznr7k0Y90x-UxODSQkm77hfZeAvlGcWLc0FmhsBT0V3yGqA7Oq71x1Fz1R1c0AMrnU/exec'
-          navigator.sendBeacon(url, new Blob([JSON.stringify({ action: 'logout', email: profile.email })], { type: 'text/plain;charset=utf-8' }))
-        } catch (e) { console.warn('sendBeacon failed:', e) }
       }
     } else {
-      // Logout: mark the previous user as Offline
-      const prevEmail = prevProfileEmailRef.current
+      // Punched out or logged out
+      const prevEmail = prevProfileEmailRef.current || profile?.email
       if (prevEmail) {
         setEmployees(prev => prev.map(e =>
           e.email === prevEmail ? { ...e, status: 'Offline' } : e
@@ -488,22 +477,25 @@ export function AppProvider({ children }) {
             timestamp: Date.now()
           }))
         }
-        // Update the sheet when user logs out
+        
+        // Update the sheet when user punches out
         fetch('https://script.google.com/macros/s/AKfycbznr7k0Y90x-UxODSQkm77hfZeAvlGcWLc0FmhsBT0V3yGqA7Oq71x1Fz1R1c0AMrnU/exec', {
           method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'logout', email: prevEmail })
         }).catch(() => { })
-
-        prevProfileEmailRef.current = null
       }
 
-      loggedLoginRef.current = false
       if (heartbeatRef.current) {
         clearInterval(heartbeatRef.current)
         heartbeatRef.current = null
       }
+      
+      // Auto Punch-out if profile is removed
+      if (!profile?.email && isPunchedIn) {
+        setIsPunchedIn(false)
+      }
     }
-  }, [profile?.email])
+  }, [isPunchedIn, profile?.email])
 
   const [isDarkMode, setIsDarkMode] = useState(false)
 

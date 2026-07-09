@@ -8,7 +8,7 @@ import SelectDropdown from '../components/SelectDropdown'
 export default function ProjectOverviewPage() {
   const { projectName } = useParams()
   const navigate = useNavigate()
-  const { tasks, messagesByChatId, fetchMessages, addToast, profile } = useApp()
+  const { tasks, messagesByChatId, fetchMessages, addToast, profile, isPunchedIn } = useApp()
   const [driveDocs, setDriveDocs] = useState([])
   const [isLoadingDocs, setIsLoadingDocs] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
@@ -258,7 +258,17 @@ export default function ProjectOverviewPage() {
       <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
         <TopNav title={projectName} showSearch={true} />
 
-        {/* Header Area */}
+        {!isPunchedIn ? (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center max-w-md bg-white p-8 rounded-xl shadow-sm border border-gray-100 w-full">
+              <span className="material-symbols-outlined text-[48px] text-gray-300 mb-4 block">work_off</span>
+              <h2 className="text-[18px] font-bold text-[#1E1B2E] mb-2">You are currently Punched Out</h2>
+              <p className="text-[13px] text-gray-500">Please Punch In from the top navigation bar to view project details and manage tasks.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Header Area */}
         <div className="bg-white border-b border-[#E5E7EB] pt-6 px-4 md:px-8 flex-shrink-0 shadow-sm z-10">
           <div className="flex flex-col gap-4">
             <h1 className="text-[18px] font-extrabold text-[#1E1B2E] flex items-center gap-2">
@@ -554,6 +564,8 @@ export default function ProjectOverviewPage() {
         >
           <span className="material-symbols-outlined text-[28px]">add</span>
         </button>
+          </>
+        )}
       </main>
     </div>
   )

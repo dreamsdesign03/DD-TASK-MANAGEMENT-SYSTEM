@@ -8,7 +8,7 @@ import { useApp } from '../context/AppContext'
 
 export default function MyTasksPage() {
   const location = useLocation()
-  const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients, addToast } = useApp()
+  const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients, addToast, isPunchedIn } = useApp()
   const teamNames = employees ? employees.map(emp => emp.name) : []
 
 
@@ -147,8 +147,16 @@ export default function MyTasksPage() {
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
-          <div className="w-full flex flex-col">
-            <TaskTable />
+          <div className="w-full flex flex-col h-full">
+            {!isPunchedIn ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100 min-h-[400px]">
+                <span className="material-symbols-outlined text-6xl mb-4 text-gray-300">work_off</span>
+                <h2 className="text-xl font-bold mb-2">You are currently Punched Out</h2>
+                <p className="text-[14px]">Please Punch In from the top navigation bar to view and manage your tasks.</p>
+              </div>
+            ) : (
+              <TaskTable />
+            )}
           </div>
         </div>
 

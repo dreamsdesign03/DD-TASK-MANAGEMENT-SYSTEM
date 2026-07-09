@@ -6,7 +6,7 @@ import { renderAvatar } from '../utils/avatar'
 export default function TopNav({ title, badgeCount, showSearch = true }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen } = useApp()
+  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut } = useApp()
 
   const unreadCount = notifications?.filter((n) => n.unread).length || 0
   const isSearchVisible = showSearch && (location.pathname === '/tasks' || location.pathname === '/my-tasks' || location.pathname === '/team' || location.pathname === '/clients')
@@ -31,6 +31,11 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        {!isPunchedIn ? (
+          <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
+        ) : (
+          <button onClick={handlePunchOut} style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out</button>
+        )}
         {isSearchVisible && (
           <div style={{ position: 'relative', width: 300 }} className="hidden md:block">
             <span className="material-symbols-outlined" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 20 }}>search</span>

@@ -87,7 +87,7 @@ const getPriorityConfig = (priority) => {
 export default function TaskDetailPage() {
   const { taskId } = useParams()
   const navigate = useNavigate()
-  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast, activeTimer, sessionSecs: globalSessionSecs, toggleTimer } = useApp()
+  const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast, activeTimer, sessionSecs: globalSessionSecs, toggleTimer, isPunchedIn } = useApp()
 
   const task = (tasks || []).find((t) => t.id === taskId) || (tasks && tasks.length > 0 ? tasks[0] : {})
 
@@ -699,6 +699,24 @@ export default function TaskDetailPage() {
           <TopNav title="Loading Task..." showSearch={false} />
           <div className="flex-1 flex items-center justify-center animate-pulse">
             <p className="text-secondary text-sm font-medium">Loading task details...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (!isPunchedIn) {
+    return (
+      <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+        <Sidebar />
+        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+          <TopNav title="Punched Out" showSearch={false} />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+              <span className="material-symbols-outlined text-[48px] text-gray-300 mb-4 block">work_off</span>
+              <h2 className="text-[18px] font-bold text-[#1E1B2E] mb-2">You are currently Punched Out</h2>
+              <p className="text-[13px] text-gray-500">Please Punch In from the top navigation bar to view and edit this task.</p>
+            </div>
           </div>
         </main>
       </div>
