@@ -272,6 +272,8 @@ function doPost(e) {
       if (rowEmail === emailToMatch) {
         if (payload.action === 'punch_in') {
           teamSheet.getRange(i + 1, 10).setValue("Online");
+          // Auto-close any previous active session before creating a new one
+          recordActivityLogout(ss, payload.email);
           recordActivityLogin(ss, row[0], row[1], row[8], row[4]);
         } else if (payload.action === 'punch_out') {
           teamSheet.getRange(i + 1, 10).setValue("Offline");
