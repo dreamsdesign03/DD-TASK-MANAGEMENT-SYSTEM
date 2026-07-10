@@ -555,7 +555,6 @@ export default function MonthlyReportPage() {
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Company & User Breakdown */}
             <div className="mb-10">
