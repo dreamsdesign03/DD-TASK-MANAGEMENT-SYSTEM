@@ -454,7 +454,7 @@ export function AppProvider({ children }) {
     }
   }
 
-  const handlePunchOut = async () => {
+  const handlePunchOut = () => {
     const prevEmail = profile?.email
     if (prevEmail) logLogout(prevEmail)
     setIsPunchedIn(false)
@@ -471,45 +471,9 @@ export function AppProvider({ children }) {
       const today = getISTDate();
       const todayShort = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
-      // Fetch Activity sheet from main backend to get correct first/last times
-      let firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
-      let lastPunchOut = outTime;
-      try {
-        const actUrl = `https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec?action=get_activities&t=${Date.now()}`;
-        const actRes = await fetch(actUrl);
-        if (actRes.ok) {
-          const actData = await actRes.json();
-          const empId = profile?.employeeId || '';
-          const todayRecords = actData.filter(r => {
-            const rEmpId = String(r['Employee ID'] || '').trim();
-            const loginStr = String(r['Login Date and Time'] || '');
-            return empId && rEmpId === empId && loginStr.indexOf(today) === 0;
-          });
-          if (todayRecords.length > 0) {
-            const parseTime = (s) => {
-              if (!s) return null;
-              const d = new Date(String(s).replace(' ', 'T'));
-              return isNaN(d.getTime()) ? null : d;
-            };
-            let earliest = null;
-            let latest = null;
-            todayRecords.forEach(r => {
-              const login = parseTime(r['Login Date and Time'] || r.loginTime);
-              const logout = parseTime(r['Logout Date and Time'] || r.logoutTime);
-              if (login && (!earliest || login < earliest)) earliest = login;
-              if (logout && (!latest || logout > latest)) latest = logout;
-            });
-            if (earliest) {
-              firstPunchIn = earliest.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
-            }
-            if (latest) {
-              lastPunchOut = latest.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
-            }
-          }
-        }
-      } catch (e) {
-        // fallback to localStorage times
-      }
+      // Use session data directly — first punch-in of the day and current punch-out
+      const firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
+      const lastPunchOut = outTime;
 
       // Only tasks assigned to this user that were updated today
       const userTasks = tasksRef.current.filter(t => {
