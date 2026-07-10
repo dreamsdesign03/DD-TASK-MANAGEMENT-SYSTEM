@@ -10,7 +10,7 @@ import { jsPDF } from 'jspdf'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
-  const { tasks, addToast, profile } = useApp()
+  const { tasks, addToast, profile, clients: globalClients } = useApp()
   const isAdmin = profile?.systemRole === 'Admin' || profile?.role === 'Admin'
   const [filterType, setFilterType] = useState('Overall')
   const [selectedValue, setSelectedValue] = useState('')
@@ -577,6 +577,8 @@ export default function MonthlyReportPage() {
                     <tbody>
                       {(() => {
                       const projectsMap = {};
+                      
+                      // First pass: gather task metrics
                       filteredTasks.forEach(t => {
                         const clientName = t.client || 'General';
                         if (!projectsMap[clientName]) {
@@ -584,22 +586,63 @@ export default function MonthlyReportPage() {
                             name: clientName,
                             total: 0,
                             progressScore: 0,
-                            start: t.assignedDate || t.assigned || '-',
-                            end: t.dueDate || '-',
-                            priority: t.priority || 'Medium',
-                            owner: (t.assignedTo || 'Unassigned').split(',')[0].trim()
+                            owners: new Set(),
+                            priority: 'Low',
                           };
                         }
+                        
                         projectsMap[clientName].total += 1;
+                        
+                        // Collect all unique owners
+                        const assignees = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean);
+                        assignees.forEach(a => projectsMap[clientName].owners.add(a));
                         
                         // Weighted progress according to status
                         if (t.status === 'Done') projectsMap[clientName].progressScore += 100;
                         else if (t.status === 'Review') projectsMap[clientName].progressScore += 75;
                         else if (t.status === 'In Progress') projectsMap[clientName].progressScore += 50;
                         // Pending and Blocked = 0
+                        
+                        // Track highest priority
+                        const prioWeight = { 'Urgent': 3, 'High': 2, 'Medium': 1, 'Low': 0 };
+                        const currentWeight = prioWeight[projectsMap[clientName].priority] || 0;
+                        const taskWeight = prioWeight[t.priority] || 0;
+                        if (taskWeight > currentWeight) {
+                          projectsMap[clientName].priority = t.priority;
+                        }
                       });
                       
-                      const projectsList = Object.values(projectsMap).sort((a,b) => b.total - a.total);
+                      const projectsList = Object.values(projectsMap).sort((a,b) => b.total - a.total).map(proj => {
+                        // Find matching project in global clients to get real dates
+                        const realClient = (globalClients || []).find(c => 
+                          String(c['Project Name'] || '').toLowerCase() === proj.name.toLowerCase() ||
+                          String(c['Client Name'] || c['Company Name'] || '').toLowerCase() === proj.name.toLowerCase()
+                        );
+                        
+                        const formatDate = (dateStr) => {
+                          if (!dateStr) return '-';
+                          const d = new Date(dateStr);
+                          if (isNaN(d.getTime())) return dateStr;
+                          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        };
+                        
+                        let start = '-';
+                        let end = '-';
+                        
+                        if (realClient) {
+                          start = realClient['Project start Date'] ? formatDate(realClient['Project start Date']) : '-';
+                          end = (realClient['Project Completion Date'] || realClient['Project Completion date']) 
+                                  ? formatDate(realClient['Project Completion Date'] || realClient['Project Completion date']) 
+                                  : '-';
+                        }
+                        
+                        return {
+                          ...proj,
+                          start,
+                          end,
+                          owner: Array.from(proj.owners).join(', ') || 'Unassigned'
+                        };
+                      });
                       
                       if (projectsList.length === 0) {
                         return (
