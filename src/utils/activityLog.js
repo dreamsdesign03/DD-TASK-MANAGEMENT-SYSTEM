@@ -3,7 +3,7 @@ const STORAGE_KEY = 'dd_activity_log'
 export function getISTNow() {
   const now = new Date()
   const istOffset = 5.5 * 60 * 60 * 1000
-  return new Date(now.getTime() + (istOffset - now.getTimezoneOffset() * 60 * 1000))
+  return new Date(now.getTime() + istOffset)
 }
 
 export function getISTDate() {
@@ -19,7 +19,7 @@ export function getISTTime() {
 }
 
 export function getISTTimestamp() {
-  return getISTNow().getTime()
+  return Date.now() // Timestamps are universal, no need to offset
 }
 
 export function loadActivityLog() {
