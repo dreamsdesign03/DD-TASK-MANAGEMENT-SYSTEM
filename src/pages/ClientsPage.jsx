@@ -37,6 +37,7 @@ export default function ClientsPage() {
     services: []
   })
   const [viewingClient, setViewingClient] = useState(null)
+  const [confirmDeactivateClient, setConfirmDeactivateClient] = useState(null)
   const [showNewClientModal, setShowNewClientModal] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [newClientForm, setNewClientForm] = useState({
@@ -113,11 +114,18 @@ export default function ClientsPage() {
     }
   }
 
-  const handleToggleStatus = async (client) => {
+  const handleToggleStatus = async (client, confirmed = false) => {
     const isActive = client['Is Active'] || client['isActive'] || client['is_active'] || client.isActive
     const newStatus = String(isActive).toLowerCase() === 'yes' ? 'No' : 'Yes'
     const nowIST = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
 
+    // If deactivating and not yet confirmed, show confirmation popup
+    if (newStatus === 'No' && !confirmed) {
+      setConfirmDeactivateClient(client)
+      return
+    }
+
+    setConfirmDeactivateClient(null)
     setIsUpdating(true)
     try {
       const res = await fetch('https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec', {
@@ -853,6 +861,46 @@ export default function ClientsPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Deactivate Confirmation Modal */}
+      {confirmDeactivateClient && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl p-6 flex flex-col items-center gap-5 animate-scale-in">
+            <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[28px] text-red-500">warning</span>
+            </div>
+            <div className="text-center">
+              <h2 className="text-[18px] font-bold text-[#1E1B2E] mb-2 m-0">Deactivate Client?</h2>
+              <p className="text-[14px] text-gray-500 m-0">
+                Are you sure you want to deactivate <strong className="text-[#1E1B2E]">{confirmDeactivateClient['Project Name'] || 'this client'}</strong>?
+                This will mark the project as inactive and set the completion date to today.
+              </p>
+            </div>
+            <div className="flex justify-center gap-3 w-full pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDeactivateClient(null)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-600 bg-white rounded-lg font-bold hover:bg-gray-50 transition-colors text-[13px] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleStatus(confirmDeactivateClient, true)}
+                disabled={isUpdating}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white border-none rounded-lg font-bold hover:bg-red-600 transition-colors text-[13px] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isUpdating ? (
+                  <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">block</span>
+                )}
+                Deactivate
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
