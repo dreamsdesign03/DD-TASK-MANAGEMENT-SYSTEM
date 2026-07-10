@@ -54,6 +54,15 @@ export default function MonthlyReportPage() {
 
   const filteredTasks = useMemo(() => {
     return (tasks || []).filter((t) => {
+      // If not an admin, strictly only show tasks assigned to this user
+      if (!isAdmin) {
+        const assignees = (t.assignedTo || '').toLowerCase()
+        const myName = (profile?.name || '').trim().toLowerCase()
+        if (myName && !assignees.includes(myName)) {
+          return false
+        }
+      }
+
       if (t?.client && String(t.client).toLowerCase() === 'internal') return false
       if (!isInDateRange(t)) return false
       if (filterType === 'Company' && selectedValue) {
@@ -64,7 +73,7 @@ export default function MonthlyReportPage() {
       }
       return true
     })
-  }, [tasks, filterType, selectedValue, dateFrom, dateTo])
+  }, [tasks, filterType, selectedValue, dateFrom, dateTo, isAdmin, profile])
 
   // Compute metrics
   const totalTasks = filteredTasks.length
