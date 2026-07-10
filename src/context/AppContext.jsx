@@ -440,6 +440,7 @@ export function AppProvider({ children }) {
       const payload = JSON.stringify({
         action: 'log_punch_in',
         email: profile?.email,
+        employeeId: profile?.employeeId || '',
         name: profile?.name || 'Unknown',
         date: getISTDate(),
         startTime: inTime
@@ -478,10 +479,11 @@ export function AppProvider({ children }) {
         const actRes = await fetch(actUrl);
         if (actRes.ok) {
           const actData = await actRes.json();
+          const empId = profile?.employeeId || '';
           const todayRecords = actData.filter(r => {
-            const rEmail = String(r['Email'] || r.email || '').trim().toLowerCase();
-            const loginStr = String(r['Login Date and Time'] || r.loginTime || '');
-            return rEmail === prevEmail.toLowerCase() && loginStr.indexOf(today) === 0;
+            const rEmpId = String(r['Employee ID'] || '').trim();
+            const loginStr = String(r['Login Date and Time'] || '');
+            return empId && rEmpId === empId && loginStr.indexOf(today) === 0;
           });
           if (todayRecords.length > 0) {
             const parseTime = (s) => {
@@ -530,10 +532,11 @@ export function AppProvider({ children }) {
         const payload = JSON.stringify({
           action: 'log_daily_tasks',
           email: prevEmail,
+          employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
           firstPunchIn: firstPunchIn,
-          lastPunchOut: outTime,
+          lastPunchOut: lastPunchOut,
           tasks: tasksPayload
         });
         fetch(DAILY_SHEET_WEB_APP_URL, {

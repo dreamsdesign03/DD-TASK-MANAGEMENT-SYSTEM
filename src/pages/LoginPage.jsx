@@ -65,6 +65,7 @@ export default function LoginPage() {
                   joined: data.user['Joined Date'] || '',
                   department: data.user['Department'] || '',
                   systemRole: data.user['System Role'] || 'Employee',
+                  employeeId: data.user['Employee ID'] || '',
                   location: 'Remote',
                   avatar: '',
                 })
@@ -113,6 +114,7 @@ export default function LoginPage() {
               phone: data.user['Phone'] || '',
               joined: data.user['Joined Date'] || '',
               systemRole: data.user['System Role'] || 'Employee',
+              employeeId: data.user['Employee ID'] || '',
               avatar: ''
             });
             navigate('/tasks');
@@ -183,6 +185,7 @@ export default function LoginPage() {
             joined: data.user['Joined Date'] || '',
             department: data.user['Department'] || '',
             systemRole: data.user['System Role'] || 'Employee',
+            employeeId: data.user['Employee ID'] || '',
             location: 'Remote',
             avatar: '',
           })
@@ -227,6 +230,7 @@ export default function LoginPage() {
           phone: data.user['Phone'] || '',
           joined: data.user['Joined Date'] || '',
           systemRole: data.user['System Role'] || 'Employee',
+          employeeId: data.user['Employee ID'] || '',
           avatar: decoded.picture || ''
         })
         navigate('/tasks')

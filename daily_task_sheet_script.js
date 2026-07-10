@@ -65,7 +65,7 @@ function getExistingStartTime(sheet, headerRowNum) {
   return "";
 }
 
-function fetchActivityTimes(email, date) {
+function fetchActivityTimes(employeeId, date) {
   var MAIN_BACKEND_URL = "https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec";
   try {
     var res = UrlFetchApp.fetch(MAIN_BACKEND_URL + "?action=get_activities&t=" + Date.now(), { muteHttpExceptions: true });
@@ -73,13 +73,14 @@ function fetchActivityTimes(email, date) {
     if (!Array.isArray(json)) return null;
     var earliest = null;
     var latest = null;
-    var emailLower = email.toLowerCase();
+    var empIdStr = String(employeeId || "").trim();
+    if (!empIdStr) return null;
     for (var i = 0; i < json.length; i++) {
       var r = json[i];
-      var rEmail = String(r["Email"] || r.email || "").trim().toLowerCase();
-      var loginStr = String(r["Login Date and Time"] || r.loginTime || "");
-      var logoutStr = String(r["Logout Date and Time"] || r.logoutTime || "");
-      if (rEmail !== emailLower) continue;
+      var rEmpId = String(r["Employee ID"] || "").trim();
+      var loginStr = String(r["Login Date and Time"] || "");
+      var logoutStr = String(r["Logout Date and Time"] || "");
+      if (rEmpId !== empIdStr) continue;
       if (loginStr.indexOf(date) !== 0) continue;
       var loginDate = new Date(loginStr.replace(" ", "T"));
       if (!isNaN(loginDate.getTime())) {
@@ -132,8 +133,9 @@ function doPost(e) {
       }
 
       // Fetch Activity sheet to get the true first login time
-      if (email) {
-        var activityTimes = fetchActivityTimes(email, date);
+      var employeeId = data.employeeId || "";
+      if (employeeId) {
+        var activityTimes = fetchActivityTimes(employeeId, date);
         if (activityTimes && activityTimes.first) {
           startTime = activityTimes.first;
         }
@@ -195,10 +197,13 @@ function doPost(e) {
       }
 
       // Fetch Activity sheet times from main backend (source of truth)
-      var activityTimes = fetchActivityTimes(email, date);
-      if (activityTimes) {
-        if (activityTimes.first) firstPunchIn = activityTimes.first;
-        if (activityTimes.last) lastPunchOut = activityTimes.last;
+      var employeeId = data.employeeId || "";
+      if (employeeId) {
+        var activityTimes = fetchActivityTimes(employeeId, date);
+        if (activityTimes) {
+          if (activityTimes.first) firstPunchIn = activityTimes.first;
+          if (activityTimes.last) lastPunchOut = activityTimes.last;
+        }
       }
 
       var headerText = makeHeaderText(date);
