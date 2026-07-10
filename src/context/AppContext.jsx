@@ -448,6 +448,26 @@ export function AppProvider({ children }) {
     fetchActivities()
   }, [profile])
 
+  const trackTaskInteraction = (taskId) => {
+    try {
+      const today = getISTDate()
+      const savedStr = localStorage.getItem('dd_interacted_tasks')
+      let saved = { date: '', ids: [] }
+      if (savedStr) {
+        saved = JSON.parse(savedStr)
+      }
+      if (saved.date !== today) {
+        saved = { date: today, ids: [] }
+      }
+      if (!saved.ids.includes(taskId)) {
+        saved.ids.push(taskId)
+        localStorage.setItem('dd_interacted_tasks', JSON.stringify(saved))
+      }
+    } catch (err) {
+      console.warn("Failed to track task interaction", err)
+    }
+  }
+
   const handlePunchIn = () => {
     const inTime = getISTTime()
     setIsPunchedIn(true)
@@ -495,16 +515,20 @@ export function AppProvider({ children }) {
     // Prepare Daily Task Sheet Data — script fetches times from Activity Sheet
     if (prevEmail) {
       const today = getISTDate();
-      const todayShort = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
 
-      // Only tasks assigned to this user that were updated today
-      const userTasks = tasksRef.current.filter(t => {
-        const isAssigned = t.assignedEmail === prevEmail || t.assignedTo === profile?.name;
-        if (!isAssigned) return false;
-        const updatedOn = t.statusUpdatedOn || '';
-        const assignedDate = t.assigned || '';
-        return updatedOn === today || assignedDate === todayShort;
-      });
+      let interactedIds = [];
+      try {
+        const savedStr = localStorage.getItem('dd_interacted_tasks');
+        if (savedStr) {
+          const saved = JSON.parse(savedStr);
+          if (saved.date === today) {
+            interactedIds = saved.ids || [];
+          }
+        }
+      } catch {}
+
+      // Only tasks explicitly interacted with by this user today
+      const userTasks = tasksRef.current.filter(t => interactedIds.includes(t.id));
       const tasksPayload = userTasks.map(t => ({
         project: t.project || t.client || 'N/A',
         title: t.title,
@@ -1664,6 +1688,7 @@ export function AppProvider({ children }) {
   }
 
   const updateTask = async (id, fields) => {
+    trackTaskInteraction(id)
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...fields } : t))
     )
@@ -1822,6 +1847,7 @@ export function AppProvider({ children }) {
   }, [activeTimer, toggleTimer, profile])
 
   const addTask = async (newTask) => {
+    trackTaskInteraction(newTask.id)
     setTasks((prev) => [newTask, ...prev])
 
     // Notifications for newly created tasks will be handled by fetchTasks via MQTT sync
