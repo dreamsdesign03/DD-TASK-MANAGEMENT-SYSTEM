@@ -29,14 +29,38 @@ function formatTime(timeStr) {
   return timeStr.split(":").slice(0, 2).join(":");
 }
 
+function formatSheetTime(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    var h = val.getHours();
+    var m = val.getMinutes();
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+  }
+  var s = String(val).trim();
+  if (s === "") return "";
+  if (s.indexOf(":") !== -1) return s.split(":").slice(0, 2).join(":");
+  return s;
+}
+
+function formatSheetProject(val) {
+  if (!val) return "";
+  if (val instanceof Date) {
+    var month = val.getMonth() + 1;
+    var year = val.getFullYear();
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return monthNames[val.getMonth()] + " " + year;
+  }
+  return String(val).trim();
+}
+
 function getExistingStartTime(sheet, headerRowNum) {
   var startRow = headerRowNum + 2;
   var lastRow = sheet.getLastRow();
   if (startRow > lastRow) return "";
   var col5 = sheet.getRange(startRow, 5, lastRow - startRow + 1, 1).getValues();
   for (var i = 0; i < col5.length; i++) {
-    var val = String(col5[i][0]).trim();
-    if (val !== "") return val;
+    var formatted = formatSheetTime(col5[i][0]);
+    if (formatted !== "") return formatted;
   }
   return "";
 }
@@ -175,7 +199,7 @@ function doPost(e) {
           var rowIdx = dataStartRow + t;
 
           sheet.getRange(rowIdx, 1).setValue(rowDate);
-          sheet.getRange(rowIdx, 2).setValue(task.project || "");
+          sheet.getRange(rowIdx, 2).setValue(formatSheetProject(task.project));
           sheet.getRange(rowIdx, 3).setValue(task.title || "");
           sheet.getRange(rowIdx, 4).setValue(task.status || "");
           sheet.getRange(rowIdx, 5).setValue(rowST);
@@ -237,14 +261,14 @@ function doPost(e) {
       var taskStartRow = sheet.getLastRow() + 1;
 
       if (tasks.length > 0) {
-        tasks.forEach(function(task, index) {
+        tasks.forEach(function (task, index) {
           var rowDate = index === 0 ? dispDate : "";
           var rowST = index === 0 ? st : "";
           var rowET = index === tasks.length - 1 ? et : "";
 
           sheet.appendRow([
             rowDate,
-            task.project || "",
+            formatSheetProject(task.project),
             task.title || "",
             task.status || "",
             rowST,

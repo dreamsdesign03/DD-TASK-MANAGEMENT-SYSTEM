@@ -472,9 +472,16 @@ export function AppProvider({ children }) {
     if (prevEmail) {
       const firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
       const today = getISTDate();
+      const todayShort = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
       
-      // Get tasks where user is assigned
-      const userTasks = tasksRef.current.filter(t => t.assignedEmail === prevEmail || t.assignedTo === profile?.name);
+      // Only tasks assigned to this user that were updated today
+      const userTasks = tasksRef.current.filter(t => {
+        const isAssigned = t.assignedEmail === prevEmail || t.assignedTo === profile?.name;
+        if (!isAssigned) return false;
+        const updatedOn = t.statusUpdatedOn || '';
+        const assignedDate = t.assigned || '';
+        return updatedOn === today || assignedDate === todayShort;
+      });
       const tasksPayload = userTasks.map(t => ({
         project: t.project || t.client || 'N/A',
         title: t.title,
