@@ -481,6 +481,19 @@ export function AppProvider({ children }) {
       return updated
     })
     addToast('Punched In successfully', 'success')
+    
+    // Check for previous unfinished tasks assigned to this user
+    try {
+      if (profile?.initials) {
+        const myUnfinished = tasksRef.current.filter(t => 
+          String(t.assignedTo).includes(profile.initials) && 
+          ['pending', 'in progress', 'review'].includes(t.status?.toLowerCase())
+        );
+        if (myUnfinished.length > 0) {
+          addToast(`You have ${myUnfinished.length} unfinished task(s) (Pending, In Progress, or Review).`, 'info');
+        }
+      }
+    } catch (e) {}
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxLnlx-vzYNRUObnBuqPFJ9R2bUL_ALI46TMxynBQi3tkPCCaSFCS4NyT1zuBOi1CHvew/exec';
       if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -531,11 +544,18 @@ export function AppProvider({ children }) {
 
       // Only tasks explicitly interacted with by this user today
       const userTasks = tasksRef.current.filter(t => interactedIds.includes(t.id));
-      const tasksPayload = userTasks.map(t => ({
-        project: t.client || t.project || 'N/A',
-        title: t.title,
-        status: t.status
-      }));
+      const tasksPayload = userTasks.map(t => {
+        let finalStatus = t.status || 'Pending';
+        const assignedToMe = profile?.initials && String(t.assignedTo).includes(profile.initials);
+        if (!assignedToMe && t.assignedTo) {
+          finalStatus = `Assigned to ${t.assignedTo}`;
+        }
+        return {
+          project: t.client || t.project || 'N/A',
+          title: t.title,
+          status: finalStatus
+        };
+      });
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
       const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxLnlx-vzYNRUObnBuqPFJ9R2bUL_ALI46TMxynBQi3tkPCCaSFCS4NyT1zuBOi1CHvew/exec';
