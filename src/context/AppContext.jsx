@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
-import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime } from '../utils/activityLog'
+import { updateHeartbeat, logShutdown, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime } from '../utils/activityLog'
 import { formatDateShort, formatDateTime } from '../utils/dateFormat'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
@@ -398,6 +398,7 @@ export function AppProvider({ children }) {
   const [isPunchedIn, setIsPunchedIn] = useState(false)
   const [punchInTime, setPunchInTime] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
+  const [activityLog, setActivityLog] = useState([])
 
   useEffect(() => {
     if (!profile?.email) return
@@ -405,6 +406,7 @@ export function AppProvider({ children }) {
       try {
         const res = await fetch('https://script.google.com/macros/s/AKfycbyVR3BpNPaHQGmhfrT8vLICqRXb0ASNNqRyphX6xZo56ZndwzintZn8YsZzPK8gp8PA/exec?action=get_activities')
         const data = await res.json()
+        setActivityLog(data)
         const todayPrefix = getISTDate()
         const mySessions = []
         let activeTime = null
@@ -460,7 +462,7 @@ export function AppProvider({ children }) {
     })
     addToast('Punched In successfully', 'success')
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxdmfoocgxgWxc_gm8aOKbrS4e4DfxLhRmpTzBwG86iHw0WarR4wGoxn5Nz40BgAs0efQ/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwX_vtOpMrXn1ArfRPzBcUv9c06zpEi6S8ni3zooTN7MIdmivcOgDvsRRQwSeOJzRKygg/exec';
       if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -481,7 +483,6 @@ export function AppProvider({ children }) {
 
   const handlePunchOut = () => {
     const prevEmail = profile?.email
-    if (prevEmail) logLogout(prevEmail)
     setIsPunchedIn(false)
     setPunchInTime(null)
     const outTime = getISTTime()
@@ -523,7 +524,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxdmfoocgxgWxc_gm8aOKbrS4e4DfxLhRmpTzBwG86iHw0WarR4wGoxn5Nz40BgAs0efQ/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwX_vtOpMrXn1ArfRPzBcUv9c06zpEi6S8ni3zooTN7MIdmivcOgDvsRRQwSeOJzRKygg/exec';
       
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
@@ -2279,7 +2280,9 @@ export function AppProvider({ children }) {
       if (res.ok) {
         const text = await res.text()
         try {
-          return JSON.parse(text)
+          const data = JSON.parse(text)
+          setActivityLog(data)
+          return data
         } catch (e) {
           console.warn('Failed to parse Google Sheets activities:', e)
           return []
@@ -2300,6 +2303,7 @@ export function AppProvider({ children }) {
     fetchTeam()
     fetchClients()
     fetchMessages()
+    fetchActivities()
 
     const handleFirstClick = () => {
       if ('Notification' in window && Notification.permission === 'default') {
@@ -2319,6 +2323,7 @@ export function AppProvider({ children }) {
         fetchTeam()
         fetchClients()
         fetchMessages()
+        fetchActivities()
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -2487,7 +2492,7 @@ export function AppProvider({ children }) {
         handlePunchOut,
         punchInTime,
         todaysSessions,
-        activityLog: loadActivityLog(),
+        activityLog,
         getActiveUsers,
         getAllUsersMonthlyActivity,
         formatDuration,

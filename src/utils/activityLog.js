@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'dd_activity_log'
-
 export function getISTNow() {
   const now = new Date()
   const istOffset = 5.5 * 60 * 60 * 1000
@@ -19,149 +17,104 @@ export function getISTTime() {
 }
 
 export function getISTTimestamp() {
-  return Date.now() // Timestamps are universal, no need to offset
+  return Date.now()
 }
 
-export function loadActivityLog() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch { return [] }
-}
+// All mutating functions are removed. State is handled by Google Sheets directly.
+export function logLogin() {}
+export function logLogout() {}
+export function updateHeartbeat() {}
+export function logShutdown() {}
 
-export function saveActivityLog(log) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(log))
-}
-
-export function logLogin(email, name) {
-  const log = loadActivityLog()
+export function getActiveUsers(log = []) {
+  if (!log || !Array.isArray(log)) return []
   const today = getISTDate()
-  const nowTime = getISTTime()
-  const nowTs = getISTTimestamp()
-
-  const existing = log.find(s => s.email === email && s.date === today && s.status === 'active')
-  if (existing) {
-    existing.lastHeartbeat = nowTs
-    saveActivityLog(log)
-    return log
-  }
-
-  log.push({
-    id: `${email}_${today}_${nowTs}`,
-    email,
-    name,
-    date: today,
-    loginTime: nowTime,
-    loginTimestamp: nowTs,
-    logoutTime: null,
-    logoutTimestamp: null,
-    status: 'active',
-    duration: 0,
-    lastHeartbeat: nowTs
+  const active = []
+  
+  log.forEach(s => {
+    // Only parse strings that match today and have Login but no Logout
+    if (s["Login Date and Time"] && !s["Logout Date and Time"]) {
+      let loginStr = String(s["Login Date and Time"])
+      if (loginStr.includes('T')) loginStr = loginStr.replace('T', ' ').substring(0, 19)
+      
+      if (loginStr.startsWith(today)) {
+        active.push({
+          email: s["Employee ID"] || "Unknown",
+          name: s["Full Name"] || "Unknown",
+          role: s["Role"] || "Employee"
+        })
+      }
+    }
   })
-  saveActivityLog(log)
-  return log
+  
+  return active
 }
 
-export function logLogout(email) {
-  const log = loadActivityLog()
+export function getAllLoggedUsers(log = []) {
+  if (!log || !Array.isArray(log)) return []
   const today = getISTDate()
-  const nowTime = getISTTime()
-  const nowTs = getISTTimestamp()
-
-  const session = log.find(s => s.email === email && s.date === today && s.status === 'active')
-  if (session) {
-    session.logoutTime = nowTime
-    session.logoutTimestamp = nowTs
-    session.status = 'logged_out'
-    session.duration = Math.floor((nowTs - session.loginTimestamp) / 1000)
-    session.lastHeartbeat = nowTs
-    saveActivityLog(log)
-  }
-  return log
+  const users = []
+  
+  log.forEach(s => {
+    if (s["Login Date and Time"]) {
+      let loginStr = String(s["Login Date and Time"])
+      if (loginStr.includes('T')) loginStr = loginStr.replace('T', ' ').substring(0, 19)
+      
+      if (loginStr.startsWith(today)) {
+        users.push({
+          email: s["Employee ID"] || "Unknown",
+          name: s["Full Name"] || "Unknown",
+          role: s["Role"] || "Employee"
+        })
+      }
+    }
+  })
+  return users
 }
 
-export function logShutdown(email) {
-  const log = loadActivityLog()
-  const today = getISTDate()
-  const nowTs = getISTTimestamp()
-
-  const session = log.find(s => s.email === email && s.date === today && s.status === 'active')
-  if (session) {
-    session.logoutTime = getISTTime()
-    session.logoutTimestamp = nowTs
-    session.status = 'shutdown'
-    session.duration = Math.floor((nowTs - session.loginTimestamp) / 1000)
-    session.lastHeartbeat = nowTs
-    saveActivityLog(log)
-  }
-  return log
+export function getAllUsersMonthlyActivity(log = [], yearMonth) {
+  if (!log || !Array.isArray(log)) return {}
+  const stats = {}
+  
+  log.forEach(s => {
+    const loginStr = s["Login Date and Time"] || ""
+    if (!loginStr || !String(loginStr).startsWith(yearMonth)) return
+    
+    const email = s["Employee ID"] || "Unknown"
+    const name = s["Full Name"] || "Unknown"
+    
+    if (!stats[email]) {
+      stats[email] = {
+        name,
+        email,
+        totalSessions: 0,
+        totalTimeStr: '00:00',
+        totalTimeMs: 0
+      }
+    }
+    
+    stats[email].totalSessions += 1
+    
+    if (s["Logout Date and Time"]) {
+       const start = new Date(loginStr.replace(" ", "T"))
+       const end = new Date(String(s["Logout Date and Time"]).replace(" ", "T"))
+       if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+          stats[email].totalTimeMs += Math.max(0, end.getTime() - start.getTime())
+       }
+    }
+  })
+  
+  Object.values(stats).forEach(user => {
+    user.totalTimeStr = formatDuration(user.totalTimeMs)
+  })
+  
+  return stats
 }
 
-export function updateHeartbeat(email) {
-  const log = loadActivityLog()
-  const today = getISTDate()
-  const nowTs = getISTTimestamp()
-
-  const session = log.find(s => s.email === email && s.date === today && s.status === 'active')
-  if (session) {
-    session.lastHeartbeat = nowTs
-    saveActivityLog(log)
-  }
-  return log
-}
-
-export function getUserActivity(email, month, year) {
-  const log = loadActivityLog()
-  const monthStr = String(month).padStart(2, '0')
-  return log.filter(s =>
-    s.email === email &&
-    s.date >= `${year}-${monthStr}-01` &&
-    s.date <= `${year}-${monthStr}-31`
-  )
-}
-
-export function getAllUsersMonthlyActivity(month, year) {
-  const log = loadActivityLog()
-  const monthStr = String(month).padStart(2, '0')
-  return log.filter(s =>
-    s.date >= `${year}-${monthStr}-01` &&
-    s.date <= `${year}-${monthStr}-31`
-  )
-}
-
-export function getDailyActivityForDate(dateStr) {
-  const log = loadActivityLog()
-  return log.filter(s => s.date === dateStr)
-}
-
-export function getActiveUsers() {
-  const log = loadActivityLog()
-  const today = getISTDate()
-  return log.filter(s => s.date === today && s.status === 'active')
-}
-
-export function formatDuration(seconds) {
-  if (!seconds || seconds <= 0) return '0h 0m'
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  return `${h}h ${m}m`
-}
-
-export function getMonthWorkDays(month, year) {
-  const log = loadActivityLog()
-  const monthStr = String(month).padStart(2, '0')
-  const sessions = log.filter(s =>
-    s.date >= `${year}-${monthStr}-01` &&
-    s.date <= `${year}-${monthStr}-31`
-  )
-  const days = [...new Set(sessions.map(s => s.date))]
-  return days.sort()
-}
-
-export function getAllLoggedUsers() {
-  const log = loadActivityLog()
-  const userMap = {}
-  log.forEach(s => { userMap[s.email] = s.name })
-  return Object.entries(userMap).map(([email, name]) => ({ email, name }))
+export function formatDuration(ms) {
+  if (!ms || ms < 0) return '00:00:00'
+  const seconds = Math.floor((ms / 1000) % 60)
+  const minutes = Math.floor((ms / (1000 * 60)) % 60)
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }

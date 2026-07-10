@@ -236,11 +236,11 @@ function doPost(e) {
         var headerRowNum = existingRow;
         var titleRowNum = headerRowNum + 1;
         var dataStartRow = titleRowNum + 1;
-        var firstPunchIn = payload.startTime || "09:00:00"; // fallback
+        var firstPunchIn = data.startTime || "09:00:00"; // fallback
 
         // Always sync start time with the Master Activity Sheet to ensure 100% accuracy
-        if (payload.employeeId) {
-          var activityTimes = fetchActivityTimes(payload.employeeId, date);
+        if (data.employeeId) {
+          var activityTimes = fetchActivityTimes(data.employeeId, date);
           if (activityTimes && activityTimes.first) {
             firstPunchIn = activityTimes.first;
           }
