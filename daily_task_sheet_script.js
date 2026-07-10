@@ -236,10 +236,16 @@ function doPost(e) {
         var headerRowNum = existingRow;
         var titleRowNum = headerRowNum + 1;
         var dataStartRow = titleRowNum + 1;
+        var firstPunchIn = payload.startTime || "09:00:00"; // fallback
 
-        // Read the existing first punch-in time from the sheet
-        var existingStartTime = getExistingStartTime(sheet, headerRowNum);
-        var st = existingStartTime || formatTime(firstPunchIn);
+        // Always sync start time with the Master Activity Sheet to ensure 100% accuracy
+        if (payload.employeeId) {
+          var activityTimes = fetchActivityTimes(payload.employeeId, date);
+          if (activityTimes && activityTimes.first) {
+            firstPunchIn = activityTimes.first;
+          }
+        }
+        var st = formatTime(firstPunchIn);
 
         // Find where this block ends
         var blockEnd = dataStartRow;
