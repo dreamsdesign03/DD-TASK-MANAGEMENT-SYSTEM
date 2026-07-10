@@ -2498,7 +2498,6 @@ export function AppProvider({ children }) {
         formatDuration,
         getAllLoggedUsers,
         getISTDate,
-        logLogout,
         logShutdown,
         fetchActivities,
         activeTimer,
