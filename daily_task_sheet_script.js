@@ -269,35 +269,53 @@ function doPost(e) {
         var dispDate = makeDispDate(date);
         var et = formatTime(lastPunchOut);
 
-        for (var t = 0; t < tasks.length; t++) {
-          var task = tasks[t];
-          var rowDate = "";
-          var rowST = t === 0 ? st : "";
-          var rowET = t === tasks.length - 1 ? et : "";
-
-          sheet.insertRowsAfter(dataStartRow + t - 1, 1);
-          var rowIdx = dataStartRow + t;
-
-          sheet.getRange(rowIdx, 1).setValue(rowDate);
-          sheet.getRange(rowIdx, 2).setValue(formatSheetProject(task.project));
-          sheet.getRange(rowIdx, 3).setValue(task.title || "");
-          sheet.getRange(rowIdx, 4).setValue(task.status || "");
-          sheet.getRange(rowIdx, 5).setValue(rowST);
-          sheet.getRange(rowIdx, 6).setValue(rowET);
-          sheet.getRange(rowIdx, 7).setValue(task.remark || "");
-
+        if (tasks.length === 0) {
+          sheet.insertRowsAfter(dataStartRow - 1, 1);
+          var rowIdx = dataStartRow;
+          sheet.getRange(rowIdx, 1).setValue(dispDate);
+          sheet.getRange(rowIdx, 2).setValue("-");
+          sheet.getRange(rowIdx, 3).setValue("No tasks completed");
+          sheet.getRange(rowIdx, 4).setValue("-");
+          sheet.getRange(rowIdx, 5).setValue(st);
+          sheet.getRange(rowIdx, 6).setValue(et);
+          sheet.getRange(rowIdx, 7).setValue("-");
+          
           sheet.getRange(rowIdx, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
-          sheet.getRange(rowIdx, 1).setHorizontalAlignment("center");
-          sheet.getRange(rowIdx, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
-          sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
-          sheet.getRange(rowIdx, 6).setHorizontalAlignment("center");
-
+          sheet.getRange(rowIdx, 1, 1, 7).setHorizontalAlignment("center");
           var borderRange = sheet.getRange(rowIdx, 1, 1, 7);
           borderRange.setBorder(true, true, true, true, true, true);
+        } else {
+          for (var t = 0; t < tasks.length; t++) {
+            var task = tasks[t];
+            var rowDate = "";
+            var rowST = t === 0 ? st : "";
+            var rowET = t === tasks.length - 1 ? et : "";
+
+            sheet.insertRowsAfter(dataStartRow + t - 1, 1);
+            var rowIdx = dataStartRow + t;
+
+            sheet.getRange(rowIdx, 1).setValue(rowDate);
+            sheet.getRange(rowIdx, 2).setValue(formatSheetProject(task.project));
+            sheet.getRange(rowIdx, 3).setValue(task.title || "");
+            sheet.getRange(rowIdx, 4).setValue(task.status || "");
+            sheet.getRange(rowIdx, 5).setValue(rowST);
+            sheet.getRange(rowIdx, 6).setValue(rowET);
+            sheet.getRange(rowIdx, 7).setValue(task.remark || "");
+
+            sheet.getRange(rowIdx, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+            sheet.getRange(rowIdx, 1).setHorizontalAlignment("center");
+            sheet.getRange(rowIdx, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
+            sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
+            sheet.getRange(rowIdx, 6).setHorizontalAlignment("center");
+
+            var borderRange = sheet.getRange(rowIdx, 1, 1, 7);
+            borderRange.setBorder(true, true, true, true, true, true);
+          }
         }
 
+
         // Blank row after tasks
-        var blankRow = dataStartRow + tasks.length;
+        var blankRow = dataStartRow + (tasks.length === 0 ? 1 : tasks.length);
         sheet.getRange(blankRow, 1, 1, 7).setValues([["", "", "", "", "", "", ""]]);
 
         return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "updated" })).setMimeType(ContentService.MimeType.JSON);
