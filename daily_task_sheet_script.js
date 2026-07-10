@@ -42,9 +42,13 @@ function getExistingStartTime(sheet, headerRowNum) {
 }
 
 function doPost(e) {
+  Logger.log('=== doPost CALLED ===');
+  Logger.log('postData: ' + (e && e.postData ? e.postData.contents : 'NONE'));
   try {
     var data = JSON.parse(e.postData.contents);
     var action = data.action;
+    Logger.log('Action: ' + action);
+    Logger.log('Full payload: ' + JSON.stringify(data));
 
     if (action === "log_punch_in") {
       var fullName = data.name || "Unknown";

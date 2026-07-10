@@ -437,17 +437,22 @@ export function AppProvider({ children }) {
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7flriJR7IVg8Z96i0l3eFxJM6z3zY-zV2UOeON49aqe_3Eevi-FL3Qg6hHv6vY-YKtw/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      const payload = JSON.stringify({
+        action: 'log_punch_in',
+        name: profile?.name || 'Unknown',
+        date: getISTDate(),
+        startTime: inTime
+      });
+      console.log('[DAILY-SHEET] Punch-in fetch URL:', DAILY_SHEET_WEB_APP_URL);
+      console.log('[DAILY-SHEET] Punch-in payload:', payload);
       fetch(DAILY_SHEET_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'log_punch_in',
-          name: profile?.name || 'Unknown',
-          date: getISTDate(),
-          startTime: inTime
-        })
-      }).catch(e => console.warn('Daily task punch-in log failed:', e))
+        body: payload
+      }).then(r => {
+        console.log('[DAILY-SHEET] Punch-in fetch completed. Status type:', r.type, 'Status:', r.status);
+      }).catch(e => console.warn('[DAILY-SHEET] Punch-in fetch failed:', e))
     }
   }
 
@@ -480,20 +485,25 @@ export function AppProvider({ children }) {
       const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7flriJR7IVg8Z96i0l3eFxJM6z3zY-zV2UOeON49aqe_3Eevi-FL3Qg6hHv6vY-YKtw/exec';
       
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        const payload = JSON.stringify({
+          action: 'log_daily_tasks',
+          email: prevEmail,
+          name: profile?.name || 'Unknown',
+          date: today,
+          firstPunchIn: firstPunchIn,
+          lastPunchOut: outTime,
+          tasks: tasksPayload
+        });
+        console.log('[DAILY-SHEET] Punch-out fetch URL:', DAILY_SHEET_WEB_APP_URL);
+        console.log('[DAILY-SHEET] Punch-out payload:', payload);
         fetch(DAILY_SHEET_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'log_daily_tasks',
-            email: prevEmail,
-            name: profile?.name || 'Unknown',
-            date: today,
-            firstPunchIn: firstPunchIn,
-            lastPunchOut: outTime,
-            tasks: tasksPayload
-          })
-        }).catch(e => console.warn('Daily tasks log failed:', e))
+          body: payload
+        }).then(r => {
+          console.log('[DAILY-SHEET] Punch-out fetch completed. Status type:', r.type, 'Status:', r.status);
+        }).catch(e => console.warn('[DAILY-SHEET] Punch-out fetch failed:', e))
       } else {
         console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }
