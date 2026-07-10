@@ -1,9 +1,9 @@
 function makeHeaderText(date) {
   var parts = date.split("-");
   if (parts.length === 3) {
-    return "Today Task : " + parts[2] + "-" + parts[1] + "-" + parts[0];
+    return "Task : " + parts[2] + "-" + parts[1] + "-" + parts[0];
   }
-  return "Today Task : " + date;
+  return "Task : " + date;
 }
 
 function makeDispDate(date) {
@@ -20,7 +20,7 @@ function findHeaderRow(sheet, date) {
   var data = sheet.getDataRange().getValues();
   for (var i = 0; i < data.length; i++) {
     var cellText = String(data[i][0]).trim();
-    if (cellText.indexOf("Today Task") !== -1 && cellText.indexOf(datePart) !== -1) {
+    if (cellText.indexOf("Task :") !== -1 && cellText.indexOf(datePart) !== -1) {
       return i + 1;
     }
   }
@@ -170,7 +170,7 @@ function doPost(e) {
       var hdrRow = sheet.getLastRow();
       var hdrRange = sheet.getRange(hdrRow, 1, 1, 7);
       hdrRange.merge();
-      hdrRange.setBackground("#006400");
+      hdrRange.setBackground("#0b5394");
       hdrRange.setFontColor("#FFFFFF");
       hdrRange.setFontWeight("bold");
       hdrRange.setHorizontalAlignment("center");
@@ -180,7 +180,7 @@ function doPost(e) {
       sheet.appendRow(["Date", "Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
       var ttlRow = sheet.getLastRow();
       var ttlRange = sheet.getRange(ttlRow, 1, 1, 7);
-      ttlRange.setBackground("#c3e6cb");
+      ttlRange.setBackground("#9fc5e8");
       ttlRange.setFontColor("#000000");
       ttlRange.setFontWeight("bold");
       ttlRange.setHorizontalAlignment("center");
@@ -311,7 +311,7 @@ function doPost(e) {
       var headerRowNumber = sheet.getLastRow();
       var hdrRange = sheet.getRange(headerRowNumber, 1, 1, 7);
       hdrRange.merge();
-      hdrRange.setBackground("#006400");
+      hdrRange.setBackground("#0b5394");
       hdrRange.setFontColor("#FFFFFF");
       hdrRange.setFontWeight("bold");
       hdrRange.setHorizontalAlignment("center");
@@ -321,7 +321,7 @@ function doPost(e) {
       sheet.appendRow(["Date", "Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
       var colHeaderRowNumber = sheet.getLastRow();
       var ttlRange = sheet.getRange(colHeaderRowNumber, 1, 1, 7);
-      ttlRange.setBackground("#c3e6cb");
+      ttlRange.setBackground("#9fc5e8");
       ttlRange.setFontColor("#000000");
       ttlRange.setFontWeight("bold");
       ttlRange.setHorizontalAlignment("center");
