@@ -10,7 +10,8 @@ import { jsPDF } from 'jspdf'
 
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
-  const { tasks, addToast } = useApp()
+  const { tasks, addToast, profile } = useApp()
+  const isAdmin = profile?.systemRole === 'Admin' || profile?.role === 'Admin'
   const [filterType, setFilterType] = useState('Overall')
   const [selectedValue, setSelectedValue] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
@@ -255,7 +256,9 @@ export default function MonthlyReportPage() {
             {/* Filter Tabs & Date Range */}
             <div className="flex items-center gap-4 mb-8" style={{ overflowX: 'clip', flexShrink: 0 }}>
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max" style={{ flexShrink: 0 }}>
-                {['Overall', 'Company', 'User'].map(type => (
+                {['Overall', 'Company', 'User'].map(type => {
+                  if (type === 'User' && !isAdmin) return null;
+                  return (
                   <button
                     key={type}
                     onClick={() => handleFilterChange(type)}
@@ -267,7 +270,7 @@ export default function MonthlyReportPage() {
                   >
                     {type}
                   </button>
-                ))}
+                )})}
               </div>
 
               {filterType === 'Company' && (
@@ -704,6 +707,12 @@ export default function MonthlyReportPage() {
                           let assignedUsers = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
                           if (assignedUsers.length === 0) assignedUsers.push('Unassigned')
                           if (filterType === 'User') assignedUsers = assignedUsers.filter(u => u === selectedValue)
+                          
+                          if (!isAdmin) {
+                            const myName = String(profile?.name || '').trim().toLowerCase()
+                            assignedUsers = assignedUsers.filter(u => u.toLowerCase() === myName)
+                          }
+
                           assignedUsers.forEach(u => {
                             if (!breakdown[company]) breakdown[company] = {}
                             if (!breakdown[company][u]) {
