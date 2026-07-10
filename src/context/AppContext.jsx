@@ -395,52 +395,69 @@ export function AppProvider({ children }) {
     localStorage.setItem('dd_profile', JSON.stringify(profile))
   }, [profile])
 
-  const [isPunchedIn, setIsPunchedIn] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dd_punched_in')
-      return saved === 'true'
-    } catch { return false }
-  })
+  const [isPunchedIn, setIsPunchedIn] = useState(false)
+  const [punchInTime, setPunchInTime] = useState(null)
+  const [todaysSessions, setTodaysSessions] = useState([])
 
   useEffect(() => {
-    localStorage.setItem('dd_punched_in', isPunchedIn)
-  }, [isPunchedIn])
-
-  const [punchInTime, setPunchInTime] = useState(() => {
-    try { return localStorage.getItem('dd_punch_in_time') || null } catch { return null }
-  })
-  const [todaysSessions, setTodaysSessions] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dd_todays_sessions')
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        const today = getISTDate()
-        return parsed.date === today ? parsed.sessions : []
+    if (!profile?.email) return
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec?action=get_activities')
+        const data = await res.json()
+        const todayPrefix = getISTDate()
+        const mySessions = []
+        let activeTime = null
+        data.forEach(row => {
+          if ((row["Full Name"] === profile.name || row["Employee ID"] === profile.employeeId) && row["Login Date and Time"]) {
+            // e.g. "2026-07-10 13:02:55"
+            // The sheet might return a string or a Date object, ensure it's a string
+            let loginStr = row["Login Date and Time"]
+            if (loginStr && typeof loginStr === 'string' && loginStr.includes('T')) loginStr = loginStr.replace('T', ' ').substring(0, 19)
+            if (loginStr instanceof Date) {
+              const d = new Date(loginStr.getTime() - loginStr.getTimezoneOffset() * 60000)
+              loginStr = d.toISOString().replace('T', ' ').substring(0, 19)
+            }
+            if (String(loginStr).startsWith(todayPrefix)) {
+              const inTime = String(loginStr).split(' ')[1] || ""
+              let outStr = row["Logout Date and Time"] || ""
+              if (outStr instanceof Date) {
+                 const d2 = new Date(outStr.getTime() - outStr.getTimezoneOffset() * 60000)
+                 outStr = d2.toISOString().replace('T', ' ').substring(0, 19)
+              } else if (typeof outStr === 'string' && outStr.includes('T')) {
+                 outStr = outStr.replace('T', ' ').substring(0, 19)
+              }
+              const outTime = outStr ? String(outStr).split(' ')[1] : null
+              mySessions.push({ in: inTime, out: outTime })
+              if (!outTime) activeTime = inTime
+            }
+          }
+        })
+        setTodaysSessions(mySessions)
+        if (activeTime) {
+          setIsPunchedIn(true)
+          setPunchInTime(activeTime)
+        } else {
+          setIsPunchedIn(false)
+          setPunchInTime(null)
+        }
+      } catch (err) {
+        console.error("Failed to fetch activities from sheet:", err)
       }
-    } catch {}
-    return []
-  })
-
-  const syncTodaysSessions = (sessions) => {
-    setTodaysSessions(sessions)
-    localStorage.setItem('dd_todays_sessions', JSON.stringify({ date: getISTDate(), sessions }))
-  }
+    }
+    fetchActivities()
+  }, [profile])
 
   const handlePunchIn = () => {
-    setIsPunchedIn(true)
     const inTime = getISTTime()
+    setIsPunchedIn(true)
     setPunchInTime(inTime)
-    localStorage.setItem('dd_punch_in_time', inTime)
     
-    // Add a new session for today instead of strictly preserving the first one
-    const updated = [...todaysSessions]
-    if (updated.length > 0 && !updated[updated.length - 1].out) {
-      // Last session is still open, just leave it as is
-    } else {
-      // Push a brand new session to the array
+    setTodaysSessions(prev => {
+      const updated = [...prev]
       updated.push({ in: inTime, out: null })
-    }
-    syncTodaysSessions(updated)
+      return updated
+    })
     addToast('Punched In successfully', 'success')
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyCPsDoDoA1lBcL4mm18hb6EoKFN5cAobxqmzJsz4HOHm_Bl_nGm7gUDG8O_041DFTk0w/exec';
@@ -467,11 +484,12 @@ export function AppProvider({ children }) {
     if (prevEmail) logLogout(prevEmail)
     setIsPunchedIn(false)
     setPunchInTime(null)
-    localStorage.removeItem('dd_punch_in_time')
     const outTime = getISTTime()
-    const updated = [...todaysSessions]
-    if (updated.length > 0) updated[updated.length - 1].out = outTime
-    syncTodaysSessions(updated)
+    setTodaysSessions(prev => {
+      const updated = [...prev]
+      if (updated.length > 0) updated[updated.length - 1].out = outTime
+      return updated
+    })
     addToast('Punched Out successfully', 'success')
 
     // Prepare Daily Task Sheet Data — script fetches times from Activity Sheet
