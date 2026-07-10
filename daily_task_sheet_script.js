@@ -14,10 +14,13 @@ function makeDispDate(date) {
   return date;
 }
 
-function findHeaderRow(sheet, headerText) {
+function findHeaderRow(sheet, date) {
+  var parts = date.split("-");
+  var datePart = parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : date;
   var data = sheet.getDataRange().getValues();
   for (var i = 0; i < data.length; i++) {
-    if (String(data[i][0]).trim() === headerText) {
+    var cellText = String(data[i][0]).trim();
+    if (cellText.indexOf("Today Task") !== -1 && cellText.indexOf(datePart) !== -1) {
       return i + 1;
     }
   }
@@ -44,11 +47,26 @@ function formatSheetTime(val) {
 
 function formatSheetProject(val) {
   if (!val) return "";
+  var d;
   if (val instanceof Date) {
+    d = val;
+  } else if (typeof val === 'string' && val.indexOf('T') !== -1 && val.indexOf('Z') !== -1) {
+    d = new Date(val);
+  }
+  if (d && !isNaN(d.getTime())) {
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return monthNames[val.getMonth()] + " " + val.getFullYear();
+    return monthNames[d.getMonth()] + " " + d.getFullYear();
   }
   return String(val).trim();
+}
+
+function getStatusColor(status) {
+  var s = String(status || "").trim().toLowerCase();
+  if (s === "done") return "#d4edda";
+  if (s === "in progress") return "#fff3cd";
+  if (s === "pending") return "#f8d7da";
+  if (s === "hold") return "#e2e3e5";
+  return "#ffffff";
 }
 
 function getExistingStartTime(sheet, headerRowNum) {
@@ -99,7 +117,7 @@ function fetchActivityTimes(employeeId, date) {
 
     if (!earliest && !latest) return null;
 
-    var fmt = function(d) {
+    var fmt = function (d) {
       var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds();
       return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
     };
@@ -131,7 +149,7 @@ function doPost(e) {
       }
 
       var headerText = makeHeaderText(date);
-      var existingRow = findHeaderRow(sheet, headerText);
+      var existingRow = findHeaderRow(sheet, date);
       if (existingRow !== -1) {
         return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "already exists" })).setMimeType(ContentService.MimeType.JSON);
       }
@@ -200,17 +218,17 @@ function doPost(e) {
 
       // Fetch from Activity Sheet — source of truth for times
       var firstPunchIn = "";
-      var lastPunchOut = "";
+      var lastPunchOut = data.endTime || "";
       if (employeeId) {
         var activityTimes = fetchActivityTimes(employeeId, date);
         if (activityTimes) {
-          firstPunchIn = activityTimes.first || "";
-          lastPunchOut = activityTimes.last || "";
+          if (activityTimes.first) firstPunchIn = activityTimes.first;
+          if (activityTimes.last) lastPunchOut = activityTimes.last;
         }
       }
 
       var headerText = makeHeaderText(date);
-      var existingRow = findHeaderRow(sheet, headerText);
+      var existingRow = findHeaderRow(sheet, date);
 
       if (existingRow !== -1) {
         // ── UPDATE existing block ──
@@ -268,7 +286,7 @@ function doPost(e) {
           sheet.getRange(rowIdx, 7).setValue(task.remark || "");
 
           sheet.getRange(rowIdx, 1).setHorizontalAlignment("center");
-          sheet.getRange(rowIdx, 4).setHorizontalAlignment("center");
+          sheet.getRange(rowIdx, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
           sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
           sheet.getRange(rowIdx, 6).setHorizontalAlignment("center");
 
@@ -329,7 +347,7 @@ function doPost(e) {
 
           var currentRow = sheet.getLastRow();
           sheet.getRange(currentRow, 1).setHorizontalAlignment("center");
-          sheet.getRange(currentRow, 4).setHorizontalAlignment("center");
+          sheet.getRange(currentRow, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
           sheet.getRange(currentRow, 5).setHorizontalAlignment("center");
           sheet.getRange(currentRow, 6).setHorizontalAlignment("center");
         });

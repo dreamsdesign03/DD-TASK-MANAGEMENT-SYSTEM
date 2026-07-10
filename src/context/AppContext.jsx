@@ -545,6 +545,7 @@ export function AppProvider({ children }) {
           employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
+          endTime: outTime,
           tasks: tasksPayload
         });
         fetch(DAILY_SHEET_WEB_APP_URL, {
