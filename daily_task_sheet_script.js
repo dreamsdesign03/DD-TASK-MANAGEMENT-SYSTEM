@@ -62,10 +62,11 @@ function formatSheetProject(val) {
 
 function getStatusColor(status) {
   var s = String(status || "").trim().toLowerCase();
-  if (s === "done") return "#d4edda";
-  if (s === "in progress") return "#fff3cd";
-  if (s === "pending") return "#f8d7da";
-  if (s === "hold") return "#e2e3e5";
+  if (s === "done") return "#d4edda";       // Green
+  if (s === "in progress") return "#fff3cd"; // Yellow
+  if (s === "pending") return "#e2e3e5";     // Gray
+  if (s === "review") return "#cce5ff";      // Blue
+  if (s === "block" || s === "blocked") return "#f8d7da"; // Red
   return "#ffffff";
 }
 
