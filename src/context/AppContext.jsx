@@ -431,12 +431,14 @@ export function AppProvider({ children }) {
     const inTime = getISTTime()
     setPunchInTime(inTime)
     localStorage.setItem('dd_punch_in_time', inTime)
-    // Keep only one session per day — first in, last out
-    let updated
-    if (todaysSessions.length > 0) {
-      updated = [{ in: todaysSessions[0].in, out: null }]
+    
+    // Add a new session for today instead of strictly preserving the first one
+    const updated = [...todaysSessions]
+    if (updated.length > 0 && !updated[updated.length - 1].out) {
+      // Last session is still open, just leave it as is
     } else {
-      updated = [{ in: inTime, out: null }]
+      // Push a brand new session to the array
+      updated.push({ in: inTime, out: null })
     }
     syncTodaysSessions(updated)
     addToast('Punched In successfully', 'success')
