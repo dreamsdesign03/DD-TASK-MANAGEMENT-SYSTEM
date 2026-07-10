@@ -436,27 +436,24 @@ export function AppProvider({ children }) {
     addToast('Punched In successfully', 'success')
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxlo_vTMrOY9oIjJo231mXvbbt3lQ0Ad63CR1uTlo1h53bfGBPl26Hd0yGKnLD7ENqqwA/exec';
-    if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+      if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
+        email: profile?.email,
         name: profile?.name || 'Unknown',
         date: getISTDate(),
         startTime: inTime
       });
-      console.log('[DAILY-SHEET] Punch-in fetch URL:', DAILY_SHEET_WEB_APP_URL);
-      console.log('[DAILY-SHEET] Punch-in payload:', payload);
       fetch(DAILY_SHEET_WEB_APP_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: payload
-      }).then(r => {
-        console.log('[DAILY-SHEET] Punch-in fetch completed. Status type:', r.type, 'Status:', r.status);
-      }).catch(e => console.warn('[DAILY-SHEET] Punch-in fetch failed:', e))
+      }).catch(() => {})
     }
   }
 
-  const handlePunchOut = () => {
+  const handlePunchOut = async () => {
     const prevEmail = profile?.email
     if (prevEmail) logLogout(prevEmail)
     setIsPunchedIn(false)
@@ -470,10 +467,48 @@ export function AppProvider({ children }) {
 
     // Prepare Daily Task Sheet Data
     if (prevEmail) {
-      const firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
       const today = getISTDate();
       const todayShort = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
-      
+
+      // Fetch Activity sheet from main backend to get correct first/last times
+      let firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
+      let lastPunchOut = outTime;
+      try {
+        const actUrl = `https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec?action=get_activities&t=${Date.now()}`;
+        const actRes = await fetch(actUrl);
+        if (actRes.ok) {
+          const actData = await actRes.json();
+          const todayRecords = actData.filter(r => {
+            const rEmail = String(r['Email'] || r.email || '').trim().toLowerCase();
+            const loginStr = String(r['Login Date and Time'] || r.loginTime || '');
+            return rEmail === prevEmail.toLowerCase() && loginStr.indexOf(today) === 0;
+          });
+          if (todayRecords.length > 0) {
+            const parseTime = (s) => {
+              if (!s) return null;
+              const d = new Date(String(s).replace(' ', 'T'));
+              return isNaN(d.getTime()) ? null : d;
+            };
+            let earliest = null;
+            let latest = null;
+            todayRecords.forEach(r => {
+              const login = parseTime(r['Login Date and Time'] || r.loginTime);
+              const logout = parseTime(r['Logout Date and Time'] || r.logoutTime);
+              if (login && (!earliest || login < earliest)) earliest = login;
+              if (logout && (!latest || logout > latest)) latest = logout;
+            });
+            if (earliest) {
+              firstPunchIn = earliest.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
+            }
+            if (latest) {
+              lastPunchOut = latest.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Kolkata' });
+            }
+          }
+        }
+      } catch (e) {
+        // fallback to localStorage times
+      }
+
       // Only tasks assigned to this user that were updated today
       const userTasks = tasksRef.current.filter(t => {
         const isAssigned = t.assignedEmail === prevEmail || t.assignedTo === profile?.name;
@@ -501,16 +536,12 @@ export function AppProvider({ children }) {
           lastPunchOut: outTime,
           tasks: tasksPayload
         });
-        console.log('[DAILY-SHEET] Punch-out fetch URL:', DAILY_SHEET_WEB_APP_URL);
-        console.log('[DAILY-SHEET] Punch-out payload:', payload);
         fetch(DAILY_SHEET_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: payload
-        }).then(r => {
-          console.log('[DAILY-SHEET] Punch-out fetch completed. Status type:', r.type, 'Status:', r.status);
-        }).catch(e => console.warn('[DAILY-SHEET] Punch-out fetch failed:', e))
+        }).catch(() => {})
       } else {
         console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }

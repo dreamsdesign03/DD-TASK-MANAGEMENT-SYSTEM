@@ -65,19 +65,58 @@ function getExistingStartTime(sheet, headerRowNum) {
   return "";
 }
 
+function fetchActivityTimes(email, date) {
+  var MAIN_BACKEND_URL = "https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec";
+  try {
+    var res = UrlFetchApp.fetch(MAIN_BACKEND_URL + "?action=get_activities&t=" + Date.now(), { muteHttpExceptions: true });
+    var json = JSON.parse(res.getContentText());
+    if (!Array.isArray(json)) return null;
+    var earliest = null;
+    var latest = null;
+    var emailLower = email.toLowerCase();
+    for (var i = 0; i < json.length; i++) {
+      var r = json[i];
+      var rEmail = String(r["Email"] || r.email || "").trim().toLowerCase();
+      var loginStr = String(r["Login Date and Time"] || r.loginTime || "");
+      var logoutStr = String(r["Logout Date and Time"] || r.logoutTime || "");
+      if (rEmail !== emailLower) continue;
+      if (loginStr.indexOf(date) !== 0) continue;
+      var loginDate = new Date(loginStr.replace(" ", "T"));
+      if (!isNaN(loginDate.getTime())) {
+        if (!earliest || loginDate < earliest) earliest = loginDate;
+      }
+      if (logoutStr) {
+        var logoutDate = new Date(logoutStr.replace(" ", "T"));
+        if (!isNaN(logoutDate.getTime())) {
+          if (!latest || logoutDate > latest) latest = logoutDate;
+        }
+      }
+    }
+    if (!earliest && !latest) return null;
+    var fmt = function(d) {
+      var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds();
+      return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    };
+    return {
+      first: earliest ? fmt(earliest) : null,
+      last: latest ? fmt(latest) : null
+    };
+  } catch (err) {
+    Logger.log("fetchActivityTimes error: " + err);
+    return null;
+  }
+}
+
 function doPost(e) {
-  Logger.log('=== doPost CALLED ===');
-  Logger.log('postData: ' + (e && e.postData ? e.postData.contents : 'NONE'));
   try {
     var data = JSON.parse(e.postData.contents);
     var action = data.action;
-    Logger.log('Action: ' + action);
-    Logger.log('Full payload: ' + JSON.stringify(data));
 
     if (action === "log_punch_in") {
       var fullName = data.name || "Unknown";
       var date = data.date || "";
       var startTime = data.startTime || "";
+      var email = data.email || "";
       var sheetName = fullName.split(" ")[0];
 
       var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -90,6 +129,14 @@ function doPost(e) {
       var existingRow = findHeaderRow(sheet, headerText);
       if (existingRow !== -1) {
         return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "already exists" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // Fetch Activity sheet to get the true first login time
+      if (email) {
+        var activityTimes = fetchActivityTimes(email, date);
+        if (activityTimes && activityTimes.first) {
+          startTime = activityTimes.first;
+        }
       }
 
       var dispDate = makeDispDate(date);
@@ -145,6 +192,13 @@ function doPost(e) {
       var sheet = ss.getSheetByName(sheetName);
       if (!sheet) {
         sheet = ss.insertSheet(sheetName);
+      }
+
+      // Fetch Activity sheet times from main backend (source of truth)
+      var activityTimes = fetchActivityTimes(email, date);
+      if (activityTimes) {
+        if (activityTimes.first) firstPunchIn = activityTimes.first;
+        if (activityTimes.last) lastPunchOut = activityTimes.last;
       }
 
       var headerText = makeHeaderText(date);
