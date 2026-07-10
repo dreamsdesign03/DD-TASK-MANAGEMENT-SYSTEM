@@ -11,7 +11,11 @@ export function getISTDate() {
 }
 
 export function getISTTime() {
-  return getISTNow().toISOString().split('T')[1].split('.')[0]
+  const d = getISTNow()
+  const h = String(d.getUTCHours()).padStart(2, '0')
+  const m = String(d.getUTCMinutes()).padStart(2, '0')
+  const s = String(d.getUTCSeconds()).padStart(2, '0')
+  return `${h}:${m}:${s}`
 }
 
 export function getISTTimestamp() {
