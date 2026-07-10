@@ -885,17 +885,7 @@ function createUserDailySheet(fullName, email) {
     sheet = ss.insertSheet(sheetName);
   }
 
-  // Ensure headers only if sheet is brand new
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1).setValue('Today Task :');
-    var headers = ['Date', 'Project Name', 'Task / Remarks', 'Status', 'Start Time', 'End Time', 'Remark'];
-    sheet.getRange(2, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(2, 1, 1, headers.length).setFontWeight('bold').setBackground('#f3f3f3');
-    sheet.setFrozenRows(2);
-    for (var c = 1; c <= headers.length; c++) {
-      sheet.autoResizeColumn(c);
-    }
-  }
+  // Sheet created. Headers are managed by daily_task_sheet_script.js on Punch In.
   console.info('Daily sheet created/verified for: %s (tab: %s)', fullName, sheetName);
 }
 

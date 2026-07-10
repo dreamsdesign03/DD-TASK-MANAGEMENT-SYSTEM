@@ -253,7 +253,7 @@ function doPost(e) {
               break;
             }
           }
-          if (isEmpty || String(rowVals[0]).indexOf("Today Task :") === 0) {
+          if (isEmpty || String(rowVals[0]).indexOf("Task :") === 0 || String(rowVals[0]).indexOf("Today Task :") === 0) {
             blockEnd = r + 1;
             break;
           }
