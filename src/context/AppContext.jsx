@@ -466,14 +466,10 @@ export function AppProvider({ children }) {
     syncTodaysSessions(updated)
     addToast('Punched Out successfully', 'success')
 
-    // Prepare Daily Task Sheet Data
+    // Prepare Daily Task Sheet Data — script fetches times from Activity Sheet
     if (prevEmail) {
       const today = getISTDate();
       const todayShort = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
-
-      // Use session data directly — first punch-in of the day and current punch-out
-      const firstPunchIn = updated.length > 0 ? updated[0].in : 'Unknown';
-      const lastPunchOut = outTime;
 
       // Only tasks assigned to this user that were updated today
       const userTasks = tasksRef.current.filter(t => {
@@ -499,8 +495,6 @@ export function AppProvider({ children }) {
           employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
-          firstPunchIn: firstPunchIn,
-          lastPunchOut: lastPunchOut,
           tasks: tasksPayload
         });
         fetch(DAILY_SHEET_WEB_APP_URL, {

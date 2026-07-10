@@ -45,10 +45,8 @@ function formatSheetTime(val) {
 function formatSheetProject(val) {
   if (!val) return "";
   if (val instanceof Date) {
-    var month = val.getMonth() + 1;
-    var year = val.getFullYear();
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return monthNames[val.getMonth()] + " " + year;
+    return monthNames[val.getMonth()] + " " + val.getFullYear();
   }
   return String(val).trim();
 }
@@ -65,6 +63,55 @@ function getExistingStartTime(sheet, headerRowNum) {
   return "";
 }
 
+function fetchActivityTimes(employeeId, date) {
+  var MAIN_BACKEND_URL = "https://script.google.com/macros/s/AKfycbznQT8_KQrusju3uIAiGc5xlUcTh40cNht84Kw6Xa5ioJBniAZmRQHwJlPTspuF-HYv/exec";
+  try {
+    var res = UrlFetchApp.fetch(MAIN_BACKEND_URL + "?action=get_activities&t=" + Date.now(), { muteHttpExceptions: true });
+    var json = JSON.parse(res.getContentText());
+    if (!Array.isArray(json)) return null;
+
+    var empIdStr = String(employeeId || "").trim();
+    if (!empIdStr) return null;
+
+    var earliest = null;
+    var latest = null;
+
+    for (var i = 0; i < json.length; i++) {
+      var r = json[i];
+      var rEmpId = String(r["Employee ID"] || "").trim();
+      var loginStr = String(r["Login Date and Time"] || "");
+      var logoutStr = String(r["Logout Date and Time"] || "");
+
+      if (rEmpId !== empIdStr) continue;
+      if (loginStr.indexOf(date) !== 0) continue;
+
+      var loginDate = new Date(loginStr.replace(" ", "T"));
+      if (!isNaN(loginDate.getTime())) {
+        if (!earliest || loginDate < earliest) earliest = loginDate;
+      }
+      if (logoutStr) {
+        var logoutDate = new Date(logoutStr.replace(" ", "T"));
+        if (!isNaN(logoutDate.getTime())) {
+          if (!latest || logoutDate > latest) latest = logoutDate;
+        }
+      }
+    }
+
+    if (!earliest && !latest) return null;
+
+    var fmt = function(d) {
+      var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds();
+      return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    };
+    return {
+      first: earliest ? fmt(earliest) : null,
+      last: latest ? fmt(latest) : null
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
@@ -74,7 +121,7 @@ function doPost(e) {
       var fullName = data.name || "Unknown";
       var date = data.date || "";
       var startTime = data.startTime || "";
-      var email = data.email || "";
+      var employeeId = data.employeeId || "";
       var sheetName = fullName.split(" ")[0];
 
       var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -87,6 +134,14 @@ function doPost(e) {
       var existingRow = findHeaderRow(sheet, headerText);
       if (existingRow !== -1) {
         return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "already exists" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // Fetch from Activity Sheet to get the true first login time
+      if (employeeId) {
+        var activityTimes = fetchActivityTimes(employeeId, date);
+        if (activityTimes && activityTimes.first) {
+          startTime = activityTimes.first;
+        }
       }
 
       var dispDate = makeDispDate(date);
@@ -133,8 +188,7 @@ function doPost(e) {
       var email = data.email;
       var fullName = data.name || "Unknown";
       var date = data.date || "";
-      var firstPunchIn = data.firstPunchIn || "";
-      var lastPunchOut = data.lastPunchOut || "";
+      var employeeId = data.employeeId || "";
       var tasks = data.tasks || [];
 
       var sheetName = fullName.split(" ")[0];
@@ -144,21 +198,31 @@ function doPost(e) {
         sheet = ss.insertSheet(sheetName);
       }
 
+      // Fetch from Activity Sheet — source of truth for times
+      var firstPunchIn = "";
+      var lastPunchOut = "";
+      if (employeeId) {
+        var activityTimes = fetchActivityTimes(employeeId, date);
+        if (activityTimes) {
+          firstPunchIn = activityTimes.first || "";
+          lastPunchOut = activityTimes.last || "";
+        }
+      }
+
       var headerText = makeHeaderText(date);
       var existingRow = findHeaderRow(sheet, headerText);
 
       if (existingRow !== -1) {
         // ── UPDATE existing block ──
-        // Find the data area after this header
         var headerRowNum = existingRow;
         var titleRowNum = headerRowNum + 1;
         var dataStartRow = titleRowNum + 1;
 
-        // Read the existing first punch-in time from the sheet (source of truth)
+        // Read the existing first punch-in time from the sheet
         var existingStartTime = getExistingStartTime(sheet, headerRowNum);
         var st = existingStartTime || formatTime(firstPunchIn);
 
-        // Find where this block ends: next blank row, next "Today Task" header, or end of sheet
+        // Find where this block ends
         var blockEnd = dataStartRow;
         var allData = sheet.getDataRange().getValues();
         for (var r = dataStartRow - 1; r < allData.length; r++) {
@@ -177,7 +241,7 @@ function doPost(e) {
           blockEnd = r + 2;
         }
 
-        // Delete old data rows (from dataStartRow to blockEnd-1)
+        // Delete old data rows
         if (blockEnd > dataStartRow) {
           sheet.deleteRows(dataStartRow, blockEnd - dataStartRow);
         }
@@ -220,17 +284,7 @@ function doPost(e) {
       }
 
       // ── CREATE new block (no existing header) ──
-      var headerDate = date;
-      var parts = date.split("-");
-      if (parts.length === 3) {
-        headerDate = parts[2] + "-" + parts[1] + "-" + parts[0];
-      }
-
-      var dispDate = date;
-      if (parts.length === 3) {
-        dispDate = parseInt(parts[2]) + "/" + parseInt(parts[1]) + "/" + parts[0];
-      }
-
+      var dispDate = makeDispDate(date);
       var st = formatTime(firstPunchIn);
       var et = formatTime(lastPunchOut);
 
