@@ -441,7 +441,7 @@ export function AppProvider({ children }) {
     syncTodaysSessions(updated)
     addToast('Punched In successfully', 'success')
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwmjTPG-wuYFnmx4RMZAGN21ujZ7j-X5aPVes5pmG8YkNPmvgNLcaXPGaHmr8e37uWx8g/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyCPsDoDoA1lBcL4mm18hb6EoKFN5cAobxqmzJsz4HOHm_Bl_nGm7gUDG8O_041DFTk0w/exec';
       if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -492,7 +492,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwmjTPG-wuYFnmx4RMZAGN21ujZ7j-X5aPVes5pmG8YkNPmvgNLcaXPGaHmr8e37uWx8g/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyCPsDoDoA1lBcL4mm18hb6EoKFN5cAobxqmzJsz4HOHm_Bl_nGm7gUDG8O_041DFTk0w/exec';
       
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
