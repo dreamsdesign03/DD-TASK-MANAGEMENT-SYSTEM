@@ -496,7 +496,8 @@ export function AppProvider({ children }) {
     if (prevEmail) {
       const today = getISTDate();
 
-      const validStatuses = ['done', 'pending', 'in progress'];
+      // User requested to ONLY show Done tasks in the Daily Task Sheet
+      const validStatuses = ['done'];
       const userTasks = tasksRef.current.filter(t => {
         // Exclude Sub Tasks
         if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
