@@ -216,6 +216,7 @@ export default function TaskDetailPage() {
 
   const isTracking = activeTimer?.taskId === task.id;
   const sessionSecs = isTracking ? globalSessionSecs : 0;
+  const isTaskDone = task?.status === 'Done';
 
 
   const handleSaveAssignees = () => {
@@ -788,9 +789,10 @@ export default function TaskDetailPage() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => setShowRecurringModal(true)}
-                        className="material-symbols-outlined text-[24px] text-[#9CA3AF] hover:text-[#702c91] transition-colors focus:outline-none border-none bg-transparent cursor-pointer"
-                        title="Make this a recurring task"
+                        onClick={() => { if (!isTaskDone) setShowRecurringModal(true) }}
+                        disabled={isTaskDone}
+                        className={`material-symbols-outlined text-[24px] transition-colors focus:outline-none border-none bg-transparent ${isTaskDone ? 'text-gray-300 cursor-not-allowed' : 'text-[#9CA3AF] hover:text-[#702c91] cursor-pointer'}`}
+                        title={isTaskDone ? "Cannot make recurring when done" : "Make this a recurring task"}
                       >
                         repeat
                       </button>
@@ -854,11 +856,13 @@ export default function TaskDetailPage() {
                   )}
                   {profile?.systemRole === 'Admin' && (
                     <button
-                      onClick={() => setTaskToDelete(task.id)}
-                      className="bg-white border border-red-200 text-red-500 hover:bg-red-50 text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 cursor-pointer transition-colors"
+                      onClick={() => { if (!isTaskDone) setTaskToDelete(task.id) }}
+                      disabled={isTaskDone}
+                      className={`bg-white border text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors ${isTaskDone ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-red-200 text-red-500 hover:bg-red-50 cursor-pointer'}`}
+                      title={isTaskDone ? "Cannot delete done task" : "Delete Task"}
                     >
                       <span className="material-symbols-outlined text-[14px]">delete</span>
-                      Delete
+                      Delete Task
                     </button>
                   )}
                 </div>
@@ -906,17 +910,19 @@ export default function TaskDetailPage() {
                   {canManageTimer && (
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => toggleTimer(task, profile?.name)}
-                        disabled={isTracking}
-                        className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${!isTracking ? 'bg-[#EF4444] hover:bg-[#DC2626] text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                        onClick={() => { if (!isTaskDone) toggleTimer(task, profile?.name) }}
+                        disabled={isTracking || isTaskDone}
+                        className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${isTaskDone ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : (!isTracking ? 'bg-[#EF4444] hover:bg-[#DC2626] text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed')}`}
+                        title={isTaskDone ? "Cannot track time on done task" : ""}
                       >
                         <span className={`material-symbols-outlined text-[16px] ${!isTracking ? 'font-variation-fill' : ''}`}>play_arrow</span>
                         Start
                       </button>
                       <button
-                        onClick={() => toggleTimer(task, profile?.name)}
-                        disabled={!isTracking}
-                        className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${isTracking ? 'bg-gray-800 hover:bg-black text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                        onClick={() => { if (!isTaskDone) toggleTimer(task, profile?.name) }}
+                        disabled={!isTracking || isTaskDone}
+                        className={`border-none text-[13px] font-bold px-5 py-2.5 rounded-md flex items-center gap-2 shadow-sm transition-colors ${isTaskDone ? 'bg-gray-100 text-gray-300 cursor-not-allowed' : (isTracking ? 'bg-gray-800 hover:bg-black text-white cursor-pointer' : 'bg-gray-100 text-gray-400 cursor-not-allowed')}`}
+                        title={isTaskDone ? "Cannot track time on done task" : ""}
                       >
                         <span className="material-symbols-outlined text-[16px]">stop</span>
                         Stop
@@ -931,7 +937,7 @@ export default function TaskDetailPage() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-[13px] font-black text-[#4B5563] uppercase tracking-wider mb-4 flex items-center gap-2 m-0">
                     Description
-                    {profile?.name === task.assignedBy && !isEditingDescription && (
+                    {profile?.name === task.assignedBy && !isEditingDescription && !isTaskDone && (
                       <span
                         onClick={handleEditDescriptionClick}
                         className="material-symbols-outlined text-[16px] text-gray-400 cursor-pointer hover:text-[#702c91] ml-2"
@@ -1004,13 +1010,14 @@ export default function TaskDetailPage() {
                         <input
                           type="checkbox"
                           checked={st.status === 'Done'}
-                          disabled={(() => {
+                          disabled={isTaskDone || (() => {
                             if (!profile) return true;
                             const myName = String(profile.name || '').toLowerCase().replace(/[^\w]/g, '').trim();
                             const subAssignee = String(st.assignedTo || '').toLowerCase().replace(/[^\w]/g, '').trim();
                             return myName !== subAssignee;
                           })()}
                           onChange={(e) => {
+                            if (isTaskDone) return;
                             const newStatus = e.target.checked ? 'Done' : 'Pending'
                             updateTask(st.id, { status: newStatus, statusUpdatedOn: newStatus === 'Done' ? new Date().toISOString() : '' })
                             if (newStatus === 'Done') {
@@ -1022,7 +1029,7 @@ export default function TaskDetailPage() {
                               }
                             }
                           }}
-                          className={`w-5 h-5 accent-primary rounded ${st.assignedTo && String(profile?.name || '').toLowerCase().replace(/[^\w]/g, '').trim() !== String(st.assignedTo).toLowerCase().replace(/[^\w]/g, '').trim() ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                          className={`w-5 h-5 accent-primary rounded ${isTaskDone || (st.assignedTo && String(profile?.name || '').toLowerCase().replace(/[^\w]/g, '').trim() !== String(st.assignedTo).toLowerCase().replace(/[^\w]/g, '').trim()) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                         />
                         <div className={`flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
                           <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
@@ -1056,9 +1063,10 @@ export default function TaskDetailPage() {
                         )}
                         {profile?.systemRole !== 'Employee' && (
                           <button
-                            onClick={() => setSubtaskToDelete(st.id)}
-                            className="p-1 text-secondary hover:text-urgent-red transition-colors shrink-0"
-                            title="Delete Subtask"
+                            onClick={() => { if (!isTaskDone) setSubtaskToDelete(st.id) }}
+                            disabled={isTaskDone}
+                            className={`p-1 transition-colors shrink-0 ${isTaskDone ? 'text-gray-300 cursor-not-allowed' : 'text-secondary hover:text-urgent-red cursor-pointer'}`}
+                            title={isTaskDone ? "Cannot delete when task is done" : "Delete Subtask"}
                           >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
                           </button>
@@ -1071,8 +1079,9 @@ export default function TaskDetailPage() {
                 {/* Add new subtask inline creator */}
                 {!isSubtaskInputActive ? (
                   <button
-                    onClick={() => setIsSubtaskInputActive(true)}
-                    className="bg-transparent border-none text-[#6B7280] hover:text-[#1E1B2E] flex items-center gap-2 text-[13px] font-semibold cursor-pointer p-0 transition-colors mt-4"
+                    onClick={() => { if (!isTaskDone) setIsSubtaskInputActive(true) }}
+                    disabled={isTaskDone}
+                    className={`bg-transparent border-none flex items-center gap-2 text-[13px] font-semibold p-0 transition-colors mt-4 ${isTaskDone ? 'text-gray-300 cursor-not-allowed' : 'text-[#6B7280] hover:text-[#1E1B2E] cursor-pointer'}`}
                   >
                     <span className="material-symbols-outlined text-[18px]">add</span>
                     Add subtask
@@ -1259,17 +1268,21 @@ export default function TaskDetailPage() {
                     <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/5">
                       <textarea
                         ref={replyInputRef}
-                        className="w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] bg-[#F9F4FB] focus:bg-[#F3E8F7] transition-colors"
-                        placeholder="Write your reply... (type @ to mention)"
+                        disabled={isTaskDone}
+                        className={`w-full min-h-[120px] p-4 border-none outline-none resize-none text-[14px] text-[#1E1B2E] transition-colors ${isTaskDone ? 'bg-gray-100 cursor-not-allowed' : 'bg-[#F9F4FB] focus:bg-[#F3E8F7]'}`}
+                        placeholder={isTaskDone ? "Task is done. Chat is read-only." : "Write your reply... (type @ to mention)"}
                         value={reply}
                         onChange={handleReplyChange}
                         onKeyDown={(e) => {
+                          if (isTaskDone) return;
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault()
                             sendReply()
                           }
                         }}
-                        onPaste={handleReplyPaste}
+                        onPaste={(e) => {
+                          if (!isTaskDone) handleReplyPaste(e)
+                        }}
                       ></textarea>
                       <div className="bg-gray-50 p-3 border-t border-[#E5E7EB] flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -1279,8 +1292,8 @@ export default function TaskDetailPage() {
                         </div>
                         <button
                           onClick={sendReply}
-                          disabled={isSendingReply || (!reply.trim() && !replyAttachment)}
-                          className="btn-gradient border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                          disabled={isSendingReply || (!reply.trim() && !replyAttachment) || isTaskDone}
+                          className={`border-none rounded-md px-4 py-2 text-[13px] font-bold flex items-center gap-2 shadow-sm ${isTaskDone ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'btn-gradient cursor-pointer active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed'}`}
                         >
                           {isSendingReply ? (
                             <>
@@ -1334,25 +1347,27 @@ export default function TaskDetailPage() {
                           </div>
                         )
                       })}
-                      <button
-                        onClick={() => {
-                          const emails = (task.assignedEmail || '').split(',').map(s => s.trim()).filter(Boolean)
-                          if (emails.length > 0) {
-                            setSelectedAssignees(emails)
-                          } else {
-                            const names = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)
-                            const matchedEmails = names.map(name => {
-                              const emp = employees?.find(e => e.name === name)
-                              return emp ? emp.email : null
-                            }).filter(Boolean)
-                            setSelectedAssignees(matchedEmails.length > 0 ? [...new Set(matchedEmails)] : names)
-                          }
-                          setIsAssigneeModalOpen(true)
-                        }}
-                        className="bg-transparent border-none text-[#702c91] font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:underline mt-1 p-0 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">person_add</span> Manage Assignees
-                      </button>
+                      {!isTaskDone && (
+                        <button
+                          onClick={() => {
+                            const emails = (task.assignedEmail || '').split(',').map(s => s.trim()).filter(Boolean)
+                            if (emails.length > 0) {
+                              setSelectedAssignees(emails)
+                            } else {
+                              const names = (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)
+                              const matchedEmails = names.map(name => {
+                                const emp = employees?.find(e => e.name === name)
+                                return emp ? emp.email : null
+                              }).filter(Boolean)
+                              setSelectedAssignees(matchedEmails.length > 0 ? [...new Set(matchedEmails)] : names)
+                            }
+                            setIsAssigneeModalOpen(true)
+                          }}
+                          className="bg-transparent border-none text-[#702c91] font-bold text-[11px] flex items-center gap-1 cursor-pointer hover:underline mt-1 p-0 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">person_add</span> Manage Assignees
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
@@ -1412,19 +1427,19 @@ export default function TaskDetailPage() {
                   if (profile.systemRole !== 'Employee') return true;
 
                   const assignees = (task.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
-    const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    let hasAccess = false;
-    if (assignees.includes(myName)) {
-      if (assigneeEmails.length > 0 && myEmail) {
-        hasAccess = assigneeEmails.includes(myEmail);
-      } else {
-        hasAccess = true;
-      }
-    } else if (myEmail && assigneeEmails.includes(myEmail)) {
-      hasAccess = true;
-    }
-    return hasAccess;
-  })();
+                  const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+                  let hasAccess = false;
+                  if (assignees.includes(myName)) {
+                    if (assigneeEmails.length > 0 && myEmail) {
+                      hasAccess = assigneeEmails.includes(myEmail);
+                    } else {
+                      hasAccess = true;
+                    }
+                  } else if (myEmail && assigneeEmails.includes(myEmail)) {
+                    hasAccess = true;
+                  }
+                  return hasAccess;
+                })();
 
                 if (!canUpdateStatus) {
                   return (
@@ -1494,14 +1509,16 @@ export default function TaskDetailPage() {
                   <div className="bg-purple-50/50 border border-purple-100 rounded-xl p-4 mb-4">
                     <label className="block text-[10px] font-bold text-gray-600 mb-2 uppercase tracking-wider">LINK URL</label>
                     <input
-                      type="text"
+                      type="url"
                       value={linkUrl}
+                      disabled={isTaskDone}
                       onChange={(e) => setLinkUrl(e.target.value)}
                       placeholder="Paste your link here"
-                      className="w-full bg-white border border-gray-200 rounded-md px-3 py-2 text-[13px] outline-none mb-3 focus:border-purple-400"
+                      className={`w-full border rounded-md px-3 py-2 text-[13px] outline-none mb-3 ${isTaskDone ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white border-gray-200 focus:border-purple-400'}`}
                     />
                     <button
                       onClick={() => {
+                        if (isTaskDone) return;
                         if (!linkUrl.trim()) {
                           addToast('Please enter a valid link URL.', 'error');
                           return;
@@ -1534,7 +1551,8 @@ export default function TaskDetailPage() {
                         setLinkUrl('')
                         addToast('Attachment link added successfully and synced to Google Sheets!', 'success')
                       }}
-                      className="w-full btn-gradient text-white border-none rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-opacity hover:opacity-90 shadow-sm active:scale-95 mb-3"
+                      disabled={isTaskDone}
+                      className={`w-full text-white border-none rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 shadow-sm mb-3 ${isTaskDone ? 'bg-gray-300 cursor-not-allowed' : 'btn-gradient cursor-pointer transition-opacity hover:opacity-90 active:scale-95'}`}
                     >
                       <span className="material-symbols-outlined text-[16px]">add_link</span>
                       Add Link Attachment
@@ -1546,12 +1564,13 @@ export default function TaskDetailPage() {
                         multiple
                         className="hidden"
                         ref={fileInputRef}
+                        disabled={isTaskDone}
                         onChange={handleFileUpload}
                       />
                       <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-200 rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => { if (!isTaskDone) fileInputRef.current?.click() }}
+                        disabled={isUploading || isTaskDone}
+                        className={`flex-1 border rounded-md py-2.5 text-[13px] font-bold flex items-center justify-center gap-2 shadow-sm ${isTaskDone ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed' : 'bg-white border-[#702c91] text-[#702c91] hover:bg-purple-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-wait'}`}
                       >
                         <span className="material-symbols-outlined text-[16px]">
                           {isUploading ? 'hourglass_empty' : 'upload_file'}
@@ -1597,13 +1616,15 @@ export default function TaskDetailPage() {
                               <span className="material-symbols-outlined text-[18px]">download</span>
                             </a>
                           )}
-                          <button
-                            onClick={() => setAttachmentToDelete(idx)}
-                            className="w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all bg-transparent border-none cursor-pointer"
-                            title="Delete"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
+                          {!isTaskDone && (
+                            <button
+                              onClick={() => setAttachmentToDelete(idx)}
+                              className="w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all bg-transparent border-none cursor-pointer"
+                              title="Delete"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))
