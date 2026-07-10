@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
-import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate } from '../utils/activityLog'
+import { logLogin, logLogout, updateHeartbeat, logShutdown, loadActivityLog, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime } from '../utils/activityLog'
 import { formatDateShort, formatDateTime } from '../utils/dateFormat'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
