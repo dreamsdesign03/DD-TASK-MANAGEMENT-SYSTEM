@@ -575,7 +575,6 @@ export function AppProvider({ children }) {
       setEmployees(prev => prev.map(e =>
         e.email === profile.email ? { ...e, status: 'Online' } : e
       ))
-      logLogin(profile.email, profile.name)
       if (mqttClient && mqttClient.connected) {
         mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
           action: 'user_online', email: profile.email, name: profile.name, timestamp: Date.now()
