@@ -530,7 +530,7 @@ export function AppProvider({ children }) {
       // Only tasks explicitly interacted with by this user today
       const userTasks = tasksRef.current.filter(t => interactedIds.includes(t.id));
       const tasksPayload = userTasks.map(t => ({
-        project: t.project || t.client || 'N/A',
+        project: t.client || t.project || 'N/A',
         title: t.title,
         status: t.status
       }));
