@@ -532,6 +532,7 @@ export function AppProvider({ children }) {
           employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
+          startTime: punchInTime,
           endTime: outTime,
           tasks: tasksPayload
         });
