@@ -250,7 +250,7 @@ export default function MonthlyReportPage() {
             
             {/* Header Row */}
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-              <h2 className="text-[26px] font-bold text-[#702c91] m-0">Monthly Report Analysis</h2>
+              <h2 className="text-[26px] font-bold text-[#702c91] m-0">Report Analysis</h2>
             </div>
 
             {/* Filter Tabs & Date Range */}
