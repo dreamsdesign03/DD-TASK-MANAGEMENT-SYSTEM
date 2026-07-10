@@ -29,6 +29,18 @@ function formatTime(timeStr) {
   return timeStr.split(":").slice(0, 2).join(":");
 }
 
+function getExistingStartTime(sheet, headerRowNum) {
+  var startRow = headerRowNum + 2;
+  var lastRow = sheet.getLastRow();
+  if (startRow > lastRow) return "";
+  var col5 = sheet.getRange(startRow, 5, lastRow - startRow + 1, 1).getValues();
+  for (var i = 0; i < col5.length; i++) {
+    var val = String(col5[i][0]).trim();
+    if (val !== "") return val;
+  }
+  return "";
+}
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
@@ -117,6 +129,10 @@ function doPost(e) {
         var titleRowNum = headerRowNum + 1;
         var dataStartRow = titleRowNum + 1;
 
+        // Read the existing first punch-in time from the sheet (source of truth)
+        var existingStartTime = getExistingStartTime(sheet, headerRowNum);
+        var st = existingStartTime || formatTime(firstPunchIn);
+
         // Find where this block ends: next blank row, next "Today Task" header, or end of sheet
         var blockEnd = dataStartRow;
         var allData = sheet.getDataRange().getValues();
@@ -143,7 +159,6 @@ function doPost(e) {
 
         // Insert new task rows
         var dispDate = makeDispDate(date);
-        var st = formatTime(firstPunchIn);
         var et = formatTime(lastPunchOut);
 
         for (var t = 0; t < tasks.length; t++) {
