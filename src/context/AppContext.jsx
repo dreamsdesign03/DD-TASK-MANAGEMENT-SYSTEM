@@ -449,6 +449,8 @@ export function AppProvider({ children }) {
   }, [profile])
 
   const trackTaskInteraction = (taskId) => {
+    if (!isPunchedIn) return; // ONLY track tasks created/updated AFTER punching in
+
     try {
       const today = getISTDate()
       const savedStr = localStorage.getItem('dd_interacted_tasks')

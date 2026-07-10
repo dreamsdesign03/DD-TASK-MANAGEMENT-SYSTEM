@@ -188,7 +188,7 @@ function doPost(e) {
       ttlRange.setBorder(true, true, true, true, true, true);
 
       // One data row with start time, no tasks yet
-      sheet.appendRow([dispDate, "", "Punched In", "-", st, "", ""]);
+      sheet.appendRow(["", "", "Punched In", "-", st, "", ""]);
       var taskRow = sheet.getLastRow();
       var taskRange = sheet.getRange(taskRow, 1, 1, 7);
       taskRange.setBorder(true, true, true, true, true, true);
@@ -271,7 +271,7 @@ function doPost(e) {
 
         for (var t = 0; t < tasks.length; t++) {
           var task = tasks[t];
-          var rowDate = t === 0 ? dispDate : "";
+          var rowDate = "";
           var rowST = t === 0 ? st : "";
           var rowET = t === tasks.length - 1 ? et : "";
 
