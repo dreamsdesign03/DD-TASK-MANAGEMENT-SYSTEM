@@ -286,6 +286,7 @@ function doPost(e) {
           sheet.getRange(rowIdx, 6).setValue(rowET);
           sheet.getRange(rowIdx, 7).setValue(task.remark || "");
 
+          sheet.getRange(rowIdx, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
           sheet.getRange(rowIdx, 1).setHorizontalAlignment("center");
           sheet.getRange(rowIdx, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
           sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
@@ -347,6 +348,7 @@ function doPost(e) {
           ]);
 
           var currentRow = sheet.getLastRow();
+          sheet.getRange(currentRow, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
           sheet.getRange(currentRow, 1).setHorizontalAlignment("center");
           sheet.getRange(currentRow, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
           sheet.getRange(currentRow, 5).setHorizontalAlignment("center");
