@@ -87,6 +87,13 @@ function fetchActivityTimes(employeeId, date) {
 
     var earliest = null;
     var latest = null;
+    
+    // Convert DD-MM-YYYY to YYYY-MM-DD
+    var searchDate = date;
+    var parts = date.split("-");
+    if (parts.length === 3) {
+      searchDate = parts[2] + "-" + parts[1] + "-" + parts[0];
+    }
 
     for (var i = 0; i < json.length; i++) {
       var r = json[i];
@@ -95,7 +102,7 @@ function fetchActivityTimes(employeeId, date) {
       var logoutStr = String(r["Logout Date and Time"] || "");
 
       if (rEmpId !== empIdStr) continue;
-      if (loginStr.indexOf(date) !== 0) continue;
+      if (loginStr.indexOf(searchDate) !== 0) continue;
 
       var loginDate = new Date(loginStr.replace(" ", "T"));
       if (!isNaN(loginDate.getTime())) {
