@@ -49,7 +49,6 @@ function DesktopLauncher({ profile }) {
         <div className="flex flex-col gap-4 w-full">
           <button 
             onClick={() => {
-              // Fire the deep link
               window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
             }}
             className="w-full h-12 btn-gradient rounded-lg font-label-lg font-bold transition-opacity"
