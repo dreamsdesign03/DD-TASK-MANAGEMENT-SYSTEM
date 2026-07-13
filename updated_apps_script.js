@@ -33,7 +33,7 @@ function doPost(e) {
   // -------------------------
   if (payload.action === 'upload_file') {
     try {
-      var mainFolderName = "Dreamsdesign's Projects Attachments";
+      var mainFolderName = "DD Projects 2026";
       var mainFolders = DriveApp.getFoldersByName(mainFolderName);
       var mainFolder;
 
@@ -417,7 +417,7 @@ function doPost(e) {
       var folderUrl = "";
       // Create Drive folder for this client
       try {
-        var driveFolderName = "Dreamsdesign's Projects Attachments";
+        var driveFolderName = "DD Projects 2026";
         var driveRootFolders = DriveApp.getFoldersByName(driveFolderName);
         var driveRoot;
         if (driveRootFolders.hasNext()) {
@@ -787,7 +787,7 @@ function doGet(e) {
         return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No project name provided" })).setMimeType(ContentService.MimeType.JSON);
       }
 
-      var mainFolderName = "Dreamsdesign's Projects Attachments";
+      var mainFolderName = "DD Projects 2026";
       var mainFolders = DriveApp.getFoldersByName(mainFolderName);
       if (!mainFolders.hasNext()) {
         return ContentService.createTextOutput(JSON.stringify({ "ok": true, "files": [] })).setMimeType(ContentService.MimeType.JSON);
