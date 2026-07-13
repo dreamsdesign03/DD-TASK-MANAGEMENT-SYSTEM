@@ -512,10 +512,18 @@ export function AppProvider({ children }) {
           }
         }
         
-        // Check status
+        // Check status and if it was updated today
         const isStatusValid = validStatuses.includes(String(t.status).toLowerCase());
+        let updatedToday = false;
+        if (isStatusValid && t.statusUpdatedOn) {
+          try {
+            updatedToday = formatDateShort(t.statusUpdatedOn) === formatDateShort(today);
+          } catch (e) {
+            updatedToday = false;
+          }
+        }
         
-        return isAssigned && isStatusValid;
+        return isAssigned && isStatusValid && updatedToday;
       });
       const tasksPayload = userTasks.map(t => ({
         project: t.client || t.project || 'N/A',
