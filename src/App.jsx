@@ -49,14 +49,8 @@ function DesktopLauncher({ profile }) {
         <div className="flex flex-col gap-4 w-full">
           <button 
             onClick={() => {
-              // 1. Fire the deep link
+              // Fire the deep link
               window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
-              
-              // 2. Wait a moment to ensure the browser processes the protocol, 
-              // then redirect to the landing page so they aren't stuck here.
-              setTimeout(() => {
-                window.location.href = '/download'
-              }, 1500)
             }}
             className="w-full h-12 btn-gradient rounded-lg font-label-lg font-bold transition-opacity"
           >
