@@ -324,7 +324,7 @@ function doPost(e) {
 
     // Send RICH HTML Approval Email to Admin with a Button
     try {
-      var adminEmail = "dreamsdesign.in03@gmail.com";
+      var adminEmail = "marketing.dreamsdesign.in@gmail.com";
       var subject = "New User Registration Approval Request - Dreamsdesk";
 
       var scriptUrl = ScriptApp.getService().getUrl();
