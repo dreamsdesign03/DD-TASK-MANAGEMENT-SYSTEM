@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { setProfile } = useApp()
+  const { profile, setProfile } = useApp()
   const isElectron = /electron/i.test(navigator.userAgent)
 
   // Auto-open web login in browser when in Electron (no profile yet)
@@ -45,7 +45,16 @@ export default function LoginPage() {
       setWaitingForBrowser(true)
       shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
     }
-  }, [isElectron])
+  }, [isElectron, searchParams])
+  useEffect(() => {
+    if (!isElectron && profile?.email) {
+      if (searchParams.get('desktop') === 'true') {
+        navigate('/?desktop=true', { replace: true })
+      } else {
+        navigate('/tasks', { replace: true })
+      }
+    }
+  }, [profile, isElectron, searchParams, navigate])
 
   useEffect(() => {
     if (isElectron && window.require) {
@@ -182,11 +191,6 @@ export default function LoginPage() {
         const data = await res.json()
 
         if (data.ok && data.authenticated && data.user) {
-          const urlParams = new URLSearchParams(window.location.search)
-          if (urlParams.get('desktop') === 'true') {
-            window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
-            return
-          }
           setProfile({
             name: data.user['Full Name'],
             role: data.user['Role'],
@@ -199,6 +203,11 @@ export default function LoginPage() {
             location: 'Remote',
             avatar: '',
           })
+          const urlParams = new URLSearchParams(window.location.search)
+          if (urlParams.get('desktop') === 'true') {
+            navigate('/?desktop=true')
+            return
+          }
           navigate('/tasks')
         } else {
           setErrorMsg(data.error || 'Invalid credentials or Not authorized.')
@@ -227,11 +236,6 @@ export default function LoginPage() {
       setLoading(false)
 
       if (data.ok && data.authenticated && data.user) {
-        const urlParams = new URLSearchParams(window.location.search)
-        if (urlParams.get('desktop') === 'true') {
-          window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
-          return
-        }
         setProfile({
           name: data.user['Full Name'],
           role: data.user['Role'],
@@ -243,6 +247,11 @@ export default function LoginPage() {
           employeeId: data.user['Employee ID'] || '',
           avatar: decoded.picture || ''
         })
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('desktop') === 'true') {
+          navigate('/?desktop=true')
+          return
+        }
         navigate('/tasks')
       } else if (data.error === "Admin not approved") {
         setErrorMsg('Admin not approved. Please wait for the admin to activate your account.')
