@@ -1,3 +1,20 @@
+# Session Summary (Jul 13, 2026)
+
+## Changes Made (This Session)
+
+### Daily Task Sheet Updates
+- **`daily_task_sheet_script.js`**:
+  - Removed the `Date` column entirely to ensure the sheet generates 6 columns (`Project name`, `Task Title`, `Status`, `Start Time`, `End Time`, `Remark`).
+  - Added robust logic to correctly insert a blank row for spacing between different days' blocks without overwriting subsequent existing day headers.
+- **`src/context/AppContext.jsx`**:
+  - Updated the `DAILY_SHEET_WEB_APP_URL` to point to the newest Google Apps Script deployment.
+  - Fixed a logic error in `handlePunchOut` that incorrectly included past "Done" tasks in today's timesheet. It now checks the `statusUpdatedOn` property and safely compares its date in IST format to ensure only tasks updated *today* are recorded in the current daily block.
+
+### Commits
+- Pushed Google Apps Script modifications and AppContext fixes to `origin/main`.
+
+---
+
 # Session Summary (Jul 9, 2026)
 
 ## Changes Made (This Session)
