@@ -1,10 +1,18 @@
 const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, ipcMain, screen } = require('electron')
 const path = require('path')
 const fs = require('fs')
-const express = require('express')
-const http = require('http')
 
 const PROTOCOL = 'dreamsdesk'
+
+// Log uncaught errors to a file so we can diagnose crashes
+const logFile = path.join(app.getPath('temp'), 'dreamsdesk-crash.log')
+function log(msg) {
+  const line = `[${new Date().toISOString()}] ${msg}\n`
+  try { fs.appendFileSync(logFile, line) } catch (_) {}
+  console.log(msg)
+}
+process.on('uncaughtException', (err) => { log('UNCAUGHT: ' + err.stack); app.quit() })
+process.on('unhandledRejection', (err) => { log('UNHANDLED: ' + String(err)) })
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -36,19 +44,57 @@ let mainWindow
 let tray = null
 let isQuitting = false
 
-app.on('second-instance', (event, commandLine, workingDirectory) => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    if (!mainWindow.isVisible()) mainWindow.show()
-    mainWindow.focus()
-    const url = commandLine.find(arg => arg.startsWith(`${PROTOCOL}://`))
-    if (url) {
-      mainWindow.webContents.send('deep-link', url)
+function copyDirSync(src, dest) {
+  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true })
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath)
+    } else {
+      fs.copyFileSync(srcPath, destPath)
     }
   }
-})
+}
+
+function getDistPath() {
+  if (process.env.NODE_ENV === 'development') {
+    return path.join(__dirname, 'dist')
+  }
+  const appPath = app.getAppPath()
+  log('getDistPath: appPath=' + appPath)
+  const srcDist = path.join(appPath, 'dist')
+  const destDist = path.join(app.getPath('temp'), 'dreamsdesk', 'dist')
+  log('getDistPath: src=' + srcDist + ' dest=' + destDist)
+  log('getDistPath: srcExists=' + fs.existsSync(srcDist) + ' destIndexExists=' + fs.existsSync(path.join(destDist, 'index.html')))
+  if (fs.existsSync(srcDist) && !fs.existsSync(path.join(destDist, 'index.html'))) {
+    try {
+      log('getDistPath: copying dist from asar to temp...')
+      copyDirSync(srcDist, destDist)
+      log('getDistPath: copy done')
+    } catch (e) {
+      log('getDistPath: copy FAILED: ' + e.message)
+    }
+  }
+  return destDist
+}
+
+let localServer = null
 
 function createWindow() {
+  log('createWindow: start')
+
+  // Ensure dist is copied to temp BEFORE creating window (icon needed)
+  const distPath = process.env.NODE_ENV === 'development'
+    ? path.join(__dirname, 'dist')
+    : getDistPath()
+  log('createWindow: distPath=' + distPath)
+
+  const iconFile = path.join(distPath, 'logo.ico')
+  const iconExists = fs.existsSync(iconFile)
+  log('createWindow: iconFile=' + iconFile + ' exists=' + iconExists)
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -61,36 +107,55 @@ function createWindow() {
       backgroundThrottling: false
     },
     autoHideMenuBar: true,
-    icon: path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.ico')
+    icon: iconExists ? iconFile : undefined
   })
 
-  // Set App User Model ID for Windows Notifications
   app.setAppUserModelId('com.dreamsdesign.taskapp')
 
   ipcMain.on('show-notification', (event, { title, body, icon }) => {
-    new Notification({ title, body, icon: icon || path.join(__dirname, process.env.NODE_ENV === 'development' ? 'public' : 'dist', 'logo.ico') }).show()
+    new Notification({ title, body, icon: icon || iconFile }).show()
   })
 
   const isDev = process.env.NODE_ENV === 'development'
 
   if (isDev) {
-    // Vite dev server runs on 8000 in this project
     mainWindow.loadURL('http://localhost:8000')
   } else {
-    // Serve files via HTTP to bypass file:// protocol restrictions in Google OAuth
-    const expressApp = express()
-    expressApp.use(express.static(path.join(__dirname, 'dist')))
-    // SPA fallback: serve index.html for any unmatched route
-    expressApp.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'))
-    })
-    
-    const localServer = http.createServer(expressApp)
-    const PORT = 8000
-    localServer.listen(PORT, 'localhost', () => {
-      mainWindow.loadURL(`http://localhost:${PORT}`)
-    })
+    try {
+      log('createWindow: distPath=' + distPath)
+      log('createWindow: distExists=' + fs.existsSync(distPath))
+      log('createWindow: indexExists=' + fs.existsSync(path.join(distPath, 'index.html')))
+
+      const express = require('express')
+      const http = require('http')
+      const expressApp = express()
+      expressApp.use(express.static(distPath))
+      expressApp.get('/{*splat}', (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'))
+      })
+      localServer = http.createServer(expressApp)
+      localServer.on('error', (err) => {
+        log('SERVER ERROR: ' + err.message)
+      })
+      localServer.listen(0, '127.0.0.1', () => {
+        const port = localServer.address().port
+        log('createWindow: server listening on port ' + port)
+        const url = `http://127.0.0.1:${port}`
+        log('createWindow: loading ' + url)
+        mainWindow.loadURL(url)
+      })
+    } catch (e) {
+      log('createWindow: FAILED to start server: ' + e.message + '\n' + e.stack)
+    }
   }
+
+  mainWindow.webContents.on('did-fail-load', (e, code, desc) => {
+    log('LOAD FAILED: ' + code + ' ' + desc)
+  })
+
+  mainWindow.webContents.on('console-message', (e, level, msg) => {
+    if (level >= 2) log('CONSOLE [' + level + ']: ' + msg)
+  })
 
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
@@ -106,7 +171,9 @@ function createWindow() {
 
 function createTray() {
   const isDev = process.env.NODE_ENV === 'development'
-  const iconPath = path.join(__dirname, isDev ? 'public' : 'dist', 'logo.ico')
+  const iconPath = isDev
+    ? path.join(__dirname, 'public', 'logo.ico')
+    : path.join(app.getPath('temp'), 'dreamsdesk', 'dist', 'logo.ico')
   const icon = fs.existsSync(iconPath) ? iconPath : nativeImage.createEmpty()
   tray = new Tray(icon)
   const contextMenu = Menu.buildFromTemplate([
@@ -118,7 +185,7 @@ function createTray() {
   ])
   tray.setToolTip('Dreamsdesk')
   tray.setContextMenu(contextMenu)
-  
+
   tray.on('click', () => {
     if (mainWindow) {
       if (mainWindow.isVisible()) {
@@ -129,8 +196,6 @@ function createTray() {
     }
   })
 }
-
-
 
 // ── Timer Overlay Window (always-on-top pill) ──
 let timerOverlay = null
@@ -291,6 +356,7 @@ ipcMain.on('timer-stop', () => {
 })
 
 app.whenReady().then(() => {
+  log('app ready')
   createWindow()
   createTray()
 
@@ -303,6 +369,7 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin' && isQuitting) {
+    if (localServer) localServer.close()
     app.quit()
   }
 })

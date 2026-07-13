@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [pendingApprovalEmail, setPendingApprovalEmail] = useState(null)
+  const [waitingForBrowser, setWaitingForBrowser] = useState(false)
 
   // Form State
   const [email, setEmail] = useState('')
@@ -36,6 +37,15 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const { setProfile } = useApp()
   const isElectron = /electron/i.test(navigator.userAgent)
+
+  // Auto-open web login in browser when in Electron (no profile yet)
+  useEffect(() => {
+    if (isElectron && window.require && !searchParams.get('desktop')) {
+      const { shell } = window.require('electron')
+      setWaitingForBrowser(true)
+      shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
+    }
+  }, [isElectron])
 
   useEffect(() => {
     if (isElectron && window.require) {
@@ -174,7 +184,7 @@ export default function LoginPage() {
         if (data.ok && data.authenticated && data.user) {
           const urlParams = new URLSearchParams(window.location.search)
           if (urlParams.get('desktop') === 'true') {
-            window.location.href = "dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}"
+            window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
             return
           }
           setProfile({
@@ -219,7 +229,7 @@ export default function LoginPage() {
       if (data.ok && data.authenticated && data.user) {
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.get('desktop') === 'true') {
-          window.location.href = "dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}"
+          window.location.href = `dreamsdesk://login?email=${encodeURIComponent(data.user['Email Address'])}`
           return
         }
         setProfile({
@@ -353,6 +363,41 @@ export default function LoginPage() {
           className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center overflow-y-auto"
           style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(2.5rem, 5vw, 5rem)' }}
         >
+          {waitingForBrowser ? (
+            <div className="w-full flex flex-col items-center text-center" style={{ maxWidth: '400px' }}>
+              <div className="w-20 h-20 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-6">
+                <span className="material-symbols-outlined text-[40px] text-[#702c91] animate-spin" style={{ animationDuration: '3s' }}>progress_activity</span>
+              </div>
+              <h1 style={{ fontSize: 'clamp(24px, 3.5vw, 32px)', fontWeight: 800, color: '#1E1B2E', marginBottom: '12px' }}>
+                Waiting for Login...
+              </h1>
+              <p style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.6, marginBottom: '32px' }}>
+                We opened your web browser for login. Complete sign-in there and this window will update automatically.
+              </p>
+              {loading && (
+                <div className="flex items-center gap-2 text-[#702c91] text-sm font-medium mb-4">
+                  <span className="material-symbols-outlined text-[18px] animate-spin" style={{ animationDuration: '2s' }}>progress_activity</span>
+                  Verifying your login...
+                </div>
+              )}
+              {errorMsg && (
+                <div className="mb-4 w-full p-3 bg-red-50 border border-red-200 text-red-600 text-[14px] rounded-lg">
+                  {errorMsg}
+                  <button onClick={() => { setErrorMsg(''); setWaitingForBrowser(false) }} className="block mt-2 text-[#702c91] font-semibold hover:underline text-[13px]">Try again</button>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  const { shell } = window.require('electron')
+                  shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
+                }}
+                className="w-full h-[54px] bg-white border border-gray-200 text-[#1E1B2E] font-medium tracking-wide rounded-[14px] flex items-center justify-center hover:bg-gray-50 transition-all shadow-sm mt-2"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-2">open_in_new</span>
+                Re-open Browser
+              </button>
+            </div>
+          ) : (
           <div className="w-full flex flex-col items-center" style={{ maxWidth: '400px' }}>
 
             {/* Heading */}
@@ -479,6 +524,7 @@ export default function LoginPage() {
               </footer>
             )}
           </div>
+          )}
         </section>
       </main>
     </div>
