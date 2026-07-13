@@ -6,14 +6,6 @@ function makeHeaderText(date) {
   return "Task : " + date;
 }
 
-function makeDispDate(date) {
-  var parts = date.split("-");
-  if (parts.length === 3) {
-    return parseInt(parts[2]) + "/" + parseInt(parts[1]) + "/" + parts[0];
-  }
-  return date;
-}
-
 function findHeaderRow(sheet, date) {
   var parts = date.split("-");
   var datePart = parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : date;
@@ -74,9 +66,10 @@ function getExistingStartTime(sheet, headerRowNum) {
   var startRow = headerRowNum + 2;
   var lastRow = sheet.getLastRow();
   if (startRow > lastRow) return "";
-  var col5 = sheet.getRange(startRow, 5, lastRow - startRow + 1, 1).getValues();
-  for (var i = 0; i < col5.length; i++) {
-    var formatted = formatSheetTime(col5[i][0]);
+  // Start Time is now column 4 (Project, Title, Status, Start Time, End Time, Remark)
+  var col4 = sheet.getRange(startRow, 4, lastRow - startRow + 1, 1).getValues();
+  for (var i = 0; i < col4.length; i++) {
+    var formatted = formatSheetTime(col4[i][0]);
     if (formatted !== "") return formatted;
   }
   return "";
@@ -163,13 +156,17 @@ function doPost(e) {
         }
       }
 
-      var dispDate = makeDispDate(date);
       var st = formatTime(startTime);
 
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 0) {
+        sheet.appendRow(["", "", "", "", "", ""]);
+      }
+
       // Dark green header
-      sheet.appendRow([headerText, "", "", "", "", "", ""]);
+      sheet.appendRow([headerText, "", "", "", "", ""]);
       var hdrRow = sheet.getLastRow();
-      var hdrRange = sheet.getRange(hdrRow, 1, 1, 7);
+      var hdrRange = sheet.getRange(hdrRow, 1, 1, 6);
       hdrRange.merge();
       hdrRange.setBackground("#0b5394");
       hdrRange.setFontColor("#FFFFFF");
@@ -178,9 +175,9 @@ function doPost(e) {
       hdrRange.setBorder(true, true, true, true, true, true);
 
       // Light green column titles
-      sheet.appendRow(["Date", "Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
+      sheet.appendRow(["Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
       var ttlRow = sheet.getLastRow();
-      var ttlRange = sheet.getRange(ttlRow, 1, 1, 7);
+      var ttlRange = sheet.getRange(ttlRow, 1, 1, 6);
       ttlRange.setBackground("#9fc5e8");
       ttlRange.setFontColor("#000000");
       ttlRange.setFontWeight("bold");
@@ -188,17 +185,16 @@ function doPost(e) {
       ttlRange.setBorder(true, true, true, true, true, true);
 
       // One data row with start time, no tasks yet
-      sheet.appendRow(["", "", "Punched In", "-", st, "", ""]);
+      sheet.appendRow(["", "Punched In", "-", st, "", ""]);
       var taskRow = sheet.getLastRow();
-      var taskRange = sheet.getRange(taskRow, 1, 1, 7);
+      var taskRange = sheet.getRange(taskRow, 1, 1, 6);
       taskRange.setBorder(true, true, true, true, true, true);
-      sheet.getRange(taskRow, 1).setHorizontalAlignment("center");
-      sheet.getRange(taskRow, 4).setHorizontalAlignment("center");
-      sheet.getRange(taskRow, 5).setHorizontalAlignment("center");
-      sheet.getRange(taskRow, 6).setHorizontalAlignment("center");
+      sheet.getRange(taskRow, 3).setHorizontalAlignment("center"); // Status
+      sheet.getRange(taskRow, 4).setHorizontalAlignment("center"); // Start Time
+      sheet.getRange(taskRow, 5).setHorizontalAlignment("center"); // End Time
 
       // Blank separator
-      sheet.appendRow(["", "", "", "", "", "", ""]);
+      sheet.appendRow(["", "", "", "", "", ""]);
 
       return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "punch_in_logged" })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -253,7 +249,7 @@ function doPost(e) {
         for (var r = dataStartRow - 1; r < allData.length; r++) {
           var rowVals = allData[r];
           var isEmpty = true;
-          for (var c = 0; c < 7; c++) {
+          for (var c = 0; c < 6; c++) {
             if (String(rowVals[c] || "").trim() !== "") {
               isEmpty = false;
               break;
@@ -266,76 +262,84 @@ function doPost(e) {
           blockEnd = r + 2;
         }
 
-        // Delete old data rows
-        if (blockEnd > dataStartRow) {
-          sheet.deleteRows(dataStartRow, blockEnd - dataStartRow);
+        // Delete old data rows, but preserve the empty row or next header
+        var deleteCount = blockEnd - dataStartRow;
+        if (deleteCount > 0) {
+          sheet.deleteRows(dataStartRow, deleteCount);
         }
 
         // Insert new task rows
-        var dispDate = makeDispDate(date);
         var et = formatTime(lastPunchOut);
 
         if (tasks.length === 0) {
           sheet.insertRowsAfter(dataStartRow - 1, 1);
           var rowIdx = dataStartRow;
-          sheet.getRange(rowIdx, 1).setValue(dispDate);
-          sheet.getRange(rowIdx, 2).setValue("-");
-          sheet.getRange(rowIdx, 3).setValue("No tasks completed");
-          sheet.getRange(rowIdx, 4).setValue("-");
-          sheet.getRange(rowIdx, 5).setValue(st);
-          sheet.getRange(rowIdx, 6).setValue(et);
-          sheet.getRange(rowIdx, 7).setValue("-");
+          sheet.getRange(rowIdx, 1).setValue("-");
+          sheet.getRange(rowIdx, 2).setValue("No tasks completed");
+          sheet.getRange(rowIdx, 3).setValue("-");
+          sheet.getRange(rowIdx, 4).setValue(st);
+          sheet.getRange(rowIdx, 5).setValue(et);
+          sheet.getRange(rowIdx, 6).setValue("-");
           
-          sheet.getRange(rowIdx, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
-          sheet.getRange(rowIdx, 1, 1, 7).setHorizontalAlignment("center");
-          var borderRange = sheet.getRange(rowIdx, 1, 1, 7);
+          sheet.getRange(rowIdx, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+          sheet.getRange(rowIdx, 3).setHorizontalAlignment("center");
+          sheet.getRange(rowIdx, 4).setHorizontalAlignment("center");
+          sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
+          var borderRange = sheet.getRange(rowIdx, 1, 1, 6);
           borderRange.setBorder(true, true, true, true, true, true);
         } else {
           for (var t = 0; t < tasks.length; t++) {
             var task = tasks[t];
-            var rowDate = "";
             var rowST = t === 0 ? st : "";
             var rowET = t === tasks.length - 1 ? et : "";
 
             sheet.insertRowsAfter(dataStartRow + t - 1, 1);
             var rowIdx = dataStartRow + t;
 
-            sheet.getRange(rowIdx, 1).setValue(rowDate);
-            sheet.getRange(rowIdx, 2).setValue(formatSheetProject(task.project));
-            sheet.getRange(rowIdx, 3).setValue(task.title || "");
-            sheet.getRange(rowIdx, 4).setValue(task.status || "");
-            sheet.getRange(rowIdx, 5).setValue(rowST);
-            sheet.getRange(rowIdx, 6).setValue(rowET);
-            sheet.getRange(rowIdx, 7).setValue(task.remark || "");
+            sheet.getRange(rowIdx, 1).setValue(formatSheetProject(task.project));
+            sheet.getRange(rowIdx, 2).setValue(task.title || "");
+            sheet.getRange(rowIdx, 3).setValue(task.status || "");
+            sheet.getRange(rowIdx, 4).setValue(rowST);
+            sheet.getRange(rowIdx, 5).setValue(rowET);
+            sheet.getRange(rowIdx, 6).setValue(task.remark || "");
 
-            sheet.getRange(rowIdx, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
-            sheet.getRange(rowIdx, 1).setHorizontalAlignment("center");
-            sheet.getRange(rowIdx, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
+            sheet.getRange(rowIdx, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+            sheet.getRange(rowIdx, 3).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
+            sheet.getRange(rowIdx, 4).setHorizontalAlignment("center");
             sheet.getRange(rowIdx, 5).setHorizontalAlignment("center");
-            sheet.getRange(rowIdx, 6).setHorizontalAlignment("center");
 
-            var borderRange = sheet.getRange(rowIdx, 1, 1, 7);
+            var borderRange = sheet.getRange(rowIdx, 1, 1, 6);
             borderRange.setBorder(true, true, true, true, true, true);
           }
         }
 
-
         // Blank row after tasks
-        var blankRow = dataStartRow + (tasks.length === 0 ? 1 : tasks.length);
-        sheet.getRange(blankRow, 1, 1, 7).setValues([["", "", "", "", "", "", ""]]);
+        var rowAfterTasks = dataStartRow + (tasks.length === 0 ? 1 : tasks.length);
+        var valAfter = sheet.getRange(rowAfterTasks, 1).getValue();
+        if (String(valAfter).indexOf("Task :") === 0) {
+          // If the next row is a header, we need to push it down
+          sheet.insertRowBefore(rowAfterTasks);
+        } else {
+          // Otherwise, clear whatever is there to ensure a clean blank space
+          sheet.getRange(rowAfterTasks, 1, 1, 6).clearContent();
+        }
 
         return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "updated" })).setMimeType(ContentService.MimeType.JSON);
       }
 
       // ── CREATE new block (no existing header) ──
-      var dispDate = makeDispDate(date);
       var st = formatTime(firstPunchIn);
       var et = formatTime(lastPunchOut);
 
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 0) {
+        sheet.appendRow(["", "", "", "", "", ""]);
+      }
+
       // Dark green header
-      sheet.appendRow([headerText, "", "", "", "", "", ""]);
+      sheet.appendRow([headerText, "", "", "", "", ""]);
       var headerRowNumber = sheet.getLastRow();
-      var hdrRange = sheet.getRange(headerRowNumber, 1, 1, 7);
+      var hdrRange = sheet.getRange(headerRowNumber, 1, 1, 6);
       hdrRange.merge();
       hdrRange.setBackground("#0b5394");
       hdrRange.setFontColor("#FFFFFF");
@@ -344,9 +348,9 @@ function doPost(e) {
       hdrRange.setBorder(true, true, true, true, true, true);
 
       // Light green column headers
-      sheet.appendRow(["Date", "Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
+      sheet.appendRow(["Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
       var colHeaderRowNumber = sheet.getLastRow();
-      var ttlRange = sheet.getRange(colHeaderRowNumber, 1, 1, 7);
+      var ttlRange = sheet.getRange(colHeaderRowNumber, 1, 1, 6);
       ttlRange.setBackground("#9fc5e8");
       ttlRange.setFontColor("#000000");
       ttlRange.setFontWeight("bold");
@@ -357,12 +361,10 @@ function doPost(e) {
 
       if (tasks.length > 0) {
         tasks.forEach(function (task, index) {
-          var rowDate = index === 0 ? dispDate : "";
           var rowST = index === 0 ? st : "";
           var rowET = index === tasks.length - 1 ? et : "";
 
           sheet.appendRow([
-            rowDate,
             formatSheetProject(task.project),
             task.title || "",
             task.status || "",
@@ -372,15 +374,13 @@ function doPost(e) {
           ]);
 
           var currentRow = sheet.getLastRow();
-          sheet.getRange(currentRow, 1, 1, 7).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
-          sheet.getRange(currentRow, 1).setHorizontalAlignment("center");
-          sheet.getRange(currentRow, 4).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
+          sheet.getRange(currentRow, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+          sheet.getRange(currentRow, 3).setHorizontalAlignment("center").setBackground(getStatusColor(task.status));
+          sheet.getRange(currentRow, 4).setHorizontalAlignment("center");
           sheet.getRange(currentRow, 5).setHorizontalAlignment("center");
-          sheet.getRange(currentRow, 6).setHorizontalAlignment("center");
         });
       } else {
         sheet.appendRow([
-          dispDate,
           "",
           "No tasks logged",
           "-",
@@ -389,20 +389,19 @@ function doPost(e) {
           ""
         ]);
         var currentRow = sheet.getLastRow();
-        sheet.getRange(currentRow, 1).setHorizontalAlignment("center");
+        sheet.getRange(currentRow, 3).setHorizontalAlignment("center");
         sheet.getRange(currentRow, 4).setHorizontalAlignment("center");
         sheet.getRange(currentRow, 5).setHorizontalAlignment("center");
-        sheet.getRange(currentRow, 6).setHorizontalAlignment("center");
       }
 
       var taskEndRow = sheet.getLastRow();
       var numTasks = taskEndRow - taskStartRow + 1;
       if (numTasks > 0) {
-        var taskRange = sheet.getRange(taskStartRow, 1, numTasks, 7);
+        var taskRange = sheet.getRange(taskStartRow, 1, numTasks, 6);
         taskRange.setBorder(true, true, true, true, true, true);
       }
 
-      sheet.appendRow(["", "", "", "", "", "", ""]);
+      sheet.appendRow(["", "", "", "", "", ""]);
 
       return ContentService.createTextOutput(JSON.stringify({ status: "success", sheetCreated: sheetName })).setMimeType(ContentService.MimeType.JSON);
     }
