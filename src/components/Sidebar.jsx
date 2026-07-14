@@ -149,18 +149,17 @@ export default function Sidebar() {
       >
         {/* ── LOGO SECTION ── */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 12,
+          display: 'flex', alignItems: 'center', gap: expanded ? 12 : 0,
           padding: expanded ? '28px 20px' : '28px 0',
           justifyContent: expanded ? 'flex-start' : 'center',
           flexShrink: 0, overflow: 'hidden',
-          transition: 'padding 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s',
         }}>
           <div style={{
-            minWidth: 44, height: 44, borderRadius: '50%',
+            width: 44, height: 44, borderRadius: '50%',
             background: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
-            transition: 'margin 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
           }}>
             <div className="logo-mask" style={{ width: 28, height: 28, backgroundColor: '#702c91' }} />
           </div>
