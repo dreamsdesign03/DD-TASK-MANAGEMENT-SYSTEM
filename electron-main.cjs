@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, ipcMain, screen } = require('electron')
+const { app, BrowserWindow, Notification, Tray, Menu, nativeImage, ipcMain, screen, powerMonitor } = require('electron')
 const path = require('path')
 const fs = require('fs')
 
@@ -369,12 +369,35 @@ ipcMain.on('timer-stop', () => {
 
 app.whenReady().then(() => {
   log('app ready')
+  
+  // Start on system startup
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: process.execPath
+  })
+
   createWindow()
   createTray()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
+    }
+  })
+
+  // Show window when screen is unlocked
+  powerMonitor.on('unlock-screen', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  })
+
+  // Attempt auto punch-out when Windows is shutting down / logging off
+  app.on('session-end', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('auto-punch-out')
     }
   })
 })

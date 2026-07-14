@@ -16,14 +16,6 @@
   "build": {
     "appId": "com.dreamsdesign.taskapp",
     "productName": "Dreamsdesk",
-    "protocols": [
-      {
-        "name": "Dreamsdesk URL",
-        "schemes": [
-          "dreamsdesk"
-        ]
-      }
-    ],
     "directories": {
       "output": "release_build"
     },

@@ -548,6 +548,7 @@ export function AppProvider({ children }) {
         fetch(DAILY_SHEET_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
+          keepalive: true,
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: payload
         }).catch(() => {})
@@ -608,7 +609,10 @@ export function AppProvider({ children }) {
           }))
         }
         fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
-          method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          method: 'POST',
+          mode: 'no-cors',
+          keepalive: true,
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'punch_out', email: prevEmail })
         }).then(r => r.text()).then(t => console.log('Punch out response:', t)).catch(e => console.warn('Punch out failed:', e))
       }
@@ -696,6 +700,25 @@ export function AppProvider({ children }) {
       localStorage.removeItem('dd_cleared_chats')
     } catch (_) { }
   })
+
+  const handlePunchOutRef = useRef()
+  handlePunchOutRef.current = handlePunchOut
+  const isPunchedInRef = useRef(isPunchedIn)
+  isPunchedInRef.current = isPunchedIn
+
+  // Listen for Electron auto-punch-out (e.g. system shutdown)
+  useEffect(() => {
+    if (isElectron && window.require) {
+      const { ipcRenderer } = window.require('electron')
+      const doAutoPunchOut = () => {
+        if (isPunchedInRef.current && handlePunchOutRef.current) {
+          handlePunchOutRef.current()
+        }
+      }
+      ipcRenderer.on('auto-punch-out', doAutoPunchOut)
+      return () => ipcRenderer.removeListener('auto-punch-out', doAutoPunchOut)
+    }
+  }, [isElectron])
 
   // Persist which chats have been cleared — stores { chatId: clearTimestamp }
   // Messages BEFORE the timestamp are hidden; messages AFTER still appear (new messages work!)
