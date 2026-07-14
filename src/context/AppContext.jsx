@@ -346,11 +346,6 @@ export function AppProvider({ children }) {
     tasksRef.current = tasks
   }, [tasks])
 
-  const todaysSessionsRef = useRef(todaysSessions)
-  useEffect(() => {
-    todaysSessionsRef.current = todaysSessions
-  }, [todaysSessions])
-
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_notifications_v1')
@@ -406,6 +401,11 @@ export function AppProvider({ children }) {
   const [punchInTime, setPunchInTime] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
   const [activityLog, setActivityLog] = useState([])
+
+  const todaysSessionsRef = useRef(todaysSessions)
+  useEffect(() => {
+    todaysSessionsRef.current = todaysSessions
+  }, [todaysSessions])
 
   useEffect(() => {
     if (!profile?.email) return
