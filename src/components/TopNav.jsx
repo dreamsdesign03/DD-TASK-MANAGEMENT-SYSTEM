@@ -14,7 +14,9 @@ function getISTTimeFromTs(ts) {
 export default function TopNav({ title, badgeCount, showSearch = true }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, firstPunchInToday, todaysSessions } = useApp()
+  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, todaysSessions } = useApp()
+
+  const firstPunchInToday = todaysSessions?.[0]?.in || null
 
   const [nowTs, setNowTs] = useState(Date.now())
   const [sessionOpen, setSessionOpen] = useState(false)

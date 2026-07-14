@@ -346,6 +346,11 @@ export function AppProvider({ children }) {
     tasksRef.current = tasks
   }, [tasks])
 
+  const todaysSessionsRef = useRef(todaysSessions)
+  useEffect(() => {
+    todaysSessionsRef.current = todaysSessions
+  }, [todaysSessions])
+
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_notifications_v1')
@@ -399,7 +404,6 @@ export function AppProvider({ children }) {
 
   const [isPunchedIn, setIsPunchedIn] = useState(false)
   const [punchInTime, setPunchInTime] = useState(null)
-  const [firstPunchInToday, setFirstPunchInToday] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
   const [activityLog, setActivityLog] = useState([])
 
@@ -439,16 +443,12 @@ export function AppProvider({ children }) {
           }
         })
         setTodaysSessions(mySessions)
-        if (mySessions.length > 0) {
-          setFirstPunchInToday(mySessions[0].in)
-        }
         if (activeTime) {
           setIsPunchedIn(true)
           setPunchInTime(activeTime)
         } else {
           setIsPunchedIn(false)
           setPunchInTime(null)
-          if (mySessions.length === 0) setFirstPunchInToday(null)
         }
       } catch (err) {
         console.error("Failed to fetch activities from sheet:", err)
@@ -461,11 +461,9 @@ export function AppProvider({ children }) {
     const inTime = getISTTime()
     setIsPunchedIn(true)
     setPunchInTime(inTime)
-    setFirstPunchInToday(prev => prev || inTime)
 
     setTodaysSessions(prev => {
-      const updated = [...prev]
-      updated.push({ in: inTime, out: null })
+      const updated = [...prev, { in: inTime, out: null }]
       return updated
     })
     addToast('Punched In successfully', 'success')
@@ -544,13 +542,20 @@ export function AppProvider({ children }) {
       const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
 
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        // Compute day's first punch-in and last punch-out directly from sessions
+        const computedFirstIn = (() => {
+          const sessions = todaysSessionsRef.current || []
+          if (sessions.length > 0) return sessions[0].in
+          return punchInTime
+        })()
+
         const payload = JSON.stringify({
           action: 'log_daily_tasks',
           email: prevEmail,
           employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
-          firstPunchIn: firstPunchInToday || punchInTime,
+          firstPunchIn: computedFirstIn,
           lastPunchOut: outTime,
           startTime: punchInTime,
           endTime: outTime,
@@ -2550,7 +2555,6 @@ export function AppProvider({ children }) {
         handlePunchIn,
         handlePunchOut,
         punchInTime,
-        firstPunchInToday,
         todaysSessions,
         activityLog,
         getActiveUsers,
