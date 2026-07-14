@@ -150,7 +150,8 @@ export default function Sidebar() {
         {/* ── LOGO SECTION ── */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,
-          padding: expanded ? '28px 0 28px 20px' : '28px 0 28px 12px',
+          padding: expanded ? '28px 20px' : '28px 0',
+          justifyContent: expanded ? 'flex-start' : 'center',
           flexShrink: 0, overflow: 'hidden',
           transition: 'padding 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
         }}>
@@ -159,7 +160,6 @@ export default function Sidebar() {
             background: '#fff',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
-            marginLeft: expanded ? 0 : 4,
             transition: 'margin 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
           }}>
             <div className="logo-mask" style={{ width: 28, height: 28, backgroundColor: '#702c91' }} />
@@ -195,10 +195,10 @@ export default function Sidebar() {
                   navigate(item.path);
                 }}
                 style={{
-                  margin: expanded ? '0 10px' : '0 8px',
+                  margin: expanded ? '0 10px' : '0 auto',
                   width: expanded ? 'calc(100% - 20px)' : '44px',
-                  padding: '0 12px',
-                  justifyContent: 'flex-start',
+                  padding: expanded ? '0 12px' : '0',
+                  justifyContent: expanded ? 'flex-start' : 'center',
                   transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
@@ -271,9 +271,9 @@ export default function Sidebar() {
               style={{
                 display: 'flex', alignItems: 'center',
                 height: 44,
-                margin: expanded ? '0 10px' : '0 8px',
+                margin: expanded ? '0 10px' : '0 auto',
                 width: expanded ? 'calc(100% - 20px)' : '44px',
-                padding: '0 12px', justifyContent: 'flex-start',
+                padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
                 borderRadius: 12, cursor: 'pointer',
                 background: '#fff', color: '#702c91',
                 transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
@@ -304,9 +304,9 @@ export default function Sidebar() {
             style={{
               display: 'flex', alignItems: 'center',
               height: 44,
-              margin: expanded ? '0 10px' : '0 8px',
+              margin: expanded ? '0 10px' : '0 auto',
               width: expanded ? 'calc(100% - 20px)' : '44px',
-              padding: '0 12px', justifyContent: 'flex-start',
+              padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
               borderRadius: 12, cursor: 'pointer',
               background: 'transparent', color: 'rgba(255,255,255,0.75)',
               transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
