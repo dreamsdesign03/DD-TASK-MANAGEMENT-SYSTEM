@@ -36,6 +36,7 @@
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
+      "unicode": true,
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
