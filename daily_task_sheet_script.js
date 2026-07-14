@@ -87,7 +87,7 @@ function fetchActivityTimes(employeeId, date) {
 
     var earliest = null;
     var latest = null;
-    
+
     // Convert DD-MM-YYYY to YYYY-MM-DD
     var searchDate = date;
     var parts = date.split("-");
@@ -284,7 +284,7 @@ function doPost(e) {
           sheet.getRange(rowIdx, 4).setValue(st);
           sheet.getRange(rowIdx, 5).setValue(et);
           sheet.getRange(rowIdx, 6).setValue("-");
-          
+
           sheet.getRange(rowIdx, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
           sheet.getRange(rowIdx, 3).setHorizontalAlignment("center");
           sheet.getRange(rowIdx, 4).setHorizontalAlignment("center");

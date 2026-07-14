@@ -468,7 +468,7 @@ export function AppProvider({ children }) {
     })
     addToast('Punched In successfully', 'success')
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxCuHlFMwV1PNwlvAqH4Ns4EKMpZnFbugQ2mhWxdfu1ZieQjoPwZ6Xy7mQLbasvTVqsNA/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -539,7 +539,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxCuHlFMwV1PNwlvAqH4Ns4EKMpZnFbugQ2mhWxdfu1ZieQjoPwZ6Xy7mQLbasvTVqsNA/exec';
 
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         // Compute day's first punch-in and last punch-out directly from sessions
