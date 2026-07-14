@@ -24,6 +24,8 @@ export default function LoginPage() {
   const [successMsg, setSuccessMsg] = useState('')
   const [pendingApprovalEmail, setPendingApprovalEmail] = useState(null)
   const [waitingForBrowser, setWaitingForBrowser] = useState(false)
+  const [redirectingToApp, setRedirectingToApp] = useState(false)
+  const [deepLinkUrl, setDeepLinkUrl] = useState('')
 
   // Form State
   const [email, setEmail] = useState('')
@@ -49,7 +51,14 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isElectron && profile?.email) {
       if (searchParams.get('desktop') === 'true') {
-        navigate('/?desktop=true', { replace: true })
+        // Show redirect screen first, then fire deep link
+        const deepLink = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
+        setDeepLinkUrl(deepLink)
+        setRedirectingToApp(true)
+        // Small delay so the page can render before firing the protocol
+        setTimeout(() => {
+          window.location.href = deepLink
+        }, 400)
       } else {
         navigate('/tasks', { replace: true })
       }
@@ -191,7 +200,7 @@ export default function LoginPage() {
         const data = await res.json()
 
         if (data.ok && data.authenticated && data.user) {
-          setProfile({
+          const userProfile = {
             name: data.user['Full Name'],
             role: data.user['Role'],
             email: data.user['Email Address'],
@@ -202,10 +211,12 @@ export default function LoginPage() {
             employeeId: data.user['Employee ID'] || '',
             location: 'Remote',
             avatar: '',
-          })
+          }
+          setProfile(userProfile)
           const urlParams = new URLSearchParams(window.location.search)
           if (urlParams.get('desktop') === 'true') {
-            navigate('/?desktop=true')
+            // Directly fire deep link — no React Router navigation
+            window.location.href = `dreamsdesk://login?email=${encodeURIComponent(userProfile.email)}`
             return
           }
           navigate('/tasks')
@@ -236,7 +247,7 @@ export default function LoginPage() {
       setLoading(false)
 
       if (data.ok && data.authenticated && data.user) {
-        setProfile({
+        const userProfile = {
           name: data.user['Full Name'],
           role: data.user['Role'],
           email: data.user['Email Address'],
@@ -246,10 +257,12 @@ export default function LoginPage() {
           systemRole: data.user['System Role'] || 'Employee',
           employeeId: data.user['Employee ID'] || '',
           avatar: decoded.picture || ''
-        })
+        }
+        setProfile(userProfile)
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.get('desktop') === 'true') {
-          navigate('/?desktop=true')
+          // Directly fire deep link — no React Router navigation needed
+          window.location.href = `dreamsdesk://login?email=${encodeURIComponent(userProfile.email)}`
           return
         }
         navigate('/tasks')
@@ -270,6 +283,39 @@ export default function LoginPage() {
       setLoading(false)
       setErrorMsg('Google login failed. Please try again.')
     }
+  }
+
+  // ── Redirect-to-App screen (web → Electron handoff) ──
+  if (redirectingToApp) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
+        <div className="bg-white rounded-2xl shadow-xl p-10 text-center max-w-md w-full mx-4">
+          <div className="w-20 h-20 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-6">
+            <img src="/logo.png" alt="Dreamsdesk" className="w-12 h-12 object-contain" style={{ filter: 'hue-rotate(0deg)' }} />
+          </div>
+          <h1 className="text-2xl font-black text-[#1E1B2E] mb-3">Opening Dreamsdesk...</h1>
+          <p className="text-[15px] text-gray-500 leading-relaxed mb-8">
+            Login successful! The Dreamsdesk desktop app should open automatically.
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => { window.location.href = deepLinkUrl }}
+              className="w-full h-[52px] rounded-[14px] text-white font-bold text-[15px] flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(90deg, #702c91, #ec008c)' }}
+            >
+              <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+              Open App Now
+            </button>
+            <button
+              onClick={() => { setRedirectingToApp(false); navigate('/tasks') }}
+              className="w-full h-[48px] rounded-[14px] border border-gray-200 text-gray-600 font-medium text-[14px] hover:bg-gray-50 transition-colors"
+            >
+              Continue in Browser Instead
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

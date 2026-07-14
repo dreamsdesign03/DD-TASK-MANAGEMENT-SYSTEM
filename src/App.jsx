@@ -70,15 +70,9 @@ function DesktopLauncher({ profile }) {
 
 function ProtectedRoute({ children }) {
   const { profile, isPunchedIn } = useApp()
-  const searchParams = new URLSearchParams(window.location.search)
 
   if (!profile) {
     return <Navigate to="/login" replace />
-  }
-
-  if (searchParams.get('desktop') === 'true' && profile.email) {
-    window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
-    return <DesktopLauncher profile={profile} />
   }
 
   if (!isPunchedIn) {
@@ -108,13 +102,7 @@ function ProtectedRoute({ children }) {
 
 function RootRedirect() {
   const { profile } = useApp()
-  const searchParams = new URLSearchParams(window.location.search)
-
   if (profile && profile.email) {
-    if (searchParams.get('desktop') === 'true') {
-      window.location.href = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
-      return <DesktopLauncher profile={profile} />
-    }
     return <Navigate to="/tasks" replace />
   }
   return <Navigate to="/login" replace />

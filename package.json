@@ -16,8 +16,9 @@
   "build": {
     "appId": "com.dreamsdesign.taskapp",
     "productName": "Dreamsdesk",
+    "copyright": "Copyright © 2026 Dreams Design",
     "directories": {
-      "output": "release_build"
+      "output": "C:/Users/Admin/dreamsdesk-build"
     },
     "files": [
       "dist/**/*",
@@ -26,9 +27,25 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "public/logo-square.png"
+      "icon": "public/logo.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Dreamsdesk",
+      "installerIcon": "public/logo.ico",
+      "uninstallerIcon": "public/logo.ico",
+      "installerHeaderIcon": "public/logo.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "mac": {
       "icon": "public/logo-square.png"

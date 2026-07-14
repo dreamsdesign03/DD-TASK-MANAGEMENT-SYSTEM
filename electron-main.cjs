@@ -165,6 +165,15 @@ function createWindow() {
     log('LOAD FAILED: ' + code + ' ' + desc)
   })
 
+  // On app startup, navigate to tasks page (shows punch-in if not punched in)
+  mainWindow.webContents.once('did-finish-load', () => {
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('show-punch-in')
+      }
+    }, 1200)
+  })
+
   mainWindow.webContents.on('console-message', (e, level, msg) => {
     if (level >= 2) log('CONSOLE [' + level + ']: ' + msg)
   })
@@ -385,17 +394,35 @@ app.whenReady().then(() => {
     }
   })
 
-  // Show window when screen is unlocked
+  // Show window + navigate to punch-in screen when screen is unlocked
   powerMonitor.on('unlock-screen', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore()
       mainWindow.show()
       mainWindow.focus()
+      // Tell the React app to navigate to tasks/punch-in
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('show-punch-in')
+        }
+      }, 500)
     }
   })
 
+
   // Attempt auto punch-out when Windows is shutting down / logging off
+  // session-end fires before the OS fully shuts down
   app.on('session-end', () => {
+    log('session-end: attempting auto punch-out')
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('auto-punch-out')
+    }
+  })
+
+  // Also catch before-quit (covers manual quit + OS shutdown on some platforms)
+  app.on('before-quit', () => {
+    log('before-quit: attempting auto punch-out')
+    isQuitting = true
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('auto-punch-out')
     }

@@ -271,6 +271,9 @@ export const buildMultiUserTimeStr = (data) => {
 
 export function AppProvider({ children }) {
   const { addToast } = useToast()
+
+  // Detect if running inside Electron
+  const isElectron = !!(window && window.process && window.process.type) || /electron/i.test(navigator.userAgent)
   const [tasks, setTasks] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_tasks_v1')
@@ -335,7 +338,7 @@ export function AppProvider({ children }) {
           taskTitle: activeTimer?.taskTitle || '',
           taskId: activeTimer?.taskId || null,
         })
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [activeTimer, sessionSecs])
 
@@ -424,10 +427,10 @@ export function AppProvider({ children }) {
               const inTime = String(loginStr).split(' ')[1] || ""
               let outStr = row["Logout Date and Time"] || ""
               if (outStr instanceof Date) {
-                 const d2 = new Date(outStr.getTime() - outStr.getTimezoneOffset() * 60000)
-                 outStr = d2.toISOString().replace('T', ' ').substring(0, 19)
+                const d2 = new Date(outStr.getTime() - outStr.getTimezoneOffset() * 60000)
+                outStr = d2.toISOString().replace('T', ' ').substring(0, 19)
               } else if (typeof outStr === 'string' && outStr.includes('T')) {
-                 outStr = outStr.replace('T', ' ').substring(0, 19)
+                outStr = outStr.replace('T', ' ').substring(0, 19)
               }
               const outTime = outStr ? String(outStr).split(' ')[1] : null
               mySessions.push({ in: inTime, out: outTime })
@@ -454,7 +457,7 @@ export function AppProvider({ children }) {
     const inTime = getISTTime()
     setIsPunchedIn(true)
     setPunchInTime(inTime)
-    
+
     setTodaysSessions(prev => {
       const updated = [...prev]
       updated.push({ in: inTime, out: null })
@@ -463,7 +466,7 @@ export function AppProvider({ children }) {
     addToast('Punched In successfully', 'success')
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_ZMDMN_0MwfnlpIa32EFY4tGfie8HjQZ9zZPVSOTzlhtMzPZcMGvo8rLDYmBKZRBD3g/exec';
-      if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+    if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
         email: profile?.email,
@@ -477,7 +480,7 @@ export function AppProvider({ children }) {
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: payload
-      }).catch(() => {})
+      }).catch(() => { })
     }
   }
 
@@ -502,7 +505,7 @@ export function AppProvider({ children }) {
       const userTasks = tasksRef.current.filter(t => {
         // Exclude Sub Tasks
         if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
-        
+
         // Check assignment
         let isAssigned = (t.assignedTo || '').includes(profile?.name || '---');
         if (isAssigned && profile?.email) {
@@ -511,7 +514,7 @@ export function AppProvider({ children }) {
             isAssigned = taskEmails.includes(profile.email.toLowerCase());
           }
         }
-        
+
         // Check status and if it was updated today
         const isStatusValid = validStatuses.includes(String(t.status).toLowerCase());
         let updatedToday = false;
@@ -522,7 +525,7 @@ export function AppProvider({ children }) {
             updatedToday = false;
           }
         }
-        
+
         return isAssigned && isStatusValid && updatedToday;
       });
       const tasksPayload = userTasks.map(t => ({
@@ -533,7 +536,7 @@ export function AppProvider({ children }) {
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
       const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_ZMDMN_0MwfnlpIa32EFY4tGfie8HjQZ9zZPVSOTzlhtMzPZcMGvo8rLDYmBKZRBD3g/exec';
-      
+
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
           action: 'log_daily_tasks',
@@ -551,7 +554,7 @@ export function AppProvider({ children }) {
           keepalive: true,
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: payload
-        }).catch(() => {})
+        }).catch(() => { })
       } else {
         console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }
@@ -666,7 +669,7 @@ export function AppProvider({ children }) {
 
   const [groupChats, setGroupChats] = useState([])
   const [groupMembers, setGroupMembers] = useState({})
-  
+
   const [clients, setClients] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_clients_v1')
@@ -706,17 +709,29 @@ export function AppProvider({ children }) {
   const isPunchedInRef = useRef(isPunchedIn)
   isPunchedInRef.current = isPunchedIn
 
-  // Listen for Electron auto-punch-out (e.g. system shutdown)
+  // Listen for Electron auto-punch-out (e.g. system shutdown / session-end)
   useEffect(() => {
     if (isElectron && window.require) {
-      const { ipcRenderer } = window.require('electron')
-      const doAutoPunchOut = () => {
-        if (isPunchedInRef.current && handlePunchOutRef.current) {
-          handlePunchOutRef.current()
+      try {
+        const { ipcRenderer } = window.require('electron')
+        const doAutoPunchOut = () => {
+          if (isPunchedInRef.current && handlePunchOutRef.current) {
+            handlePunchOutRef.current()
+          }
         }
+        // Navigate to tasks/punch-in screen when screen is unlocked or app restarts
+        const doShowPunchIn = () => {
+          window.dispatchEvent(new CustomEvent('dd_navigate', { detail: { path: '/tasks' } }))
+        }
+        ipcRenderer.on('auto-punch-out', doAutoPunchOut)
+        ipcRenderer.on('show-punch-in', doShowPunchIn)
+        return () => {
+          ipcRenderer.removeListener('auto-punch-out', doAutoPunchOut)
+          ipcRenderer.removeListener('show-punch-in', doShowPunchIn)
+        }
+      } catch (e) {
+        console.warn('Electron IPC setup failed:', e)
       }
-      ipcRenderer.on('auto-punch-out', doAutoPunchOut)
-      return () => ipcRenderer.removeListener('auto-punch-out', doAutoPunchOut)
     }
   }, [isElectron])
 
@@ -2256,7 +2271,7 @@ export function AppProvider({ children }) {
             if (nameCounts[name] > 1) {
               name = `${name} (${department})`
             }
-            
+
             const email = item["Email Address"] || item.Email || item.email || ''
             const role = item.Role || item.role || item.Designation || 'Team Member'
             const avatar = item.Avatar || item.avatar || item["Profile Image"] || ""
@@ -2439,12 +2454,12 @@ export function AppProvider({ children }) {
         if (role === 'HR' && dept === 'HR') return true;
         if (role === 'Accountant' && dept === 'ACCOUNT') return true;
         if (role === 'Sales' && dept === 'SALES') return true;
-        
+
         // If the current user is assigned to the task, they should always see it
         if (myName || myEmail) {
           const assignees = (t.assignedTo || '').split(',').map(normalizeName).filter(Boolean);
           const assigneeEmails = (t.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-          
+
           let hasAccess = false;
           if (assignees.includes(myName)) {
             if (assigneeEmails.length > 0 && myEmail) {
@@ -2458,7 +2473,7 @@ export function AppProvider({ children }) {
 
           if (hasAccess) return true;
         }
-        
+
         return false;
       }
       return true;
