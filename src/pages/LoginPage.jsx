@@ -405,6 +405,12 @@ export default function LoginPage() {
                 <span className="material-symbols-outlined text-[20px] mr-2">open_in_new</span>
                 Re-open Browser
               </button>
+              <button
+                onClick={() => setWaitingForBrowser(false)}
+                className="w-full h-[54px] bg-transparent text-[#702c91] font-bold tracking-wide rounded-[14px] flex items-center justify-center hover:bg-[#F3F1FA] transition-all mt-3"
+              >
+                Login Manually Here
+              </button>
             </div>
           ) : (
           <div className="w-full flex flex-col items-center" style={{ maxWidth: '400px' }}>
