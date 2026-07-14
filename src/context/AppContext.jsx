@@ -346,10 +346,6 @@ export function AppProvider({ children }) {
     tasksRef.current = tasks
   }, [tasks])
 
-  const todaysSessionsRef = useRef(todaysSessions)
-  useEffect(() => {
-    todaysSessionsRef.current = todaysSessions
-  }, [todaysSessions])
 
   const [notifications, setNotifications] = useState(() => {
     try {
@@ -413,6 +409,10 @@ export function AppProvider({ children }) {
   const [punchInTime, setPunchInTime] = useState(null)
   const [firstPunchInToday, setFirstPunchInToday] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
+  const todaysSessionsRef = useRef([])
+  useEffect(() => {
+    todaysSessionsRef.current = todaysSessions
+  }, [todaysSessions])
   const [activityLog, setActivityLog] = useState([])
 
   useEffect(() => {
