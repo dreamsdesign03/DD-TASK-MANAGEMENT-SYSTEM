@@ -56,40 +56,17 @@ let mainWindow
 let tray = null
 let isQuitting = false
 
-function copyDirSync(src, dest) {
-  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true })
-  const entries = fs.readdirSync(src, { withFileTypes: true })
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name)
-    const destPath = path.join(dest, entry.name)
-    if (entry.isDirectory()) {
-      copyDirSync(srcPath, destPath)
-    } else {
-      fs.copyFileSync(srcPath, destPath)
-    }
-  }
-}
 
 function getDistPath() {
   if (process.env.NODE_ENV === 'development') {
     return path.join(__dirname, 'dist')
   }
+  // In production, dist is bundled inside the app asar/folder
   const appPath = app.getAppPath()
   log('getDistPath: appPath=' + appPath)
-  const srcDist = path.join(appPath, 'dist')
-  const destDist = path.join(app.getPath('temp'), 'dreamsdesk', 'dist')
-  log('getDistPath: src=' + srcDist + ' dest=' + destDist)
-  log('getDistPath: srcExists=' + fs.existsSync(srcDist) + ' destIndexExists=' + fs.existsSync(path.join(destDist, 'index.html')))
-  if (fs.existsSync(srcDist) && !fs.existsSync(path.join(destDist, 'index.html'))) {
-    try {
-      log('getDistPath: copying dist from asar to temp...')
-      copyDirSync(srcDist, destDist)
-      log('getDistPath: copy done')
-    } catch (e) {
-      log('getDistPath: copy FAILED: ' + e.message)
-    }
-  }
-  return destDist
+  const distPath = path.join(appPath, 'dist')
+  log('getDistPath: distPath=' + distPath + ' exists=' + fs.existsSync(distPath))
+  return distPath
 }
 
 let localServer = null
@@ -103,9 +80,15 @@ function createWindow() {
     : getDistPath()
   log('createWindow: distPath=' + distPath)
 
-  const iconFile = path.join(distPath, 'logo.ico')
-  const iconExists = fs.existsSync(iconFile)
-  log('createWindow: iconFile=' + iconFile + ' exists=' + iconExists)
+  // Resolve icon: use extraResources path in production, public/ in dev
+  const getIconPath = () => {
+    if (process.env.NODE_ENV === 'development') {
+      return path.join(__dirname, 'public', 'logo.ico')
+    }
+    return path.join(process.resourcesPath, 'logo.ico')
+  }
+  const iconFile = getIconPath()
+  log('createWindow: iconFile=' + iconFile + ' exists=' + fs.existsSync(iconFile))
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -119,7 +102,7 @@ function createWindow() {
       backgroundThrottling: false
     },
     autoHideMenuBar: true,
-    icon: iconExists ? iconFile : undefined
+    icon: fs.existsSync(iconFile) ? iconFile : undefined
   })
 
   app.setAppUserModelId('com.dreamsdesign.taskapp')
@@ -191,10 +174,12 @@ function createWindow() {
 }
 
 function createTray() {
-  const isDev = process.env.NODE_ENV === 'development'
-  const iconPath = isDev
-    ? path.join(__dirname, 'public', 'logo.ico')
-    : path.join(app.getPath('temp'), 'dreamsdesk', 'dist', 'logo.ico')
+  let iconPath
+  if (process.env.NODE_ENV === 'development') {
+    iconPath = path.join(__dirname, 'public', 'logo.ico')
+  } else {
+    iconPath = path.join(process.resourcesPath, 'logo.ico')
+  }
   const icon = fs.existsSync(iconPath) ? iconPath : nativeImage.createEmpty()
   tray = new Tray(icon)
   const contextMenu = Menu.buildFromTemplate([

@@ -13,7 +13,7 @@ export default function ProfilePage() {
     <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main">
         <TopNav title="Profile" showSearch={false} />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 pb-6">

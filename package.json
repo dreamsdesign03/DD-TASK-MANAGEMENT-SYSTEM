@@ -1,7 +1,9 @@
 {
   "name": "dd-task-management",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "Dreamsdesk Task Management System",
+  "author": "Dreams Design",
   "type": "module",
   "main": "electron-main.cjs",
   "scripts": {
@@ -18,8 +20,14 @@
     "productName": "Dreamsdesk",
     "copyright": "Copyright © 2026 Dreams Design",
     "directories": {
-      "output": "C:/Users/Admin/dreamsdesk-build"
+      "output": "release"
     },
+    "extraResources": [
+      {
+        "from": "public/logo.ico",
+        "to": "logo.ico"
+      }
+    ],
     "files": [
       "dist/**/*",
       "electron-main.cjs",

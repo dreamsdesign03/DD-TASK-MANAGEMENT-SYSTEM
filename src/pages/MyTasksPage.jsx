@@ -141,7 +141,7 @@ export default function MyTasksPage() {
       <Sidebar />
 
       {/* Main */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300 relative">
+      <main className="page-main relative">
         {/* Top nav */}
         <TopNav title={location.pathname === '/my-tasks' ? 'My Tasks' : 'All Tasks'} showSearch={true} />
 

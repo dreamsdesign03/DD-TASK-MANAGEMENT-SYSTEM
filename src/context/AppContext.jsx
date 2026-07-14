@@ -346,6 +346,11 @@ export function AppProvider({ children }) {
     tasksRef.current = tasks
   }, [tasks])
 
+  const todaysSessionsRef = useRef(todaysSessions)
+  useEffect(() => {
+    todaysSessionsRef.current = todaysSessions
+  }, [todaysSessions])
+
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_notifications_v1')
@@ -377,6 +382,13 @@ export function AppProvider({ children }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [showNewTaskModal, setShowNewTaskModal] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  useEffect(() => {
+    // Set CSS variable so all page layouts react to sidebar toggle
+    document.documentElement.style.setProperty(
+      '--sidebar-ml',
+      isSidebarOpen ? '260px' : '96px'
+    )
+  }, [isSidebarOpen])
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_profile')
@@ -399,13 +411,9 @@ export function AppProvider({ children }) {
 
   const [isPunchedIn, setIsPunchedIn] = useState(false)
   const [punchInTime, setPunchInTime] = useState(null)
+  const [firstPunchInToday, setFirstPunchInToday] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
   const [activityLog, setActivityLog] = useState([])
-
-  const todaysSessionsRef = useRef(todaysSessions)
-  useEffect(() => {
-    todaysSessionsRef.current = todaysSessions
-  }, [todaysSessions])
 
   useEffect(() => {
     if (!profile?.email) return
@@ -443,12 +451,16 @@ export function AppProvider({ children }) {
           }
         })
         setTodaysSessions(mySessions)
+        if (mySessions.length > 0) {
+          setFirstPunchInToday(mySessions[0].in)
+        }
         if (activeTime) {
           setIsPunchedIn(true)
           setPunchInTime(activeTime)
         } else {
           setIsPunchedIn(false)
           setPunchInTime(null)
+          if (mySessions.length === 0) setFirstPunchInToday(null)
         }
       } catch (err) {
         console.error("Failed to fetch activities from sheet:", err)
@@ -468,7 +480,7 @@ export function AppProvider({ children }) {
     })
     addToast('Punched In successfully', 'success')
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxCuHlFMwV1PNwlvAqH4Ns4EKMpZnFbugQ2mhWxdfu1ZieQjoPwZ6Xy7mQLbasvTVqsNA/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -539,7 +551,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxCuHlFMwV1PNwlvAqH4Ns4EKMpZnFbugQ2mhWxdfu1ZieQjoPwZ6Xy7mQLbasvTVqsNA/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
 
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         // Compute day's first punch-in and last punch-out directly from sessions
@@ -2555,6 +2567,7 @@ export function AppProvider({ children }) {
         handlePunchIn,
         handlePunchOut,
         punchInTime,
+        firstPunchInToday,
         todaysSessions,
         activityLog,
         getActiveUsers,

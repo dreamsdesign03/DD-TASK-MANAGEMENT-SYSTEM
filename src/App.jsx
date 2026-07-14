@@ -79,7 +79,7 @@ function ProtectedRoute({ children }) {
     return (
       <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
         <Sidebar />
-        <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+        <main className="page-main">
           <TopNav title="" showSearch={false} />
           <div className="flex-1 flex items-center justify-center px-6">
             <div className="bg-white rounded-2xl shadow-xl border border-[#E5E7EB] p-10 text-center max-w-md">

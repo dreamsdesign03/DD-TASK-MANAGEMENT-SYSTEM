@@ -114,7 +114,7 @@ function NotificationCard({ notification, onRead }) {
 
 /* ─── Main Notifications Page ────────────────────────────────────── */
 export default function NotificationsPage() {
-  const { notifications, markNotificationRead, markAllNotificationsRead, isSidebarOpen } = useApp()
+  const { notifications, markNotificationRead, markAllNotificationsRead } = useApp()
   const [activeFilter, setActiveFilter] = useState('All')
 
   /* Filter logic */
@@ -144,9 +144,7 @@ export default function NotificationsPage() {
       
       <Sidebar />
 
-      <main 
-        className={`flex-1 flex flex-col h-[100vh] overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'md:ml-[240px]' : 'md:ml-[104px]'}`}
-      >
+      <main className="page-main">
         <TopNav title="Notifications" badgeCount={unreadCount > 0 ? unreadCount : undefined} showSearch={false} />
 
         {/* Filters Section */}

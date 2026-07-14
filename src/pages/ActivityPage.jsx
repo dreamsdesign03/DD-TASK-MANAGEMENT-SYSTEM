@@ -265,7 +265,7 @@ export default function ActivityPage() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
       `}</style>
       <Sidebar />
-      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main">
         <TopNav title="Activity Tracker" showSearch={false} />
         <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 pb-6">
           <div className="max-w-[1200px] mx-auto">

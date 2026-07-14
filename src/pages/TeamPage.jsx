@@ -97,7 +97,7 @@ export default function TeamPage() {
 
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main">
         <TopNav title="Team Directory" showSearch={false} />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">

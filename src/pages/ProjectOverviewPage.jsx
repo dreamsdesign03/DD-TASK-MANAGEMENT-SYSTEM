@@ -255,7 +255,7 @@ export default function ProjectOverviewPage() {
     <div style={{ minHeight: '100vh', background: 'var(--color-background, #F0EDF8)', display: 'flex' }}>
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main">
         <TopNav title={projectName} showSearch={true} />
 
         {!isPunchedIn ? (

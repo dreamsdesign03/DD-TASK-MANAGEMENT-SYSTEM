@@ -7,6 +7,8 @@
 @tailwind utilities;
 
 :root {
+  --sidebar-ml: 96px; /* default collapsed sidebar margin */
+
   --color-secondary: #605d63;
   --color-primary-fixed: #f7d8ff;
   --color-tertiary-fixed-dim: #cdc3d5;
@@ -411,4 +413,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   from { opacity: 0; transform: translateY(8px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ── Sidebar-responsive page main container ── */
+.page-main {
+  margin-left: var(--sidebar-ml);
+  transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
 

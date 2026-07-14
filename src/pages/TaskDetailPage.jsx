@@ -696,7 +696,7 @@ export default function TaskDetailPage() {
     return (
       <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
         <Sidebar />
-        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <main className="page-main">
           <TopNav title="Loading Task..." showSearch={false} />
           <div className="flex-1 flex items-center justify-center animate-pulse">
             <p className="text-secondary text-sm font-medium">Loading task details...</p>
@@ -710,7 +710,7 @@ export default function TaskDetailPage() {
     return (
       <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
         <Sidebar />
-        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <main className="page-main">
           <TopNav title="Punched Out" showSearch={false} />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center max-w-md bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -728,7 +728,7 @@ export default function TaskDetailPage() {
     return (
       <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
         <Sidebar />
-        <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+        <main className="page-main">
           <TopNav title="Access Denied" showSearch={false} />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center max-w-md">
@@ -752,7 +752,7 @@ export default function TaskDetailPage() {
 
       <Sidebar />
 
-      <main className="flex-1 flex flex-col h-[100vh] overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main">
         <TopNav title={task.title} showSearch={true} />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-8 animate-fade-in-up">

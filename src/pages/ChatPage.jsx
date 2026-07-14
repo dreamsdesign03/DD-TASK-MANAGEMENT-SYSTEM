@@ -1377,7 +1377,7 @@ export default function ChatPage() {
 
       <Sidebar />
 
-      <main className="flex-1 p-3 h-screen overflow-hidden md:ml-[104px] transition-all duration-300">
+      <main className="page-main p-3">
         <div className="h-full w-full bg-white rounded-[24px] overflow-hidden module-shadow flex animate-fade-in-up">
             {/* LEFT PANEL: Conversation List */}
             <div className={`bg-[#FAFAFF] flex-col border-r border-[#F3F1FA] flex-shrink-0 ${selectedChatId ? 'hidden md:flex w-[280px]' : 'flex w-full md:w-[280px]'}`}>
