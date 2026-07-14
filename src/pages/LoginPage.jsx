@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 import SelectDropdown from '../components/SelectDropdown'
+import { isElectron } from '../utils/isElectron'
 
 const LOGO_SRC = '/logo.png'
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
@@ -38,18 +39,17 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { profile, setProfile } = useApp()
-  const isElectron = /electron/i.test(navigator.userAgent)
 
   // Auto-open web login in browser when in Electron (no profile yet)
   useEffect(() => {
-    if (isElectron && window.require && !searchParams.get('desktop')) {
+    if (isElectron() && window.require && !searchParams.get('desktop')) {
       const { shell } = window.require('electron')
       setWaitingForBrowser(true)
       shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
     }
-  }, [isElectron, searchParams])
+  }, [searchParams])
   useEffect(() => {
-    if (!isElectron && profile?.email) {
+    if (!isElectron() && profile?.email) {
       if (searchParams.get('desktop') === 'true') {
         // Show redirect screen first, then fire deep link
         const deepLink = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
@@ -63,10 +63,10 @@ export default function LoginPage() {
         navigate('/tasks', { replace: true })
       }
     }
-  }, [profile, isElectron, searchParams, navigate])
+  }, [profile, searchParams, navigate])
 
   useEffect(() => {
-    if (isElectron && window.require) {
+    if (isElectron() && window.require) {
       const { ipcRenderer } = window.require('electron')
 
       const processDeepLink = async (url) => {
@@ -118,7 +118,7 @@ export default function LoginPage() {
 
       return () => ipcRenderer.removeListener('deep-link', handleDeepLink)
     }
-  }, [isElectron, navigate, setProfile])
+  }, [navigate, setProfile])
 
   useEffect(() => {
     let intervalId = null;
@@ -542,7 +542,7 @@ export default function LoginPage() {
                 </button>
               )}
 
-              {!isRegisterMode && !isElectron && (
+              {!isRegisterMode && !isElectron() && (
                 <div className="flex justify-center w-full google-login-wrapper mt-4">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
@@ -556,7 +556,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              {isElectron && !isRegisterMode && (
+              {isElectron() && !isRegisterMode && (
                 <div className="mt-6 flex flex-col items-center space-y-3">
                   <div className="text-gray-400 text-sm font-medium">Or</div>
                   <button

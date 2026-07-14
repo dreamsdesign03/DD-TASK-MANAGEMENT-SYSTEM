@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp, mqttClient } from '../context/AppContext'
+import { isElectron } from '../utils/isElectron'
 
 const AVAILABLE_SERVICES = [
   "Business Growth Consulting",
@@ -26,7 +27,6 @@ export default function Sidebar() {
   const { pathname } = useLocation()
   const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, setProfile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
   
-  const isElectron = window && window.process && window.process.type
   const [expanded, setExpanded] = useState(false)
   
   const totalUnreadChat =
@@ -241,7 +241,7 @@ export default function Sidebar() {
           flexShrink: 0, overflow: 'hidden',
           borderTop: '1px solid rgba(255,255,255,0.08)'
         }}>
-          {!isElectron && (
+          {!isElectron() && (
             <button
               onClick={() => window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe', '_blank')}
               style={{

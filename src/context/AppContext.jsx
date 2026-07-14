@@ -3,6 +3,7 @@ import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
 import { updateHeartbeat, logShutdown, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime } from '../utils/activityLog'
 import { formatDateShort, formatDateTime } from '../utils/dateFormat'
+import { isElectron } from '../utils/isElectron'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
 
@@ -272,8 +273,6 @@ export const buildMultiUserTimeStr = (data) => {
 export function AppProvider({ children }) {
   const { addToast } = useToast()
 
-  // Detect if running inside Electron
-  const isElectron = !!(window && window.process && window.process.type) || /electron/i.test(navigator.userAgent)
   const [tasks, setTasks] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_tasks_v1')
@@ -548,6 +547,7 @@ export function AppProvider({ children }) {
           endTime: outTime,
           tasks: tasksPayload
         });
+        // Primary: fetch with keepalive (survives page unload in most cases)
         fetch(DAILY_SHEET_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors',
@@ -555,6 +555,11 @@ export function AppProvider({ children }) {
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: payload
         }).catch(() => { })
+        // Fallback: sendBeacon guarantees delivery even if the page is being destroyed (shutdown/logout)
+        try {
+          const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' })
+          navigator.sendBeacon(DAILY_SHEET_WEB_APP_URL, blob)
+        } catch (_) { }
       } else {
         console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }
@@ -711,7 +716,7 @@ export function AppProvider({ children }) {
 
   // Listen for Electron auto-punch-out (e.g. system shutdown / session-end)
   useEffect(() => {
-    if (isElectron && window.require) {
+    if (isElectron() && window.require) {
       try {
         const { ipcRenderer } = window.require('electron')
         const doAutoPunchOut = () => {
@@ -733,7 +738,7 @@ export function AppProvider({ children }) {
         console.warn('Electron IPC setup failed:', e)
       }
     }
-  }, [isElectron])
+  }, [])
 
   // Persist which chats have been cleared — stores { chatId: clearTimestamp }
   // Messages BEFORE the timestamp are hidden; messages AFTER still appear (new messages work!)
