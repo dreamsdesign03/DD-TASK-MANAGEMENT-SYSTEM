@@ -399,6 +399,7 @@ export function AppProvider({ children }) {
 
   const [isPunchedIn, setIsPunchedIn] = useState(false)
   const [punchInTime, setPunchInTime] = useState(null)
+  const [firstPunchInToday, setFirstPunchInToday] = useState(null)
   const [todaysSessions, setTodaysSessions] = useState([])
   const [activityLog, setActivityLog] = useState([])
 
@@ -438,12 +439,16 @@ export function AppProvider({ children }) {
           }
         })
         setTodaysSessions(mySessions)
+        if (mySessions.length > 0) {
+          setFirstPunchInToday(mySessions[0].in)
+        }
         if (activeTime) {
           setIsPunchedIn(true)
           setPunchInTime(activeTime)
         } else {
           setIsPunchedIn(false)
           setPunchInTime(null)
+          if (mySessions.length === 0) setFirstPunchInToday(null)
         }
       } catch (err) {
         console.error("Failed to fetch activities from sheet:", err)
@@ -456,6 +461,7 @@ export function AppProvider({ children }) {
     const inTime = getISTTime()
     setIsPunchedIn(true)
     setPunchInTime(inTime)
+    setFirstPunchInToday(prev => prev || inTime)
 
     setTodaysSessions(prev => {
       const updated = [...prev]
@@ -464,7 +470,7 @@ export function AppProvider({ children }) {
     })
     addToast('Punched In successfully', 'success')
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_ZMDMN_0MwfnlpIa32EFY4tGfie8HjQZ9zZPVSOTzlhtMzPZcMGvo8rLDYmBKZRBD3g/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -472,7 +478,8 @@ export function AppProvider({ children }) {
         employeeId: profile?.employeeId || '',
         name: profile?.name || 'Unknown',
         date: getISTDate(),
-        startTime: inTime
+        startTime: inTime,
+        firstPunchIn: inTime
       });
       fetch(DAILY_SHEET_WEB_APP_URL, {
         method: 'POST',
@@ -534,7 +541,7 @@ export function AppProvider({ children }) {
       }));
 
       // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_ZMDMN_0MwfnlpIa32EFY4tGfie8HjQZ9zZPVSOTzlhtMzPZcMGvo8rLDYmBKZRBD3g/exec';
+      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
 
       if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
@@ -543,6 +550,8 @@ export function AppProvider({ children }) {
           employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
           date: today,
+          firstPunchIn: firstPunchInToday || punchInTime,
+          lastPunchOut: outTime,
           startTime: punchInTime,
           endTime: outTime,
           tasks: tasksPayload
@@ -2541,6 +2550,7 @@ export function AppProvider({ children }) {
         handlePunchIn,
         handlePunchOut,
         punchInTime,
+        firstPunchInToday,
         todaysSessions,
         activityLog,
         getActiveUsers,

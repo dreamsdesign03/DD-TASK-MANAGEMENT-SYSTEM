@@ -14,7 +14,7 @@ function getISTTimeFromTs(ts) {
 export default function TopNav({ title, badgeCount, showSearch = true }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, todaysSessions } = useApp()
+  const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, firstPunchInToday, todaysSessions } = useApp()
 
   const [nowTs, setNowTs] = useState(Date.now())
   const [sessionOpen, setSessionOpen] = useState(false)
@@ -81,7 +81,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 8, padding: '4px 12px', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 600, color: '#166534' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>login</span>
-                  <span>{punchInTime}</span>
+                  <span>{firstPunchInToday || punchInTime}</span>
                 </span>
                 <span style={{ color: '#94A3B8' }}>|</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>

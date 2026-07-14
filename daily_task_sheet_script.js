@@ -155,8 +155,11 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "already exists" })).setMimeType(ContentService.MimeType.JSON);
       }
 
-      // Fetch from Activity Sheet to get the true first login time
-      if (employeeId) {
+      // Use client-sent firstPunchIn as primary (no race condition)
+      if (data.firstPunchIn) {
+        startTime = data.firstPunchIn;
+      } else if (employeeId) {
+        // Fallback: fetch from Activity Sheet
         var activityTimes = fetchActivityTimes(employeeId, date);
         if (activityTimes && activityTimes.first) {
           startTime = activityTimes.first;
@@ -220,14 +223,16 @@ function doPost(e) {
         sheet = ss.insertSheet(sheetName);
       }
 
-      // Fetch from Activity Sheet — source of truth for times
-      var firstPunchIn = "";
-      var lastPunchOut = data.endTime || "";
-      if (employeeId) {
+      // Use client-sent times as primary (client has up-to-date session data, no race condition)
+      var firstPunchIn = data.firstPunchIn || data.startTime || "";
+      var lastPunchOut = data.lastPunchOut || data.endTime || "";
+
+      // Fallback: if client didn't send times, fetch from Activity Sheet
+      if ((!firstPunchIn || !lastPunchOut) && employeeId) {
         var activityTimes = fetchActivityTimes(employeeId, date);
         if (activityTimes) {
-          if (activityTimes.first) firstPunchIn = activityTimes.first;
-          if (activityTimes.last) lastPunchOut = activityTimes.last;
+          if (!firstPunchIn && activityTimes.first) firstPunchIn = activityTimes.first;
+          if (!lastPunchOut && activityTimes.last) lastPunchOut = activityTimes.last;
         }
       }
 
@@ -239,15 +244,7 @@ function doPost(e) {
         var headerRowNum = existingRow;
         var titleRowNum = headerRowNum + 1;
         var dataStartRow = titleRowNum + 1;
-        var firstPunchIn = data.startTime || "09:00:00"; // fallback
 
-        // Always sync start time with the Master Activity Sheet to ensure 100% accuracy
-        if (data.employeeId) {
-          var activityTimes = fetchActivityTimes(data.employeeId, date);
-          if (activityTimes && activityTimes.first) {
-            firstPunchIn = activityTimes.first;
-          }
-        }
         var st = formatTime(firstPunchIn);
 
         // Find where this block ends
