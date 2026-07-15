@@ -167,6 +167,13 @@ export default function TaskTable() {
     }
   }, [profile?.systemRole, selectedDepartment])
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [tasksPerPage, setTasksPerPage] = useState(10)
+  const [taskToDelete, setTaskToDelete] = useState(null)
+  const [stickyTitleLeft, setStickyTitleLeft] = useState(0)
+  const tableRef = useRef(null)
+
   // Calculate sticky title position
   useEffect(() => {
     if (tableRef.current && window.innerWidth < 768) {
@@ -176,13 +183,6 @@ export default function TaskTable() {
       }
     }
   }, [currentTasks])
-
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1)
-  const [tasksPerPage, setTasksPerPage] = useState(10)
-  const [taskToDelete, setTaskToDelete] = useState(null)
-  const [stickyTitleLeft, setStickyTitleLeft] = useState(0)
-  const tableRef = useRef(null)
 
   // Unauthorized Access Modal
   const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
