@@ -215,78 +215,99 @@ function createTimerOverlay() {
   const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize
 
   timerOverlay = new BrowserWindow({
-    width: 150,
-    height: 44,
-    x: screenW - 174,
-    y: screenH - 68,
+    width: 240,
+    height: 52,
+    x: screenW - 260,
+    y: screenH - 76,
     alwaysOnTop: true,
     skipTaskbar: true,
     frame: false,
     transparent: true,
     resizable: false,
-    focusable: false,
+    focusable: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     },
   })
 
-  timerOverlay.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
-<!DOCTYPE html>
+  timerOverlay.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  html, body {
+    width: 240px;
+    height: 52px;
     background: transparent;
     overflow: hidden;
-    height: 100vh;
-    -webkit-app-region: drag;
     user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
   }
-  .overlay {
+  .pill {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    background: linear-gradient(90deg, #702c91 0%, #ec008c 50%, #702c91 100%);
+    gap: 8px;
+    padding: 0 14px 0 12px;
+    height: 52px;
+    width: 240px;
+    background: linear-gradient(90deg, #702c91 0%, #c0207a 50%, #702c91 100%);
     background-size: 200% 100%;
     border-radius: 999px;
-    box-shadow: 0 4px 12px rgba(91, 33, 182, 0.3);
-    height: 100%;
-    -webkit-app-region: drag;
+    box-shadow: 0 6px 20px rgba(112,44,145,0.45);
+    cursor: grab;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .pill:active { cursor: grabbing; }
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
   .dot {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: #25d366;
-    animation: timerPulse 1.8s ease-in-out infinite;
     flex-shrink: 0;
+    animation: pulse 1.8s ease-in-out infinite;
   }
-  @keyframes timerPulse {
+  @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.75); }
+    50% { opacity: 0.35; transform: scale(0.7); }
   }
-  .time {
+  .info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .task-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+  }
+  .time-display {
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     color: #fff;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    font-family: 'Inter', 'SF Mono', 'Fira Code', monospace;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
   }
   .stop-btn {
     width: 28px;
     height: 28px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255,255,255,0.18);
     color: #fff;
     cursor: pointer;
     display: flex;
@@ -294,50 +315,98 @@ function createTimerOverlay() {
     justify-content: center;
     flex-shrink: 0;
     transition: background 0.2s;
-    -webkit-app-region: no-drag;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 700;
   }
-  .stop-btn:hover { background: rgba(239, 68, 68, 0.85); }
-  .material-symbols-outlined {
-    font-family: 'Material Symbols Outlined';
-    font-size: 14px;
-    font-variation-settings: 'FILL' 0, 'wght' 400;
-  }
+  .stop-btn:hover { background: rgba(239,68,68,0.9); }
 </style>
 </head>
 <body>
-<div class="overlay" id="root">
+<div class="pill" id="pill">
   <div class="dot"></div>
-  <span class="time" id="timerDisplay">00:00:00</span>
-  <button class="stop-btn" id="stopBtn" title="Stop Timer">
-    <span class="material-symbols-outlined">stop</span>
-  </button>
+  <div class="info">
+    <div class="task-name" id="taskName">Timer Running</div>
+    <div class="time-display" id="timerDisplay">00:00</div>
+  </div>
+  <button class="stop-btn" id="stopBtn" title="Stop Timer">&#9632;</button>
 </div>
 <script>
   const { ipcRenderer } = require('electron');
   const display = document.getElementById('timerDisplay');
+  const taskName = document.getElementById('taskName');
+  const pill = document.getElementById('pill');
 
   ipcRenderer.on('overlay-update', (event, data) => {
-    display.textContent = data.time || '00:00:00';
+    display.textContent = data.time || '00:00';
+    if (data.taskTitle) taskName.textContent = data.taskTitle;
   });
 
-  document.getElementById('stopBtn').addEventListener('click', () => {
+  document.getElementById('stopBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
     ipcRenderer.send('timer-stop');
   });
+
+  // ── Boundary-clamped drag ──
+  let dragging = false;
+  let dragStartX = 0, dragStartY = 0;
+
+  pill.addEventListener('mousedown', (e) => {
+    if (e.target.id === 'stopBtn') return;
+    dragging = true;
+    dragStartX = e.screenX;
+    dragStartY = e.screenY;
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.screenX - dragStartX;
+    const dy = e.screenY - dragStartY;
+    dragStartX = e.screenX;
+    dragStartY = e.screenY;
+    ipcRenderer.send('move-timer-overlay', { dx, dy });
+  });
+
+  window.addEventListener('mouseup', () => { dragging = false; });
 </script>
 </body>
 </html>
 `)}`)
+
+  // ── Boundary-clamped move handler ──
+  timerOverlay.on('move', () => {
+    if (!timerOverlay || timerOverlay.isDestroyed()) return
+    const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize
+    const [x, y] = timerOverlay.getPosition()
+    const b = timerOverlay.getBounds()
+    const cx = Math.max(0, Math.min(x, sw - b.width))
+    const cy = Math.max(0, Math.min(y, sh - b.height))
+    if (cx !== x || cy !== y) timerOverlay.setPosition(cx, cy)
+  })
 
   timerOverlay.on('closed', () => {
     timerOverlay = null
   })
 }
 
+
 function updateTimerOverlay(data) {
   if (timerOverlay && !timerOverlay.isDestroyed()) {
     timerOverlay.webContents.send('overlay-update', data)
   }
 }
+
+ipcMain.on('move-timer-overlay', (_event, { dx, dy }) => {
+  if (timerOverlay && !timerOverlay.isDestroyed()) {
+    const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize
+    const [x, y] = timerOverlay.getPosition()
+    const b = timerOverlay.getBounds()
+    const newX = Math.max(0, Math.min(x + dx, sw - b.width))
+    const newY = Math.max(0, Math.min(y + dy, sh - b.height))
+    timerOverlay.setPosition(newX, newY)
+  }
+})
 
 ipcMain.on('timer-update', (_event, data) => {
   if (data.active) {
