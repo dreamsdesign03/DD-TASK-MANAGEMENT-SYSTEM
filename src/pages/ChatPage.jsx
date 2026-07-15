@@ -1877,7 +1877,7 @@ export default function ChatPage() {
 
         {/* ── RIGHT PANEL: Details Panel ───────────────────────── */}
         {activeChat && activeTab === 'personal' && (
-          <aside className="w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex flex-col items-center shrink-0">
+          <aside className="hidden lg:flex w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex-col items-center shrink-0">
             <div className="pt-12 pb-8 flex flex-col items-center w-full px-6 text-center border-b border-[#F3F1FA]">
               <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-white text-[24px] font-bold mb-4 shadow-sm" style={{ backgroundColor: activeChat?.bg || '#9CA3AF' }}>
                 {activeChat?.avatar || activeChat?.name?.substring(0, 2).toUpperCase()}
@@ -1903,7 +1903,7 @@ export default function ChatPage() {
         )}
 
         {activeChat && activeTab === 'groups' && (
-          <aside className="w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex flex-col items-center shrink-0">
+          <aside className="hidden lg:flex w-[280px] bg-white border-l border-[#F3F1FA] overflow-y-auto custom-scrollbar flex-col items-center shrink-0">
             <div className="pt-12 pb-8 flex flex-col items-center w-full px-6 text-center border-b border-[#F3F1FA]">
               <div className="w-[88px] h-[88px] rounded-full flex items-center justify-center text-white text-[24px] font-bold mb-4 shadow-sm bg-gray-200">
                 <span className="material-symbols-outlined text-[40px]">{activeChat?.icon || 'groups'}</span>

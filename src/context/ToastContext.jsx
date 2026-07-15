@@ -37,7 +37,7 @@ export const ToastProvider = ({ children }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto transform transition-all duration-300 ease-out animate-toast-slide-in flex items-center gap-3 min-w-[300px] max-w-sm w-full bg-surface-container-lowest text-on-surface p-4 rounded-xl shadow-lg border border-outline-variant/30`}
+            className={`pointer-events-auto transform transition-all duration-300 ease-out animate-toast-slide-in flex items-center gap-3 min-w-[260px] max-w-sm w-full bg-surface-container-lowest text-on-surface p-4 rounded-xl shadow-lg border border-outline-variant/30 dd-toast-container`}
           >
             {/* Icon based on type */}
             <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${toast.type === 'error' ? 'bg-error/10 text-error' : toast.type === 'info' ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>

@@ -61,7 +61,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
   return (
     <>
-    <header style={{
+    <header className="dd-topnav-header" style={{
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -69,6 +69,21 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       zIndex: 40,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Hamburger — mobile only */}
+        <button
+          className="dd-hamburger-btn"
+          onClick={() => setIsSidebarOpen(o => !o)}
+          style={{
+            display: 'none',
+            width: 36, height: 36, borderRadius: 10,
+            background: isDarkMode ? '#2d2a3d' : '#F5F3FF',
+            border: 'none', cursor: 'pointer',
+            alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#702c91' }}>menu</span>
+        </button>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
           {title || 'Dashboard'}
         </h1>
@@ -79,19 +94,19 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div className="dd-topnav-right" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isPunchedIn && punchInTime && (
             <div ref={sessionRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 8, padding: '4px 12px', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 600, color: '#166534' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>login</span>
-                  <span>{firstPunchInToday || punchInTime}</span>
+                  <span className="dd-session-timer-text">{firstPunchInToday || punchInTime}</span>
                 </span>
-                <span style={{ color: '#94A3B8' }}>|</span>
+                <span className="dd-session-timer-text" style={{ color: '#94A3B8' }}>|</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>timer</span>
-                  <span>{activeDuration}</span>
+                  <span className="dd-session-timer-text">{activeDuration}</span>
                 </span>
                 {todaysSessions.length > 0 && (
                   <button
@@ -135,10 +150,11 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
             </div>
           )}
           {!isPunchedIn ? (
-            <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
+            <button onClick={handlePunchIn} className="btn-gradient dd-punch-btn" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
           ) : (
             <button
               onClick={() => setShowPunchOutConfirm(true)}
+              className="dd-punch-btn"
               style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out

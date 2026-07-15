@@ -148,7 +148,7 @@ export default function NotificationsPage() {
         <TopNav title="Notifications" badgeCount={unreadCount > 0 ? unreadCount : undefined} showSearch={false} />
 
         {/* Filters Section */}
-        <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, overflowX: 'auto' }} className="custom-scrollbar">
+        <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, overflowX: 'auto' }} className="custom-scrollbar px-4 md:px-6">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {FILTER_TABS.map(f => (
               <button 

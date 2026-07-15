@@ -380,10 +380,16 @@ export function AppProvider({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   useEffect(() => {
     // Set CSS variable so all page layouts react to sidebar toggle
-    document.documentElement.style.setProperty(
-      '--sidebar-ml',
-      isSidebarOpen ? '260px' : '96px'
-    )
+    const updateSidebarMargin = () => {
+      const isMobile = window.innerWidth < 768
+      document.documentElement.style.setProperty(
+        '--sidebar-ml',
+        isMobile ? '0px' : (isSidebarOpen ? '260px' : '96px')
+      )
+    }
+    updateSidebarMargin()
+    window.addEventListener('resize', updateSidebarMargin)
+    return () => window.removeEventListener('resize', updateSidebarMargin)
   }, [isSidebarOpen])
   const [profile, setProfile] = useState(() => {
     try {
@@ -753,7 +759,7 @@ export function AppProvider({ children }) {
             await new Promise(resolve => setTimeout(resolve, 3000))
           }
           // Signal main process that punch-out is done so it can continue quitting
-          try { ipcRenderer.send('punch-out-done') } catch (_) {}
+          try { ipcRenderer.send('punch-out-done') } catch (_) { }
         }
         // Navigate to tasks/punch-in screen when screen is unlocked or app restarts
         const doShowPunchIn = () => {
@@ -781,7 +787,6 @@ export function AppProvider({ children }) {
       return typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
     } catch { return {} }
   })
-
   // Persist which personal chats have been deleted (hidden even after fetchTeam rebuilds the list)
   const [deletedPersonalChatIds, setDeletedPersonalChatIds] = useState(() => {
     try {

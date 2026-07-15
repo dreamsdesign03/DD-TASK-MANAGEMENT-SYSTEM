@@ -1,32 +1,29 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useApp, mqttClient } from '../context/AppContext'
 import { isElectron } from '../utils/isElectron'
-
-const AVAILABLE_SERVICES = [
-  "Business Growth Consulting",
-  "AI SEO & Lead Generation",
-  "D2C Development / Marketing",
-  "Ecommerce Development",
-  "Website Development",
-  "Digital Marketing & Brand Awareness",
-  "Branding & Identity Management",
-  "Mobile Apps and Software Development",
-  "Marketing Automation & Funnel Development",
-  "Films, Videos and UGC content creation",
-  "Software and SAAS development",
-  "Ai Automation and Business Growth",
-  "360 Project"
-]
 
 const COLLAPSED_W = 72;
 const EXPANDED_W  = 240;
 
 export default function Sidebar() {
-  const navigate = useNavigate()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, setProfile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
 
-  // isSidebarOpen is now the persistent toggle state (not just mobile)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  // Auto-close sidebar on mobile when navigating
+  useEffect(() => {
+    if (isMobile) setIsSidebarOpen(false)
+  }, [pathname]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const expanded = isSidebarOpen
 
   const totalUnreadChat =
@@ -65,6 +62,11 @@ export default function Sidebar() {
     NAV_ITEMS.push({ icon: 'monitoring', label: 'Activity', path: '/activity' })
   }
 
+  const handleNavClick = (path) => {
+    navigate(path)
+    if (isMobile) setIsSidebarOpen(false)
+  }
+
   return (
     <>
       <style>{`
@@ -101,7 +103,7 @@ export default function Sidebar() {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* ── Sidebar toggle button ── */
+        /* ── Sidebar toggle button (desktop only) ── */
         .dd-toggle-btn {
           position: fixed;
           top: 50%;
@@ -131,232 +133,406 @@ export default function Sidebar() {
         }
       `}</style>
 
-      {/* ── SIDEBAR ── */}
-      <aside
-        style={{
-          position: 'fixed',
-          top: 12, left: 12, bottom: 12,
-          width: expanded ? EXPANDED_W : COLLAPSED_W,
-          background: 'linear-gradient(to bottom, #702c91 0%, #9b2691 50%, #702c91 100%)',
-          borderRadius: 20,
-          boxShadow: '0 12px 32px rgba(112, 44, 145, 0.3)',
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 50,
-          overflow: 'hidden',
-          transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      >
-        {/* ── LOGO SECTION ── */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: expanded ? 12 : 0,
-          padding: expanded ? '28px 20px' : '28px 0',
-          justifyContent: expanded ? 'flex-start' : 'center',
-          flexShrink: 0, overflow: 'hidden',
-          transition: 'padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s',
-        }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: '50%',
-            background: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}>
-            <div className="logo-mask" style={{ width: 28, height: 28, backgroundColor: '#702c91' }} />
-          </div>
-          <div style={{
-            opacity: expanded ? 1 : 0,
-            width: expanded ? 'auto' : 0,
-            overflow: 'hidden',
-            transition: 'opacity 0.25s ease, width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-            whiteSpace: 'nowrap',
-          }}>
-            <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>Dreamsdesk</p>
-          </div>
-        </div>
+      {/* ── DESKTOP: fixed sidebar ── */}
+      {!isMobile && (
+        <>
+          <aside
+            style={{
+              position: 'fixed',
+              top: 12, left: 12, bottom: 12,
+              width: expanded ? EXPANDED_W : COLLAPSED_W,
+              background: 'linear-gradient(to bottom, #702c91 0%, #9b2691 50%, #702c91 100%)',
+              borderRadius: 20,
+              boxShadow: '0 12px 32px rgba(112, 44, 145, 0.3)',
+              display: 'flex',
+              flexDirection: 'column',
+              zIndex: 50,
+              overflow: 'hidden',
+              transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            {/* ── LOGO SECTION ── */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: expanded ? 12 : 0,
+              padding: expanded ? '28px 20px' : '28px 0',
+              justifyContent: expanded ? 'flex-start' : 'center',
+              flexShrink: 0, overflow: 'hidden',
+              transition: 'padding 0.35s cubic-bezier(0.4, 0, 0.2, 1), gap 0.35s',
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%',
+                background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <div className="logo-mask" style={{ width: 28, height: 28, backgroundColor: '#702c91' }} />
+              </div>
+              <div style={{
+                opacity: expanded ? 1 : 0,
+                width: expanded ? 'auto' : 0,
+                overflow: 'hidden',
+                transition: 'opacity 0.25s ease, width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                whiteSpace: 'nowrap',
+              }}>
+                <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>Dreamsdesk</p>
+              </div>
+            </div>
 
-        {/* ── NAV ── */}
-        <nav
-          className="hide-scrollbar"
-          style={{
-            flex: 1,
-            padding: '6px 0 16px 0',
-            display: 'flex', flexDirection: 'column', gap: 4,
-            overflowY: 'auto', overflowX: 'hidden',
-          }}
-        >
-          {NAV_ITEMS.map(item => {
-            const active = pathname === item.path || (pathname === '/dashboard' && item.path === '/tasks');
-            return (
-              <button
-                key={item.path}
-                className={`dd-item${active ? ' dd-active' : ''}`}
-                onClick={() => {
-                  navigate(item.path);
-                }}
-                style={{
-                  margin: expanded ? '0 10px' : '0 auto',
-                  width: expanded ? 'calc(100% - 20px)' : '44px',
-                  padding: expanded ? '0 12px' : '0',
-                  justifyContent: expanded ? 'flex-start' : 'center',
-                  transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-              >
-                {/* Icon */}
-                <span style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                  <span
-                    className="material-symbols-outlined"
+            {/* ── NAV ── */}
+            <nav
+              className="hide-scrollbar"
+              style={{
+                flex: 1,
+                padding: '6px 0 16px 0',
+                display: 'flex', flexDirection: 'column', gap: 4,
+                overflowY: 'auto', overflowX: 'hidden',
+              }}
+            >
+              {NAV_ITEMS.map(item => {
+                const active = pathname === item.path || (pathname === '/dashboard' && item.path === '/tasks');
+                return (
+                  <button
+                    key={item.path}
+                    className={`dd-item${active ? ' dd-active' : ''}`}
+                    onClick={() => handleNavClick(item.path)}
                     style={{
-                      fontSize: 20,
-                      color: active ? '#fff' : 'rgba(255,255,255,0.75)',
-                      fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
-                      transition: 'color 0.2s',
+                      margin: expanded ? '0 10px' : '0 auto',
+                      width: expanded ? 'calc(100% - 20px)' : '44px',
+                      padding: expanded ? '0 12px' : '0',
+                      justifyContent: expanded ? 'flex-start' : 'center',
+                      transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
-                    {item.icon}
-                  </span>
-                  {/* Dot badge when collapsed */}
-                  {item.count > 0 && !expanded && (
+                    <span style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: 20,
+                          color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                          fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                          transition: 'color 0.2s',
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                      {item.count > 0 && !expanded && (
+                        <span style={{
+                          position: 'absolute', top: -4, right: -4,
+                          width: 8, height: 8, borderRadius: '50%',
+                          background: item.countBg, border: '2px solid #702c91'
+                        }} />
+                      )}
+                    </span>
                     <span style={{
-                      position: 'absolute', top: -4, right: -4,
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: item.countBg, border: '2px solid #702c91'
-                    }} />
-                  )}
-                </span>
+                      opacity: expanded ? 1 : 0,
+                      maxWidth: expanded ? 160 : 0,
+                      marginLeft: expanded ? 10 : 0,
+                      overflow: 'hidden',
+                      transition: 'opacity 0.2s ease, max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s',
+                      whiteSpace: 'nowrap',
+                      fontWeight: active ? 700 : 500,
+                      flex: 1,
+                      textAlign: 'left'
+                    }}>
+                      {item.label}
+                    </span>
+                    {item.count > 0 && expanded && (
+                      <span style={{
+                        minWidth: 20, height: 20, padding: '0 6px',
+                        background: item.countBg, color: '#fff',
+                        borderRadius: 999, fontSize: 11, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, marginLeft: 6,
+                        opacity: expanded ? 1 : 0,
+                        transition: 'opacity 0.2s ease',
+                      }}>
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
 
-                {/* Label — slides in on expand */}
+            {/* ── BOTTOM ACTIONS ── */}
+            <div style={{
+              padding: '16px 0 24px 0',
+              display: 'flex', flexDirection: 'column', gap: 6,
+              flexShrink: 0, overflow: 'hidden',
+              borderTop: '1px solid rgba(255,255,255,0.1)'
+            }}>
+              {!isElectron() && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
+                      const data = await res.json();
+                      const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
+                      if (exeAsset) {
+                        window.location.href = exeAsset.browser_download_url;
+                      } else {
+                        window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                      }
+                    } catch (e) {
+                      window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                    }
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    height: 44,
+                    margin: expanded ? '0 10px' : '0 auto',
+                    width: expanded ? 'calc(100% - 20px)' : '44px',
+                    padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
+                    borderRadius: 12, cursor: 'pointer',
+                    background: '#fff', color: '#702c91',
+                    transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
+                    overflow: 'hidden', border: 'none', flexShrink: 0,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>get_app</span>
+                  <span style={{
+                    opacity: expanded ? 1 : 0, marginLeft: expanded ? 10 : 0,
+                    maxWidth: expanded ? 160 : 0,
+                    overflow: 'hidden',
+                    transition: 'opacity 0.2s ease, max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s',
+                    whiteSpace: 'nowrap', fontSize: 13, fontWeight: 700
+                  }}>
+                    Get Desktop App
+                  </span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setProfile(null)
+                  localStorage.removeItem('dd_profile')
+                  navigate('/login')
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center',
+                  height: 44,
+                  margin: expanded ? '0 10px' : '0 auto',
+                  width: expanded ? 'calc(100% - 20px)' : '44px',
+                  padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
+                  borderRadius: 12, cursor: 'pointer',
+                  background: 'transparent', color: 'rgba(255,255,255,0.75)',
+                  transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
+                  overflow: 'hidden', border: 'none', flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>logout</span>
                 <span style={{
-                  opacity: expanded ? 1 : 0,
+                  opacity: expanded ? 1 : 0, marginLeft: expanded ? 10 : 0,
                   maxWidth: expanded ? 160 : 0,
-                  marginLeft: expanded ? 10 : 0,
                   overflow: 'hidden',
                   transition: 'opacity 0.2s ease, max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s',
-                  whiteSpace: 'nowrap',
-                  fontWeight: active ? 700 : 500,
-                  flex: 1,
-                  textAlign: 'left'
+                  whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600
                 }}>
-                  {item.label}
+                  Logout
                 </span>
-
-                {item.count > 0 && expanded && (
-                  <span style={{
-                    minWidth: 20, height: 20, padding: '0 6px',
-                    background: item.countBg, color: '#fff',
-                    borderRadius: 999, fontSize: 11, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, marginLeft: 6,
-                    opacity: expanded ? 1 : 0,
-                    transition: 'opacity 0.2s ease',
-                  }}>
-                    {item.count}
-                  </span>
-                )}
               </button>
-            );
-          })}
-        </nav>
+            </div>
+          </aside>
 
-        {/* ── BOTTOM ACTIONS ── */}
-        <div style={{
-          padding: '16px 0 24px 0',
-          display: 'flex', flexDirection: 'column', gap: 6,
-          flexShrink: 0, overflow: 'hidden',
-          borderTop: '1px solid rgba(255,255,255,0.1)'
-        }}>
-          {!isElectron() && (
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
-                  const data = await res.json();
-                  const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
-                  if (exeAsset) {
-                    window.location.href = exeAsset.browser_download_url;
-                  } else {
-                    window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                  }
-                } catch (e) {
-                  window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                }
-              }}
-              style={{
-                display: 'flex', alignItems: 'center',
-                height: 44,
-                margin: expanded ? '0 10px' : '0 auto',
-                width: expanded ? 'calc(100% - 20px)' : '44px',
-                padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
-                borderRadius: 12, cursor: 'pointer',
-                background: '#fff', color: '#702c91',
-                transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
-                overflow: 'hidden', border: 'none', flexShrink: 0,
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'}
-              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>get_app</span>
-              <span style={{
-                opacity: expanded ? 1 : 0, marginLeft: expanded ? 10 : 0,
-                maxWidth: expanded ? 160 : 0,
-                overflow: 'hidden',
-                transition: 'opacity 0.2s ease, max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s',
-                whiteSpace: 'nowrap', fontSize: 13, fontWeight: 700
-              }}>
-                Get Desktop App
-              </span>
-            </button>
-          )}
-
+          {/* ── TOGGLE BUTTON ── */}
           <button
-            onClick={() => {
-              setProfile(null)
-              localStorage.removeItem('dd_profile')
-              navigate('/login')
-            }}
+            className="dd-toggle-btn"
+            onClick={() => setIsSidebarOpen(o => !o)}
+            title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
             style={{
-              display: 'flex', alignItems: 'center',
-              height: 44,
-              margin: expanded ? '0 10px' : '0 auto',
-              width: expanded ? 'calc(100% - 20px)' : '44px',
-              padding: expanded ? '0 12px' : '0', justifyContent: expanded ? 'flex-start' : 'center',
-              borderRadius: 12, cursor: 'pointer',
-              background: 'transparent', color: 'rgba(255,255,255,0.75)',
-              transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s, background 0.2s',
-              overflow: 'hidden', border: 'none', flexShrink: 0,
+              left: expanded ? (12 + EXPANDED_W) : (12 + COLLAPSED_W),
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>logout</span>
-            <span style={{
-              opacity: expanded ? 1 : 0, marginLeft: expanded ? 10 : 0,
-              maxWidth: expanded ? 160 : 0,
-              overflow: 'hidden',
-              transition: 'opacity 0.2s ease, max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), margin 0.35s',
-              whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600
-            }}>
-              Logout
+            <span
+              className="material-symbols-outlined toggle-icon"
+              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            >
+              chevron_right
             </span>
           </button>
-        </div>
-      </aside>
+        </>
+      )}
 
-      {/* ── TOGGLE BUTTON — sits at the right edge of sidebar ── */}
-      <button
-        className="dd-toggle-btn hidden md:flex"
-        onClick={() => setIsSidebarOpen(o => !o)}
-        title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-        style={{
-          left: expanded ? (12 + EXPANDED_W) : (12 + COLLAPSED_W),
-        }}
-      >
-        <span
-          className="material-symbols-outlined toggle-icon"
-          style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        >
-          chevron_right
-        </span>
-      </button>
+      {/* ── MOBILE: overlay drawer ── */}
+      {isMobile && (
+        <>
+          {/* Backdrop */}
+          {isSidebarOpen && (
+            <div
+              className="dd-sidebar-backdrop"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          {/* Drawer */}
+          <aside
+            className={`dd-sidebar-drawer${isSidebarOpen ? ' dd-sidebar-open' : ''}`}
+            style={{
+              width: EXPANDED_W,
+              background: 'linear-gradient(to bottom, #702c91 0%, #9b2691 50%, #702c91 100%)',
+              boxShadow: isSidebarOpen ? '0 12px 32px rgba(112, 44, 145, 0.3)' : 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* ── LOGO SECTION ── */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '28px 20px',
+              justifyContent: 'flex-start',
+              flexShrink: 0, overflow: 'hidden',
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%',
+                background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <div className="logo-mask" style={{ width: 28, height: 28, backgroundColor: '#702c91' }} />
+              </div>
+              <div style={{ whiteSpace: 'nowrap' }}>
+                <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>Dreamsdesk</p>
+              </div>
+            </div>
+
+            {/* ── NAV ── */}
+            <nav
+              className="hide-scrollbar"
+              style={{
+                flex: 1,
+                padding: '6px 0 16px 0',
+                display: 'flex', flexDirection: 'column', gap: 4,
+                overflowY: 'auto', overflowX: 'hidden',
+              }}
+            >
+              {NAV_ITEMS.map(item => {
+                const active = pathname === item.path || (pathname === '/dashboard' && item.path === '/tasks');
+                return (
+                  <button
+                    key={item.path}
+                    className={`dd-item${active ? ' dd-active' : ''}`}
+                    onClick={() => handleNavClick(item.path)}
+                    style={{
+                      margin: '0 10px',
+                      width: 'calc(100% - 20px)',
+                      padding: '0 12px',
+                      justifyContent: 'flex-start',
+                    }}
+                  >
+                    <span style={{ position: 'relative', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          fontSize: 20,
+                          color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                          fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                      {item.count > 0 && (
+                        <span style={{
+                          position: 'absolute', top: -4, right: -4,
+                          width: 8, height: 8, borderRadius: '50%',
+                          background: item.countBg, border: '2px solid #702c91'
+                        }} />
+                      )}
+                    </span>
+                    <span style={{
+                      marginLeft: 10,
+                      whiteSpace: 'nowrap',
+                      fontWeight: active ? 700 : 500,
+                      flex: 1,
+                      textAlign: 'left'
+                    }}>
+                      {item.label}
+                    </span>
+                    {item.count > 0 && (
+                      <span style={{
+                        minWidth: 20, height: 20, padding: '0 6px',
+                        background: item.countBg, color: '#fff',
+                        borderRadius: 999, fontSize: 11, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, marginLeft: 6,
+                      }}>
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* ── BOTTOM ACTIONS ── */}
+            <div style={{
+              padding: '16px 0 24px 0',
+              display: 'flex', flexDirection: 'column', gap: 6,
+              flexShrink: 0, overflow: 'hidden',
+              borderTop: '1px solid rgba(255,255,255,0.1)'
+            }}>
+              {!isElectron() && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
+                      const data = await res.json();
+                      const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
+                      if (exeAsset) {
+                        window.location.href = exeAsset.browser_download_url;
+                      } else {
+                        window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                      }
+                    } catch (e) {
+                      window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                    }
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center',
+                    height: 44, margin: '0 10px',
+                    width: 'calc(100% - 20px)',
+                    padding: '0 12px', justifyContent: 'flex-start',
+                    borderRadius: 12, cursor: 'pointer',
+                    background: '#fff', color: '#702c91',
+                    overflow: 'hidden', border: 'none', flexShrink: 0,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>get_app</span>
+                  <span style={{ marginLeft: 10, whiteSpace: 'nowrap', fontSize: 13, fontWeight: 700 }}>
+                    Get Desktop App
+                  </span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  setProfile(null)
+                  localStorage.removeItem('dd_profile')
+                  navigate('/login')
+                }}
+                style={{
+                  display: 'flex', alignItems: 'center',
+                  height: 44, margin: '0 10px',
+                  width: 'calc(100% - 20px)',
+                  padding: '0 12px', justifyContent: 'flex-start',
+                  borderRadius: 12, cursor: 'pointer',
+                  background: 'transparent', color: 'rgba(255,255,255,0.75)',
+                  overflow: 'hidden', border: 'none', flexShrink: 0,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>logout</span>
+                <span style={{ marginLeft: 10, whiteSpace: 'nowrap', fontSize: 13, fontWeight: 600 }}>
+                  Logout
+                </span>
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
     </>
   )
 }

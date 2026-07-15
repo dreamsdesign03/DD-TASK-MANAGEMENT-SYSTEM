@@ -33,7 +33,7 @@ export function CreateGroupModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center">
-      <div className="bg-surface-container-lowest w-[480px] rounded-xl shadow-xl p-6 flex flex-col gap-6">
+      <div className="bg-surface-container-lowest w-full max-w-[480px] mx-4 rounded-xl shadow-xl p-6 flex flex-col gap-6">
 
         {/* Header */}
         <div className="flex justify-between items-center">

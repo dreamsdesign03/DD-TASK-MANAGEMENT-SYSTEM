@@ -97,7 +97,7 @@ export default function TaskCalendar({ tasks }) {
   }
 
   return (
-    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[800px] h-[calc(100vh-250px)]">
+    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[400px] md:min-h-[800px] h-auto md:h-[calc(100vh-250px)]">
       
       {/* Calendar Header */}
       <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
