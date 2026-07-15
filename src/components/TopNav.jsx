@@ -16,6 +16,8 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
   const location = useLocation()
   const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, todaysSessions } = useApp()
 
+  const [showPunchOutConfirm, setShowPunchOutConfirm] = useState(false)
+
   const firstPunchInToday = todaysSessions?.[0]?.in || null
 
   const [nowTs, setNowTs] = useState(Date.now())
@@ -58,6 +60,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
   const isSearchVisible = showSearch && (location.pathname === '/tasks' || location.pathname === '/my-tasks' || location.pathname === '/team' || location.pathname === '/clients')
 
   return (
+    <>
     <header style={{
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
@@ -134,7 +137,12 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
           {!isPunchedIn ? (
             <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
           ) : (
-            <button onClick={handlePunchOut} style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out</button>
+            <button
+              onClick={() => setShowPunchOutConfirm(true)}
+              style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out
+            </button>
           )}
         </div>
         {isSearchVisible && (
@@ -180,5 +188,98 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         </div>
       </div>
     </header>
+
+      {/* ── Punch Out Confirmation Modal ── */}
+      {showPunchOutConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 24, padding: '36px 32px',
+            width: 380, maxWidth: '90vw',
+            boxShadow: '0 24px 64px rgba(112,44,145,0.18)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+            animation: 'scaleIn 0.25s cubic-bezier(0.4,0,0.2,1)'
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #FEE2E2 0%, #FEF2F2 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 20,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#DC2626', fontVariationSettings: "'FILL' 1" }}>logout</span>
+            </div>
+
+            {/* Title */}
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#1E1B2E', fontFamily: 'Inter,sans-serif', textAlign: 'center' }}>
+              End Work Session?
+            </h2>
+            <p style={{ margin: '10px 0 0', fontSize: 14, color: '#6B7280', fontFamily: 'Inter,sans-serif', textAlign: 'center', lineHeight: 1.6 }}>
+              Are you sure you want to complete your today's session of work? This will record your punch-out time and log your daily tasks.
+            </p>
+
+            {/* Session summary */}
+            {punchInTime && (
+              <div style={{
+                marginTop: 20, width: '100%',
+                background: '#F9FAFB', borderRadius: 12, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                border: '1px solid #E5E7EB'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280', fontFamily: 'Inter,sans-serif' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#16A34A' }}>login</span>
+                  <span>Punched in at</span>
+                  <strong style={{ color: '#1E1B2E' }}>{todaysSessions?.[0]?.in || punchInTime}</strong>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#6B7280', fontFamily: 'Inter,sans-serif' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#DC2626' }}>logout</span>
+                  <span>Now</span>
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 12, marginTop: 24, width: '100%' }}>
+              <button
+                onClick={() => setShowPunchOutConfirm(false)}
+                style={{
+                  flex: 1, height: 44, borderRadius: 12,
+                  border: '1.5px solid #E5E7EB', background: '#fff',
+                  color: '#374151', fontWeight: 600, fontSize: 14,
+                  cursor: 'pointer', fontFamily: 'Inter,sans-serif',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
+                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowPunchOutConfirm(false)
+                  handlePunchOut()
+                }}
+                style={{
+                  flex: 1, height: 44, borderRadius: 12,
+                  border: 'none', background: 'linear-gradient(to right, #DC2626, #EF4444)',
+                  color: '#fff', fontWeight: 700, fontSize: 14,
+                  cursor: 'pointer', fontFamily: 'Inter,sans-serif',
+                  boxShadow: '0 4px 12px rgba(220,38,38,0.3)',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                Yes, Punch Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+  </>
   )
 }

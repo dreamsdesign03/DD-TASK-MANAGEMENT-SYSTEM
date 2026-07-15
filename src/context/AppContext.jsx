@@ -740,15 +740,20 @@ export function AppProvider({ children }) {
   const isPunchedInRef = useRef(isPunchedIn)
   isPunchedInRef.current = isPunchedIn
 
-  // Listen for Electron auto-punch-out (e.g. system shutdown / session-end)
+  // Listen for Electron auto-punch-out (e.g. system shutdown / session-end / power cut)
   useEffect(() => {
     if (isElectron() && window.require) {
       try {
         const { ipcRenderer } = window.require('electron')
-        const doAutoPunchOut = () => {
+        const doAutoPunchOut = async () => {
           if (isPunchedInRef.current && handlePunchOutRef.current) {
+            // handlePunchOut already fires the fetch with keepalive: true
+            // We call it and give the network request ~3s to complete before signalling done
             handlePunchOutRef.current()
+            await new Promise(resolve => setTimeout(resolve, 3000))
           }
+          // Signal main process that punch-out is done so it can continue quitting
+          try { ipcRenderer.send('punch-out-done') } catch (_) {}
         }
         // Navigate to tasks/punch-in screen when screen is unlocked or app restarts
         const doShowPunchIn = () => {

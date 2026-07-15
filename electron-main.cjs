@@ -404,12 +404,36 @@ app.whenReady().then(() => {
     }
   })
 
-  // Also catch before-quit (covers manual quit + OS shutdown on some platforms)
-  app.on('before-quit', () => {
-    log('before-quit: attempting auto punch-out')
-    isQuitting = true
+  // Power suspend (sleep/hibernate/power-cut UPS signal) — best-effort auto punch-out
+  powerMonitor.on('suspend', () => {
+    log('suspend: attempting auto punch-out')
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('auto-punch-out')
+    }
+  })
+
+  // before-quit: send auto-punch-out and wait up to 6s for the renderer to confirm
+  // before allowing the app to exit — this ensures the network call completes
+  app.on('before-quit', (event) => {
+    log('before-quit: attempting auto punch-out')
+    if (!isQuitting) {
+      isQuitting = true
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        event.preventDefault() // pause quit temporarily
+        let quitTimer = setTimeout(() => {
+          log('before-quit: punch-out timeout — forcing quit')
+          app.quit()
+        }, 6000) // max 6s wait
+
+        // Listen for renderer to signal punch-out is complete
+        ipcMain.once('punch-out-done', () => {
+          log('before-quit: punch-out-done received — quitting')
+          clearTimeout(quitTimer)
+          app.quit()
+        })
+
+        mainWindow.webContents.send('auto-punch-out')
+      }
     }
   })
 })
