@@ -158,11 +158,15 @@ export default function TaskCalendar({ tasks }) {
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Days of week header */}
         <div className="grid grid-cols-7 border-b border-[#E5E7EB] bg-[#F9FAFB]">
-          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-            <div key={day} className="py-2 text-center text-[12px] font-bold text-[#6B7280] border-r border-[#E5E7EB] last:border-r-0">
-              {day}
-            </div>
-          ))}
+          {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, i) => {
+            const shortDay = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]
+            return (
+              <div key={day} className="py-2 text-center text-[10px] md:text-[12px] font-bold text-[#6B7280] border-r border-[#E5E7EB] last:border-r-0 truncate">
+                <span className="hidden md:inline">{day}</span>
+                <span className="md:hidden">{shortDay}</span>
+              </div>
+            )
+          })}
         </div>
 
         {/* Days grid */}
@@ -175,23 +179,23 @@ export default function TaskCalendar({ tasks }) {
             return (
               <div 
                 key={idx} 
-                className={`relative border-r border-b border-[#E5E7EB] p-2 overflow-hidden flex flex-col group ${!cell.isCurrentMonth ? 'bg-gray-50/50' : 'bg-white'} ${currentIsToday ? 'bg-purple-50/30' : ''}`}
+                className={`relative border-r border-b border-[#E5E7EB] p-1 md:p-2 overflow-hidden flex flex-col group ${!cell.isCurrentMonth ? 'bg-gray-50/50' : 'bg-white'} ${currentIsToday ? 'bg-purple-50/30' : ''}`}
               >
                 {/* Date Number at bottom right */}
-                <div className={`absolute bottom-2 right-2 text-[14px] font-medium ${!cell.isCurrentMonth ? 'text-[#D1D5DB]' : currentIsToday ? 'text-white bg-[#702c91] w-7 h-7 rounded-full flex items-center justify-center' : 'text-[#6B7280]'}`}>
+                <div className={`absolute bottom-1 md:bottom-2 right-1 md:right-2 text-[11px] md:text-[14px] font-medium ${!cell.isCurrentMonth ? 'text-[#D1D5DB]' : currentIsToday ? 'text-white bg-[#702c91] w-5 h-5 md:w-7 md:h-7 rounded-full flex items-center justify-center' : 'text-[#6B7280]'}`}>
                   {cell.day}
                 </div>
 
                 {/* Tasks container */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 pb-6 relative z-10">
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 pb-5 md:pb-6 relative z-10">
                   {dayTasks.map((t, i) => (
                     <div 
                       key={i}
                       onClick={() => navigate(`/tasks/${t.id}`)}
-                      className={`px-2 py-1 text-[11px] font-bold rounded-md border truncate cursor-pointer hover:shadow-sm transition-all ${getStatusColor(t.status)}`}
+                      className={`px-1.5 md:px-2 py-1 md:py-1 text-[9px] md:text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all ${getStatusColor(t.status)}`}
                       title={`${t.title} (${t.status})`}
                     >
-                      {t.title}
+                      <div className="line-clamp-2 leading-tight break-words">{t.title}</div>
                     </div>
                   ))}
                 </div>
