@@ -612,34 +612,27 @@ export default function TaskTable() {
 
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
       {/* FILTERS + VIEW TOGGLE */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {FILTERS.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)} style={{
-              padding: '8px 24px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+            <button key={f} onClick={() => setActiveFilter(f)} className={`px-4 md:px-6 py-2 rounded-full text-[13px] md:text-sm font-semibold transition-all ${f === activeFilter ? 'text-white' : 'bg-white text-gray-600 border border-gray-100 hover:border-gray-200'}`} style={{
               background: f === activeFilter ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
               backgroundSize: f === activeFilter ? '200% auto' : 'auto',
               backgroundPosition: 'left center',
-              color: f === activeFilter ? 'white' : '#6B7280',
               boxShadow: f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)',
-              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               fontFamily: 'Inter,sans-serif',
             }}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
                 e.currentTarget.style.boxShadow = f === activeFilter ? '0 6px 16px rgba(91,33,182,0.4)' : '0 6px 16px rgba(0,0,0,0.08)';
-                if (f !== activeFilter) {
-                  e.currentTarget.style.color = '#1E1B2E';
-                } else {
+                if (f === activeFilter) {
                   e.currentTarget.style.backgroundPosition = 'right center';
                 }
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = f === activeFilter ? '0 4px 12px rgba(91,33,182,0.3)' : '0 2px 8px rgba(0,0,0,0.04)';
-                if (f !== activeFilter) {
-                  e.currentTarget.style.color = '#6B7280';
-                } else {
+                if (f === activeFilter) {
                   e.currentTarget.style.backgroundPosition = 'left center';
                 }
               }}
@@ -648,85 +641,63 @@ export default function TaskTable() {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ background: 'white', borderRadius: 999, padding: 4, display: 'flex', gap: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <button onClick={() => setViewMode('List')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: viewMode === 'List' ? '#F5F3FF' : 'transparent',
-              color: viewMode === 'List' ? '#702c91' : '#9CA3AF',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>view_list</span>
+        <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4 w-full md:w-auto mt-2 md:mt-0">
+          <div className="flex gap-1 md:gap-2 bg-white rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-50">
+            <button onClick={() => setViewMode('List')} className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'List' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
+              <span className="material-symbols-outlined text-[20px]">view_list</span>
             </button>
-            <button onClick={() => setViewMode('Board')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: viewMode === 'Board' ? '#F5F3FF' : 'transparent',
-              color: viewMode === 'Board' ? '#702c91' : '#9CA3AF',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
+            <button onClick={() => setViewMode('Board')} className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'Board' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
+              <span className="material-symbols-outlined text-[20px]">dashboard</span>
             </button>
-            <button onClick={() => setViewMode('Calendar')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: viewMode === 'Calendar' ? '#F5F3FF' : 'transparent',
-              color: viewMode === 'Calendar' ? '#702c91' : '#9CA3AF',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>calendar_month</span>
+            <button onClick={() => setViewMode('Calendar')} className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'Calendar' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
+              <span className="material-symbols-outlined text-[20px]">calendar_month</span>
             </button>
           </div>
-          <button
-            onClick={() => {
-              if (selectedClient === 'All Clients') {
-                addToast('Please select the client from the filter first.', 'error')
-              } else {
-                navigate(`/projects/${encodeURIComponent(selectedClient)}`)
-              }
-            }}
-            style={{
-              width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: '#F5F3FF', color: '#702c91', boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#702c91';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = '#F5F3FF';
-              e.currentTarget.style.color = '#702c91';
-            }}
-            title="Open Overview"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>open_in_new</span>
-          </button>
-          <div
-            onMouseEnter={e => {
-              e.currentTarget.style.maxWidth = '300px';
-              e.currentTarget.style.gap = '8px';
-              e.currentTarget.style.padding = '0 20px 0 14px';
-              e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
-              const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.maxWidth = '44px';
-              e.currentTarget.style.gap = '0';
-              e.currentTarget.style.padding = '0';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
-              const text = e.currentTarget.querySelector('.add-task-text');
-              if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
-            }}
-            onClick={() => setShowNewTaskModal(true)}
-            style={{
-              height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              maxWidth: 44,
-              background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
-              boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
-              fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
-              overflow: 'hidden', whiteSpace: 'nowrap', gap: 0,
-              transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
-            }}
-            title="Add Task"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
-            <span className="add-task-text" style={{ width: 0, maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap' }}>Add Task</span>
+          <div className="flex items-center gap-2 md:gap-4">
+            <button
+              onClick={() => {
+                if (selectedClient === 'All Clients') {
+                  addToast('Please select the client from the filter first.', 'error')
+                } else {
+                  navigate(`/projects/${encodeURIComponent(selectedClient)}`)
+                }
+              }}
+              className="w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center bg-[#F9F4FB] text-[#702c91] shadow-sm hover:bg-[#702c91] hover:text-white transition-all"
+              title="Open Overview"
+            >
+              <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+            </button>
+            <div
+              onMouseEnter={e => {
+                e.currentTarget.style.maxWidth = '300px';
+                e.currentTarget.style.gap = '8px';
+                e.currentTarget.style.padding = '0 20px 0 14px';
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
+                const text = e.currentTarget.querySelector('.add-task-text');
+                if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.maxWidth = '44px';
+                e.currentTarget.style.gap = '0';
+                e.currentTarget.style.padding = '0';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
+                const text = e.currentTarget.querySelector('.add-task-text');
+                if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
+              }}
+              onClick={() => setShowNewTaskModal(true)}
+              className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-white cursor-pointer shadow-sm overflow-hidden whitespace-nowrap"
+              style={{
+                maxWidth: 44,
+                background: 'linear-gradient(to right, #702c91, #ec008c)',
+                boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
+                fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, gap: 0,
+                transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
+              }}
+              title="Add Task"
+            >
+              <span className="material-symbols-outlined shrink-0 text-[20px]">add</span>
+              <span className="add-task-text opacity-0 w-0 max-w-0 overflow-hidden whitespace-nowrap" style={{ transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out' }}>Add Task</span>
+            </div>
           </div>
         </div>
       </div>
