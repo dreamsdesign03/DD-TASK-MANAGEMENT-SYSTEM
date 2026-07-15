@@ -270,17 +270,17 @@ export default function ActivityPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 pb-6">
           <div className="max-w-[1200px] mx-auto">
             {/* Header */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-[#702c91] text-[32px]">monitoring</span>
                 <h2 className="text-[26px] font-black text-[#702c91] m-0">Punch In / Out Logs</h2>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full md:w-auto">
                 {profile?.systemRole !== 'Employee' && (
                   <select
                     value={selectedEmpId}
                     onChange={e => setSelectedEmpId(e.target.value)}
-                    className="bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none min-w-[220px] cursor-pointer shadow-sm hover:bg-gray-50 transition-colors"
+                    className="flex-1 md:flex-none bg-white border border-[#E5E7EB] rounded-lg px-4 py-2 text-[13px] font-bold text-[#1E1B2E] focus:border-[#702c91] outline-none md:min-w-[220px] cursor-pointer shadow-sm hover:bg-gray-50 transition-colors"
                   >
                     {employees.map(emp => (
                       <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>
@@ -289,7 +289,7 @@ export default function ActivityPage() {
                 )}
                 <button
                   onClick={loadData}
-                  className="flex items-center justify-center p-2 bg-white border border-[#E5E7EB] rounded-lg text-gray-500 hover:text-[#702c91] hover:border-[#702c91]/30 transition-all cursor-pointer shadow-sm"
+                  className="flex items-center justify-center p-2 bg-white border border-[#E5E7EB] rounded-lg text-gray-500 hover:text-[#702c91] hover:border-[#702c91]/30 transition-all cursor-pointer shadow-sm shrink-0"
                   title="Refresh Logs"
                 >
                   <span className={`material-symbols-outlined ${loading ? 'animate-spin' : ''}`}>sync</span>

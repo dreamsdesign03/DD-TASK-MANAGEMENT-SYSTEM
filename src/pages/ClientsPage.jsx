@@ -226,13 +226,13 @@ export default function ClientsPage() {
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
           
           {/* Page Header Area */}
-          <div className="flex justify-between items-end mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
             <div>
               <h2 className="text-[28px] font-bold text-[#1E1B2E] mb-1 leading-tight">Clients</h2>
               <p className="text-[14px] text-[#6B7280] m-0">Manage client details and active status.</p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
               <div
                 onMouseEnter={e => {
                   e.currentTarget.style.maxWidth = '300px';
@@ -259,7 +259,7 @@ export default function ClientsPage() {
                 }}
                 title="Add Client"
                 style={{
-                  height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justify-content: 'center',
                   maxWidth: 44,
                   background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
                   boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
@@ -272,14 +272,14 @@ export default function ClientsPage() {
                 <span className="add-client-text" style={{ width: 0, maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap' }}>Add Client</span>
               </div>
 
-              <div className="relative">
+              <div className="relative flex-1 md:flex-none">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
                 <input 
                   type="text" 
                   placeholder="Search clients..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-[300px] h-[42px] pl-10 pr-4 rounded-full border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all shadow-sm"
+                  className="w-full md:w-[300px] h-[42px] pl-10 pr-4 rounded-full border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all shadow-sm"
                 />
               </div>
             </div>

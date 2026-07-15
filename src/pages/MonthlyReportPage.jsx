@@ -263,7 +263,7 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* Filter Tabs & Date Range */}
-            <div className="flex items-center gap-4 mb-8" style={{ overflowX: 'clip', flexShrink: 0 }}>
+            <div className="flex flex-wrap items-center gap-4 mb-8">
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max" style={{ flexShrink: 0 }}>
                 {['Overall', 'Company', 'User'].map(type => {
                   if (type === 'User' && !isAdmin) return null;

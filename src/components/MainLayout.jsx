@@ -27,12 +27,12 @@ export default function MainLayout({ children, title, badgeCount, showSearch = t
       <main
         className="flex-1 flex flex-col h-screen overflow-hidden"
         style={{
-          marginLeft: mainMarginLeft,
+          marginLeft: 'var(--sidebar-ml)',
           transition: 'margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
         <TopNav title={title} badgeCount={badgeCount} showSearch={showSearch} />
-        <div className={`flex-1 overflow-y-auto custom-scrollbar ${noPadding ? '' : 'px-3 py-5 pb-6'} animate-fade-in-up`}>
+        <div className={`flex-1 overflow-y-auto custom-scrollbar ${noPadding ? '' : 'px-3 md:px-5 py-5 pb-6'} animate-fade-in-up`}>
           {children}
         </div>
       </main>

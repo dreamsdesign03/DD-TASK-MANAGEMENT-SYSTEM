@@ -1157,7 +1157,6 @@ export function AppProvider({ children }) {
             } catch (e) { }
             return // Don't show system metadata message in chat
           }
-
           const msgText = m.message || m['message '] || ''
           if (m.type === 'system' || m['type'] === 'system' || (typeof msgText === 'string' && msgText.startsWith('[ReadReceipt:'))) {
             if (typeof msgText === 'string' && msgText.startsWith('[ReadReceipt:')) {

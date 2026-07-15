@@ -194,7 +194,7 @@ export default function MyTasksPage() {
               </div>
 
               {/* Company (Client) and Department Row */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">COMPANY (CLIENT)</label>
                   <SelectDropdown value={client} onChange={setClient} options={companyList} />
@@ -208,8 +208,7 @@ export default function MyTasksPage() {
               </div>
 
               {/* Assignee, Assigned By & Due Date */}
-              {/* Assignee, Assigned By & Due Date */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">ASSIGNEE(S)</label>
                   <div className="relative">
@@ -248,7 +247,7 @@ export default function MyTasksPage() {
               {/* Priority */}
               <div>
                 <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">PRIORITY</label>
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {['Low', 'Medium', 'High', 'Urgent'].map((p) => (
                     <button
                       type="button"

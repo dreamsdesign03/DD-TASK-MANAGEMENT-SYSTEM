@@ -61,15 +61,21 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
   return (
     <>
-    <header style={{
+    <header className="dd-topnav" style={{
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 24px', flexShrink: 0,
+      padding: '0 16px', flexShrink: 0,
       zIndex: 40,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
+        <button
+          className="md:hidden flex items-center justify-center bg-transparent border-none p-0 cursor-pointer mr-1"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 26, color: isDarkMode ? '#fff' : '#1E1B2E' }}>menu</span>
+        </button>
+        <h1 className="text-[18px] md:text-[22px]" style={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0, whiteSpace: 'nowrap' }}>
           {title || 'Dashboard'}
         </h1>
         {badgeCount !== undefined && (
@@ -79,16 +85,16 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isPunchedIn && punchInTime && (
             <div ref={sessionRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 8, padding: '4px 12px', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 600, color: '#166534' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <span className="hidden sm:flex items-center gap-1">
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>login</span>
                   <span>{firstPunchInToday || punchInTime}</span>
                 </span>
-                <span style={{ color: '#94A3B8' }}>|</span>
+                <span className="hidden sm:inline" style={{ color: '#94A3B8' }}>|</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>timer</span>
                   <span>{activeDuration}</span>
@@ -135,13 +141,17 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
             </div>
           )}
           {!isPunchedIn ? (
-            <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
+            <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 12px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> 
+              <span className="hidden sm:inline">Punch In</span>
+            </button>
           ) : (
             <button
               onClick={() => setShowPunchOutConfirm(true)}
-              style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 12px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out
+              <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> 
+              <span className="hidden sm:inline">Punch Out</span>
             </button>
           )}
         </div>

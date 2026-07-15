@@ -131,6 +131,33 @@ export default function Sidebar() {
           color: #702c91;
           transition: transform 0.3s ease;
         }
+        
+        /* ── Mobile Sidebar Drawer ── */
+        .dd-sidebar-drawer {
+          position: fixed;
+          top: 0;
+          left: -260px;
+          bottom: 0;
+          width: 240px;
+          background: #fff;
+          z-index: 60;
+          transition: left 0.3s ease;
+        }
+        .dd-sidebar-drawer.dd-sidebar-open {
+          left: 0;
+        }
+        
+        .dd-sidebar-backdrop {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.4);
+          z-index: 55;
+          opacity: 0;
+          animation: fadeIn 0.3s forwards;
+        }
+        @keyframes fadeIn {
+          to { opacity: 1; }
+        }
       `}</style>
 
       {/* ── DESKTOP: fixed sidebar ── */}
