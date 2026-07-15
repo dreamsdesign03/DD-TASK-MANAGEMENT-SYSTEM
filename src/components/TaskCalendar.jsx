@@ -196,7 +196,7 @@ export default function TaskCalendar({ tasks }) {
                       className={`px-1.5 md:px-2 py-1 md:py-1 text-[9px] md:text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all ${getStatusColor(t.status)}`}
                       title={`${t.title} (${t.status})`}
                     >
-                      <div className="line-clamp-2 leading-tight break-words">{t.title}</div>
+                      <div className="leading-tight break-words">{t.title}</div>
                     </div>
                   ))}
                 </div>
