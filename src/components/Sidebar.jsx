@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useApp, mqttClient } from '../context/AppContext'
 import { isElectron } from '../utils/isElectron'
+import { renderAvatar } from '../utils/avatar'
 
 const COLLAPSED_W = 72;
 const EXPANDED_W  = 240;
@@ -410,7 +411,7 @@ export default function Sidebar() {
             {/* ── LOGO SECTION ── */}
             <div style={{
               display: 'flex', alignItems: 'center', gap: 12,
-              padding: '28px 20px',
+              padding: '28px 20px 16px',
               justifyContent: 'flex-start',
               flexShrink: 0, overflow: 'hidden',
             }}>
@@ -424,6 +425,33 @@ export default function Sidebar() {
               </div>
               <div style={{ whiteSpace: 'nowrap' }}>
                 <p style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>Dreamsdesk</p>
+              </div>
+            </div>
+
+            {/* ── MOBILE PROFILE SECTION ── */}
+            <div 
+              onClick={() => {
+                navigate('/settings')
+                setIsSidebarOpen(false)
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 20px', margin: '0 10px 12px',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: 12, cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}
+            >
+              <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid rgba(255,255,255,0.3)' }}>
+                {renderAvatar(profile?.avatar, profile?.name, "w-full h-full", "text-[14px]", profile?.email)}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{ color: '#fff', fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profile?.name || 'User'}
+                </span>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profile?.email || 'View Profile'}
+                </span>
               </div>
             </div>
 

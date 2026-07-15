@@ -174,7 +174,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         
         <button 
           onClick={() => navigate('/notifications')}
-          className="relative w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#FEF2F2] rounded-full border-none cursor-pointer flex items-center justify-center shrink-0"
+          className="relative hidden sm:flex w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#FEF2F2] rounded-full border-none cursor-pointer items-center justify-center shrink-0"
         >
           <span className="material-symbols-outlined text-[#DC2626] text-[18px] sm:text-[20px]">notifications</span>
           {unreadCount > 0 && (
@@ -184,7 +184,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
         <button 
           onClick={() => navigate('/chat')}
-          className="w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#EFF6FF] rounded-full border-none cursor-pointer flex items-center justify-center shrink-0"
+          className="hidden sm:flex w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#EFF6FF] rounded-full border-none cursor-pointer items-center justify-center shrink-0"
         >
           <span className="material-symbols-outlined text-[#2563EB] text-[18px] sm:text-[20px]">chat_bubble</span>
         </button>
