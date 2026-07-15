@@ -266,7 +266,7 @@ export default function Sidebar() {
         }}>
           {!isElectron() && (
             <button
-              onClick={() => window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe', '_blank')}
+              onClick={() => window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank')}
               style={{
                 display: 'flex', alignItems: 'center',
                 height: 44,
