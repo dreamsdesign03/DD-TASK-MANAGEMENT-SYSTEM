@@ -381,7 +381,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     // Set CSS variable so all page layouts react to sidebar toggle
     const updateSidebarMargin = () => {
-      const isMobile = window.innerWidth < 768
+      const isMobile = window.innerWidth < 1024
       document.documentElement.style.setProperty(
         '--sidebar-ml',
         isMobile ? '0px' : (isSidebarOpen ? '260px' : '96px')

@@ -70,12 +70,12 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
-          className="md:hidden flex items-center justify-center bg-transparent border-none p-0 cursor-pointer mr-1"
+          className="lg:hidden flex items-center justify-center bg-transparent border-none p-0 cursor-pointer mr-1"
           onClick={() => setIsSidebarOpen(true)}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 26, color: isDarkMode ? '#fff' : '#1E1B2E' }}>menu</span>
         </button>
-        <h1 className="text-[18px] md:text-[22px]" style={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0, whiteSpace: 'nowrap' }}>
+        <h1 className="text-[18px] lg:text-[22px]" style={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0, whiteSpace: 'nowrap' }}>
           {title || 'Dashboard'}
         </h1>
         {badgeCount !== undefined && (
