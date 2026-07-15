@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { GoogleLogin } from '@react-oauth/google'
@@ -40,17 +40,23 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const { profile, setProfile } = useApp()
 
-  // Auto-open web login in browser when in Electron (no profile yet)
+  const hasAutoOpened = useRef(false)
+
+  // Auto-open web login in browser when in Electron (only once)
   useEffect(() => {
-    if (isElectron() && window.require && !searchParams.get('desktop')) {
-      const { shell } = window.require('electron')
-      setWaitingForBrowser(true)
-      shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
+    if (isElectron() && window.require && !searchParams.get('desktop') && !profile?.email) {
+      if (!hasAutoOpened.current) {
+        hasAutoOpened.current = true
+        const { shell } = window.require('electron')
+        setWaitingForBrowser(true)
+        shell.openExternal('https://dd-task-management-system.vercel.app/login?desktop=true')
+      }
     }
-  }, [searchParams])
+  }, [searchParams, profile])
+
   useEffect(() => {
-    if (!isElectron() && profile?.email) {
-      if (searchParams.get('desktop') === 'true') {
+    if (profile?.email) {
+      if (!isElectron() && searchParams.get('desktop') === 'true') {
         // Show redirect screen first, then fire deep link
         const deepLink = `dreamsdesk://login?email=${encodeURIComponent(profile.email)}`
         setDeepLinkUrl(deepLink)
@@ -60,6 +66,7 @@ export default function LoginPage() {
           window.location.href = deepLink
         }, 400)
       } else {
+        // If in Electron (or normal web), just go to tasks
         navigate('/tasks', { replace: true })
       }
     }

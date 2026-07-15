@@ -132,7 +132,7 @@ function createWindow() {
       localServer.on('error', (err) => {
         log('SERVER ERROR: ' + err.message)
       })
-      localServer.listen(0, '127.0.0.1', () => {
+      localServer.listen(42899, '127.0.0.1', () => {
         const port = localServer.address().port
         log('createWindow: server listening on port ' + port)
         const url = `http://127.0.0.1:${port}`
