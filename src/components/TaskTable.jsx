@@ -573,14 +573,14 @@ export default function TaskTable() {
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 20 }}>
+      <div className="grid grid-cols-2 gap-4 md:gap-4 md:grid-cols-4 mb-5">
         {[
           { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
           { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB' },
           { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A' },
           { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true },
         ].map(s => (
-          <div key={s.label} style={{
+          <div key={s.label} className="dd-summary-card" style={{
             background: 'white', borderRadius: 20, padding: '20px 20px',
             display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
             border: `1px solid ${s.color}40`,
@@ -601,7 +601,7 @@ export default function TaskTable() {
           >
             <div>
               <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</p>
-              <h2 style={{ fontSize: 28, fontWeight: 800, color: s.overdue ? '#DC2626' : '#1E1B2E', margin: 0 }}>{String(s.value).padStart(2, '0')}</h2>
+              <h2 className="dd-summary-value" style={{ fontSize: 28, fontWeight: 800, color: s.overdue ? '#DC2626' : '#1E1B2E', margin: 0 }}>{String(s.value).padStart(2, '0')}</h2>
             </div>
             <div style={{ width: 42, height: 42, borderRadius: 12, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
@@ -613,10 +613,10 @@ export default function TaskTable() {
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
       {/* FILTERS + VIEW TOGGLE */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} className="w-full md:w-auto">
           {FILTERS.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)} style={{
-              padding: '8px 24px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
+            <button key={f} onClick={() => setActiveFilter(f)} className="flex-1 md:flex-none" style={{
+              padding: '8px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
               background: f === activeFilter ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
               backgroundSize: f === activeFilter ? '200% auto' : 'auto',
               backgroundPosition: 'left center',
@@ -746,7 +746,7 @@ export default function TaskTable() {
           boxShadow: viewMode === 'List' ? 'none' : '0 8px 24px rgba(91,33,182,0.08)',
           padding: '16px 24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
           borderBottom: viewMode === 'List' ? '1px solid #F5F3FF' : 'none'
-        }}>
+        }} className="dd-filter-bar px-4 md:px-6">
           {(() => {
             const selectBaseStyle = {
               padding: '10px 16px', borderRadius: 12, border: '1px solid #E5E7EB',
@@ -755,47 +755,47 @@ export default function TaskTable() {
             };
             return (
               <React.Fragment>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} className="w-full md:w-auto">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Client</label>
                     <SelectDropdown
                       value={selectedClient} onChange={setSelectedClient}
                       options={uniqueClients}
-                      style={{ ...selectBaseStyle, width: 160 }}
+                      style={{ ...selectBaseStyle, width: '100%', maxWidth: 160 }}
                     />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by User</label>
                     <SelectDropdown
                       value={selectedUser} onChange={setSelectedUser}
                       options={uniqueUsers}
-                      style={{ ...selectBaseStyle, width: 160 }}
+                      style={{ ...selectBaseStyle, width: '100%', maxWidth: 160 }}
                     />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Dept</label>
                     <SelectDropdown
                       value={selectedDepartment} onChange={setSelectedDepartment}
                       options={deduplicatedDepartments}
-                      style={{ ...selectBaseStyle, width: 160 }}
+                      style={{ ...selectBaseStyle, width: '100%', maxWidth: 160 }}
                     />
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }} className="w-full md:w-auto">
                   {viewMode === 'Board' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                       <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
                       <SelectDropdown
                         value={boardGrouping}
                         onChange={setBoardGrouping}
                         options={['Department', 'Process Stage']}
-                        style={{ ...selectBaseStyle, width: 160 }}
+                        style={{ ...selectBaseStyle, width: '100%', maxWidth: 160 }}
                       />
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
                     <SelectDropdown
                       value={`Sort by: ${sortBy}`}
@@ -808,7 +808,7 @@ export default function TaskTable() {
                         'Sort by: Status',
                         'Sort by: Task Title'
                       ]}
-                      style={{ ...selectBaseStyle, width: 230 }}
+                      style={{ ...selectBaseStyle, width: '100%', maxWidth: 230 }}
                     />
                   </div>
                 </div>
@@ -819,7 +819,7 @@ export default function TaskTable() {
 
         {/* ──────────────────────────────────────────────────────────── */}
         {viewMode === 'List' ? (
-          <div className="hide-scrollbar" style={{ overflowX: 'auto', flex: 1, marginTop: 24 }}>
+          <div className="hide-scrollbar" style={{ flex: 1, marginTop: 24 }}>
             <div className="overflow-hidden w-full">
               <table className="block md:table w-full text-left border-collapse">
                 <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
@@ -978,7 +978,7 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Title */}
-                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none min-w-[220px]">
+                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:min-w-[220px]">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Task Title</span>
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
                                       <div className="flex items-center gap-2 flex-wrap">

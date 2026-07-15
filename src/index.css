@@ -505,6 +505,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Summary cards: reduce padding and font size on mobile */
+  .dd-summary-card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+  .dd-summary-card .dd-summary-value {
+    font-size: 22px !important;
+  }
+
+  /* Filter bar: full width on mobile */
+  .dd-filter-bar {
+    padding: 12px 16px !important;
+  }
+
   /* Punch-in gate screen responsive */
   .dd-punch-gate {
     padding: 24px 16px !important;
