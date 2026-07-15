@@ -259,7 +259,7 @@ export default function ClientsPage() {
                 }}
                 title="Add Client"
                 style={{
-                  height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justify-content: 'center',
+                  height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   maxWidth: 44,
                   background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
                   boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
