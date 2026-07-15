@@ -740,77 +740,69 @@ export default function TaskTable() {
             : { display: 'flex', flexDirection: 'column', flexShrink: 0 }
         }>
         {/* ADVANCED FILTER BAR */}
-        <div style={{
-          background: viewMode === 'List' ? '#F8F9FA' : 'white',
-          borderRadius: viewMode === 'List' ? 0 : 20,
-          boxShadow: viewMode === 'List' ? 'none' : '0 8px 24px rgba(91,33,182,0.08)',
-          padding: '16px 24px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-          borderBottom: viewMode === 'List' ? '1px solid #F5F3FF' : 'none'
-        }}>
+        {/* ADVANCED FILTER BAR */}
+        <div className={`p-4 md:p-6 grid grid-cols-2 md:flex md:items-end gap-3 md:gap-4 ${viewMode === 'List' ? 'bg-[#F8F9FA] border-b border-[#F5F3FF]' : 'bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)]'}`}>
           {(() => {
             const selectBaseStyle = {
               padding: '10px 16px', borderRadius: 12, border: '1px solid #E5E7EB',
               background: 'white',
-              fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none'
+              fontSize: 13, color: '#1E1B2E', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', outline: 'none',
+              width: '100%'
             };
             return (
               <React.Fragment>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Client</label>
-                    <SelectDropdown
-                      value={selectedClient} onChange={setSelectedClient}
-                      options={uniqueClients}
-                      style={{ ...selectBaseStyle, width: 160 }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by User</label>
-                    <SelectDropdown
-                      value={selectedUser} onChange={setSelectedUser}
-                      options={uniqueUsers}
-                      style={{ ...selectBaseStyle, width: 160 }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Dept</label>
-                    <SelectDropdown
-                      value={selectedDepartment} onChange={setSelectedDepartment}
-                      options={deduplicatedDepartments}
-                      style={{ ...selectBaseStyle, width: 160 }}
-                    />
-                  </div>
+                <div className="col-span-2 flex flex-col gap-1.5 md:w-[160px]">
+                  <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Filter by Client</label>
+                  <SelectDropdown
+                    value={selectedClient} onChange={setSelectedClient}
+                    options={uniqueClients}
+                    style={{ ...selectBaseStyle }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 md:w-[160px]">
+                  <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Filter by User</label>
+                  <SelectDropdown
+                    value={selectedUser} onChange={setSelectedUser}
+                    options={uniqueUsers}
+                    style={{ ...selectBaseStyle }}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 md:w-[160px]">
+                  <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Filter by Dept</label>
+                  <SelectDropdown
+                    value={selectedDepartment} onChange={setSelectedDepartment}
+                    options={deduplicatedDepartments}
+                    style={{ ...selectBaseStyle }}
+                  />
                 </div>
 
-                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                  {viewMode === 'Board' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
-                      <SelectDropdown
-                        value={boardGrouping}
-                        onChange={setBoardGrouping}
-                        options={['Department', 'Process Stage']}
-                        style={{ ...selectBaseStyle, width: 160 }}
-                      />
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Sort Order</label>
+                {viewMode === 'Board' && (
+                  <div className="col-span-2 sm:col-span-1 flex flex-col gap-1.5 md:w-[160px]">
+                    <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Board Grouping</label>
                     <SelectDropdown
-                      value={`Sort by: ${sortBy}`}
-                      onChange={val => setSortBy(val.replace('Sort by: ', ''))}
-                      options={[
-                        'Sort by: Task ID (Descending)',
-                        'Sort by: Task ID (Ascending)',
-                        'Sort by: Due Date',
-                        'Sort by: Priority',
-                        'Sort by: Status',
-                        'Sort by: Task Title'
-                      ]}
-                      style={{ ...selectBaseStyle, width: 230 }}
+                      value={boardGrouping}
+                      onChange={setBoardGrouping}
+                      options={['Department', 'Process Stage']}
+                      style={{ ...selectBaseStyle }}
                     />
                   </div>
+                )}
+
+                <div className={`flex flex-col gap-1.5 md:w-[230px] ${viewMode === 'Board' ? 'col-span-2 sm:col-span-1' : 'col-span-2'} md:ml-auto`}>
+                  <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Sort Order</label>
+                  <SelectDropdown
+                    value={`Sort by: ${sortBy}`}
+                    onChange={val => setSortBy(val.replace('Sort by: ', ''))}
+                    options={[
+                      'Sort by: Task ID (Descending)',
+                      'Sort by: Task ID (Ascending)',
+                      'Sort by: Due Date',
+                      'Sort by: Priority',
+                      'Sort by: Status',
+                      'Sort by: Task Title'
+                    ]}
+                    style={{ ...selectBaseStyle }}
+                  />
                 </div>
               </React.Fragment>
             );
@@ -865,7 +857,27 @@ export default function TaskTable() {
                         return (
                           <React.Fragment key={dept}>
                             {/* Department Header Row */}
-                            <tr className="block md:table-row bg-[#F3F4F6] border-b border-[#E5E7EB] rounded-lg md:rounded-none mb-4 md:mb-0">
+                            <tr className="md:hidden block mb-3 bg-transparent border-none">
+                              <td className="block p-0 w-full">
+                                <div className="flex items-center justify-between gap-2 text-[#702c91] font-semibold bg-[#F9F4FB] p-3 rounded-lg border border-[#E8DDF0]">
+                                  <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px]">folder_open</span>
+                                    <span className="tracking-[0.05em] uppercase text-[13px]">{dept}</span>
+                                    <span className="bg-[#702c91] text-white text-[10px] min-w-[20px] h-5 px-1 flex items-center justify-center rounded-full">{deptTasks.length}</span>
+                                  </div>
+                                  <button
+                                    onClick={(e) => handleDeptUploadClick(e, dept)}
+                                    disabled={isUploading && uploadDept === dept}
+                                    className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-[#702c91] shadow-sm disabled:opacity-50"
+                                  >
+                                    <span className={`material-symbols-outlined text-[18px] ${isUploading && uploadDept === dept ? 'animate-spin' : ''}`}>
+                                      {isUploading && uploadDept === dept ? 'refresh' : 'upload'}
+                                    </span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr className="hidden md:table-row bg-[#F3F4F6] border-b border-[#E5E7EB]">
                               <td colSpan="9" className="block md:table-cell px-6 py-3">
                                 <div className="flex items-center gap-3 font-bold text-[#702c91] text-[13px] tracking-[0.05em] uppercase">
                                   <span className="material-symbols-outlined text-[20px]">folder_open</span>
@@ -923,9 +935,94 @@ export default function TaskTable() {
                                 : 'border-l-4 border-transparent'
 
                               return (
+                                <React.Fragment key={task.id}>
+                                <tr className={`md:hidden block w-full mb-4 bg-transparent border-none ${isTaskOverdue ? 'opacity-100' : task.status === 'Done' ? (isDoneLate ? 'opacity-80' : 'opacity-40') : 'opacity-100'}`}>
+                                  <td className="block p-0 w-full">
+                                    <div
+                                      onClick={() => {
+                                        if (!canAccessTask(task)) {
+                                          setUnauthorizedTaskTitle(task.title)
+                                          return
+                                        }
+                                        navigate(`/tasks/${task.id}`)
+                                      }}
+                                      className={`bg-white rounded-xl border ${isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
+                                    >
+                                      <div className="p-4 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                          <div className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded font-bold">{task.id.replace('#DD-', 'T-00')}</div>
+                                          <div className="flex gap-2">
+                                            <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} text-[10px] font-bold px-3 py-1 rounded-full uppercase`}>{task.priority}</span>
+                                            <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} text-[10px] font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1`}>
+                                              {task.status}
+                                              {task.status === 'Done' && <span className="material-symbols-outlined text-[12px]">check</span>}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <h3 className="text-sm font-semibold text-[#702c91] flex items-center gap-2">
+                                          {task.title}
+                                          {task.isRecurring && <span className="material-symbols-outlined text-[14px] text-primary">event_repeat</span>}
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-y-3 text-xs border-t border-gray-50 pt-3">
+                                          <div className="col-span-2">
+                                            <p className="text-gray-400 font-bold uppercase text-[9px] mb-1">Client</p>
+                                            <div className="flex items-center gap-1 text-gray-600">
+                                              <span className="material-symbols-outlined text-[14px]">domain</span>
+                                              {task.client}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <p className={`font-bold uppercase text-[9px] mb-1 ${isTaskOverdue ? 'text-error' : 'text-gray-400'}`}>Due Date</p>
+                                            <p className={`${isTaskOverdue ? 'text-error font-bold' : 'text-gray-600'}`}>{task.dueDate || 'No Date'}</p>
+                                          </div>
+                                          <div className="flex items-center gap-3">
+                                            <div>
+                                              <p className="text-gray-400 font-bold uppercase text-[9px] mb-1">Assigned To</p>
+                                              <div className="flex -space-x-2">
+                                                {(task.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean).slice(0, 3).map((a, idx) => (
+                                                  <div key={idx} className="w-6 h-6 rounded-full text-white flex items-center justify-center text-[8px] font-bold border border-white relative" style={{ backgroundColor: getUserColor(a) }} title={a}>
+                                                    {getInitials(a)}
+                                                  </div>
+                                                ))}
+                                                {(task.assignedTo || 'Unassigned').split(',').filter(Boolean).length > 3 && (
+                                                  <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-[8px] font-bold border border-white">
+                                                    +{(task.assignedTo || 'Unassigned').split(',').filter(Boolean).length - 3}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <p className="text-gray-400 font-bold uppercase text-[9px] mb-1">By</p>
+                                              {(() => {
+                                                const cleanName = String(task.assignedBy || 'Mansi Shah').replace(/[^\w\s-]/g, '').trim()
+                                                return (
+                                                  <div className="w-6 h-6 rounded-full text-white flex items-center justify-center text-[8px] font-bold border border-white" style={{ backgroundColor: getUserColor(cleanName) }} title={cleanName}>
+                                                    {getInitials(cleanName)}
+                                                  </div>
+                                                )
+                                              })()}
+                                            </div>
+                                          </div>
+                                          <div className="flex justify-end items-end col-span-2">
+                                            {profile?.systemRole === 'Admin' && (
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  setTaskToDelete(task.id)
+                                                }}
+                                                className="p-1.5 text-error bg-error-container rounded-lg"
+                                              >
+                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
                                 <tr
-                                  key={task.id}
-                                  className={`block md:table-row ${rowClass} mb-4 md:mb-0 border-b border-[#F9F9FF] md:border-none rounded-lg md:rounded-none transition-all cursor-pointer relative group overflow-hidden`}
+                                  className={`hidden md:table-row ${rowClass} transition-all cursor-pointer relative group overflow-hidden`}
                                   style={{ opacity: task.status === 'Done' ? (isDoneLate ? 0.8 : 0.4) : 1 }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
@@ -1180,6 +1277,7 @@ export default function TaskTable() {
                                     </div>
                                   </td>
                                 </tr>
+                                </React.Fragment>
                               )
                             })}
                           </React.Fragment>
