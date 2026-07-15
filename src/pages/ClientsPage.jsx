@@ -288,8 +288,8 @@ export default function ClientsPage() {
             {/* Table Container */}
             <div className="bg-white rounded-[12px] border border-[#E5E7EB] shadow-sm overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse min-w-[1000px]">
-                  <thead>
+                <table className="block lg:table w-full text-left border-collapse min-w-full lg:min-w-[1000px]">
+                  <thead className="hidden lg:table-header-group">
                     <tr className="bg-[#F3F4F6] border-b border-[#E5E7EB]">
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Client ID</th>
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Project Name</th>
@@ -300,65 +300,60 @@ export default function ClientsPage() {
                       <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Project Start Date</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="block lg:table-row-group divide-y lg:divide-none divide-[#E5E7EB]">
                     {filteredClients.map((client, idx) => {
                       return (
                         <tr 
                           key={client['Client ID'] || idx} 
-                          className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === filteredClients.length - 1 ? 'border-b-0' : ''}`}
-                          style={{ cursor: 'pointer' }}
-                          onMouseEnter={e => { 
-                            e.currentTarget.style.background = 'white'; 
-                            e.currentTarget.style.transform = 'scale(1.01)'; 
-                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)';
-                            e.currentTarget.style.zIndex = 10;
-                          }}
-                          onMouseLeave={e => { 
-                            e.currentTarget.style.background = 'transparent'; 
-                            e.currentTarget.style.transform = 'scale(1)'; 
-                            e.currentTarget.style.boxShadow = 'none';
-                            e.currentTarget.style.zIndex = 1;
-                          }}
+                          className={`block lg:table-row bg-white border-b border-[#E5E7EB] lg:hover:bg-white lg:hover:scale-[1.01] lg:hover:shadow-[0_8px_24px_rgba(91,33,182,0.08)] transition-all duration-200 relative ${idx === filteredClients.length - 1 ? 'border-b-0' : ''}`}
+                          style={{ cursor: 'pointer', zIndex: 1 }}
                         >
                           {/* Client ID */}
-                          <td className="py-4 px-6 text-[13px] font-bold text-[#1E1B2E]">
+                          <td className="block lg:table-cell py-3 px-4 lg:py-4 lg:px-6 text-[13px] font-bold text-[#1E1B2E]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Client ID:</span>
                             {client['Client ID']}
                           </td>
                           {/* Project Name */}
                           <td
-                            className="py-4 px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
+                            className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
                             onClick={() => {
                               if (profile?.systemRole !== 'Employee') openClientInfo(client)
                             }}
                           >
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Project Name:</span>
                             {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
                           </td>
                           {/* Client Name */}
-                          <td className="py-4 px-6 text-[13px] text-[#4B5563]">
+                          <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] text-[#4B5563]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Client Name:</span>
                             {client['Project Name'] ? (client['Client Name'] || client['Company Name'] || client['Contact Person'] || '-') : (client['Contact Person'] || '-')}
                           </td>
                           {/* Client Email(s) */}
-                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                          <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] text-[#6B7280]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Email(s):</span>
                             {client['Contact Email'] || client['Email'] || '-'}
                           </td>
                           {/* Phone */}
-                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                          <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] text-[#6B7280]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Phone:</span>
                             {client['Phone'] || '-'}
                           </td>
                           {/* Industry */}
-                          <td className="py-4 px-6 text-[13px] text-[#6B7280]">
+                          <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] text-[#6B7280]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Industry:</span>
                             {client['Industry'] || '-'}
                           </td>
                           {/* Project Start Date */}
-                          <td className="py-4 px-6 text-[13px] text-[#4B5563]">
+                          <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-4 lg:px-6 text-[13px] text-[#4B5563]">
+                            <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Start Date:</span>
                             {safeDate(client['Project start Date'])}
                           </td>
                         </tr>
                       );
                     })}
                     {filteredClients.length === 0 && (
-                      <tr>
-                        <td colSpan="7" className="py-12 text-center text-[#6B7280]">
+                      <tr className="block lg:table-row">
+                        <td colSpan="7" className="block lg:table-cell py-12 text-center text-[#6B7280]">
                           <div className="flex flex-col items-center justify-center">
                             <span className="material-symbols-outlined text-[48px] text-gray-300 mb-3">search_off</span>
                             <p className="text-[14px] font-medium m-0">No clients found matching your criteria.</p>

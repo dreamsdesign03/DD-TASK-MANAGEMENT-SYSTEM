@@ -148,21 +148,17 @@ export default function NotificationsPage() {
         <TopNav title="Notifications" badgeCount={unreadCount > 0 ? unreadCount : undefined} showSearch={false} />
 
         {/* Filters Section */}
-        <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, overflowX: 'auto' }} className="custom-scrollbar px-4 md:px-6">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 md:px-6 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
             {FILTER_TABS.map(f => (
               <button 
                 key={f}
                 onClick={() => setActiveFilter(f)}
+                className={`px-4 md:px-5 py-2 rounded-xl text-[13px] md:text-[14px] cursor-pointer transition-all ${activeFilter === f ? 'text-white font-bold border-none' : 'text-[#4B5563] font-medium border border-[#D1D5DB]'}`}
                 style={{
-                  padding: '8px 20px', borderRadius: 12, border: activeFilter === f ? 'none' : '1px solid #D1D5DB', 
-                  cursor: 'pointer', fontSize: 14, fontWeight: activeFilter === f ? 700 : 500,
                   background: activeFilter === f ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
                   backgroundSize: activeFilter === f ? '200% auto' : 'auto',
                   backgroundPosition: 'left center',
-                  color: activeFilter === f ? 'white' : '#4B5563',
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={e => {
                   if (activeFilter === f) e.currentTarget.style.backgroundPosition = 'right center';
@@ -180,7 +176,7 @@ export default function NotificationsPage() {
               e.preventDefault()
               markAllNotificationsRead()
             }}
-            style={{ background: 'transparent', border: 'none', color: '#702c91', fontWeight: 700, fontSize: 14, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 16 }}
+            className="text-[#702c91] font-bold text-[13px] md:text-[14px] bg-transparent border-none cursor-pointer whitespace-nowrap self-start sm:self-auto"
           >
             Mark all as read
           </button>

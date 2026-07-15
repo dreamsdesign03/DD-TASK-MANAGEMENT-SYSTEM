@@ -563,8 +563,8 @@ export default function MonthlyReportPage() {
               </h3>
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto hide-scrollbar">
-                  <table className="w-full text-left border-collapse min-w-[900px]">
-                    <thead>
+                  <table className="block lg:table w-full text-left border-collapse min-w-full lg:min-w-[900px]">
+                    <thead className="hidden lg:table-header-group">
                       <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Company</th>
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">User</th>
@@ -576,7 +576,7 @@ export default function MonthlyReportPage() {
                         <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Overdue</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="block lg:table-row-group divide-y lg:divide-none divide-[#E5E7EB]">
                       {(() => {
                         const breakdown = {}
                         filteredTasks.forEach(t => {
@@ -607,8 +607,8 @@ export default function MonthlyReportPage() {
                         const companyNames = Object.keys(breakdown).sort()
                         if (companyNames.length === 0) {
                           return (
-                            <tr>
-                              <td colSpan="8" className="text-center py-8 text-secondary text-sm">No data for this selection.</td>
+                            <tr className="block lg:table-row">
+                              <td colSpan="8" className="block lg:table-cell text-center py-8 text-secondary text-sm">No data for this selection.</td>
                             </tr>
                           )
                         }
@@ -618,22 +618,29 @@ export default function MonthlyReportPage() {
                           userNames.forEach((u, ui) => {
                             const d = breakdown[company][u]
                             rows.push(
-                              <tr key={`${company}-${u}`} className={`border-b border-[#E5E7EB] ${ci === companyNames.length - 1 && ui === userNames.length - 1 ? 'border-b-0' : ''} transition-all hover:bg-purple-50/40`}>
-                                {ui === 0 && (
-                                  <td className="py-4 px-5 text-[13px] font-bold text-[#702c91]" rowSpan={userNames.length}>
+                              <tr key={`${company}-${u}`} className={`block lg:table-row border-b border-[#E5E7EB] ${ci === companyNames.length - 1 && ui === userNames.length - 1 ? 'border-b-0' : ''} transition-all lg:hover:bg-purple-50/40`}>
+                                {ui === 0 ? (
+                                  <td className="block lg:table-cell py-3 px-4 lg:py-4 lg:px-5 text-[13px] font-bold text-[#702c91] border-b border-gray-100 lg:border-none" rowSpan={userNames.length}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="material-symbols-outlined text-[18px]">business</span>
+                                      {company}
+                                    </div>
+                                  </td>
+                                ) : (
+                                  <td className="lg:hidden block py-3 px-4 text-[13px] font-bold text-[#702c91] border-b border-gray-100">
                                     <div className="flex items-center gap-2">
                                       <span className="material-symbols-outlined text-[18px]">business</span>
                                       {company}
                                     </div>
                                   </td>
                                 )}
-                                <td className="py-4 px-5 text-[13px] text-[#4B5563] font-semibold">{u}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#1E1B2E] font-bold text-right">{d.total}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#10B981] font-semibold text-right">{d.done}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#F59E0B] font-semibold text-right">{d.inProgress}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#3B82F6] font-semibold text-right">{d.pending}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#EF4444] font-semibold text-right">{d.blocked}</td>
-                                <td className="py-4 px-5 text-[13px] text-[#EF4444] font-semibold text-right">{d.overdue}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#4B5563] font-semibold"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">User:</span>{u}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#1E1B2E] font-bold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Total:</span>{d.total}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#10B981] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Done:</span>{d.done}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#F59E0B] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">In Progress:</span>{d.inProgress}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#3B82F6] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Pending:</span>{d.pending}</td>
+                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#EF4444] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Blocked:</span>{d.blocked}</td>
+                                <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-4 lg:px-5 text-[13px] text-[#EF4444] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Overdue:</span>{d.overdue}</td>
                               </tr>
                             )
                           })
