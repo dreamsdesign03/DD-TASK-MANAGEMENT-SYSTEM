@@ -17,8 +17,6 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
   const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, todaysSessions } = useApp()
 
   const [showPunchOutConfirm, setShowPunchOutConfirm] = useState(false)
-  const [showMobileOverflow, setShowMobileOverflow] = useState(false)
-  const mobileOverflowRef = useRef(null)
 
   const firstPunchInToday = todaysSessions?.[0]?.in || null
 
@@ -33,7 +31,6 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
   const handleClickOutside = useCallback((e) => {
     if (sessionRef.current && !sessionRef.current.contains(e.target)) setSessionOpen(false)
-    if (mobileOverflowRef.current && !mobileOverflowRef.current.contains(e.target)) setShowMobileOverflow(false)
   }, [])
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside)
@@ -64,7 +61,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
 
   return (
     <>
-    <header className="dd-topnav-header" style={{
+    <header style={{
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -72,22 +69,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       zIndex: 40,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {/* Hamburger — mobile only */}
-        <button
-          className="dd-hamburger-btn"
-          onClick={() => setIsSidebarOpen(o => !o)}
-          style={{
-            display: 'none',
-            width: 36, height: 36, borderRadius: 10,
-            background: isDarkMode ? '#2d2a3d' : '#F5F3FF',
-            border: 'none', cursor: 'pointer',
-            alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#702c91' }}>menu</span>
-        </button>
-        <h1 className="truncate" style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0, maxWidth: 'calc(100vw - 200px)' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
           {title || 'Dashboard'}
         </h1>
         {badgeCount !== undefined && (
@@ -97,19 +79,19 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         )}
       </div>
 
-      <div className="dd-topnav-right" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isPunchedIn && punchInTime && (
             <div ref={sessionRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 8, padding: '4px 12px', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 600, color: '#166534' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>login</span>
-                  <span className="dd-session-timer-text">{firstPunchInToday || punchInTime}</span>
+                  <span>{firstPunchInToday || punchInTime}</span>
                 </span>
-                <span className="dd-session-timer-text" style={{ color: '#94A3B8' }}>|</span>
+                <span style={{ color: '#94A3B8' }}>|</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span className="material-symbols-outlined" style={{fontSize: 13}}>timer</span>
-                  <span className="dd-session-timer-text">{activeDuration}</span>
+                  <span>{activeDuration}</span>
                 </span>
                 {todaysSessions.length > 0 && (
                   <button
@@ -153,11 +135,10 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
             </div>
           )}
           {!isPunchedIn ? (
-            <button onClick={handlePunchIn} className="btn-gradient dd-punch-btn" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
+            <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 16px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}><span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> Punch In</button>
           ) : (
             <button
               onClick={() => setShowPunchOutConfirm(true)}
-              className="dd-punch-btn"
               style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 16px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
             >
               <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> Punch Out
@@ -178,62 +159,6 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
                 fontFamily: 'Inter,sans-serif',
               }} 
             />
-          </div>
-        )}
-
-        {/* Mobile overflow menu (kebab) — visible only on mobile */}
-        {isSearchVisible && (
-          <div ref={mobileOverflowRef} className="dd-mobile-overflow-btn" style={{ position: 'relative', display: 'none' }}>
-            <button
-              onClick={() => setShowMobileOverflow(o => !o)}
-              style={{
-                width: 40, height: 40, borderRadius: 10,
-                background: isDarkMode ? '#2d2a3d' : '#F5F3FF',
-                border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#702c91' }}>more_vert</span>
-            </button>
-            {showMobileOverflow && (
-              <div className="animate-fade-in-up" style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 8, zIndex: 100,
-                width: 280, background: isDarkMode ? '#1e1b2e' : 'white', borderRadius: 16,
-                border: `1px solid ${isDarkMode ? '#2d2a3d' : '#E5E7EB'}`,
-                boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                padding: 12,
-              }}>
-                {/* Search in mobile overflow */}
-                <div style={{ position: 'relative', marginBottom: 12 }}>
-                  <span className="material-symbols-outlined" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 18 }}>search</span>
-                  <input
-                    type="text"
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{
-                      width: '100%', height: 38, background: isDarkMode ? '#2d2a3d' : '#F8F7FC', border: 'none', borderRadius: 10,
-                      paddingLeft: 38, paddingRight: 12, fontSize: 13, outline: 'none', color: isDarkMode ? '#fff' : '#1E1B2E',
-                      fontFamily: 'Inter,sans-serif',
-                    }}
-                  />
-                </div>
-                {/* Timer info in mobile overflow */}
-                {isPunchedIn && punchInTime && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 10, padding: '8px 12px', border: '1px solid #BBF7D0', fontSize: 12, fontWeight: 600, color: '#166534' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>login</span>
-                      <span>{firstPunchInToday || punchInTime}</span>
-                    </span>
-                    <span style={{ color: '#94A3B8' }}>|</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
-                      <span>{activeDuration}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
         
