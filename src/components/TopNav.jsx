@@ -65,46 +65,48 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 16px', flexShrink: 0,
+      padding: '0 12px', flexShrink: 0,
       zIndex: 40,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="flex items-center gap-2 md:gap-3 shrink-0 mr-2 md:mr-0">
         <button
-          className="lg:hidden flex items-center justify-center bg-transparent border-none p-0 cursor-pointer mr-1"
+          className="lg:hidden flex items-center justify-center bg-transparent border-none p-0 cursor-pointer"
           onClick={() => setIsSidebarOpen(true)}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 26, color: isDarkMode ? '#fff' : '#1E1B2E' }}>menu</span>
         </button>
-        <h1 className="text-[18px] lg:text-[22px]" style={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0, whiteSpace: 'nowrap' }}>
+        <h1 className="text-[16px] sm:text-[18px] lg:text-[22px] truncate max-w-[90px] sm:max-w-[140px] md:max-w-none" style={{ fontWeight: 700, color: isDarkMode ? '#fff' : '#1E1B2E', margin: 0 }}>
           {title || 'Dashboard'}
         </h1>
         {badgeCount !== undefined && (
-          <span style={{ padding: '4px 12px', background: '#F5F3FF', color: '#702c91', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
+          <span className="hidden sm:inline-block px-3 py-1 bg-[#F5F3FF] text-[#702c91] rounded-full text-[12px] font-bold">
             {badgeCount}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-5">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4 justify-end flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {isPunchedIn && punchInTime && (
-            <div ref={sessionRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', borderRadius: 8, padding: '4px 12px', border: '1px solid #BBF7D0', fontSize: 11, fontWeight: 600, color: '#166534' }}>
+            <div ref={sessionRef} className="relative flex items-center">
+              <div className="flex items-center gap-1 sm:gap-2 bg-[#F0FDF4] rounded-[10px] p-1.5 sm:px-3 sm:py-1 border border-[#BBF7D0] text-[10px] sm:text-[11px] font-semibold text-[#166534]">
                 <span className="hidden sm:flex items-center gap-1">
-                  <span className="material-symbols-outlined" style={{fontSize: 13}}>login</span>
+                  <span className="material-symbols-outlined text-[13px]">login</span>
                   <span>{firstPunchInToday || punchInTime}</span>
                 </span>
-                <span className="hidden sm:inline" style={{ color: '#94A3B8' }}>|</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <span className="material-symbols-outlined" style={{fontSize: 13}}>timer</span>
-                  <span>{activeDuration}</span>
+                <span className="hidden sm:inline text-slate-400">|</span>
+                <span className="flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">timer</span>
+                  <span className="flex flex-col sm:flex-row sm:gap-1 leading-none text-center">
+                    {activeDuration?.split(' ').map((part, i) => <span key={i}>{part}</span>)}
+                  </span>
                 </span>
                 {todaysSessions.length > 0 && (
                   <button
                     onClick={() => setSessionOpen(o => !o)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', color: '#166534' }}
+                    className="flex items-center bg-transparent border-none p-0 ml-1 cursor-pointer text-[#166534]"
                   >
-                    <span className="material-symbols-outlined" style={{fontSize: 16, transform: sessionOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s'}}>expand_more</span>
+                    <span className={`material-symbols-outlined text-[16px] transition-transform ${sessionOpen ? 'rotate-180' : ''}`}>expand_more</span>
                   </button>
                 )}
               </div>
@@ -141,57 +143,55 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
             </div>
           )}
           {!isPunchedIn ? (
-            <button onClick={handlePunchIn} className="btn-gradient" style={{ border: 'none', padding: '8px 12px', borderRadius: 8, color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span className="material-symbols-outlined" style={{fontSize: 18}}>login</span> 
-              <span className="hidden sm:inline">Punch In</span>
+            <button onClick={handlePunchIn} className="btn-gradient w-[34px] h-[34px] sm:w-auto sm:h-auto sm:px-3 sm:py-2 rounded-[10px] text-white font-bold cursor-pointer flex items-center justify-center sm:gap-1.5 border-none shrink-0">
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">login</span> 
+              <span className="hidden sm:inline text-[13px]">Punch In</span>
             </button>
           ) : (
             <button
               onClick={() => setShowPunchOutConfirm(true)}
-              style={{ background: '#FEE2E2', color: '#DC2626', border: 'none', padding: '8px 12px', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+              className="bg-[#FEE2E2] text-[#DC2626] border-none w-[34px] h-[34px] sm:w-auto sm:h-auto sm:px-3 sm:py-2 rounded-[10px] font-bold cursor-pointer flex items-center justify-center sm:gap-1.5 shrink-0"
             >
-              <span className="material-symbols-outlined" style={{fontSize: 18}}>logout</span> 
-              <span className="hidden sm:inline">Punch Out</span>
+              <span className="material-symbols-outlined text-[16px] sm:text-[18px]">logout</span> 
+              <span className="hidden sm:inline text-[13px]">Punch Out</span>
             </button>
           )}
         </div>
+
         {isSearchVisible && (
-          <div style={{ position: 'relative', width: 300 }} className="hidden md:block">
-            <span className="material-symbols-outlined" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: 20 }}>search</span>
+          <div className="relative w-[300px] hidden md:block shrink-0">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">search</span>
             <input 
               type="text" 
               placeholder="Search tasks..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%', height: 42, background: isDarkMode ? '#2d2a3d' : '#F8F7FC', border: 'none', borderRadius: 999,
-                paddingLeft: 44, paddingRight: 16, fontSize: 14, outline: 'none', color: isDarkMode ? '#fff' : '#1E1B2E',
-                fontFamily: 'Inter,sans-serif',
-              }} 
+              className="w-full h-[42px] rounded-full border-none pl-11 pr-4 text-[14px] outline-none font-sans"
+              style={{ background: isDarkMode ? '#2d2a3d' : '#F8F7FC', color: isDarkMode ? '#fff' : '#1E1B2E' }} 
             />
           </div>
         )}
         
         <button 
           onClick={() => navigate('/notifications')}
-          style={{ position: 'relative', width: 40, height: 40, background: '#FEF2F2', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="relative w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#FEF2F2] rounded-full border-none cursor-pointer flex items-center justify-center shrink-0"
         >
-          <span className="material-symbols-outlined" style={{ color: '#DC2626', fontSize: 20 }}>notifications</span>
+          <span className="material-symbols-outlined text-[#DC2626] text-[18px] sm:text-[20px]">notifications</span>
           {unreadCount > 0 && (
-            <span style={{ position: 'absolute', top: 0, right: 0, width: 10, height: 10, background: '#EF4444', border: '2px solid #FEF2F2', borderRadius: '50%' }} />
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-[#EF4444] border-2 border-[#FEF2F2] rounded-full" />
           )}
         </button>
 
         <button 
           onClick={() => navigate('/chat')}
-          style={{ width: 40, height: 40, background: '#EFF6FF', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className="w-[34px] h-[34px] sm:w-10 sm:h-10 bg-[#EFF6FF] rounded-full border-none cursor-pointer flex items-center justify-center shrink-0"
         >
-          <span className="material-symbols-outlined" style={{ color: '#2563EB', fontSize: 20 }}>chat_bubble</span>
+          <span className="material-symbols-outlined text-[#2563EB] text-[18px] sm:text-[20px]">chat_bubble</span>
         </button>
 
         <div 
           onClick={() => navigate('/settings')}
-          className="cursor-pointer"
+          className="cursor-pointer hidden sm:block shrink-0"
           title={profile?.name}
         >
           {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]", profile?.email)}
