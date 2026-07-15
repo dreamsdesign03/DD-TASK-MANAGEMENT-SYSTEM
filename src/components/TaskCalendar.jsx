@@ -100,21 +100,22 @@ export default function TaskCalendar({ tasks }) {
     <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[400px] md:min-h-[800px] h-auto md:h-[calc(100vh-250px)]">
       
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB]">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-[#E5E7EB]">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full">
           <button 
             onClick={goToToday}
-            className="px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer"
+            className="px-3 md:px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[12px] md:text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer shrink-0"
           >
             Today
           </button>
           
-          <div className="relative" ref={monthDropdownRef}>
+          <div className="relative shrink-0" ref={monthDropdownRef}>
             <button 
               onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-              className="flex items-center gap-1 px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 md:px-4 py-1.5 border border-[#E5E7EB] rounded-md text-[12px] md:text-[13px] font-semibold text-[#4B5563] hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              {months[month]} <span className="material-symbols-outlined text-[16px]">{showMonthDropdown ? 'expand_less' : 'expand_more'}</span>
+              <span className="truncate max-w-[80px] sm:max-w-none">{months[month]}</span>
+              <span className="material-symbols-outlined text-[16px]">{showMonthDropdown ? 'expand_less' : 'expand_more'}</span>
             </button>
             
             {showMonthDropdown && (
@@ -139,16 +140,16 @@ export default function TaskCalendar({ tasks }) {
             )}
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#6B7280] transition-colors cursor-pointer border-none bg-transparent">
-              <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+              <span className="material-symbols-outlined text-[18px] md:text-[20px]">chevron_left</span>
             </button>
             <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#6B7280] transition-colors cursor-pointer border-none bg-transparent">
-              <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+              <span className="material-symbols-outlined text-[18px] md:text-[20px]">chevron_right</span>
             </button>
           </div>
           
-          <h2 className="text-[18px] font-bold text-[#1E1B2E] m-0 ml-2">
+          <h2 className="text-[16px] md:text-[18px] font-bold text-[#1E1B2E] m-0 ml-1 md:ml-2 whitespace-nowrap">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })}
           </h2>
         </div>
