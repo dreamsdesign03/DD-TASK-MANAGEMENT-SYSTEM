@@ -1898,11 +1898,6 @@ export default function ChatPage() {
                 <span className="text-[12px] font-semibold text-[#9CA3AF]">Department:</span>
                 <span className="text-[12px] font-bold text-[#1E1B2E]">{activeChat?.department || 'N/A'}</span>
               </div>
-              
-              <div className="flex flex-col gap-1">
-                <span className="text-[12px] font-semibold text-[#9CA3AF]">Location:</span>
-                <span className="text-[12px] font-bold text-[#1E1B2E]">{activeChat?.location || 'Remote'}</span>
-              </div>
             </div>
           </aside>
         )}
