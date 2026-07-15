@@ -266,7 +266,20 @@ export default function Sidebar() {
         }}>
           {!isElectron() && (
             <button
-              onClick={() => window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank')}
+              onClick={async () => {
+                try {
+                  const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
+                  const data = await res.json();
+                  const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
+                  if (exeAsset) {
+                    window.location.href = exeAsset.browser_download_url;
+                  } else {
+                    window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                  }
+                } catch (e) {
+                  window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
+                }
+              }}
               style={{
                 display: 'flex', alignItems: 'center',
                 height: 44,
