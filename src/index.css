@@ -480,10 +480,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: none !important;
   }
 
+  /* TopNav: show mobile overflow button */
+  .dd-mobile-overflow-btn {
+    display: flex !important;
+  }
+
   /* TopNav: smaller punch buttons on mobile */
   .dd-punch-btn {
     padding: 6px 10px !important;
     font-size: 12px !important;
+  }
+
+  /* TopNav: hide punch buttons on mobile (moved to overflow) */
+  .dd-topnav-right > div:first-child {
+    display: none !important;
   }
 
   /* Toast responsive */
@@ -503,6 +513,17 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   .dd-task-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Task table sticky columns */
+  .dd-task-table-scroll table td:first-child,
+  .dd-task-table-scroll table td:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+  }
+  .dd-task-table-scroll table td:nth-child(2) {
+    left: var(--sticky-title-left, 80px);
   }
 
   /* Summary cards: reduce padding and font size on mobile */

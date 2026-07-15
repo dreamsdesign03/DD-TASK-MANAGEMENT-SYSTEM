@@ -167,10 +167,22 @@ export default function TaskTable() {
     }
   }, [profile?.systemRole, selectedDepartment])
 
+  // Calculate sticky title position
+  useEffect(() => {
+    if (tableRef.current && window.innerWidth < 768) {
+      const firstTd = tableRef.current.querySelector('td:first-child')
+      if (firstTd) {
+        setStickyTitleLeft(firstTd.offsetWidth)
+      }
+    }
+  }, [currentTasks])
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1)
   const [tasksPerPage, setTasksPerPage] = useState(10)
   const [taskToDelete, setTaskToDelete] = useState(null)
+  const [stickyTitleLeft, setStickyTitleLeft] = useState(0)
+  const tableRef = useRef(null)
 
   // Unauthorized Access Modal
   const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
@@ -613,9 +625,9 @@ export default function TaskTable() {
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
       {/* FILTERS + VIEW TOGGLE */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} className="w-full md:w-auto">
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 4 }} className="w-full md:w-auto hide-scrollbar">
           {FILTERS.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)} className="flex-1 md:flex-none" style={{
+            <button key={f} onClick={() => setActiveFilter(f)} className="flex-shrink-0 md:flex-none" style={{
               padding: '8px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
               background: f === activeFilter ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
               backgroundSize: f === activeFilter ? '200% auto' : 'auto',
@@ -648,24 +660,24 @@ export default function TaskTable() {
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} className="ml-auto">
           <div style={{ background: 'white', borderRadius: 999, padding: 4, display: 'flex', gap: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <button onClick={() => setViewMode('List')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: viewMode === 'List' ? '#F5F3FF' : 'transparent',
               color: viewMode === 'List' ? '#702c91' : '#9CA3AF',
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>view_list</span>
             </button>
             <button onClick={() => setViewMode('Board')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: viewMode === 'Board' ? '#F5F3FF' : 'transparent',
               color: viewMode === 'Board' ? '#702c91' : '#9CA3AF',
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
             </button>
             <button onClick={() => setViewMode('Calendar')} style={{
-              width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: viewMode === 'Calendar' ? '#F5F3FF' : 'transparent',
               color: viewMode === 'Calendar' ? '#702c91' : '#9CA3AF',
             }}>
@@ -681,7 +693,7 @@ export default function TaskTable() {
               }
             }}
             style={{
-              width: 44, height: 44, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 40, height: 40, borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: '#F5F3FF', color: '#702c91', boxShadow: '0 2px 8px rgba(91,33,182,0.06)', transition: 'all 0.2s'
             }}
             onMouseEnter={e => {
@@ -706,7 +718,7 @@ export default function TaskTable() {
               if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.maxWidth = '44px';
+              e.currentTarget.style.maxWidth = '40px';
               e.currentTarget.style.gap = '0';
               e.currentTarget.style.padding = '0';
               e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
@@ -715,8 +727,8 @@ export default function TaskTable() {
             }}
             onClick={() => setShowNewTaskModal(true)}
             style={{
-              height: 44, minWidth: 44, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              maxWidth: 44,
+              height: 40, minWidth: 40, borderRadius: 999, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              maxWidth: 40,
               background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white',
               boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
               fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700,
@@ -755,7 +767,7 @@ export default function TaskTable() {
             };
             return (
               <React.Fragment>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }} className="w-full md:w-auto">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }} className="w-full md:w-auto md:flex md:flex-wrap">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Filter by Client</label>
                     <SelectDropdown
@@ -782,7 +794,7 @@ export default function TaskTable() {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', flexWrap: 'wrap' }} className="w-full md:w-auto">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16, alignItems: 'flex-end' }} className="w-full md:w-auto md:flex md:flex-wrap">
                   {viewMode === 'Board' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="flex-1 md:flex-none">
                       <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase' }}>Board Grouping</label>
@@ -820,8 +832,8 @@ export default function TaskTable() {
         {/* ──────────────────────────────────────────────────────────── */}
         {viewMode === 'List' ? (
           <div className="hide-scrollbar" style={{ flex: 1, marginTop: 24 }}>
-            <div className="overflow-hidden w-full">
-              <table className="block md:table w-full text-left border-collapse">
+            <div className="overflow-x-auto w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <table ref={tableRef} className="block md:table w-full text-left border-collapse" style={{ minWidth: '800px', '--sticky-title-left': `${stickyTitleLeft}px` }}>
                 <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
                   <tr>
                     {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
@@ -945,7 +957,7 @@ export default function TaskTable() {
                                   }}
                                 >
                                   {/* ID & Unread Badge */}
-                                  <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 ${firstTdClass}`}>
+                                  <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 sticky left-0 bg-white z-10 ${firstTdClass}`}>
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Task ID</span>
                                     <div className="flex items-center gap-2">
                                       <span className="bg-[#F3F4F6] px-2 py-1 rounded-md text-[12px] font-bold text-[#6B7280] whitespace-nowrap inline-block">
@@ -978,7 +990,7 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Title */}
-                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:min-w-[220px]">
+                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:min-w-[220px] sticky left-0 md:left-auto bg-white z-10" style={{ left: 'var(--sticky-title-left, 0)' }}>
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Task Title</span>
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
                                       <div className="flex items-center gap-2 flex-wrap">
