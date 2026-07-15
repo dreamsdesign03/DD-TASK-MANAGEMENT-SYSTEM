@@ -182,7 +182,7 @@ export default function TaskTable() {
         setStickyTitleLeft(firstTd.offsetWidth)
       }
     }
-  }, [currentTasks])
+  }, [currentPage, tasksPerPage, filtered.length])
 
   // Unauthorized Access Modal
   const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
