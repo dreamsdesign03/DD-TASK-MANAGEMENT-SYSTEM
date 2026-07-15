@@ -516,14 +516,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 
   /* Task table sticky columns */
-  .dd-task-table-scroll table td:first-child,
-  .dd-task-table-scroll table td:nth-child(2) {
+  .dd-task-table-scroll table td:first-child {
     position: sticky;
     left: 0;
     z-index: 10;
+    background: white;
+    min-width: 80px;
   }
   .dd-task-table-scroll table td:nth-child(2) {
-    left: var(--sticky-title-left, 80px);
+    position: sticky;
+    left: 80px;
+    z-index: 10;
+    background: white;
+    min-width: 180px;
   }
 
   /* Summary cards: reduce padding and font size on mobile */

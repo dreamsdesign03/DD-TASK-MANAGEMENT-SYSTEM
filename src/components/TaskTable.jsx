@@ -171,18 +171,6 @@ export default function TaskTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [tasksPerPage, setTasksPerPage] = useState(10)
   const [taskToDelete, setTaskToDelete] = useState(null)
-  const [stickyTitleLeft, setStickyTitleLeft] = useState(0)
-  const tableRef = useRef(null)
-
-  // Calculate sticky title position
-  useEffect(() => {
-    if (tableRef.current && window.innerWidth < 768) {
-      const firstTd = tableRef.current.querySelector('td:first-child')
-      if (firstTd) {
-        setStickyTitleLeft(firstTd.offsetWidth)
-      }
-    }
-  }, [currentPage, tasksPerPage, filtered.length])
 
   // Unauthorized Access Modal
   const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
@@ -833,7 +821,7 @@ export default function TaskTable() {
         {viewMode === 'List' ? (
           <div className="hide-scrollbar" style={{ flex: 1, marginTop: 24 }}>
             <div className="overflow-x-auto w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
-              <table ref={tableRef} className="block md:table w-full text-left border-collapse" style={{ minWidth: '800px', '--sticky-title-left': `${stickyTitleLeft}px` }}>
+              <table className="block md:table w-full text-left border-collapse" style={{ minWidth: '800px' }}>
                 <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
                   <tr>
                     {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
@@ -957,7 +945,7 @@ export default function TaskTable() {
                                   }}
                                 >
                                   {/* ID & Unread Badge */}
-                                  <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 sticky left-0 bg-white z-10 ${firstTdClass}`}>
+                                  <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 ${firstTdClass}`}>
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Task ID</span>
                                     <div className="flex items-center gap-2">
                                       <span className="bg-[#F3F4F6] px-2 py-1 rounded-md text-[12px] font-bold text-[#6B7280] whitespace-nowrap inline-block">
@@ -990,7 +978,7 @@ export default function TaskTable() {
                                   </td>
 
                                   {/* Title */}
-                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:min-w-[220px] sticky left-0 md:left-auto bg-white z-10" style={{ left: 'var(--sticky-title-left, 0)' }}>
+                                  <td className="flex md:table-cell flex-col md:flex-row items-start md:items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:min-w-[220px]">
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Task Title</span>
                                     <div className="flex flex-col items-start gap-1 w-full md:w-auto">
                                       <div className="flex items-center gap-2 flex-wrap">
