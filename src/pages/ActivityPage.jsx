@@ -337,9 +337,9 @@ export default function ActivityPage() {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[700px]">
-                    <thead>
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="block lg:table w-full text-left border-collapse min-w-full lg:min-w-[700px]">
+                    <thead className="hidden lg:table-header-group">
                       <tr className="bg-gray-50 border-b border-[#E5E7EB]">
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Date</th>
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[22%]">Session #1</th>
@@ -349,7 +349,7 @@ export default function ActivityPage() {
                         <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-center w-[9%]"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E5E7EB]">
+                    <tbody className="block lg:table-row-group divide-y lg:divide-none divide-[#E5E7EB]">
                       {Array.from({ length: daysInMonth }).map((_, i) => {
                         const day = i + 1
                         const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -364,51 +364,61 @@ export default function ActivityPage() {
 
                         return (
                           <React.Fragment key={day}>
-                            <tr className={`hover:bg-gray-50/50 transition-colors ${!hasSessions ? 'opacity-50' : ''}`}>
-                              <td className="py-5 px-6 text-[13px] font-semibold text-[#374151] whitespace-nowrap">{dateFormatted}</td>
-                              <td className="py-5 px-6">
+                            <tr className={`block lg:table-row bg-white border-b border-[#E5E7EB] hover:bg-gray-50/50 transition-colors ${!hasSessions ? 'opacity-50' : ''}`}>
+                              <td className="block lg:table-cell py-3 px-4 lg:py-5 lg:px-6 text-[13px] font-semibold text-[#374151] whitespace-nowrap">
+                                <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Date:</span>
+                                {dateFormatted}
+                              </td>
+                              <td className="block lg:table-cell py-2 px-4 lg:py-5 lg:px-6">
+                                <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2 block mb-1">Session #1:</span>
                                 {s1 ? <SessionCard session={s1} /> : <span className="text-[#9CA3AF] text-[12px] italic">—</span>}
                               </td>
-                              <td className="py-5 px-6">
+                              <td className="block lg:table-cell py-2 px-4 lg:py-5 lg:px-6">
+                                <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2 block mb-1">Session #2:</span>
                                 {s2 ? <SessionCard session={s2} /> : <span className="text-[#9CA3AF] text-[12px] italic">—</span>}
                               </td>
-                              <td className="py-5 px-6">
-                                {extraCount > 0 ? (
-                                  <div ref={el => extraRefs.current[dateStr] = el} style={{ position: 'relative' }}>
-                                    <button
-                                      onClick={() => toggleExtra(dateStr)}
-                                      className="text-[12px] font-bold text-[#702c91] bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors border-none flex items-center gap-1"
-                                    >
-                                      <span>+{extraCount} more</span>
-                                      <span className={`material-symbols-outlined text-[14px] transition-transform ${isExtraOpen ? 'rotate-180' : ''}`}>
-                                        expand_more
-                                      </span>
-                                    </button>
-                                    {isExtraOpen && (
-                                      <div
-                                        style={{
-                                          position: 'absolute', top: '100%', left: 0, zIndex: 50, marginTop: 4,
-                                          minWidth: 320, background: 'white',
-                                          borderRadius: 12, border: '1px solid #E5E7EB',
-                                          boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
-                                          padding: 12
-                                        }}
+                              <td className="block lg:table-cell py-2 px-4 lg:py-5 lg:px-6">
+                                <div className="flex items-center gap-2">
+                                  <span className="lg:hidden text-[10px] uppercase text-[#6B7280]">Extra:</span>
+                                  {extraCount > 0 ? (
+                                    <div ref={el => extraRefs.current[dateStr] = el} style={{ position: 'relative' }}>
+                                      <button
+                                        onClick={() => toggleExtra(dateStr)}
+                                        className="text-[12px] font-bold text-[#702c91] bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg cursor-pointer transition-colors border-none flex items-center gap-1"
                                       >
-                                        <div className="text-[11px] font-bold text-[#6B7280] uppercase mb-2 px-1">All Sessions</div>
-                                        <SessionView sessions={stat.sessions} />
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className={`text-[12px] font-bold ${hasSessions ? 'text-gray-400' : 'text-[#9CA3AF] italic'}`}>
-                                    {hasSessions ? 'No more' : 'No punches'}
-                                  </span>
-                                )}
+                                        <span>+{extraCount} more</span>
+                                        <span className={`material-symbols-outlined text-[14px] transition-transform ${isExtraOpen ? 'rotate-180' : ''}`}>
+                                          expand_more
+                                        </span>
+                                      </button>
+                                      {isExtraOpen && (
+                                        <div
+                                          style={{
+                                            position: 'absolute', top: '100%', left: 0, zIndex: 50, marginTop: 4,
+                                            minWidth: 320, background: 'white',
+                                            borderRadius: 12, border: '1px solid #E5E7EB',
+                                            boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                                            padding: 12
+                                          }}
+                                        >
+                                          <div className="text-[11px] font-bold text-[#6B7280] uppercase mb-2 px-1">All Sessions</div>
+                                          <SessionView sessions={stat.sessions} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className={`text-[12px] font-bold ${hasSessions ? 'text-gray-400' : 'text-[#9CA3AF] italic'}`}>
+                                      {hasSessions ? 'No more' : 'No punches'}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
-                              <td className="py-5 px-6 text-right">
+                              <td className="block lg:table-cell py-2 px-4 lg:py-5 lg:px-6 lg:text-right">
+                                <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Total:</span>
                                 <span className="text-[14px] font-black text-[#1E1B2E]">{fmtHMS(stat.totalSeconds)}</span>
                               </td>
-                              <td className="py-5 px-6 text-center">
+                              <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-5 lg:px-6 lg:text-center">
+                                <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Status:</span>
                                 {s1 ? (
                                   <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full ${
                                     stat.sessions.some(s => s.isStillActive)
