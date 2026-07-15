@@ -215,10 +215,10 @@ function createTimerOverlay() {
   const { width: screenW, height: screenH } = screen.getPrimaryDisplay().workAreaSize
 
   timerOverlay = new BrowserWindow({
-    width: 240,
-    height: 52,
-    x: screenW - 260,
-    y: screenH - 76,
+    width: 130,
+    height: 44,
+    x: screenW - 150,
+    y: screenH - 68,
     alwaysOnTop: true,
     skipTaskbar: true,
     frame: false,
@@ -238,8 +238,8 @@ function createTimerOverlay() {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
-    width: 240px;
-    height: 52px;
+    width: 130px;
+    height: 44px;
     background: transparent;
     overflow: hidden;
     user-select: none;
@@ -248,10 +248,10 @@ function createTimerOverlay() {
   .pill {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 14px 0 12px;
-    height: 52px;
-    width: 240px;
+    gap: 12px;
+    padding: 0 12px;
+    height: 44px;
+    width: 130px;
     background: linear-gradient(90deg, #702c91 0%, #c0207a 50%, #702c91 100%);
     background-size: 200% 100%;
     border-radius: 999px;
@@ -265,8 +265,8 @@ function createTimerOverlay() {
     50% { background-position: 100% 50%; }
   }
   .dot {
-    width: 9px;
-    height: 9px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: #25d366;
     flex-shrink: 0;
@@ -276,24 +276,8 @@ function createTimerOverlay() {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.35; transform: scale(0.7); }
   }
-  .info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-  .task-name {
-    font-size: 10px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.7);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: 0.01em;
-    line-height: 1.2;
-  }
   .time-display {
+    flex: 1;
     font-size: 15px;
     font-weight: 800;
     color: #fff;
@@ -325,21 +309,16 @@ function createTimerOverlay() {
 <body>
 <div class="pill" id="pill">
   <div class="dot"></div>
-  <div class="info">
-    <div class="task-name" id="taskName">Timer Running</div>
-    <div class="time-display" id="timerDisplay">00:00</div>
-  </div>
+  <div class="time-display" id="timerDisplay">00:00</div>
   <button class="stop-btn" id="stopBtn" title="Stop Timer">&#9632;</button>
 </div>
 <script>
   const { ipcRenderer } = require('electron');
   const display = document.getElementById('timerDisplay');
-  const taskName = document.getElementById('taskName');
   const pill = document.getElementById('pill');
 
   ipcRenderer.on('overlay-update', (event, data) => {
     display.textContent = data.time || '00:00';
-    if (data.taskTitle) taskName.textContent = data.taskTitle;
   });
 
   document.getElementById('stopBtn').addEventListener('click', (e) => {
