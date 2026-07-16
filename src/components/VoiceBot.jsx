@@ -96,10 +96,9 @@ function VoiceBotInner({ onTaskAdd }) {
         return `SUCCESS: ${match.name} has ${empTasks.length} pending tasks:\n${summary}`;
       },
 
-      update_task_status: (params) => {
-        const { tasks, updateTask } = latestData.current;
+      update_task: (params) => {
+        const { tasks, employees, updateTask } = latestData.current;
         const taskQuery = (params.task_query || '').trim().toLowerCase();
-        const newStatus = params.new_status || 'Done';
         
         let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
         if (!match) {
@@ -113,11 +112,56 @@ function VoiceBotInner({ onTaskAdd }) {
            if (bestMatch && minDistance <= Math.max(taskQuery.length, 10) * 0.6) { match = bestMatch; }
         }
 
-        if (match) {
-           updateTask(match.id, { status: newStatus });
-           return `SUCCESS: Task '${match.title}' (${match.id}) status has been updated to ${newStatus}.`;
-        } else {
+        if (!match) {
            return `ERROR: Could not find an active task matching '${params.task_query}'. Please ask the user to clarify the task title.`;
+        }
+
+        const updates = {};
+        const responseMessages = [];
+
+        if (params.new_status) {
+            updates.status = params.new_status;
+            responseMessages.push(`status to ${params.new_status}`);
+        }
+
+        if (params.new_assignee) {
+            const rawAssignee = params.new_assignee.toLowerCase();
+            let empMatch = employees?.find(e => e.name.toLowerCase() === rawAssignee);
+            if (!empMatch) {
+               let bestEmpMatch = null;
+               let minEmpDistance = Infinity;
+               employees?.forEach(e => {
+                   const lowerE = e.name.toLowerCase();
+                   const dist = levenshtein(rawAssignee, lowerE);
+                   const distFirst = levenshtein(rawAssignee, lowerE.split(' ')[0]);
+                   const finalDist = Math.min(dist, distFirst);
+                   if (finalDist < minEmpDistance) { minEmpDistance = finalDist; bestEmpMatch = e; }
+               });
+               if (bestEmpMatch && minEmpDistance <= Math.max(rawAssignee.length, 5) * 0.5) { empMatch = bestEmpMatch; }
+            }
+
+            if (empMatch) {
+                // If there's already an assignee, append the new one, or replace depending on what we want.
+                // It's safer to just replace or append. The user says "add new users", so let's append if there are existing assignees, or just set it. 
+                // Let's replace for simplicity or append. Appending is better.
+                const currentAssignees = match.assignedTo ? match.assignedTo.split(',').map(s => s.trim()) : [];
+                if (!currentAssignees.includes(empMatch.name)) {
+                    currentAssignees.push(empMatch.name);
+                    updates.assignedTo = currentAssignees.join(', ');
+                    responseMessages.push(`assigned to include ${empMatch.name}`);
+                } else {
+                    responseMessages.push(`${empMatch.name} is already assigned`);
+                }
+            } else {
+                return `ERROR: Found task '${match.title}', but could not find an employee named '${params.new_assignee}'. Update failed.`;
+            }
+        }
+
+        if (Object.keys(updates).length > 0) {
+           updateTask(match.id, updates);
+           return `SUCCESS: Task '${match.title}' (${match.id}) updated: ${responseMessages.join(' and ')}.`;
+        } else {
+           return `SUCCESS: No changes were needed for Task '${match.title}'.`;
         }
       },
 
