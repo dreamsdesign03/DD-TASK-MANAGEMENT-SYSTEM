@@ -44,7 +44,9 @@ function VoiceBotInner({ onTaskAdd }) {
           if (match) {
             validClientName = match;
           } else if (lowerProvided !== 'general') {
-            return `ERROR: The client '${providedClient}' does not exist in the system. Tell the user they must select an existing client. Here are the valid clients: ${companyList?.join(', ') || 'None'}. Ask them which one they meant.`;
+            const errorMsg = `ERROR: The AI tried to assign the client '${providedClient}', but this client does not exist in your Dreamsdesk list. The task was NOT created.`;
+            alert(errorMsg);
+            return errorMsg;
           }
         }
 
@@ -74,10 +76,7 @@ function VoiceBotInner({ onTaskAdd }) {
           const validEmployeeNames = employees?.map(e => e.name) || [];
           
           for (const name of namesToMatch) {
-             // Try exact match first
              let match = employees?.find(e => e.name.toLowerCase() === name);
-             
-             // If no exact match, try partial match (e.g. "Mansi" matching "Mansi Shah")
              if (!match) {
                 const partialMatches = employees?.filter(e => e.name.toLowerCase().includes(name));
                 if (partialMatches && partialMatches.length === 1) {
@@ -89,7 +88,9 @@ function VoiceBotInner({ onTaskAdd }) {
                 validAssigneeNames.push(match.name);
                 assignedEmps.push(match);
              } else {
-                return `ERROR: The employee '${name}' does not exist or is ambiguous. Please politely ask the user to clarify the assignee from this list: ${validEmployeeNames.join(', ')}.`;
+                const errorMsg = `ERROR: The AI tried to assign this task to '${name}', but no employee matched that name. The task was NOT created.`;
+                alert(errorMsg);
+                return errorMsg;
              }
           }
         } else {
