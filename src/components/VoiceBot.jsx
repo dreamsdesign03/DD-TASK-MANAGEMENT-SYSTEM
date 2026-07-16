@@ -26,7 +26,19 @@ const levenshtein = (a, b) => {
 
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
-  const { profile, tasks, employees, companyList } = useApp();
+  const { profile, tasks, employees, clients } = useApp();
+
+  // Derive company list: merge active clients + existing task clients
+  const taskClients = tasks ? tasks.map(t => t.client).filter(Boolean) : [];
+  const taskUniqueCompanies = [...new Set(taskClients)];
+  const activeClientNames = (clients || [])
+    .filter(item => {
+      const isActive = item['Is Active'] || item['isActive'] || item['is_active'] || item['Is active'] || item.isActive;
+      return String(isActive).toLowerCase() === 'yes' || isActive === true;
+    })
+    .map(item => item['Project Name'] || item['Client Name'] || item['Company Name'] || item['Company'] || item['Name'] || '')
+    .filter(Boolean);
+  const companyList = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal');
 
   const conversation = useConversation({
     onConnect: () => {
