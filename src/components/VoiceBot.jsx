@@ -57,15 +57,25 @@ function VoiceBotInner({ onTaskAdd }) {
           
           // Try advanced fuzzy match if exact fails
           if (!match) {
+             console.log("[VoiceBot] Exact client match failed. Starting fuzzy match...");
              const ignoreWords = ['clinic', 'hospital', 'inc', 'llc', 'co', 'the', 'private', 'ltd'];
              const providedWords = lowerProvided.split(' ').filter(w => !ignoreWords.includes(w) && w.length > 1);
+             console.log("[VoiceBot] Client provided words after ignoring common words:", providedWords);
+             console.log("[VoiceBot] Available companyList:", companyList);
              
              if (providedWords.length > 0) {
                  const possibleMatches = companyList?.filter(c => {
                      const cWords = c.toLowerCase().split(' ');
                      // Check if ANY meaningful provided word matches ANY company word with <= 2 typos
-                     return providedWords.some(pw => cWords.some(cw => levenshtein(pw, cw) <= 2));
+                     const hasMatch = providedWords.some(pw => cWords.some(cw => {
+                         const dist = levenshtein(pw, cw);
+                         // console.log(`[VoiceBot] Comparing "${pw}" to "${cw}" -> Levenshtein: ${dist}`);
+                         return dist <= 2;
+                     }));
+                     return hasMatch;
                  });
+
+                 console.log("[VoiceBot] Possible Client Matches found:", possibleMatches);
 
                  // If we narrowed it down to exactly one company, we found it!
                  if (possibleMatches && possibleMatches.length === 1) {
@@ -87,6 +97,7 @@ function VoiceBotInner({ onTaskAdd }) {
           }
 
           if (match) {
+            console.log(`[VoiceBot] SUCCESS: Fuzzy matched client to: "${match}"`);
             validClientName = match;
           } else if (lowerProvided !== 'general') {
             const errorMsg = `ERROR: The AI tried to assign the client '${providedClient}', but this client does not exist in your Dreamsdesk list. The task was NOT created.`;
@@ -123,6 +134,7 @@ function VoiceBotInner({ onTaskAdd }) {
           for (const name of namesToMatch) {
              let match = employees?.find(e => e.name.toLowerCase() === name);
              if (!match) {
+                console.log(`[VoiceBot] Exact assignee match failed for "${name}". Starting fuzzy match...`);
                 let bestMatch = null;
                 let minDistance = Infinity;
                 employees?.forEach(e => {
@@ -138,9 +150,13 @@ function VoiceBotInner({ onTaskAdd }) {
                         bestMatch = e;
                     }
                 });
+                console.log(`[VoiceBot] Best fuzzy match for "${name}" is "${bestMatch?.name}" with distance ${minDistance}`);
                 // If distance is less than 50% of length, accept it
                 if (bestMatch && minDistance <= Math.max(name.length, 5) * 0.5) {
+                   console.log(`[VoiceBot] Distance ${minDistance} is acceptable. Using "${bestMatch.name}".`);
                    match = bestMatch;
+                } else {
+                   console.log(`[VoiceBot] Distance ${minDistance} is TOO HIGH. Match rejected.`);
                 }
              }
 
