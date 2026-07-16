@@ -37,7 +37,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "public/logo.ico",
@@ -64,6 +66,7 @@
     }
   },
   "dependencies": {
+    "@elevenlabs/react": "^1.10.0",
     "@react-oauth/google": "^0.13.5",
     "canvas-confetti": "^1.9.4",
     "cors": "^2.8.6",
