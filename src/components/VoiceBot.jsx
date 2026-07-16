@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useConversation } from '@elevenlabs/react';
+import React, { useState } from 'react';
+import { useConversation, ConversationProvider } from '@elevenlabs/react';
 import { useApp } from '../context/AppContext';
 
-export default function VoiceBot({ onTaskAdd }) {
+function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
   const { profile, tasks, employees } = useApp();
 
@@ -141,5 +141,13 @@ export default function VoiceBot({ onTaskAdd }) {
         <span className="material-symbols-outlined text-[20px]">mic</span>
       )}
     </div>
+  );
+}
+
+export default function VoiceBot(props) {
+  return (
+    <ConversationProvider>
+      <VoiceBotInner {...props} />
+    </ConversationProvider>
   );
 }
