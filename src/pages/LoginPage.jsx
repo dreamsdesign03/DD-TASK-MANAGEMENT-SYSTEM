@@ -350,7 +350,7 @@ export default function LoginPage() {
 
       {/* MAIN CARD */}
       <main
-        className="relative z-10 w-full flex flex-col md:flex-row animate-fade-in-up max-w-[1280px] md:m-8 md:rounded-[28px] overflow-hidden min-h-[100dvh] md:min-h-[calc(100vh-4rem)] md:shadow-[0_24px_80px_rgba(91,33,182,0.18),0_4px_24px_rgba(0,0,0,0.08)] bg-white md:bg-transparent"
+        className="relative z-10 w-full flex flex-col md:flex-row animate-fade-in-up max-w-[1280px] md:m-8 md:rounded-[28px] md:overflow-hidden min-h-[100dvh] md:min-h-[calc(100vh-4rem)] md:shadow-[0_24px_80px_rgba(91,33,182,0.18),0_4px_24px_rgba(0,0,0,0.08)] bg-white md:bg-transparent"
       >
 
         {/* LEFT PANEL */}
@@ -414,7 +414,7 @@ export default function LoginPage() {
 
         {/* RIGHT PANEL */}
         <section
-          className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center overflow-y-auto"
+          className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center md:overflow-y-auto"
           style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(1.5rem, 5vw, 5rem)' }}
         >
           {waitingForBrowser ? (
