@@ -53,10 +53,39 @@ function VoiceBotInner({ onTaskAdd }) {
         const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1;
         const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`;
 
-        // Get Assignees
-        const assigneeString = params.assignee || profile?.name || 'Unassigned';
-        const assignedArray = assigneeString.split(',').map(s => s.trim());
-        const assignedEmps = employees?.filter(e => assignedArray.includes(e.name)) || [];
+        // Get Assignees with Validation & Fuzzy Matching
+        const rawAssignee = params.assignee;
+        let validAssigneeNames = [];
+        let assignedEmps = [];
+
+        if (rawAssignee && rawAssignee.toLowerCase() !== 'unassigned') {
+          const namesToMatch = rawAssignee.split(',').map(s => s.trim().toLowerCase());
+          const validEmployeeNames = employees?.map(e => e.name) || [];
+          
+          for (const name of namesToMatch) {
+             // Try exact match first
+             let match = employees?.find(e => e.name.toLowerCase() === name);
+             
+             // If no exact match, try partial match (e.g. "Mansi" matching "Mansi Shah")
+             if (!match) {
+                const partialMatches = employees?.filter(e => e.name.toLowerCase().includes(name));
+                if (partialMatches && partialMatches.length === 1) {
+                   match = partialMatches[0];
+                }
+             }
+
+             if (match) {
+                validAssigneeNames.push(match.name);
+                assignedEmps.push(match);
+             } else {
+                return `ERROR: The employee '${name}' does not exist or is ambiguous. Please politely ask the user to clarify the assignee from this list: ${validEmployeeNames.join(', ')}.`;
+             }
+          }
+        } else {
+          validAssigneeNames.push(profile?.name || 'Unassigned');
+        }
+
+        const assigneeString = validAssigneeNames.join(', ');
 
         // Format Date
         let formattedDate = '';
