@@ -2,36 +2,9 @@ import React, { useState } from 'react';
 import { useConversation, ConversationProvider } from '@elevenlabs/react';
 import { useApp } from '../context/AppContext';
 
-// Helper for fuzzy string matching
-const getBestMatch = (input, list) => {
-  if (!input || !list || list.length === 0) return null;
-  const normalizedInput = input.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-  
-  for (const item of list) {
-    const normalizedItem = item.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
-    if (normalizedItem === normalizedInput) return item;
-    
-    // Substring match
-    if (normalizedItem.includes(normalizedInput) || normalizedInput.includes(normalizedItem)) {
-      return item;
-    }
-
-    // Word intersection (e.g. "aura clinic" vs "Aura Skin Clinic")
-    const inputWords = normalizedInput.split(/\s+/).filter(w => w.length > 2);
-    const itemWords = normalizedItem.split(/\s+/).filter(w => w.length > 2);
-    const intersection = inputWords.filter(w => itemWords.includes(w));
-    
-    if (inputWords.length > 0 && intersection.length >= Math.ceil(inputWords.length / 2)) {
-      return item;
-    }
-  }
-  return null; // No reasonable match found
-};
-
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
   const { profile, tasks, employees, companyList } = useApp();
-  const DEPARTMENTS = ['COMMON', 'SEO', 'SOCIAL MEDIA', 'WEBSITE', 'GRAPHIC', 'UI/UX', 'HR', 'ACCOUNT', 'AMC', 'SALES'];
 
   const conversation = useConversation({
     onConnect: () => {
@@ -51,25 +24,28 @@ function VoiceBotInner({ onTaskAdd }) {
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
         
-        // Client Validation & Fuzzy Match
+        // Client Validation & Fuzzy Matching
         const providedClient = (params.client || '').trim();
         let validClientName = companyList?.[0] || 'General';
 
-        if (providedClient && providedClient.toLowerCase() !== 'general') {
-          const match = getBestMatch(providedClient, companyList);
+        if (providedClient) {
+          const lowerProvided = providedClient.toLowerCase();
+          // Try exact match first
+          let match = companyList?.find(c => c.toLowerCase() === lowerProvided);
+          
+          // Try partial match if exact fails
+          if (!match) {
+             const partialMatches = companyList?.filter(c => c.toLowerCase().includes(lowerProvided) || lowerProvided.includes(c.toLowerCase().split(' ')[0]));
+             if (partialMatches && partialMatches.length === 1) {
+                 match = partialMatches[0];
+             }
+          }
+
           if (match) {
             validClientName = match;
-          } else {
+          } else if (lowerProvided !== 'general') {
             return `ERROR: The client '${providedClient}' does not exist in the system. Tell the user they must select an existing client. Here are the valid clients: ${companyList?.join(', ') || 'None'}. Ask them which one they meant.`;
           }
-        }
-
-        // Department Validation & Fuzzy Match
-        const providedDept = (params.department || '').trim();
-        let validDeptName = 'COMMON';
-        if (providedDept) {
-           const match = getBestMatch(providedDept, DEPARTMENTS);
-           if (match) validDeptName = match;
         }
 
         // Calculate next ID
@@ -98,14 +74,20 @@ function VoiceBotInner({ onTaskAdd }) {
           const validEmployeeNames = employees?.map(e => e.name) || [];
           
           for (const name of namesToMatch) {
-             const matchName = getBestMatch(name, validEmployeeNames);
+             // Try exact match first
+             let match = employees?.find(e => e.name.toLowerCase() === name);
              
-             if (matchName) {
-                const matchObj = employees.find(e => e.name === matchName);
-                if (matchObj) {
-                  validAssigneeNames.push(matchObj.name);
-                  assignedEmps.push(matchObj);
+             // If no exact match, try partial match (e.g. "Mansi" matching "Mansi Shah")
+             if (!match) {
+                const partialMatches = employees?.filter(e => e.name.toLowerCase().includes(name));
+                if (partialMatches && partialMatches.length === 1) {
+                   match = partialMatches[0];
                 }
+             }
+
+             if (match) {
+                validAssigneeNames.push(match.name);
+                assignedEmps.push(match);
              } else {
                 return `ERROR: The employee '${name}' does not exist or is ambiguous. Please politely ask the user to clarify the assignee from this list: ${validEmployeeNames.join(', ')}.`;
              }
@@ -139,7 +121,7 @@ function VoiceBotInner({ onTaskAdd }) {
           statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
           overdue: false,
           done: false,
-          department: validDeptName,
+          department: params.department || 'COMMON',
           assignedTo: assigneeString,
           assignedBy: profile?.name || 'System',
           employeeId: assignedEmps.map(e => e.id).filter(Boolean).join(', '),
