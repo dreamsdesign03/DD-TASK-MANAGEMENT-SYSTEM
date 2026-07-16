@@ -97,7 +97,7 @@ function VoiceBotInner({ onTaskAdd }) {
       },
 
       update_task: (params) => {
-        const { tasks, employees, updateTask } = latestData.current;
+        const { tasks, updateTask, employees } = latestData.current;
         const taskQuery = (params.task_query || '').trim().toLowerCase();
         
         let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
@@ -113,55 +113,60 @@ function VoiceBotInner({ onTaskAdd }) {
         }
 
         if (!match) {
-           return `ERROR: Could not find an active task matching '${params.task_query}'. Please ask the user to clarify the task title.`;
+           return `ERROR: Could not find an active task matching '${params.task_query}'. Please ask the user to clarify the task title or ID.`;
         }
 
-        const updates = {};
-        const responseMessages = [];
+        let updates = {};
+        let successMessages = [];
 
+        // Update Status
         if (params.new_status) {
             updates.status = params.new_status;
-            responseMessages.push(`status to ${params.new_status}`);
+            successMessages.push(`Status changed to ${params.new_status}`);
         }
 
+        // Update Department
+        if (params.new_department) {
+            updates.department = params.new_department.toUpperCase();
+            successMessages.push(`Department changed to ${params.new_department}`);
+        }
+
+        // Update Assignee (Fuzzy Match & Append)
         if (params.new_assignee) {
-            const rawAssignee = params.new_assignee.toLowerCase();
-            let empMatch = employees?.find(e => e.name.toLowerCase() === rawAssignee);
+            const assigneeQuery = params.new_assignee.trim().toLowerCase();
+            let empMatch = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
             if (!empMatch) {
-               let bestEmpMatch = null;
-               let minEmpDistance = Infinity;
+               let bestEmp = null;
+               let minEmpDist = Infinity;
                employees?.forEach(e => {
                    const lowerE = e.name.toLowerCase();
-                   const dist = levenshtein(rawAssignee, lowerE);
-                   const distFirst = levenshtein(rawAssignee, lowerE.split(' ')[0]);
+                   const dist = levenshtein(assigneeQuery, lowerE);
+                   const distFirst = levenshtein(assigneeQuery, lowerE.split(' ')[0]);
                    const finalDist = Math.min(dist, distFirst);
-                   if (finalDist < minEmpDistance) { minEmpDistance = finalDist; bestEmpMatch = e; }
+                   if (finalDist < minEmpDist) { minEmpDist = finalDist; bestEmp = e; }
                });
-               if (bestEmpMatch && minEmpDistance <= Math.max(rawAssignee.length, 5) * 0.5) { empMatch = bestEmpMatch; }
+               if (bestEmp && minEmpDist <= Math.max(assigneeQuery.length, 5) * 0.5) { empMatch = bestEmp; }
             }
 
             if (empMatch) {
-                // If there's already an assignee, append the new one, or replace depending on what we want.
-                // It's safer to just replace or append. The user says "add new users", so let's append if there are existing assignees, or just set it. 
-                // Let's replace for simplicity or append. Appending is better.
                 const currentAssignees = match.assignedTo ? match.assignedTo.split(',').map(s => s.trim()) : [];
                 if (!currentAssignees.includes(empMatch.name)) {
                     currentAssignees.push(empMatch.name);
                     updates.assignedTo = currentAssignees.join(', ');
-                    responseMessages.push(`assigned to include ${empMatch.name}`);
+                    successMessages.push(`Assigned to ${empMatch.name}`);
                 } else {
-                    responseMessages.push(`${empMatch.name} is already assigned`);
+                    successMessages.push(`${empMatch.name} is already assigned`);
                 }
             } else {
-                return `ERROR: Found task '${match.title}', but could not find an employee named '${params.new_assignee}'. Update failed.`;
+                return `ERROR: Found task, but could not find any employee named '${params.new_assignee}' to assign it to.`;
             }
         }
 
         if (Object.keys(updates).length > 0) {
            updateTask(match.id, updates);
-           return `SUCCESS: Task '${match.title}' (${match.id}) updated: ${responseMessages.join(' and ')}.`;
+           return `SUCCESS: Task '${match.title}' (${match.id}) updated. ${successMessages.join(' | ')}.`;
         } else {
-           return `SUCCESS: No changes were needed for Task '${match.title}'.`;
+           return `ERROR: You did not provide any fields to update for task '${match.title}'.`;
         }
       },
 
