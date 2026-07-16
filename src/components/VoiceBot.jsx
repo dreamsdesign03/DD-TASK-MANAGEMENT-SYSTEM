@@ -100,16 +100,23 @@ function VoiceBotInner({ onTaskAdd }) {
     if (isActive) {
       await conversation.endSession();
     } else {
-      // Use the provided Agent ID or a placeholder if env var isn't set
       const agentId = import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'your-elevenlabs-agent-id';
+      
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micErr) {
+        console.error("Microphone Error:", micErr);
+        alert("Microphone Error: " + micErr.message + ". Please allow microphone access in your browser settings.");
+        return;
+      }
+
+      try {
         await conversation.startSession({
           agentId: agentId
         });
-      } catch (err) {
-        console.error("Failed to start conversation:", err);
-        alert("Microphone access is required or agent ID is invalid.");
+      } catch (agentErr) {
+        console.error("ElevenLabs Error:", agentErr);
+        alert("ElevenLabs Error: " + agentErr.message + ". Check if the Agent ID is correct and if the Agent is public.");
       }
     }
   };
