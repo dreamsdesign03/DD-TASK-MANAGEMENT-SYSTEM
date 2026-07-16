@@ -2,6 +2,28 @@ import React, { useState } from 'react';
 import { useConversation, ConversationProvider } from '@elevenlabs/react';
 import { useApp } from '../context/AppContext';
 
+// Helper function for fuzzy matching (Levenshtein distance)
+const levenshtein = (a, b) => {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+};
+
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
   const { profile, tasks, employees, companyList } = useApp();
@@ -33,11 +55,29 @@ function VoiceBotInner({ onTaskAdd }) {
           // Try exact match first
           let match = companyList?.find(c => c.toLowerCase() === lowerProvided);
           
-          // Try partial match if exact fails
+          // Try advanced fuzzy match if exact fails
           if (!match) {
-             const partialMatches = companyList?.filter(c => c.toLowerCase().includes(lowerProvided) || lowerProvided.includes(c.toLowerCase().split(' ')[0]));
-             if (partialMatches && partialMatches.length === 1) {
-                 match = partialMatches[0];
+             let bestMatch = null;
+             let minDistance = Infinity;
+             companyList?.forEach(c => {
+                 const lowerC = c.toLowerCase();
+                 // Check distance of full string or substring
+                 const dist = levenshtein(lowerProvided, lowerC);
+                 // Also check distance without 'clinic', 'hospital' etc for better matching
+                 const strippedProvided = lowerProvided.replace(/(clinic|hospital|inc|llc|co)/g, '').trim();
+                 const strippedC = lowerC.replace(/(clinic|hospital|inc|llc|co)/g, '').trim();
+                 const distStripped = levenshtein(strippedProvided, strippedC);
+                 
+                 const finalDist = Math.min(dist, distStripped);
+                 if (finalDist < minDistance) {
+                     minDistance = finalDist;
+                     bestMatch = c;
+                 }
+             });
+             
+             // If distance is less than 50% of the string length, accept it
+             if (bestMatch && minDistance <= Math.max(lowerProvided.length, 5) * 0.5) {
+                 match = bestMatch;
              }
           }
 
@@ -78,9 +118,24 @@ function VoiceBotInner({ onTaskAdd }) {
           for (const name of namesToMatch) {
              let match = employees?.find(e => e.name.toLowerCase() === name);
              if (!match) {
-                const partialMatches = employees?.filter(e => e.name.toLowerCase().includes(name));
-                if (partialMatches && partialMatches.length === 1) {
-                   match = partialMatches[0];
+                let bestMatch = null;
+                let minDistance = Infinity;
+                employees?.forEach(e => {
+                    const lowerE = e.name.toLowerCase();
+                    const dist = levenshtein(name, lowerE);
+                    // Check against just the first name for better matching ("Tomansisha" -> "Mansi Shah" won't match well, but "Mansisha" -> "Mansi" will)
+                    const firstName = lowerE.split(' ')[0];
+                    const distFirst = levenshtein(name, firstName);
+                    const finalDist = Math.min(dist, distFirst);
+                    
+                    if (finalDist < minDistance) {
+                        minDistance = finalDist;
+                        bestMatch = e;
+                    }
+                });
+                // If distance is less than 50% of length, accept it
+                if (bestMatch && minDistance <= Math.max(name.length, 5) * 0.5) {
+                   match = bestMatch;
                 }
              }
 
