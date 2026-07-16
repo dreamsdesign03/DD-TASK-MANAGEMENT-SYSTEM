@@ -26,10 +26,10 @@ const levenshtein = (a, b) => {
 
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
-  const { profile, tasks, employees, clients } = useApp();
+  const { profile, tasks, employees, clients, updateTask } = useApp();
 
   // Fix stale closures by keeping latest state in refs
-  const latestData = React.useRef({ tasks, employees, clients, companyList: [] });
+  const latestData = React.useRef({ tasks, employees, clients, updateTask, companyList: [] });
 
   // Derive company list: merge active clients + existing task clients
   React.useEffect(() => {
@@ -44,8 +44,8 @@ function VoiceBotInner({ onTaskAdd }) {
       .filter(Boolean);
     const companyList = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal');
     
-    latestData.current = { tasks, employees, clients, companyList };
-  }, [tasks, employees, clients]);
+    latestData.current = { tasks, employees, clients, updateTask, companyList };
+  }, [tasks, employees, clients, updateTask]);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -62,6 +62,65 @@ function VoiceBotInner({ onTaskAdd }) {
       setIsActive(false);
     },
     clientTools: {
+      get_team_status: () => {
+        const { employees } = latestData.current;
+        const online = employees.filter(e => e.status === 'Online').map(e => e.name);
+        return `Currently Online Team Members: ${online.join(', ') || 'No one'}. Offline Members: ${employees.filter(e => e.status !== 'Online').map(e => e.name).join(', ') || 'No one'}.`;
+      },
+
+      get_employee_tasks: (params) => {
+        const { tasks, employees } = latestData.current;
+        const name = (params.employee_name || '').trim().toLowerCase();
+        
+        // Fuzzy match employee
+        let match = employees?.find(e => e.name.toLowerCase() === name);
+        if (!match) {
+           let bestMatch = null;
+           let minDistance = Infinity;
+           employees?.forEach(e => {
+               const lowerE = e.name.toLowerCase();
+               const dist = levenshtein(name, lowerE);
+               const distFirst = levenshtein(name, lowerE.split(' ')[0]);
+               const finalDist = Math.min(dist, distFirst);
+               if (finalDist < minDistance) { minDistance = finalDist; bestMatch = e; }
+           });
+           if (bestMatch && minDistance <= Math.max(name.length, 5) * 0.5) { match = bestMatch; }
+        }
+
+        if (!match) return `ERROR: Could not find any employee named '${params.employee_name}'.`;
+
+        const empTasks = tasks.filter(t => t.assignedTo && t.assignedTo.includes(match.name) && t.status !== 'Done');
+        if (empTasks.length === 0) return `SUCCESS: ${match.name} currently has 0 pending tasks.`;
+        
+        const summary = empTasks.map(t => `- [${t.id}] ${t.title} (${t.status}, Priority: ${t.priority})`).join('\n');
+        return `SUCCESS: ${match.name} has ${empTasks.length} pending tasks:\n${summary}`;
+      },
+
+      update_task_status: (params) => {
+        const { tasks, updateTask } = latestData.current;
+        const taskQuery = (params.task_query || '').trim().toLowerCase();
+        const newStatus = params.new_status || 'Done';
+        
+        let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
+        if (!match) {
+           let bestMatch = null;
+           let minDistance = Infinity;
+           tasks.filter(t => t.status !== 'Done').forEach(t => {
+               const title = String(t.title).toLowerCase();
+               const dist = levenshtein(taskQuery, title);
+               if (dist < minDistance) { minDistance = dist; bestMatch = t; }
+           });
+           if (bestMatch && minDistance <= Math.max(taskQuery.length, 10) * 0.6) { match = bestMatch; }
+        }
+
+        if (match) {
+           updateTask(match.id, { status: newStatus });
+           return `SUCCESS: Task '${match.title}' (${match.id}) status has been updated to ${newStatus}.`;
+        } else {
+           return `ERROR: Could not find an active task matching '${params.task_query}'. Please ask the user to clarify the task title.`;
+        }
+      },
+
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
         
