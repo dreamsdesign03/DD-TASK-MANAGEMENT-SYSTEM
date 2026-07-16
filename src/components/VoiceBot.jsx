@@ -259,7 +259,7 @@ function VoiceBotInner({ onTaskAdd }) {
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
         
-        const { employees, companyList, tasks } = latestData.current;
+        const { employees, companyList, tasks, profile } = latestData.current;
 
         // Client Validation & Fuzzy Matching
         const providedClient = (params.client || '').trim();
@@ -347,32 +347,37 @@ function VoiceBotInner({ onTaskAdd }) {
           const validEmployeeNames = employees?.map(e => e.name) || [];
           
           for (const name of namesToMatch) {
-             let match = employees?.find(e => e.name.toLowerCase() === name);
-             if (!match) {
-                console.log(`[VoiceBot] Exact assignee match failed for "${name}". Starting fuzzy match...`);
-                let bestMatch = null;
-                let minDistance = Infinity;
-                employees?.forEach(e => {
-                    const lowerE = e.name.toLowerCase();
-                    const dist = levenshtein(name, lowerE);
-                    // Check against just the first name for better matching ("Tomansisha" -> "Mansi Shah" won't match well, but "Mansisha" -> "Mansi" will)
-                    const firstName = lowerE.split(' ')[0];
-                    const distFirst = levenshtein(name, firstName);
-                    const finalDist = Math.min(dist, distFirst);
-                    
-                    if (finalDist < minDistance) {
-                        minDistance = finalDist;
-                        bestMatch = e;
+             let match = null;
+             if (name === 'me' || name === 'myself') {
+                 match = { name: profile?.name || 'Mansi Shah' };
+             } else {
+                 match = employees?.find(e => e.name.toLowerCase() === name);
+                 if (!match) {
+                    console.log(`[VoiceBot] Exact assignee match failed for "${name}". Starting fuzzy match...`);
+                    let bestMatch = null;
+                    let minDistance = Infinity;
+                    employees?.forEach(e => {
+                        const lowerE = e.name.toLowerCase();
+                        const dist = levenshtein(name, lowerE);
+                        // Check against just the first name for better matching ("Tomansisha" -> "Mansi Shah" won't match well, but "Mansisha" -> "Mansi" will)
+                        const firstName = lowerE.split(' ')[0];
+                        const distFirst = levenshtein(name, firstName);
+                        const finalDist = Math.min(dist, distFirst);
+                        
+                        if (finalDist < minDistance) {
+                            minDistance = finalDist;
+                            bestMatch = e;
+                        }
+                    });
+                    console.log(`[VoiceBot] Best fuzzy match for "${name}" is "${bestMatch?.name}" with distance ${minDistance}`);
+                    // If distance is less than 50% of length, accept it
+                    if (bestMatch && minDistance <= Math.max(name.length, 5) * 0.5) {
+                       console.log(`[VoiceBot] Distance ${minDistance} is acceptable. Using "${bestMatch.name}".`);
+                       match = bestMatch;
+                    } else {
+                       console.log(`[VoiceBot] Distance ${minDistance} is TOO HIGH. Match rejected.`);
                     }
-                });
-                console.log(`[VoiceBot] Best fuzzy match for "${name}" is "${bestMatch?.name}" with distance ${minDistance}`);
-                // If distance is less than 50% of length, accept it
-                if (bestMatch && minDistance <= Math.max(name.length, 5) * 0.5) {
-                   console.log(`[VoiceBot] Distance ${minDistance} is acceptable. Using "${bestMatch.name}".`);
-                   match = bestMatch;
-                } else {
-                   console.log(`[VoiceBot] Distance ${minDistance} is TOO HIGH. Match rejected.`);
-                }
+                 }
              }
 
              if (match) {
