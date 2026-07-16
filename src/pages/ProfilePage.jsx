@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
                         {/* Right side: Joined, Department */}
                         <div className="flex flex-col gap-4 border-t md:border-t-0 md:border-l border-outline-variant/40 pt-6 md:pt-0 md:pl-8">
-                          <div className="flex justify-between md:flex-col md:gap-1 text-body-sm">
+                          <div className="flex flex-col gap-1 text-body-sm text-center sm:text-left">
                             <span className="text-secondary uppercase tracking-wider text-[11px] font-semibold">Joined Date</span>
                             <span className="font-semibold text-lg text-on-surface">
                               {(() => {
@@ -55,9 +55,9 @@ export default function ProfilePage() {
                               })()}
                             </span>
                           </div>
-                          <div className="flex justify-between md:flex-col md:gap-1 text-body-sm">
+                          <div className="flex flex-col gap-1 text-body-sm text-center sm:text-left">
                             <span className="text-secondary uppercase tracking-wider text-[11px] font-semibold">Department</span>
-                            <span className="font-semibold text-lg text-on-surface tracking-tight">{profile.department}</span>
+                            <span className="font-semibold text-lg text-on-surface tracking-tight break-words">{profile.department}</span>
                           </div>
                         </div>
                       </div>
@@ -66,7 +66,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative floating-label-group">
                         <input
-                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-body-md peer"
+                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-[14px] peer text-ellipsis overflow-hidden whitespace-nowrap"
                           id="full_name"
                           placeholder=" "
                           readOnly
@@ -82,7 +82,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="relative floating-label-group">
                         <input
-                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-body-md peer"
+                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-[14px] peer text-ellipsis overflow-hidden whitespace-nowrap"
                           id="email"
                           placeholder=" "
                           readOnly
@@ -98,7 +98,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="relative floating-label-group">
                         <input
-                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-body-md peer"
+                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-[14px] peer text-ellipsis overflow-hidden whitespace-nowrap"
                           id="phone"
                           placeholder=" "
                           readOnly
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="relative floating-label-group">
                         <input
-                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-body-md peer"
+                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-[14px] peer text-ellipsis overflow-hidden whitespace-nowrap"
                           id="role"
                           placeholder=" "
                           readOnly
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="relative floating-label-group col-span-full">
                         <input
-                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-body-md peer"
+                          className="w-full p-3 bg-surface border border-outline rounded-md text-secondary cursor-not-allowed text-[14px] peer text-ellipsis overflow-hidden whitespace-nowrap"
                           id="department"
                           placeholder=" "
                           readOnly
