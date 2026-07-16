@@ -47,6 +47,70 @@ function VoiceBotInner({ onTaskAdd }) {
     latestData.current = { profile, tasks, employees, clients, updateTask, companyList };
   }, [profile, tasks, employees, clients, updateTask]);
 
+  const executeQueryTasks = (params) => {
+      const { tasks, employees, companyList, profile } = latestData.current;
+      let filteredTasks = tasks;
+      
+      // Filter by Assignee
+      if (params.assignee) {
+          const assigneeQuery = params.assignee.trim().toLowerCase();
+          let matchEmp = null;
+          if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
+              matchEmp = { name: profile?.name || 'Mansi Shah' };
+          } else {
+              matchEmp = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
+              if (!matchEmp) {
+                 let bestEmp = null;
+                 let minEmpDist = Infinity;
+                 employees?.forEach(e => {
+                     const lowerE = e.name.toLowerCase();
+                     const dist = levenshtein(assigneeQuery, lowerE);
+                     const distFirst = levenshtein(assigneeQuery, lowerE.split(' ')[0]);
+                     const finalDist = Math.min(dist, distFirst);
+                     if (finalDist < minEmpDist) { minEmpDist = finalDist; bestEmp = e; }
+                 });
+                 if (bestEmp && minEmpDist <= Math.max(assigneeQuery.length, 5) * 0.5) { matchEmp = bestEmp; }
+              }
+          }
+          if (!matchEmp) return `ERROR: Could not find any employee named '${params.assignee}'.`;
+          filteredTasks = filteredTasks.filter(t => t.assignedTo && t.assignedTo.includes(matchEmp.name));
+      }
+
+      // Filter by Client
+      if (params.client) {
+          const clientQuery = params.client.trim().toLowerCase();
+          let matchClient = null;
+          let minClientDist = Infinity;
+          companyList?.forEach(c => {
+              const lowerC = String(c).toLowerCase().replace(/clinic|llc|inc|ltd/g, '').trim();
+              const cleanQuery = clientQuery.replace(/clinic|llc|inc|ltd/g, '').trim();
+              const dist = levenshtein(cleanQuery, lowerC);
+              if (dist < minClientDist) { minClientDist = dist; matchClient = c; }
+          });
+          if (minClientDist > Math.max(clientQuery.length, 5) * 0.5) matchClient = null;
+          
+          if (!matchClient) return `ERROR: Could not find any client matching '${params.client}'.`;
+          filteredTasks = filteredTasks.filter(t => t.client === matchClient);
+      }
+
+      // Filter by Status
+      if (params.status) {
+          const statusQ = params.status.toLowerCase();
+          if (statusQ === 'done') filteredTasks = filteredTasks.filter(t => t.status === 'Done');
+          else if (statusQ === 'pending' || statusQ === 'active') filteredTasks = filteredTasks.filter(t => t.status !== 'Done');
+          else filteredTasks = filteredTasks.filter(t => t.status.toLowerCase() === statusQ);
+      }
+
+      if (filteredTasks.length === 0) return `SUCCESS: Found 0 tasks matching the requested filters.`;
+      
+      const summary = filteredTasks.slice(0, 10).map(t => `- [${t.id}] ${t.title} (${t.status}, Assigned: ${t.assignedTo})`).join('\n');
+      let response = `SUCCESS: Found ${filteredTasks.length} tasks matching your query.`;
+      if (filteredTasks.length > 10) response += `\nHere are the top 10:\n${summary}`;
+      else response += `\nHere they are:\n${summary}`;
+      
+      return response;
+  };
+
   const conversation = useConversation({
     onConnect: () => {
       setIsActive(true);
@@ -68,68 +132,13 @@ function VoiceBotInner({ onTaskAdd }) {
         return `Currently Online Team Members: ${online.join(', ') || 'No one'}. Offline Members: ${employees.filter(e => e.status !== 'Online').map(e => e.name).join(', ') || 'No one'}.`;
       },
 
+      get_employee_tasks: (params) => {
+        // Alias for older configurations
+        return executeQueryTasks({ assignee: params.employee_name });
+      },
+
       query_tasks: (params) => {
-        const { tasks, employees, companyList, profile } = latestData.current;
-        let filteredTasks = tasks;
-        
-        // Filter by Assignee
-        if (params.assignee) {
-            const assigneeQuery = params.assignee.trim().toLowerCase();
-            let matchEmp = null;
-            if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
-                matchEmp = { name: profile?.name || 'Mansi Shah' };
-            } else {
-                matchEmp = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
-                if (!matchEmp) {
-                   let bestEmp = null;
-                   let minEmpDist = Infinity;
-                   employees?.forEach(e => {
-                       const lowerE = e.name.toLowerCase();
-                       const dist = levenshtein(assigneeQuery, lowerE);
-                       const distFirst = levenshtein(assigneeQuery, lowerE.split(' ')[0]);
-                       const finalDist = Math.min(dist, distFirst);
-                       if (finalDist < minEmpDist) { minEmpDist = finalDist; bestEmp = e; }
-                   });
-                   if (bestEmp && minEmpDist <= Math.max(assigneeQuery.length, 5) * 0.5) { matchEmp = bestEmp; }
-                }
-            }
-            if (!matchEmp) return `ERROR: Could not find any employee named '${params.assignee}'.`;
-            filteredTasks = filteredTasks.filter(t => t.assignedTo && t.assignedTo.includes(matchEmp.name));
-        }
-
-        // Filter by Client
-        if (params.client) {
-            const clientQuery = params.client.trim().toLowerCase();
-            let matchClient = null;
-            let minClientDist = Infinity;
-            companyList?.forEach(c => {
-                const lowerC = String(c).toLowerCase().replace(/clinic|llc|inc|ltd/g, '').trim();
-                const cleanQuery = clientQuery.replace(/clinic|llc|inc|ltd/g, '').trim();
-                const dist = levenshtein(cleanQuery, lowerC);
-                if (dist < minClientDist) { minClientDist = dist; matchClient = c; }
-            });
-            if (minClientDist > Math.max(clientQuery.length, 5) * 0.5) matchClient = null;
-            
-            if (!matchClient) return `ERROR: Could not find any client matching '${params.client}'.`;
-            filteredTasks = filteredTasks.filter(t => t.client === matchClient);
-        }
-
-        // Filter by Status
-        if (params.status) {
-            const statusQ = params.status.toLowerCase();
-            if (statusQ === 'done') filteredTasks = filteredTasks.filter(t => t.status === 'Done');
-            else if (statusQ === 'pending' || statusQ === 'active') filteredTasks = filteredTasks.filter(t => t.status !== 'Done');
-            else filteredTasks = filteredTasks.filter(t => t.status.toLowerCase() === statusQ);
-        }
-
-        if (filteredTasks.length === 0) return `SUCCESS: Found 0 tasks matching the requested filters.`;
-        
-        const summary = filteredTasks.slice(0, 10).map(t => `- [${t.id}] ${t.title} (${t.status}, Assigned: ${t.assignedTo})`).join('\n');
-        let response = `SUCCESS: Found ${filteredTasks.length} tasks matching your query.`;
-        if (filteredTasks.length > 10) response += `\nHere are the top 10:\n${summary}`;
-        else response += `\nHere they are:\n${summary}`;
-        
-        return response;
+        return executeQueryTasks(params);
       },
 
       update_task: (params) => {
