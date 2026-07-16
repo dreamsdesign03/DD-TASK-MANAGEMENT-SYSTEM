@@ -326,7 +326,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-stretch justify-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
+    <div className="min-h-screen w-full flex items-stretch justify-center relative overflow-y-auto md:overflow-hidden" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
 
       {/* Atmospheric Blobs */}
       <div
@@ -350,20 +350,12 @@ export default function LoginPage() {
 
       {/* MAIN CARD */}
       <main
-        className="relative z-10 w-full flex flex-col md:flex-row animate-fade-in-up"
-        style={{
-          maxWidth: '1280px',
-          margin: '2rem auto',
-          borderRadius: '28px',
-          overflow: 'hidden',
-          minHeight: 'calc(100vh - 4rem)',
-          boxShadow: '0 24px 80px rgba(91,33,182,0.18), 0 4px 24px rgba(0,0,0,0.08)',
-        }}
+        className="relative z-10 w-full flex flex-col md:flex-row animate-fade-in-up max-w-[1280px] md:m-8 md:rounded-[28px] overflow-hidden min-h-[100dvh] md:min-h-[calc(100vh-4rem)] md:shadow-[0_24px_80px_rgba(91,33,182,0.18),0_4px_24px_rgba(0,0,0,0.08)] bg-white md:bg-transparent"
       >
 
         {/* LEFT PANEL */}
         <section
-          className="w-full md:w-1/2 flex flex-col items-center justify-between text-white"
+          className="hidden md:flex w-full md:w-1/2 flex-col items-center justify-between text-white"
           style={{
             background: 'linear-gradient(160deg, #702c91 0%, #ec008c 100%)',
             padding: 'clamp(3rem, 6vw, 5rem) clamp(2.5rem, 5vw, 4rem)',
@@ -423,7 +415,7 @@ export default function LoginPage() {
         {/* RIGHT PANEL */}
         <section
           className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center overflow-y-auto"
-          style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(2.5rem, 5vw, 5rem)' }}
+          style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(1.5rem, 5vw, 5rem)' }}
         >
           {waitingForBrowser ? (
             <div className="w-full flex flex-col items-center text-center" style={{ maxWidth: '400px' }}>
@@ -467,6 +459,11 @@ export default function LoginPage() {
             </div>
           ) : (
           <div className="w-full flex flex-col items-center" style={{ maxWidth: '400px' }}>
+
+            {/* Mobile Logo */}
+            <div className="md:hidden w-20 h-20 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-6">
+              <img src={LOGO_SRC} alt="Dreamsdesk" className="w-12 h-12 object-contain" style={{ filter: 'hue-rotate(0deg)' }} />
+            </div>
 
             {/* Heading */}
             <h1
