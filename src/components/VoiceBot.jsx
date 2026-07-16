@@ -28,17 +28,24 @@ function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
   const { profile, tasks, employees, clients } = useApp();
 
+  // Fix stale closures by keeping latest state in refs
+  const latestData = React.useRef({ tasks, employees, clients, companyList: [] });
+
   // Derive company list: merge active clients + existing task clients
-  const taskClients = tasks ? tasks.map(t => t.client).filter(Boolean) : [];
-  const taskUniqueCompanies = [...new Set(taskClients)];
-  const activeClientNames = (clients || [])
-    .filter(item => {
-      const isActive = item['Is Active'] || item['isActive'] || item['is_active'] || item['Is active'] || item.isActive;
-      return String(isActive).toLowerCase() === 'yes' || isActive === true;
-    })
-    .map(item => item['Project Name'] || item['Client Name'] || item['Company Name'] || item['Company'] || item['Name'] || '')
-    .filter(Boolean);
-  const companyList = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal');
+  React.useEffect(() => {
+    const taskClients = tasks ? tasks.map(t => t.client).filter(Boolean) : [];
+    const taskUniqueCompanies = [...new Set(taskClients)];
+    const activeClientNames = (clients || [])
+      .filter(item => {
+        const isActive = item['Is Active'] || item['isActive'] || item['is_active'] || item['Is active'] || item.isActive;
+        return String(isActive).toLowerCase() === 'yes' || isActive === true;
+      })
+      .map(item => item['Project Name'] || item['Client Name'] || item['Company Name'] || item['Company'] || item['Name'] || '')
+      .filter(Boolean);
+    const companyList = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal');
+    
+    latestData.current = { tasks, employees, clients, companyList };
+  }, [tasks, employees, clients]);
 
   const conversation = useConversation({
     onConnect: () => {
@@ -58,6 +65,8 @@ function VoiceBotInner({ onTaskAdd }) {
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
         
+        const { employees, companyList, tasks } = latestData.current;
+
         // Client Validation & Fuzzy Matching
         const providedClient = (params.client || '').trim();
         let validClientName = companyList?.[0] || 'General';
