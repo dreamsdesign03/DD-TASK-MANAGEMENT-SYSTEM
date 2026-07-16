@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 
 export default function VoiceBot({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
-  const { profile } = useApp();
+  const { profile, tasks, employees } = useApp();
 
   const conversation = useConversation({
     onConnect: () => {
@@ -23,16 +23,73 @@ export default function VoiceBot({ onTaskAdd }) {
     clientTools: {
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
-        // Map the parameters extracted by AI to the actual task creation logic
-        if (onTaskAdd) {
-          onTaskAdd({
-            title: params.title || 'Voice Task',
-            description: params.description || '',
-            projectName: params.projectName || 'Internal',
-            assignee: params.assignee || profile?.name || 'Unassigned',
-            priority: params.priority || 'Medium',
-            deadline: params.deadline || new Date().toISOString().split('T')[0]
+        
+        // Calculate next ID
+        let maxIdNum = 0;
+        if (tasks && tasks.length > 0) {
+          tasks.forEach(t => {
+            if (t.id && (!t.taskType || t.taskType === 'Main Task' || t.taskType === 'Task') && String(t.id).match(/^T-\d+$/)) {
+              const match = String(t.id).match(/^T-(\d+)$/);
+              if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxIdNum) maxIdNum = num;
+              }
+            }
           });
+        }
+        const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1;
+        const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`;
+
+        // Get Assignees
+        const assigneeString = params.assignee || profile?.name || 'Unassigned';
+        const assignedArray = assigneeString.split(',').map(s => s.trim());
+        const assignedEmps = employees?.filter(e => assignedArray.includes(e.name)) || [];
+
+        // Format Date
+        let formattedDate = '';
+        if (params.deadline) {
+           try {
+             formattedDate = new Date(params.deadline).toLocaleDateString('en-US', {
+               month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata'
+             });
+           } catch(e) {}
+        }
+
+        const newTask = {
+          id: nextIdStr,
+          title: (params.title || 'Voice Task').trim(),
+          client: params.client || 'General',
+          project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+          assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+          assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+          dueDate: formattedDate,
+          priority: params.priority || 'Medium',
+          status: 'Pending',
+          statusUpdatedOn: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
+          overdue: false,
+          done: false,
+          department: params.department || 'COMMON',
+          assignedTo: assigneeString,
+          assignedBy: profile?.name || 'System',
+          employeeId: assignedEmps.map(e => e.id).filter(Boolean).join(', '),
+          assignedEmail: assignedEmps.map(e => e.email).filter(Boolean).join(', '),
+          description: {
+            intro: (params.description || '').trim() || 'Added via Voice Assistant.',
+            bullets: [],
+            outro: '',
+          },
+          comments: [],
+          attachments: [],
+          remarks: params.remarks || '',
+          post: 'YES',
+          isRecurring: false,
+          recurringSchedule: '',
+          recurringDay: '',
+          recurringMonths: '',
+        };
+
+        if (onTaskAdd) {
+          onTaskAdd(newTask);
         }
         return "Task successfully added to the system.";
       }
