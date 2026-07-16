@@ -685,8 +685,11 @@ export default function TaskTable() {
                 if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
               }}
               onClick={() => setShowNewTaskModal(true)}
-              className="h-10 w-10 md:h-11 md:w-11 rounded-full flex items-center justify-center text-white cursor-pointer shadow-sm overflow-hidden whitespace-nowrap"
+              className="rounded-full flex items-center justify-center text-white cursor-pointer shadow-sm overflow-hidden whitespace-nowrap"
               style={{
+                height: 44,
+                width: 'auto',
+                minWidth: 44,
                 maxWidth: 44,
                 background: 'linear-gradient(to right, #702c91, #ec008c)',
                 boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
