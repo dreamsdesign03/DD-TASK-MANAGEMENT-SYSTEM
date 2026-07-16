@@ -57,27 +57,32 @@ function VoiceBotInner({ onTaskAdd }) {
           
           // Try advanced fuzzy match if exact fails
           if (!match) {
-             let bestMatch = null;
-             let minDistance = Infinity;
-             companyList?.forEach(c => {
-                 const lowerC = c.toLowerCase();
-                 // Check distance of full string or substring
-                 const dist = levenshtein(lowerProvided, lowerC);
-                 // Also check distance without 'clinic', 'hospital' etc for better matching
-                 const strippedProvided = lowerProvided.replace(/(clinic|hospital|inc|llc|co)/g, '').trim();
-                 const strippedC = lowerC.replace(/(clinic|hospital|inc|llc|co)/g, '').trim();
-                 const distStripped = levenshtein(strippedProvided, strippedC);
-                 
-                 const finalDist = Math.min(dist, distStripped);
-                 if (finalDist < minDistance) {
-                     minDistance = finalDist;
-                     bestMatch = c;
-                 }
-             });
+             const ignoreWords = ['clinic', 'hospital', 'inc', 'llc', 'co', 'the', 'private', 'ltd'];
+             const providedWords = lowerProvided.split(' ').filter(w => !ignoreWords.includes(w) && w.length > 1);
              
-             // If distance is less than 50% of the string length, accept it
-             if (bestMatch && minDistance <= Math.max(lowerProvided.length, 5) * 0.5) {
-                 match = bestMatch;
+             if (providedWords.length > 0) {
+                 const possibleMatches = companyList?.filter(c => {
+                     const cWords = c.toLowerCase().split(' ');
+                     // Check if ANY meaningful provided word matches ANY company word with <= 2 typos
+                     return providedWords.some(pw => cWords.some(cw => levenshtein(pw, cw) <= 2));
+                 });
+
+                 // If we narrowed it down to exactly one company, we found it!
+                 if (possibleMatches && possibleMatches.length === 1) {
+                     match = possibleMatches[0];
+                 } else if (possibleMatches && possibleMatches.length > 1) {
+                     // If multiple companies share this word, find the one with the smallest total distance
+                     let bestMatch = null;
+                     let minDistance = Infinity;
+                     possibleMatches.forEach(c => {
+                         const dist = levenshtein(lowerProvided, c.toLowerCase());
+                         if (dist < minDistance) {
+                             minDistance = dist;
+                             bestMatch = c;
+                         }
+                     });
+                     match = bestMatch;
+                 }
              }
           }
 
