@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
-  const { profile, tasks, employees } = useApp();
+  const { profile, tasks, employees, companyList } = useApp();
 
   const conversation = useConversation({
     onConnect: () => {
@@ -24,6 +24,19 @@ function VoiceBotInner({ onTaskAdd }) {
       add_task: (params) => {
         console.log("Adding task via VoiceBot", params);
         
+        // Client Validation
+        const providedClient = (params.client || '').trim();
+        let validClientName = companyList?.[0] || 'General';
+
+        if (providedClient) {
+          const match = companyList?.find(c => c.toLowerCase() === providedClient.toLowerCase());
+          if (match) {
+            validClientName = match;
+          } else if (providedClient.toLowerCase() !== 'general') {
+            return `ERROR: The client '${providedClient}' does not exist in the system. Tell the user they must select an existing client. Here are the valid clients: ${companyList?.join(', ') || 'None'}. Ask them which one they meant.`;
+          }
+        }
+
         // Calculate next ID
         let maxIdNum = 0;
         if (tasks && tasks.length > 0) {
@@ -58,7 +71,7 @@ function VoiceBotInner({ onTaskAdd }) {
         const newTask = {
           id: nextIdStr,
           title: (params.title || 'Voice Task').trim(),
-          client: params.client || 'General',
+          client: validClientName,
           project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
           assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
           assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
