@@ -131,7 +131,7 @@ function VoiceBotInner({ onTaskAdd }) {
       if (filteredTasks.length === 0) {
           response = `I could not find any tasks matching those filters.`;
       } else {
-          const spokenList = filteredTasks.slice(0, 10).map(t => `Task ${t.id} called ${t.title}`).join(', and ');
+          const spokenList = filteredTasks.slice(0, 10).map(t => `a task named ${t.title}`).join(', and ');
           response = `I found ${filteredTasks.length} tasks. They are: ${spokenList}.`;
       }
       
