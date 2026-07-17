@@ -118,18 +118,24 @@ function VoiceBotInner({ onTaskAdd }) {
       // Filter by Status
       if (params.status) {
           const statusQ = params.status.toLowerCase();
-          if (statusQ === 'done') filteredTasks = filteredTasks.filter(t => t.status === 'Done');
-          else if (statusQ === 'pending' || statusQ === 'active') filteredTasks = filteredTasks.filter(t => t.status !== 'Done');
-          else filteredTasks = filteredTasks.filter(t => t.status.toLowerCase() === statusQ);
+          if (statusQ === 'done' || statusQ === 'completed') {
+              filteredTasks = filteredTasks.filter(t => (t.status || '').toLowerCase() === 'done' || (t.status || '').toLowerCase() === 'completed');
+          } else if (statusQ === 'pending' || statusQ === 'active') {
+              filteredTasks = filteredTasks.filter(t => (t.status || '').toLowerCase() !== 'done' && (t.status || '').toLowerCase() !== 'completed');
+          } else {
+              filteredTasks = filteredTasks.filter(t => (t.status || '').toLowerCase() === statusQ);
+          }
       }
 
-      if (filteredTasks.length === 0) return `SUCCESS: Found 0 tasks matching the requested filters.`;
+      let response = '';
+      if (filteredTasks.length === 0) {
+          response = `Found 0 tasks matching the requested filters. TELL THE USER there are no tasks matching this query.`;
+      } else {
+          const summary = filteredTasks.slice(0, 10).map(t => `- [${t.id}] ${t.title} (Status: ${t.status}, Assigned: ${t.assignedTo})`).join('\n');
+          response = `Found ${filteredTasks.length} tasks matching the query. YOU MUST READ THESE TASK TITLES TO THE USER:\n${summary}`;
+      }
       
-      const summary = filteredTasks.slice(0, 10).map(t => `- [${t.id}] ${t.title} (${t.status}, Assigned: ${t.assignedTo})`).join('\n');
-      let response = `SUCCESS: Found ${filteredTasks.length} tasks matching your query.`;
-      if (filteredTasks.length > 10) response += `\nHere are the top 10:\n${summary}`;
-      else response += `\nHere they are:\n${summary}`;
-      
+      console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
 
