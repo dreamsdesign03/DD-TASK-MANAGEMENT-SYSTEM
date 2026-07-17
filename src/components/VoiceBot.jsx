@@ -127,23 +127,13 @@ function VoiceBotInner({ onTaskAdd }) {
           }
       }
 
-      let responseObj = {};
       if (filteredTasks.length === 0) {
-          responseObj = {
-              status: "success",
-              message: "0 tasks found. Tell the user there are no tasks."
-          };
-      } else {
-          responseObj = {
-              status: "success",
-              taskCount: filteredTasks.length,
-              instruction_for_AI: "You MUST read these task titles out loud to the user.",
-              taskTitles: filteredTasks.slice(0, 10).map(t => t.title)
-          };
+          const response = "No tasks found.";
+          console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
+          return response;
       }
       
-      const response = JSON.stringify(responseObj);
-      
+      const response = filteredTasks.slice(0, 10).map(t => t.title).join(' AND ');
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
