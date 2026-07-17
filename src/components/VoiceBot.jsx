@@ -127,13 +127,22 @@ function VoiceBotInner({ onTaskAdd }) {
           }
       }
 
-      let response = '';
+      let responseObj = {};
       if (filteredTasks.length === 0) {
-          response = `I could not find any tasks matching those filters.`;
+          responseObj = {
+              status: "success",
+              message: "0 tasks found. Tell the user there are no tasks."
+          };
       } else {
-          const spokenList = filteredTasks.slice(0, 10).map(t => `a task named ${t.title}`).join(', and ');
-          response = `I found ${filteredTasks.length} tasks. They are: ${spokenList}.`;
+          responseObj = {
+              status: "success",
+              taskCount: filteredTasks.length,
+              instruction_for_AI: "You MUST read these task titles out loud to the user.",
+              taskTitles: filteredTasks.slice(0, 10).map(t => t.title)
+          };
       }
+      
+      const response = JSON.stringify(responseObj);
       
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
