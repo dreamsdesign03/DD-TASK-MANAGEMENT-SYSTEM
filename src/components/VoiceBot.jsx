@@ -360,7 +360,7 @@ function VoiceBotInner({ onTaskAdd }) {
             console.log(`[VoiceBot] SUCCESS: Fuzzy matched client to: "${match}"`);
             validClientName = match;
           } else {
-             const errorMsg = `ERROR: The AI tried to assign the client '${providedClient}', but this client does not exist in your Dreamsdesk list. The task was NOT created.`;
+             const errorMsg = `I could not create the task because the client '${providedClient}' does not exist in our system. Please ask the user for the correct client name.`;
              return errorMsg;
           }
         }
@@ -428,7 +428,7 @@ function VoiceBotInner({ onTaskAdd }) {
                 validAssigneeNames.push(match.name);
                 assignedEmps.push(match);
              } else {
-                const errorMsg = `ERROR: The AI tried to assign this task to '${name}', but no employee matched that name. The task was NOT created.`;
+                const errorMsg = `I could not create the task because I could not find any employee named '${name}'. Please ask the user to clarify the employee's name.`;
                 return errorMsg;
              }
           }
