@@ -76,7 +76,7 @@ function VoiceBotInner({ onTaskAdd }) {
       if (params.assignee && filteredTasks.length > 0) {
           const assigneeQuery = params.assignee.trim().toLowerCase();
           let matchEmp = null;
-          if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
+          if (assigneeQuery === 'me' || assigneeQuery === 'myself' || assigneeQuery === 'my') {
               matchEmp = { name: profile?.name || 'Mansi Shah' };
           } else {
               matchEmp = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
@@ -201,7 +201,7 @@ function VoiceBotInner({ onTaskAdd }) {
         if (params.add_assignee) {
             const assigneeQuery = params.add_assignee.trim().toLowerCase();
             let empMatch = null;
-            if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
+            if (assigneeQuery === 'me' || assigneeQuery === 'myself' || assigneeQuery === 'my') {
                 empMatch = { name: profile?.name || 'Mansi Shah' };
             } else {
                 empMatch = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
@@ -237,7 +237,7 @@ function VoiceBotInner({ onTaskAdd }) {
         if (params.remove_assignee) {
             const assigneeQuery = params.remove_assignee.trim().toLowerCase();
             let empMatch = null;
-            if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
+            if (assigneeQuery === 'me' || assigneeQuery === 'myself' || assigneeQuery === 'my') {
                 empMatch = { name: profile?.name || 'Mansi Shah' };
             } else {
                 empMatch = employees?.find(e => e.name.toLowerCase() === assigneeQuery);
@@ -369,7 +369,7 @@ function VoiceBotInner({ onTaskAdd }) {
           
           for (const name of namesToMatch) {
              let match = null;
-             if (name === 'me' || name === 'myself') {
+             if (name === 'me' || name === 'myself' || name === 'my') {
                  match = { name: profile?.name || 'Mansi Shah' };
              } else {
                  match = employees?.find(e => e.name.toLowerCase() === name);
