@@ -129,10 +129,10 @@ function VoiceBotInner({ onTaskAdd }) {
 
       let response = '';
       if (filteredTasks.length === 0) {
-          response = `Found 0 tasks matching the requested filters. TELL THE USER there are no tasks matching this query.`;
+          response = `Tell the user EXACTLY this: "I couldn't find any tasks matching your request."`;
       } else {
-          const summary = filteredTasks.slice(0, 10).map(t => `- [${t.id}] ${t.title} (Status: ${t.status}, Assigned: ${t.assignedTo})`).join('\n');
-          response = `Found ${filteredTasks.length} tasks matching the query. YOU MUST READ THESE TASK TITLES TO THE USER:\n${summary}`;
+          const spokenList = filteredTasks.slice(0, 10).map(t => `Task ID ${t.id} called ${t.title}, which is currently ${t.status}`).join(', and ');
+          response = `Tell the user EXACTLY this: "I found ${filteredTasks.length} tasks. They are: ${spokenList}."`;
       }
       
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
