@@ -157,7 +157,7 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (!match) {
-         return `ERROR: Could not find an active task matching '${taskQuery}'. Please ask the user to clarify the task title or ID.`;
+         throw new Error(`I could not find an active task matching '${taskQuery}'. Please ask the user to clarify the task title or ID.`);
       }
 
       let updates = {};
@@ -210,7 +210,7 @@ function VoiceBotInner({ onTaskAdd }) {
                   successMessages.push(`${empMatch.name} is already assigned`);
               }
           } else {
-              return `ERROR: Found task, but could not find any employee named '${params.add_assignee}' to assign it to.`;
+              throw new Error(`I found the task, but I could not find any employee named '${params.add_assignee}'.`);
           }
       }
 
@@ -246,7 +246,7 @@ function VoiceBotInner({ onTaskAdd }) {
                   successMessages.push(`${empMatch.name} is not assigned to this task`);
               }
           } else {
-              return `ERROR: Found task, but could not find any employee named '${params.remove_assignee}' to remove.`;
+              throw new Error(`I found the task, but I could not find any employee named '${params.remove_assignee}'.`);
           }
       }
 
@@ -360,8 +360,7 @@ function VoiceBotInner({ onTaskAdd }) {
             console.log(`[VoiceBot] SUCCESS: Fuzzy matched client to: "${match}"`);
             validClientName = match;
           } else {
-             const errorMsg = `I could not create the task because the client '${providedClient}' does not exist in our system. Please ask the user for the correct client name.`;
-             return errorMsg;
+             throw new Error(`I could not create the task because the client '${providedClient}' does not exist in our system. Please ask the user for the correct client name.`);
           }
         }
 
@@ -428,8 +427,7 @@ function VoiceBotInner({ onTaskAdd }) {
                 validAssigneeNames.push(match.name);
                 assignedEmps.push(match);
              } else {
-                const errorMsg = `I could not create the task because I could not find any employee named '${name}'. Please ask the user to clarify the employee's name.`;
-                return errorMsg;
+                throw new Error(`I could not create the task because I could not find any employee named '${name}'. Please ask the user to clarify the employee's name.`);
              }
           }
         } else {
