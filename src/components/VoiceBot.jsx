@@ -329,8 +329,8 @@ function VoiceBotInner({ onTaskAdd }) {
                      // Check if ANY meaningful provided word matches ANY company word with <= 2 typos
                      const hasMatch = providedWords.some(pw => cWords.some(cw => {
                          const dist = levenshtein(pw, cw);
-                         // console.log(`[VoiceBot] Comparing "${pw}" to "${cw}" -> Levenshtein: ${dist}`);
-                         return dist <= 2;
+                         // Match if levenshtein distance is small, OR if one word contains the other (e.g. 'tiny' in 'tinybit')
+                         return dist <= 2 || cw.includes(pw) || pw.includes(cw);
                      }));
                      return hasMatch;
                  });
@@ -351,7 +351,7 @@ function VoiceBotInner({ onTaskAdd }) {
                              bestMatch = c;
                          }
                      });
-                     match = bestMatch;
+                     if (bestMatch) match = bestMatch;
                  }
              }
           }
@@ -359,10 +359,9 @@ function VoiceBotInner({ onTaskAdd }) {
           if (match) {
             console.log(`[VoiceBot] SUCCESS: Fuzzy matched client to: "${match}"`);
             validClientName = match;
-          } else if (lowerProvided !== 'general') {
-            const errorMsg = `ERROR: The AI tried to assign the client '${providedClient}', but this client does not exist in your Dreamsdesk list. The task was NOT created.`;
-            alert(errorMsg);
-            return errorMsg;
+          } else {
+             const errorMsg = `ERROR: The AI tried to assign the client '${providedClient}', but this client does not exist in your Dreamsdesk list. The task was NOT created.`;
+             return errorMsg;
           }
         }
 
@@ -430,7 +429,6 @@ function VoiceBotInner({ onTaskAdd }) {
                 assignedEmps.push(match);
              } else {
                 const errorMsg = `ERROR: The AI tried to assign this task to '${name}', but no employee matched that name. The task was NOT created.`;
-                alert(errorMsg);
                 return errorMsg;
              }
           }
