@@ -51,8 +51,29 @@ function VoiceBotInner({ onTaskAdd }) {
       const { tasks, employees, companyList, profile } = latestData.current;
       let filteredTasks = tasks;
       
+      // Filter by Task Query (ID or Title)
+      if (params.task_query) {
+          const taskQuery = params.task_query.trim().toLowerCase();
+          let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
+          if (!match) {
+             let bestMatch = null;
+             let minDistance = Infinity;
+             tasks.forEach(t => {
+                 const title = String(t.title).toLowerCase();
+                 const dist = levenshtein(taskQuery, title);
+                 if (dist < minDistance) { minDistance = dist; bestMatch = t; }
+             });
+             if (bestMatch && minDistance <= Math.max(taskQuery.length, 10) * 0.6) { match = bestMatch; }
+          }
+          if (match) {
+              filteredTasks = [match];
+          } else {
+              return `ERROR: Could not find any task matching '${params.task_query}'.`;
+          }
+      }
+
       // Filter by Assignee
-      if (params.assignee) {
+      if (params.assignee && filteredTasks.length > 0) {
           const assigneeQuery = params.assignee.trim().toLowerCase();
           let matchEmp = null;
           if (assigneeQuery === 'me' || assigneeQuery === 'myself') {
