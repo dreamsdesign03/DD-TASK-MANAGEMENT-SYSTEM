@@ -48,6 +48,7 @@ function VoiceBotInner({ onTaskAdd }) {
   }, [profile, tasks, employees, clients, updateTask]);
 
   const executeQueryTasks = (params) => {
+      console.log("[VoiceBot] executeQueryTasks called with:", params);
       const { tasks, employees, companyList, profile } = latestData.current;
       let filteredTasks = tasks;
       
@@ -133,8 +134,9 @@ function VoiceBotInner({ onTaskAdd }) {
   };
 
   const executeUpdateTask = (params) => {
+      console.log("[VoiceBot] executeUpdateTask called with:", params);
       const { tasks, updateTask, employees, profile } = latestData.current;
-      const taskQuery = (params.task_query || '').trim().toLowerCase();
+      const taskQuery = (params.task_query || params.task_name || params.title || '').trim().toLowerCase();
       
       let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
       if (!match) {
@@ -149,27 +151,30 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (!match) {
-         return `ERROR: Could not find an active task matching '${params.task_query}'. Please ask the user to clarify the task title or ID.`;
+         return `ERROR: Could not find an active task matching '${taskQuery}'. Please ask the user to clarify the task title or ID.`;
       }
 
       let updates = {};
       let successMessages = [];
 
       // Update Status
-      if (params.new_status) {
-          updates.status = params.new_status;
-          successMessages.push(`Status changed to ${params.new_status}`);
+      const newStatus = params.new_status || params.status;
+      if (newStatus) {
+          updates.status = newStatus;
+          successMessages.push(`Status changed to ${newStatus}`);
       }
 
       // Update Department
-      if (params.new_department) {
-          updates.department = params.new_department.toUpperCase();
-          successMessages.push(`Department changed to ${params.new_department}`);
+      const newDepartment = params.new_department || params.department;
+      if (newDepartment) {
+          updates.department = newDepartment.toUpperCase();
+          successMessages.push(`Department changed to ${newDepartment}`);
       }
 
       // Update Assignee (Fuzzy Match & Append)
-      if (params.add_assignee) {
-          const assigneeQuery = params.add_assignee.trim().toLowerCase();
+      const addAssigneeStr = params.add_assignee || params.new_assignee || params.assignee;
+      if (addAssigneeStr) {
+          const assigneeQuery = addAssigneeStr.trim().toLowerCase();
           let empMatch = null;
           if (assigneeQuery === 'me' || assigneeQuery === 'myself' || assigneeQuery === 'my') {
               empMatch = { name: profile?.name || 'Mansi Shah' };
