@@ -813,10 +813,7 @@ function VoiceBotInner({ onTaskAdd }) {
           <span className="font-bold text-sm">Stop Listening</span>
         </div>
       ) : (
-        <>
-          <span className="material-symbols-outlined text-[20px]" style={{ fontSize: 20 }}>mic</span>
-          {hovered && <span style={{ fontWeight: 700, fontSize: 13 }}>Voice AI</span>}
-        </>
+        <span className="material-symbols-outlined text-[20px]" style={{ fontSize: 20 }}>mic</span>
       )}
     </div>
   );
