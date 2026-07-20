@@ -51,8 +51,10 @@ const FILTERS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
 function InlineStatusSelect({ value, onChange, disabled }) {
   const [open, setOpen] = React.useState(false)
   const [rect, setRect] = React.useState(null)
+  const [up, setUp] = React.useState(false)
   const ref = React.useRef(null)
   const menuRef = React.useRef(null)
+  const MENU_H = 200
 
   React.useEffect(() => {
     const handler = (e) => { 
@@ -75,7 +77,9 @@ function InlineStatusSelect({ value, onChange, disabled }) {
   const handleOpen = () => {
     if (!disabled) {
       if (!open && ref.current) {
-        setRect(ref.current.getBoundingClientRect())
+        const r = ref.current.getBoundingClientRect()
+        setRect(r)
+        setUp(r.bottom + 6 + MENU_H > window.innerHeight)
       }
       setOpen(o => !o)
     }
@@ -105,8 +109,9 @@ function InlineStatusSelect({ value, onChange, disabled }) {
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{open ? 'expand_less' : 'expand_more'}</span>
       </div>
       {open && rect && createPortal(
-        <div ref={menuRef} className="animate-fade-in-up" style={{
-          position: 'fixed', top: rect.bottom + 6, left: rect.left, width: rect.width,
+        <div ref={menuRef} className={up ? 'animate-fade-in-down' : 'animate-fade-in-up'} style={{
+          position: 'fixed', left: rect.left, width: rect.width,
+          [up ? 'bottom' : 'top']: up ? window.innerHeight - rect.top + 6 : rect.bottom + 6,
           background: 'white', borderRadius: 12,
           boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
           border: '1px solid #F3F4F6', zIndex: 999999,
