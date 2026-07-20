@@ -255,7 +255,8 @@ function VoiceBotInner({ onTaskAdd }) {
               if (isNonEmp) return { allowed: true };
               return { allowed: false, reason: 'You are not allowed to delete this subtask. Only managers, admins, and department heads can delete subtasks.' };
           case 'add_subtask':
-              return { allowed: true };
+              if (isAssignee || isAssigner || isNonEmp) return { allowed: true };
+              return { allowed: false, reason: `You are not allowed to add subtasks to this task. Only users assigned to this task, the person who assigned it, or managers can add subtasks.` };
           default:
               return { allowed: false, reason: `You are not allowed to perform this action.` };
       }
