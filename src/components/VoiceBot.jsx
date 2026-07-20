@@ -266,34 +266,54 @@ function VoiceBotInner({ onTaskAdd }) {
       console.error('AI Error:', error);
       setIsActive(false);
     },
+    onAgentToolResponse: (event) => {
+      console.log('[VoiceBot] AI processed tool response:', event);
+    },
+    onDebug: (event) => {
+      if (event?.type === 'client_tool_call' || event?.type === 'client_tool_result') {
+        console.log('[VoiceBot] Debug:', event.type, event);
+      }
+    },
     clientTools: {
       get_team_status: async () => {
         const { employees } = latestData.current;
         const online = employees.filter(e => e.status === 'Online').map(e => e.name);
-        return `Currently Online Team Members: ${online.join(', ') || 'No one'}. Offline Members: ${employees.filter(e => e.status !== 'Online').map(e => e.name).join(', ') || 'No one'}.`;
+        const result = `Currently Online Team Members: ${online.join(', ') || 'No one'}. Offline Members: ${employees.filter(e => e.status !== 'Online').map(e => e.name).join(', ') || 'No one'}.`;
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       get_employee_tasks: async (params) => {
-        return executeQueryTasks({
+        const result = executeQueryTasks({
           assignee: params.employee_name || params.assignee,
           task_query: params.task_query || undefined,
         });
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       task_query: async (params) => {
-        return executeQueryTasks(params);
+        const result = executeQueryTasks(params);
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       query_tasks: async (params) => {
-        return executeQueryTasks(params);
+        const result = executeQueryTasks(params);
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       update_task: async (params) => {
-        return executeUpdateTask(params);
+        const result = executeUpdateTask(params);
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       update_task_status: async (params) => {
-        return executeUpdateTask(params);
+        const result = executeUpdateTask(params);
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       },
 
       add_task: async (params) => {
@@ -488,7 +508,9 @@ function VoiceBotInner({ onTaskAdd }) {
         if (onTaskAdd) {
           onTaskAdd(newTask);
         }
-        return `Here is the data from Dreamsdesk: Task "${newTask.title}" has been created for ${validClientName}, assigned to ${assigneeString}. The status is Pending. This task is now saved in the system.`;
+        const addResult = `Here is the data from Dreamsdesk: Task "${newTask.title}" has been created for ${validClientName}, assigned to ${assigneeString}. The status is Pending. This task is now saved in the system.`;
+        try { conversation.sendContextualUpdate(addResult); } catch { /* ignore */ }
+        return addResult;
       }
     }
   });
