@@ -26,10 +26,10 @@ const levenshtein = (a, b) => {
 
 function VoiceBotInner({ onTaskAdd }) {
   const [isActive, setIsActive] = useState(false);
-  const { profile, tasks, employees, clients, updateTask } = useApp();
+  const { profile, tasks, employees, clients, addTask, updateTask } = useApp();
 
   // Fix stale closures by keeping latest state in refs
-  const latestData = React.useRef({ profile, tasks, employees, clients, updateTask, companyList: [] });
+  const latestData = React.useRef({ profile, tasks, employees, clients, addTask, updateTask, companyList: [] });
 
   // Derive company list: merge active clients + existing task clients
   React.useEffect(() => {
@@ -44,8 +44,8 @@ function VoiceBotInner({ onTaskAdd }) {
       .filter(Boolean);
     const companyList = [...new Set([...activeClientNames, ...taskUniqueCompanies])].filter(c => c && String(c).toLowerCase() !== 'internal');
     
-    latestData.current = { profile, tasks, employees, clients, updateTask, companyList };
-  }, [profile, tasks, employees, clients, updateTask]);
+    latestData.current = { profile, tasks, employees, clients, addTask, updateTask, companyList };
+  }, [profile, tasks, employees, clients, addTask, updateTask]);
 
   const executeQueryTasks = (params) => {
       console.log("[VoiceBot] executeQueryTasks called with:", params);
@@ -220,9 +220,50 @@ function VoiceBotInner({ onTaskAdd }) {
       return null;
   };
 
+  const checkPermission = (profile, task, action) => {
+      if (!profile || !task) return { allowed: false, reason: 'You are not logged in.' };
+      if (task.status === 'Done') return { allowed: false, reason: 'This task is already Done and cannot be modified.' };
+
+      const myName = String(profile.name || '').trim().toLowerCase();
+      const myEmail = String(profile.email || '').trim().toLowerCase();
+      const nameNorm = (n) => String(n || '').toLowerCase().replace(/[^\w]/g, '').trim();
+      const assignees = (task.assignedTo || '').split(',').map(nameNorm).filter(Boolean);
+      const assigneeEmails = (task.assignedEmail || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const isAssignee = assignees.includes(nameNorm(profile.name)) || (myEmail && assigneeEmails.includes(myEmail));
+      const isAssigner = String(task.assignedBy || '').toLowerCase() === myName;
+      const role = profile.systemRole || 'Employee';
+      const isNonEmp = role !== 'Employee';
+
+      switch (action) {
+          case 'status':
+          case 'priority':
+              if (isNonEmp || isAssignee) return { allowed: true };
+              return { allowed: false, reason: `You are not allowed to change the ${action} of this task. Only the assigned user, admins, or managers can change the ${action}.` };
+          case 'due_date':
+              if (isAssigner) return { allowed: true };
+              return { allowed: false, reason: `You are not allowed to change the due date of this task. Only the person who assigned the task (${task.assignedBy || 'the assigner'}) can change the due date.` };
+          case 'assignee':
+              return { allowed: true };
+          case 'remove_self':
+              return { allowed: false, reason: 'You cannot remove yourself from the task.' };
+          case 'department':
+              return { allowed: true };
+          case 'delete_task':
+              if (role === 'Admin') return { allowed: true };
+              return { allowed: false, reason: 'You are not allowed to delete this task. Only Admins can delete tasks.' };
+          case 'delete_subtask':
+              if (isNonEmp) return { allowed: true };
+              return { allowed: false, reason: 'You are not allowed to delete this subtask. Only managers, admins, and department heads can delete subtasks.' };
+          case 'add_subtask':
+              return { allowed: true };
+          default:
+              return { allowed: false, reason: `You are not allowed to perform this action.` };
+      }
+  };
+
   const executeUpdateTask = (params) => {
       console.log("[VoiceBot] executeUpdateTask called with:", params);
-      const { tasks, updateTask } = latestData.current;
+      const { tasks, updateTask, profile } = latestData.current;
       const taskQuery = (params.task_query || params.task_name || params.title || '').trim().toLowerCase();
       
       if (!taskQuery) {
@@ -250,6 +291,8 @@ function VoiceBotInner({ onTaskAdd }) {
 
       const newStatus = params.new_status || params.status;
       if (newStatus && ['pending', 'in progress', 'review', 'done', 'blocked'].includes(newStatus.toLowerCase())) {
+          const perm = checkPermission(profile, match, 'status');
+          if (!perm.allowed) return `Here is the data from Dreamsdesk: ${perm.reason}`;
           updates.status = newStatus;
           successMessages.push(`Status changed to ${newStatus}`);
       }
@@ -264,6 +307,11 @@ function VoiceBotInner({ onTaskAdd }) {
       if (addAssigneeStr && addAssigneeStr.toLowerCase() !== 'unassigned') {
           const empMatch = resolveEmployee(addAssigneeStr);
           if (empMatch) {
+              const myEmail = String(profile?.email || '').trim().toLowerCase();
+              const empEmail = String(empMatch.email || '').trim().toLowerCase();
+              if (myEmail && empEmail && myEmail === empEmail) {
+                  return `Here is the data from Dreamsdesk: ${checkPermission(profile, match, 'remove_self').reason}`;
+              }
               const currentAssignees = match.assignedTo ? match.assignedTo.split(',').map(s => s.trim()) : [];
               if (!currentAssignees.includes(empMatch.name)) {
                   currentAssignees.push(empMatch.name);
@@ -280,6 +328,11 @@ function VoiceBotInner({ onTaskAdd }) {
       if (params.remove_assignee) {
           const empMatch = resolveEmployee(params.remove_assignee);
           if (empMatch) {
+              const myEmail = String(profile?.email || '').trim().toLowerCase();
+              const empEmail = String(empMatch.email || '').trim().toLowerCase();
+              if (myEmail && empEmail && myEmail === empEmail) {
+                  return `Here is the data from Dreamsdesk: ${checkPermission(profile, match, 'remove_self').reason}`;
+              }
               let currentAssignees = match.assignedTo ? match.assignedTo.split(',').map(s => s.trim()) : [];
               if (currentAssignees.includes(empMatch.name)) {
                   currentAssignees = currentAssignees.filter(name => name !== empMatch.name);
@@ -295,6 +348,8 @@ function VoiceBotInner({ onTaskAdd }) {
 
       const newPriority = params.priority || params.new_priority;
       if (newPriority && ['low', 'medium', 'high', 'urgent'].includes(newPriority.toLowerCase())) {
+          const perm = checkPermission(profile, match, 'priority');
+          if (!perm.allowed) return `Here is the data from Dreamsdesk: ${perm.reason}`;
           const capped = newPriority.charAt(0).toUpperCase() + newPriority.slice(1).toLowerCase();
           updates.priority = capped;
           successMessages.push(`Priority changed to ${capped}`);
@@ -302,6 +357,8 @@ function VoiceBotInner({ onTaskAdd }) {
 
       const newDueDate = params.due_date || params.deadline;
       if (newDueDate) {
+          const perm = checkPermission(profile, match, 'due_date');
+          if (!perm.allowed) return `Here is the data from Dreamsdesk: ${perm.reason}`;
           try {
               const parsed = new Date(newDueDate);
               if (!isNaN(parsed)) {
@@ -319,6 +376,101 @@ function VoiceBotInner({ onTaskAdd }) {
       } else {
           return `Here is the data from Dreamsdesk: I found the task "${match.title}" but no changes were specified. Please tell me what to update: status, department, assignee, priority, or due date.`;
       }
+  };
+
+  const executeAddSubtask = (params) => {
+      console.log("[VoiceBot] executeAddSubtask called with:", params);
+      const { profile, tasks, employees, addTask } = latestData.current;
+      const parentQuery = (params.parent_task_id || params.parent_task || params.task_query || '').trim().toLowerCase();
+
+      if (!parentQuery) {
+          return `Here is the data from Dreamsdesk: No parent task was specified. Please tell me which task to add the subtask to.`;
+      }
+
+      let parentMatch = tasks.find(t => String(t.id).toLowerCase() === parentQuery);
+      if (!parentMatch) {
+          let best = null, minDist = Infinity;
+          tasks.filter(t => t.status !== 'Done').forEach(t => {
+              const title = String(t.title).toLowerCase();
+              const dist = levenshtein(parentQuery, title);
+              if (dist < minDist) { minDist = dist; best = t; }
+          });
+          if (best && minDist <= Math.max(parentQuery.length, 10) * 0.6) parentMatch = best;
+      }
+
+      if (!parentMatch) {
+          return `Here is the data from Dreamsdesk: I could not find a parent task matching '${parentQuery}'. Please ask the user to clarify.`;
+      }
+
+      const perm = checkPermission(profile, parentMatch, 'add_subtask');
+      if (!perm.allowed) return `Here is the data from Dreamsdesk: ${perm.reason}`;
+
+      if (!params.title || !params.title.trim()) {
+          return `Here is the data from Dreamsdesk: No subtask title was provided. Please ask the user for the subtask title.`;
+      }
+
+      // Calculate subtask ID
+      let maxSubIdNum = 0;
+      const existingSubtasks = tasks.filter(t => String(t.mainTaskId) === String(parentMatch.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'));
+      existingSubtasks.forEach(st => {
+          const match = String(st.id).match(/-(\d+)$/);
+          if (match) { const num = parseInt(match[1], 10); if (num > maxSubIdNum) maxSubIdNum = num; }
+      });
+      const nextSubIdNum = maxSubIdNum + 1;
+      const newStId = `${parentMatch.id}-${String(nextSubIdNum).padStart(2, '0')}`;
+
+      // Resolve assignee
+      let assigneeName = '';
+      let assigneeEmps = [];
+      if (params.assignee && params.assignee.toLowerCase() !== 'unassigned') {
+          const emp = resolveEmployee(params.assignee);
+          if (emp) {
+              assigneeName = emp.name;
+              assigneeEmps = [emp];
+          }
+      }
+
+      // Parse due date
+      let dueDate = '';
+      if (params.due_date || params.deadline) {
+          try {
+              const d = new Date(params.due_date || params.deadline);
+              if (!isNaN(d)) {
+                  dueDate = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
+              }
+          } catch {}
+      }
+
+      let calculatedOverdue = 'No';
+      if (dueDate) {
+          const dueTime = new Date(dueDate).setHours(23, 59, 59, 999);
+          if (dueTime < Date.now()) calculatedOverdue = 'Yes';
+      }
+
+      const newSubtask = {
+          id: newStId,
+          title: params.title.trim(),
+          taskType: 'Sub Task',
+          mainTaskId: parentMatch.id,
+          client: parentMatch.client,
+          project: parentMatch.project,
+          department: parentMatch.department,
+          status: 'Pending',
+          assignedTo: assigneeName,
+          assignedBy: profile?.name || 'System',
+          employeeId: assigneeEmps.map(e => e.id).filter(Boolean).join(', '),
+          assignedEmail: assigneeEmps.map(e => e.email).filter(Boolean).join(', '),
+          priority: params.priority || 'Medium',
+          dueDate: dueDate,
+          daysOverdue: calculatedOverdue,
+          description: { intro: (params.description || '').trim() || 'Added via Voice Assistant.', bullets: [], outro: '' }
+      };
+
+      if (addTask) addTask(newSubtask, { addToSheet: true });
+
+      const result = `Here is the data from Dreamsdesk: Subtask "${newSubtask.title}" has been added to task "${parentMatch.title}". It is assigned to ${assigneeName || 'no one'} with ${newSubtask.priority} priority.`;
+      try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+      return result;
   };
 
   const conversation = useConversation({
@@ -580,6 +732,12 @@ function VoiceBotInner({ onTaskAdd }) {
         const addResult = `Here is the data from Dreamsdesk: Task "${newTask.title}" has been created for ${validClientName}, assigned to ${assigneeString}. The status is Pending. This task is now saved in the system.`;
         try { conversation.sendContextualUpdate(addResult); } catch { /* ignore */ }
         return addResult;
+      },
+
+      add_subtask: async (params) => {
+        const result = executeAddSubtask(params);
+        try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
+        return result;
       }
     }
   });
