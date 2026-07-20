@@ -175,6 +175,7 @@ export default function TaskDetailPage() {
 
   // Recurring Task Modal State
   const [showRecurringModal, setShowRecurringModal] = useState(false)
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false)
   const [recurringSchedule, setRecurringSchedule] = useState('Weekly')
   const [recurringDay, setRecurringDay] = useState('Monday')
   const [recurringMonths, setRecurringMonths] = useState([])
@@ -1392,7 +1393,37 @@ export default function TaskDetailPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500 w-1/3">Due Date</span>
-                    <span className="text-[13px] font-bold text-[#1E1B2E]">{task.dueDate}</span>
+                    {isAssigner && !isTaskDone ? (
+                      isEditingDueDate ? (
+                        <input
+                          type="date"
+                          value={task.dueDate || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (!val) return;
+                            const d = new Date(val + 'T00:00:00');
+                            if (d.getDay() === 0) {
+                              addToast('Sundays cannot be selected as a due date. Please select another day.', 'error');
+                              return;
+                            }
+                            updateTask(task.id, { dueDate: val });
+                          }}
+                          onBlur={() => setIsEditingDueDate(false)}
+                          autoFocus
+                          className="text-[13px] font-bold text-[#1E1B2E] bg-purple-50 border border-[#702c91]/40 rounded-md px-2 py-1 outline-none w-[140px] text-right"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setIsEditingDueDate(true)}
+                          className="text-[13px] font-bold text-[#1E1B2E] bg-transparent border border-dashed border-gray-300 hover:border-[#702c91]/40 rounded-md px-2 py-1 cursor-pointer hover:bg-purple-50/50 transition-colors flex items-center gap-1"
+                        >
+                          {task.dueDate || 'Set date'}
+                          <span className="material-symbols-outlined text-[14px] text-gray-400">edit</span>
+                        </button>
+                      )
+                    ) : (
+                      <span className="text-[13px] font-bold text-[#1E1B2E]">{task.dueDate}</span>
+                    )}
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500 w-1/3">Overdue</span>
@@ -1461,7 +1492,7 @@ export default function TaskDetailPage() {
                       </h3>
                     </div>
                     <div className="p-5 flex flex-col gap-4">
-                      <SelectDropdown value={task.status} onChange={handleStatusChange} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} />
+                      <SelectDropdown value={task.status} onChange={handleStatusChange} options={['Pending', 'In Progress', 'Review', 'Done', 'Blocked']} dropdownUp={true} />
                     </div>
                   </div>
                 )
