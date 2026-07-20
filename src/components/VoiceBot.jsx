@@ -768,31 +768,55 @@ function VoiceBotInner({ onTaskAdd }) {
     }
   };
 
+  const [hovered, setHovered] = useState(false);
+  const btnStyle = isActive ? {
+    height: 44,
+    width: 'auto',
+    minWidth: 44,
+    background: '#ef4444',
+    color: 'white',
+    boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+    padding: '0 16px 0 12px',
+    gap: '8px',
+  } : {
+    height: 44,
+    width: 'auto',
+    minWidth: 44,
+    maxWidth: hovered ? 200 : 44,
+    background: 'linear-gradient(to right, rgb(112, 44, 145), rgb(236, 0, 140))',
+    color: 'white',
+    boxShadow: 'rgba(91, 33, 182, 0.06) 0px 2px 8px',
+    padding: hovered ? '0 16px 0 14px' : '0',
+    gap: hovered ? '8px' : '0',
+    cursor: 'pointer',
+  };
+
   return (
     <div
       onClick={toggleConversation}
-      className={`rounded-full flex items-center justify-center cursor-pointer shadow-sm overflow-hidden whitespace-nowrap transition-all`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="rounded-full flex items-center justify-center overflow-hidden whitespace-nowrap"
       style={{
-        height: 44,
-        width: isActive ? 'auto' : 44,
-        minWidth: 44,
-        background: isActive ? '#ef4444' : '#F9F4FB', // Red if active (recording), Purple-ish if inactive
-        color: isActive ? 'white' : '#702c91',
-        boxShadow: isActive ? '0 4px 20px rgba(239, 68, 68, 0.4)' : '0 2px 8px rgba(91,33,182,0.06)',
-        padding: isActive ? '0 16px 0 12px' : '0',
-        gap: isActive ? '8px' : '0',
+        ...btnStyle,
+        fontFamily: 'Inter, sans-serif',
+        fontSize: 14,
+        fontWeight: 700,
+        transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
       }}
       title="Voice AI Assistant"
     >
       {isActive ? (
         <div className="flex items-center gap-2">
-          {/* Animated pulsing dot for recording */}
           <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
           <span className="material-symbols-outlined text-[20px]">mic_off</span>
-          <span className="font-bold text-sm" style={{ fontFamily: 'Inter, sans-serif' }}>Stop Listening</span>
+          <span className="font-bold text-sm">Stop Listening</span>
         </div>
       ) : (
-        <span className="material-symbols-outlined text-[20px]">mic</span>
+        <>
+          <span className="material-symbols-outlined text-[20px]" style={{ fontSize: 20 }}>mic</span>
+          {hovered && <span style={{ fontWeight: 700, fontSize: 13 }}>Voice AI</span>}
+        </>
       )}
     </div>
   );
