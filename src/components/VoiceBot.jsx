@@ -128,12 +128,13 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (filteredTasks.length === 0) {
-          const response = "No tasks found.";
+          const response = "SYSTEM: There are 0 tasks. Tell the user there are no tasks found.";
           console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
           return response;
       }
       
-      const response = filteredTasks.slice(0, 10).map(t => t.title).join(' AND ');
+      const taskNames = filteredTasks.slice(0, 10).map(t => `"${t.title}"`).join(', and ');
+      const response = `SYSTEM: The database search is complete. I found ${filteredTasks.length} tasks. You MUST read these exact task titles to the user right now: ${taskNames}`;
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
