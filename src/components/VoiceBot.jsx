@@ -128,13 +128,13 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (filteredTasks.length === 0) {
-          const response = "SYSTEM: There are 0 tasks. Tell the user there are no tasks found.";
+          const response = "I checked the live database and found 0 tasks matching those filters.";
           console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
           return response;
       }
       
-      const taskNames = filteredTasks.slice(0, 10).map(t => `"${t.title}"`).join(', and ');
-      const response = `SYSTEM: The database search is complete. I found ${filteredTasks.length} tasks. You MUST read these exact task titles to the user right now: ${taskNames}`;
+      const taskDetails = filteredTasks.slice(0, 10).map(t => `Task Title: "${t.title}" (Client: ${t.client})`).join(', and ');
+      const response = `I found ${filteredTasks.length} tasks in the live database. They are: ${taskDetails}. Please read this exact list to the user.`;
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
@@ -273,35 +273,33 @@ function VoiceBotInner({ onTaskAdd }) {
       setIsActive(false);
     },
     clientTools: {
-      get_team_status: () => {
+      get_team_status: async () => {
         const { employees } = latestData.current;
         const online = employees.filter(e => e.status === 'Online').map(e => e.name);
         return `Currently Online Team Members: ${online.join(', ') || 'No one'}. Offline Members: ${employees.filter(e => e.status !== 'Online').map(e => e.name).join(', ') || 'No one'}.`;
       },
 
-      get_employee_tasks: (params) => {
-        // Alias for older configurations
+      get_employee_tasks: async (params) => {
         return executeQueryTasks({ ...params, assignee: params.employee_name || params.assignee });
       },
 
-      task_query: (params) => {
-        // Alias because the user created this as a separate tool
+      task_query: async (params) => {
         return executeQueryTasks(params);
       },
 
-      query_tasks: (params) => {
+      query_tasks: async (params) => {
         return executeQueryTasks(params);
       },
 
-      update_task: (params) => {
+      update_task: async (params) => {
         return executeUpdateTask(params);
       },
 
-      update_task_status: (params) => {
+      update_task_status: async (params) => {
         return executeUpdateTask(params);
       },
 
-      add_task: (params) => {
+      add_task: async (params) => {
         console.log("Adding task via VoiceBot", params);
         
         const { employees, companyList, tasks, profile } = latestData.current;
