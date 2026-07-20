@@ -115,6 +115,28 @@ function VoiceBotInner({ onTaskAdd }) {
           filteredTasks = filteredTasks.filter(t => t.client === matchClient);
       }
 
+      // Filter by Due Date Range
+      if (params.due_date_from || params.due_date_to) {
+          const fromDate = params.due_date_from ? new Date(params.due_date_from) : null;
+          const toDate = params.due_date_to ? new Date(params.due_date_to) : null;
+          if (fromDate && isNaN(fromDate)) return `Here is the data from Dreamsdesk: The start date '${params.due_date_from}' is not valid. Please ask the user for a valid date.`;
+          if (toDate && isNaN(toDate)) return `Here is the data from Dreamsdesk: The end date '${params.due_date_to}' is not valid. Please ask the user for a valid date.`;
+          filteredTasks = filteredTasks.filter(t => {
+              if (!t.dueDate) return false;
+              const taskDate = new Date(t.dueDate);
+              if (isNaN(taskDate)) return false;
+              if (fromDate && taskDate < fromDate) return false;
+              if (toDate && taskDate > new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate(), 23, 59, 59)) return false;
+              return true;
+          });
+      }
+
+      // Filter by Priority
+      if (params.priority) {
+          const priorityQ = params.priority.toLowerCase();
+          filteredTasks = filteredTasks.filter(t => (t.priority || '').toLowerCase() === priorityQ);
+      }
+
       // Filter by Status
       if (params.status) {
           const statusQ = params.status.toLowerCase();
@@ -133,20 +155,47 @@ function VoiceBotInner({ onTaskAdd }) {
           return response;
       }
 
-      const count = filteredTasks.length;
-      const taskLines = filteredTasks.slice(0, 10).map((t, i) => {
-          const parts = [`${i + 1}. "${t.title}"`];
-          if (t.client) parts.push(`for ${t.client}`);
-          if (t.status) parts.push(`- status is ${t.status}`);
-          if (t.assignedTo) parts.push(`- assigned to ${t.assignedTo}`);
-          return parts.join(' ');
-      });
-
       let response;
-      if (count === 1) {
-          response = `Here is the task data from Dreamsdesk: ${taskLines[0]}. This is the only task found.`;
+      const count = filteredTasks.length;
+
+      if (params.priority) {
+          const deptGroups = {};
+          filteredTasks.forEach(t => {
+              const dept = t.department || 'COMMON';
+              if (!deptGroups[dept]) deptGroups[dept] = [];
+              deptGroups[dept].push(t);
+          });
+          const deptLines = [];
+          let taskNum = 1;
+          Object.entries(deptGroups).forEach(([dept, deptTasks]) => {
+              const taskItems = deptTasks.slice(0, 5).map(t => {
+                  const parts = [`"${t.title}"`];
+                  if (t.client) parts.push(`for ${t.client}`);
+                  if (t.status) parts.push(`- status is ${t.status}`);
+                  if (t.assignedTo) parts.push(`- assigned to ${t.assignedTo}`);
+                  if (t.dueDate) parts.push(`- due ${t.dueDate}`);
+                  return `${taskNum++}. ${parts.join(' ')}`;
+              });
+              deptLines.push(`In ${dept} department: ${taskItems.join(', ')}`);
+          });
+          if (count === 1) {
+              response = `Here is the task data from Dreamsdesk: ${deptLines.join('. ')}. This is the only ${params.priority} priority task found.`;
+          } else {
+              response = `Here is the task data from Dreamsdesk: ${deptLines.join('. ')}. These are all ${count} ${params.priority} priority tasks found across ${Object.keys(deptGroups).length} departments.`;
+          }
       } else {
-          response = `Here is the task data from Dreamsdesk: ${taskLines.join('. ')}. These are all ${count} tasks found.`;
+          const taskLines = filteredTasks.slice(0, 10).map((t, i) => {
+              const parts = [`${i + 1}. "${t.title}"`];
+              if (t.client) parts.push(`for ${t.client}`);
+              if (t.status) parts.push(`- status is ${t.status}`);
+              if (t.assignedTo) parts.push(`- assigned to ${t.assignedTo}`);
+              return parts.join(' ');
+          });
+          if (count === 1) {
+              response = `Here is the task data from Dreamsdesk: ${taskLines[0]}. This is the only task found.`;
+          } else {
+              response = `Here is the task data from Dreamsdesk: ${taskLines.join('. ')}. These are all ${count} tasks found.`;
+          }
       }
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
@@ -285,8 +334,8 @@ function VoiceBotInner({ onTaskAdd }) {
 
       get_employee_tasks: async (params) => {
         const result = executeQueryTasks({
+          ...params,
           assignee: params.employee_name || params.assignee,
-          task_query: params.task_query || undefined,
         });
         try { conversation.sendContextualUpdate(result); } catch { /* ignore */ }
         return result;
