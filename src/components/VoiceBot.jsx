@@ -293,11 +293,31 @@ function VoiceBotInner({ onTaskAdd }) {
           }
       }
 
+      const newPriority = params.priority || params.new_priority;
+      if (newPriority && ['low', 'medium', 'high', 'urgent'].includes(newPriority.toLowerCase())) {
+          const capped = newPriority.charAt(0).toUpperCase() + newPriority.slice(1).toLowerCase();
+          updates.priority = capped;
+          successMessages.push(`Priority changed to ${capped}`);
+      }
+
+      const newDueDate = params.due_date || params.deadline;
+      if (newDueDate) {
+          try {
+              const parsed = new Date(newDueDate);
+              if (!isNaN(parsed)) {
+                  updates.dueDate = parsed.toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata'
+                  });
+                  successMessages.push(`Due date changed to ${updates.dueDate}`);
+              }
+          } catch { /* ignore invalid date */ }
+      }
+
       if (Object.keys(updates).length > 0) {
          updateTask(match.id, updates);
          return `Here is the update data from Dreamsdesk: Task "${match.title}" has been updated. ${successMessages.join('. ')}. This change is now saved in the system.`;
       } else {
-          return `Here is the data from Dreamsdesk: I found the task "${match.title}" but no changes were specified. Please tell me what to update: status, department, or assignee.`;
+          return `Here is the data from Dreamsdesk: I found the task "${match.title}" but no changes were specified. Please tell me what to update: status, department, assignee, priority, or due date.`;
       }
   };
 
