@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import TaskCalendar from './TaskCalendar'
+import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
 
 const PRIORITY_STYLES = {
@@ -673,6 +674,10 @@ export default function TaskTable() {
             >
               <span className="material-symbols-outlined text-[20px]">open_in_new</span>
             </button>
+            <VoiceBot onTaskAdd={async (params) => {
+              await addTask(params)
+              addToast('Task added via VoiceBot!', 'success')
+            }} />
             <div
               onMouseEnter={e => {
                 e.currentTarget.style.maxWidth = '300px';

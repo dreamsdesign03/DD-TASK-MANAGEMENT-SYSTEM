@@ -17,7 +17,7 @@ import ActivityPage from './pages/ActivityPage'
 import TimerBadge from './components/TimerBadge'
 import Sidebar from './components/Sidebar'
 import TopNav from './components/TopNav'
-import VoiceBot from './components/VoiceBot'
+
 
 function GlobalNav() {
   const navigate = useNavigate()
@@ -109,25 +109,11 @@ function RootRedirect() {
   return <Navigate to="/login" replace />
 }
 
-function GlobalVoiceBot() {
-  const { profile, addTask, addToast } = useApp()
-  if (!profile?.email) return null
-  return (
-    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 99999 }}>
-      <VoiceBot onTaskAdd={async (params) => {
-        await addTask(params)
-        addToast('Task added via VoiceBot!', 'success')
-      }} />
-    </div>
-  )
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <GlobalNav />
       {typeof window !== 'undefined' && !window.require && <TimerBadge />}
-      <GlobalVoiceBot />
       <Routes>
         {/* Default */}
         <Route path="/" element={<RootRedirect />} />
