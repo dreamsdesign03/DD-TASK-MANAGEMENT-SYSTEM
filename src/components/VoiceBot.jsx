@@ -69,7 +69,7 @@ function VoiceBotInner({ onTaskAdd }) {
           if (match) {
               filteredTasks = [match];
           } else {
-              return `ERROR: Could not find any task matching '${params.task_query}'.`;
+              return `Here is the data from Dreamsdesk: Could not find any task matching '${params.task_query}'. Please ask the user to clarify the task title or ID.`;
           }
       }
 
@@ -94,7 +94,7 @@ function VoiceBotInner({ onTaskAdd }) {
                  if (bestEmp && minEmpDist <= Math.max(assigneeQuery.length, 5) * 0.5) { matchEmp = bestEmp; }
               }
           }
-          if (!matchEmp) return `ERROR: Could not find any employee named '${params.assignee}'.`;
+          if (!matchEmp) return `Here is the data from Dreamsdesk: Could not find any employee named '${params.assignee}'. Please ask the user to clarify the employee name.`;
           filteredTasks = filteredTasks.filter(t => t.assignedTo && t.assignedTo.includes(matchEmp.name));
       }
 
@@ -111,7 +111,7 @@ function VoiceBotInner({ onTaskAdd }) {
           });
           if (minClientDist > Math.max(clientQuery.length, 5) * 0.5) matchClient = null;
           
-          if (!matchClient) return `ERROR: Could not find any client matching '${params.client}'.`;
+          if (!matchClient) return `Here is the data from Dreamsdesk: Could not find any client matching '${params.client}'. Please ask the user to clarify the client name.`;
           filteredTasks = filteredTasks.filter(t => t.client === matchClient);
       }
 
@@ -135,7 +135,7 @@ function VoiceBotInner({ onTaskAdd }) {
 
       const count = filteredTasks.length;
       const taskLines = filteredTasks.slice(0, 10).map((t, i) => {
-          const parts = [`${i + 1}. ${t.title}`];
+          const parts = [`${i + 1}. "${t.title}"`];
           if (t.client) parts.push(`for ${t.client}`);
           if (t.status) parts.push(`- status is ${t.status}`);
           if (t.assignedTo) parts.push(`- assigned to ${t.assignedTo}`);
@@ -144,9 +144,9 @@ function VoiceBotInner({ onTaskAdd }) {
 
       let response;
       if (count === 1) {
-          response = `I found 1 task. ${taskLines[0]}.`;
+          response = `Here is the task data from Dreamsdesk: ${taskLines[0]}. This is the only task found.`;
       } else {
-          response = `I found ${count} tasks. ${taskLines.join('. ')}.`;
+          response = `Here is the task data from Dreamsdesk: ${taskLines.join('. ')}. These are all ${count} tasks found.`;
       }
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
@@ -177,7 +177,7 @@ function VoiceBotInner({ onTaskAdd }) {
       const taskQuery = (params.task_query || params.task_name || params.title || '').trim().toLowerCase();
       
       if (!taskQuery) {
-          return "ERROR: No task was specified. Please tell me which task you want to update.";
+          return `Here is the data from Dreamsdesk: No task was specified. Please tell me which task you want to update.`;
       }
 
       let match = tasks.find(t => String(t.id).toLowerCase() === taskQuery);
@@ -193,7 +193,7 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (!match) {
-          return `ERROR: I could not find an active task matching '${params.task_query || taskQuery}'. Please ask the user to clarify the task title or ID.`;
+          return `Here is the data from Dreamsdesk: I could not find an active task matching '${params.task_query || taskQuery}'. Please ask the user to clarify the task title or ID.`;
       }
 
       let updates = {};
@@ -246,9 +246,9 @@ function VoiceBotInner({ onTaskAdd }) {
 
       if (Object.keys(updates).length > 0) {
          updateTask(match.id, updates);
-         return `Done! I updated the task "${match.title}". ${successMessages.join('. ')}.`;
+         return `Here is the update data from Dreamsdesk: Task "${match.title}" has been updated. ${successMessages.join('. ')}. This change is now saved in the system.`;
       } else {
-          return `I found the task "${match.title}" but you did not tell me what to change. Please specify the status, department, or assignee you want to update.`;
+          return `Here is the data from Dreamsdesk: I found the task "${match.title}" but no changes were specified. Please tell me what to update: status, department, or assignee.`;
       }
   };
 
@@ -302,15 +302,15 @@ function VoiceBotInner({ onTaskAdd }) {
         const { employees, companyList, tasks, profile } = latestData.current;
 
         if (!params.title || !params.title.trim()) {
-            return "ERROR: Please provide a task title. What is the task about?";
+            return "Here is the data from Dreamsdesk: No task title was provided. Please ask the user for the task title.";
         }
 
         if (!params.client || !params.client.trim()) {
-            return "ERROR: Please provide a client name. Which client is this task for?";
+            return "Here is the data from Dreamsdesk: No client name was provided. Please ask the user which client this task is for.";
         }
 
         if (!params.assignee || !params.assignee.trim()) {
-            return "ERROR: Please provide an assignee. Who should work on this task?";
+            return "Here is the data from Dreamsdesk: No assignee was provided. Please ask the user who should work on this task.";
         }
 
         // Client Validation & Fuzzy Matching
@@ -367,7 +367,7 @@ function VoiceBotInner({ onTaskAdd }) {
             console.log(`[VoiceBot] SUCCESS: Fuzzy matched client to: "${match}"`);
             validClientName = match;
           } else {
-             throw new Error(`I could not create the task because the client '${providedClient}' does not exist in our system. Please ask the user for the correct client name.`);
+              throw new Error(`Here is the data from Dreamsdesk: The client '${providedClient}' does not exist in our system. Please ask the user for the correct client name.`);
           }
         }
 
@@ -433,7 +433,7 @@ function VoiceBotInner({ onTaskAdd }) {
                 validAssigneeNames.push(match.name);
                 assignedEmps.push(match);
              } else {
-                throw new Error(`I could not create the task because I could not find any employee named '${name}'. Please ask the user to clarify the employee's name.`);
+                 throw new Error(`Here is the data from Dreamsdesk: Could not find any employee named '${name}'. Please ask the user to clarify the employee's name.`);
              }
           }
         } else {
@@ -488,7 +488,7 @@ function VoiceBotInner({ onTaskAdd }) {
         if (onTaskAdd) {
           onTaskAdd(newTask);
         }
-        return `Done! I created the task "${newTask.title}" for ${validClientName}, assigned to ${assigneeString}. The status is Pending.`;
+        return `Here is the data from Dreamsdesk: Task "${newTask.title}" has been created for ${validClientName}, assigned to ${assigneeString}. The status is Pending. This task is now saved in the system.`;
       }
     }
   });
