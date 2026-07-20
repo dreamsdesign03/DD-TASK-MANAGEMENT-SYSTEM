@@ -9,7 +9,7 @@ import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import TaskCalendar from './TaskCalendar'
 import SelectDropdown from './SelectDropdown'
-import VoiceBot from './VoiceBot'
+
 const PRIORITY_STYLES = {
   Urgent: 'bg-[#E74C3C] text-white',
   High: 'bg-[#F39C12] text-white',
@@ -673,11 +673,6 @@ export default function TaskTable() {
             >
               <span className="material-symbols-outlined text-[20px]">open_in_new</span>
             </button>
-            <VoiceBot onTaskAdd={async (params) => {
-              // Extract details or use defaults
-              await addTask(params)
-              addToast('Task added via VoiceBot!', 'success')
-            }} />
             <div
               onMouseEnter={e => {
                 e.currentTarget.style.maxWidth = '300px';
