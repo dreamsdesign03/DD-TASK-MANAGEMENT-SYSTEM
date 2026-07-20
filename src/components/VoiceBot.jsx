@@ -128,13 +128,26 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (filteredTasks.length === 0) {
-          const response = "Query successful. Found 0 tasks matching the request.";
+          const response = "There are no tasks found matching your request.";
           console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
           return response;
       }
-      
-      const taskDetails = filteredTasks.slice(0, 10).map(t => `Task Title: ${t.title} (Client: ${t.client})`).join(' AND ');
-      const response = `Query successful. Found ${filteredTasks.length} tasks. Here is the list: ${taskDetails}`;
+
+      const count = filteredTasks.length;
+      const taskLines = filteredTasks.slice(0, 10).map((t, i) => {
+          const parts = [`${i + 1}. ${t.title}`];
+          if (t.client) parts.push(`for ${t.client}`);
+          if (t.status) parts.push(`- status is ${t.status}`);
+          if (t.assignedTo) parts.push(`- assigned to ${t.assignedTo}`);
+          return parts.join(' ');
+      });
+
+      let response;
+      if (count === 1) {
+          response = `I found 1 task. ${taskLines[0]}.`;
+      } else {
+          response = `I found ${count} tasks. ${taskLines.join('. ')}.`;
+      }
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
@@ -233,9 +246,9 @@ function VoiceBotInner({ onTaskAdd }) {
 
       if (Object.keys(updates).length > 0) {
          updateTask(match.id, updates);
-         return `SUCCESS: Task '${match.title}' (${match.id}) updated. ${successMessages.join(' | ')}.`;
+         return `Done! I updated the task "${match.title}". ${successMessages.join('. ')}.`;
       } else {
-          return `ERROR: You did not provide any fields to update for task '${match.title}'. Please tell me what you want to change (status, department, or assignee).`;
+          return `I found the task "${match.title}" but you did not tell me what to change. Please specify the status, department, or assignee you want to update.`;
       }
   };
 
@@ -475,7 +488,7 @@ function VoiceBotInner({ onTaskAdd }) {
         if (onTaskAdd) {
           onTaskAdd(newTask);
         }
-        return "Task successfully added to the system.";
+        return `Done! I created the task "${newTask.title}" for ${validClientName}, assigned to ${assigneeString}. The status is Pending.`;
       }
     }
   });
