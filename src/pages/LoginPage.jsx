@@ -326,7 +326,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-stretch justify-center relative overflow-y-auto md:overflow-hidden" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
+    <div className="min-h-screen w-full flex items-stretch justify-center relative overflow-y-auto" style={{ background: 'linear-gradient(135deg, #F3F1FA 0%, #E9E4F9 100%)' }}>
 
       {/* Atmospheric Blobs */}
       <div
@@ -414,11 +414,11 @@ export default function LoginPage() {
 
         {/* RIGHT PANEL */}
         <section
-          className="w-full md:w-1/2 bg-white flex flex-col items-center justify-center md:overflow-y-auto"
+          className="w-full md:w-1/2 bg-white flex flex-col items-center justify-start md:overflow-y-auto"
           style={{ padding: 'clamp(3rem, 6vw, 6rem) clamp(1.5rem, 5vw, 5rem)' }}
         >
           {waitingForBrowser ? (
-            <div className="w-full flex flex-col items-center text-center" style={{ maxWidth: '400px' }}>
+            <div className="w-full flex flex-col items-center text-center my-auto" style={{ maxWidth: '400px' }}>
               <div className="w-20 h-20 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-[40px] text-[#702c91] animate-spin" style={{ animationDuration: '3s' }}>progress_activity</span>
               </div>
@@ -458,7 +458,7 @@ export default function LoginPage() {
               </button>
             </div>
           ) : (
-          <div className="w-full flex flex-col items-center" style={{ maxWidth: '400px' }}>
+          <div className="w-full flex flex-col items-center my-auto" style={{ maxWidth: '400px' }}>
 
             {/* Mobile Logo */}
             <div className="md:hidden w-20 h-20 rounded-full bg-[#F5F3FF] flex items-center justify-center mx-auto mb-6">
