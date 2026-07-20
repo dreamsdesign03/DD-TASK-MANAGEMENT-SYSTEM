@@ -128,13 +128,13 @@ function VoiceBotInner({ onTaskAdd }) {
       }
 
       if (filteredTasks.length === 0) {
-          const response = "Database Query Result: 0 tasks matched the filters.";
+          const response = "Query successful. Found 0 tasks matching the request.";
           console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
           return response;
       }
       
-      const taskDetails = filteredTasks.slice(0, 10).map(t => `- Title: "${t.title}", Client: ${t.client}`).join('\n');
-      const response = `Database Query Result:\nTotal tasks found: ${filteredTasks.length}\nTasks:\n${taskDetails}`;
+      const taskDetails = filteredTasks.slice(0, 10).map(t => `Task Title: ${t.title} (Client: ${t.client})`).join(' AND ');
+      const response = `Query successful. Found ${filteredTasks.length} tasks. Here is the list: ${taskDetails}`;
       console.log("[VoiceBot] executeQueryTasks returning to AI:", response);
       return response;
   };
