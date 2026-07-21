@@ -1767,6 +1767,11 @@ export function AppProvider({ children }) {
       addToast(`${updateTitle}`, 'success')
     }
 
+    // Auto-stop timer if task is marked Done
+    if (hasStatusChange && fields.status === 'Done' && activeTimer && activeTimer.taskId === id) {
+      toggleTimer(currentTask, profile?.name)
+    }
+
     try {
       const url = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
       const res = await fetch(url, {
