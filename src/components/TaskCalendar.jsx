@@ -2,11 +2,15 @@ import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUserColor, getInitials } from '../utils/avatar'
 
+const MAX_VISIBLE_TASKS = 2
+
 export default function TaskCalendar({ tasks }) {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [showMonthDropdown, setShowMonthDropdown] = useState(false)
+  const [popupDay, setPopupDay] = useState(null)
   const monthDropdownRef = useRef(null)
+  const popupRef = useRef(null)
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -20,6 +24,9 @@ export default function TaskCalendar({ tasks }) {
     function handleClickOutside(event) {
       if (monthDropdownRef.current && !monthDropdownRef.current.contains(event.target)) {
         setShowMonthDropdown(false)
+      }
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setPopupDay(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -95,6 +102,8 @@ export default function TaskCalendar({ tasks }) {
   const isToday = (d, m, y) => {
     return d === today.getDate() && m === today.getMonth() && y === today.getFullYear()
   }
+
+  const getDateKey = (cell) => `${cell.year}-${cell.month}-${cell.day}`
 
   return (
     <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[450px] md:min-h-[700px] h-auto md:h-[calc(100vh-280px)]">
@@ -173,9 +182,12 @@ export default function TaskCalendar({ tasks }) {
         {/* Days grid */}
         <div className="flex-1 grid grid-cols-7 auto-rows-fr min-h-0">
           {days.map((cell, idx) => {
-            const dateKey = `${cell.year}-${cell.month}-${cell.day}`
+            const dateKey = getDateKey(cell)
             const dayTasks = tasksByDate[dateKey] || []
             const currentIsToday = isToday(cell.day, cell.month, cell.year)
+            const visibleTasks = dayTasks.slice(0, MAX_VISIBLE_TASKS)
+            const extraCount = dayTasks.length - MAX_VISIBLE_TASKS
+            const isPopupOpen = popupDay === dateKey
 
             return (
               <div 
@@ -187,14 +199,9 @@ export default function TaskCalendar({ tasks }) {
                   {cell.day}
                 </div>
 
-                {/* Tasks container */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-0.5 md:gap-1 min-h-0">
-                  {dayTasks.length > 6 && (
-                    <div className="text-[8px] md:text-[10px] font-bold text-[#702c91] px-1">
-                      +{dayTasks.length - 6} more
-                    </div>
-                  )}
-                  {dayTasks.slice(0, 6).map((t, i) => (
+                {/* Task chips */}
+                <div className="flex-1 flex flex-col gap-0.5 md:gap-1 min-h-0">
+                  {visibleTasks.map((t, i) => (
                     <div 
                       key={i}
                       onClick={() => navigate(`/tasks/${t.id}`)}
@@ -204,7 +211,39 @@ export default function TaskCalendar({ tasks }) {
                       <div className="truncate leading-tight">{t.title}</div>
                     </div>
                   ))}
+                  {extraCount > 0 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setPopupDay(isPopupOpen ? null : dateKey) }}
+                      className="text-[9px] md:text-[11px] font-bold text-[#702c91] hover:text-[#5a2374] text-left px-1 py-0.5 rounded transition-colors cursor-pointer border-none bg-transparent"
+                    >
+                      +{extraCount} more
+                    </button>
+                  )}
                 </div>
+
+                {/* Popup overlay */}
+                {isPopupOpen && (
+                  <div
+                    ref={popupRef}
+                    className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-[#E5E7EB] rounded-lg shadow-xl p-2 max-h-48 overflow-y-auto"
+                    style={{ minWidth: 200 }}
+                  >
+                    <div className="text-[10px] font-bold text-[#6B7280] mb-1.5 px-1">
+                      {dayTasks.length} tasks on {months[cell.month]} {cell.day}
+                    </div>
+                    {dayTasks.map((t, i) => (
+                      <div
+                        key={i}
+                        onClick={() => { navigate(`/tasks/${t.id}`); setPopupDay(null) }}
+                        className={`px-2 py-1.5 text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all mb-1 last:mb-0 ${getStatusColor(t.status)}`}
+                        title={`${t.title} (${t.status})`}
+                      >
+                        <div className="leading-tight">{t.title}</div>
+                        <div className="text-[9px] font-normal text-gray-500 mt-0.5">{t.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )
           })}
