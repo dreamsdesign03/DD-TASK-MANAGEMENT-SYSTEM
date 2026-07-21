@@ -555,15 +555,7 @@ export function AppProvider({ children }) {
           date: getISTDate(),
           endTime: outTime
         });
-        fetch(DAILY_SHEET_URL, {
-          method: 'POST', mode: 'no-cors', keepalive: true,
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: payload
-        }).catch(() => { })
-        try {
-          const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' })
-          navigator.sendBeacon(DAILY_SHEET_URL, blob)
-        } catch (_) { }
+        navigator.sendBeacon(DAILY_SHEET_URL, new Blob([payload], { type: 'text/plain;charset=utf-8' }))
       }
     }
   }
