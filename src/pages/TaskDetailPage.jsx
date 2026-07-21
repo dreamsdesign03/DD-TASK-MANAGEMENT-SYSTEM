@@ -161,6 +161,8 @@ export default function TaskDetailPage() {
 
   const [isEditingDescription, setIsEditingDescription] = useState(false)
   const [editDescriptionContent, setEditDescriptionContent] = useState('')
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editTitleContent, setEditTitleContent] = useState('')
 
   // Chat Background State
   const [chatBackgrounds, setChatBackgrounds] = useState(() => {
@@ -773,7 +775,37 @@ export default function TaskDetailPage() {
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   <span className="bg-[#E5E7EB] text-[#4B5563] text-[11px] font-bold px-3 py-1 rounded-full">{task.id}</span>
                   <h1 className="text-[28px] font-black text-[#1E1B2E] m-0 flex items-center gap-2">
-                    {task.title}
+                    {isEditingTitle ? (
+                      <input
+                        autoFocus
+                        value={editTitleContent}
+                        onChange={(e) => setEditTitleContent(e.target.value)}
+                        onBlur={() => {
+                          if (editTitleContent.trim() && editTitleContent !== task.title) {
+                            updateTask(task.id, { title: editTitleContent.trim() })
+                          }
+                          setIsEditingTitle(false)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.target.blur()
+                          if (e.key === 'Escape') { setEditTitleContent(task.title); setIsEditingTitle(false) }
+                        }}
+                        className="text-[28px] font-black text-[#1E1B2E] bg-transparent border-b-2 border-[#702c91] outline-none w-full min-w-[200px]"
+                        style={{ fontFamily: 'inherit' }}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => {
+                          if ((isAssignee || isAssigner) && !isTaskDone) {
+                            setEditTitleContent(task.title)
+                            setIsEditingTitle(true)
+                          }
+                        }}
+                        className={`${(isAssignee || isAssigner) && !isTaskDone ? 'cursor-pointer hover:text-[#702c91] transition-colors' : ''}`}
+                      >
+                        {task.title}
+                      </span>
+                    )}
                     {task.isRecurring ? (
                       <span
                         className="material-symbols-outlined text-[24px] text-primary bg-primary/10 rounded-full p-1"
@@ -842,7 +874,16 @@ export default function TaskDetailPage() {
                       <span className="material-symbols-outlined text-[16px]">calendar_today</span>
                     </button>
                   )}
-                  <span className="bg-gray-100 text-gray-600 border border-gray-200 text-[12px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                  <span
+                    onClick={() => {
+                      if (isAssigner && !isTaskDone) {
+                        const emails = (task.assignedEmail || '').split(',').map(s => s.trim()).filter(Boolean)
+                        setSelectedAssignees(emails.length > 0 ? emails : (task.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean))
+                        setIsAssigneeModalOpen(true)
+                      }
+                    }}
+                    className={`bg-gray-100 text-gray-600 border border-gray-200 text-[12px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 ${isAssigner && !isTaskDone ? 'cursor-pointer hover:bg-purple-50 hover:border-purple-200 hover:text-[#702c91] transition-colors' : ''}`}
+                  >
                     <span className="material-symbols-outlined text-[14px]">person</span>
                     Assigned to: {task.assignedTo || 'Unassigned'}
                   </span>
@@ -1348,7 +1389,7 @@ export default function TaskDetailPage() {
                           </div>
                         )
                       })}
-                      {!isTaskDone && (
+                      {!isTaskDone && isAssigner && (
                         <button
                           onClick={() => {
                             const emails = (task.assignedEmail || '').split(',').map(s => s.trim()).filter(Boolean)
