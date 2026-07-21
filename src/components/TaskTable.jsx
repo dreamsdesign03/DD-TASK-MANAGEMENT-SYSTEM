@@ -146,7 +146,7 @@ function InlineStatusSelect({ value, onChange, disabled }) {
 
 
 export default function TaskTable() {
-  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal } = useApp()
+  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, clients } = useApp()
   const location = useLocation()
   const [activeFilter, setActiveFilter] = useState('All')
   const [sortBy, setSortBy] = useState('Task ID (Descending)')
@@ -259,6 +259,7 @@ export default function TaskTable() {
   // Quick Add State
   const [quickAddCol, setQuickAddCol] = useState(null)
   const [quickAddTitle, setQuickAddTitle] = useState('')
+  const [quickAddClient, setQuickAddClient] = useState('')
   const [quickAddAssignee, setQuickAddAssignee] = useState([])
   const [quickAddDueDate, setQuickAddDueDate] = useState('')
   const [quickAddPriority, setQuickAddPriority] = useState('Medium')
@@ -331,6 +332,22 @@ export default function TaskTable() {
 
   // Extract unique clients
   const uniqueClients = ['All Clients', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal' && c.toLowerCase() !== 'unknown client'))]
+
+  // All known client names for the Quick Add client selector
+  const allClientOptions = [...new Set([
+    ...(clients || []).map(c => c.clientName || c['Client Name'] || c['Company Name'] || c['Project Name'] || '').filter(Boolean),
+    ...uniqueClients.filter(c => c !== 'All Clients')
+  ])]
+
+  // Quick Add client reset helper
+  const resetQuickAdd = () => {
+    setQuickAddCol(null)
+    setQuickAddTitle('')
+    setQuickAddClient('')
+    setQuickAddAssignee([])
+    setQuickAddDueDate('')
+    setQuickAddPriority('Medium')
+  }
 
   // Extract unique users
   const uniqueUsers = ['All Users', ...new Set(tasks.flatMap((t) => (t.assignedTo || '').split(',').map(s => s.trim()).filter(Boolean)))]
@@ -513,7 +530,7 @@ export default function TaskTable() {
     const newTask = {
       id: nextIdStr,
       title: quickAddTitle.trim(),
-      client: selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || ''),
+      client: quickAddClient || selectedClient !== 'All Clients' ? (quickAddClient || selectedClient) : (tasks[0]?.client || ''),
       project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
@@ -535,11 +552,7 @@ export default function TaskTable() {
     if (addTask) {
       addTask(newTask)
     }
-    setQuickAddCol(null)
-    setQuickAddTitle('')
-    setQuickAddAssignee([])
-    setQuickAddDueDate('')
-    setQuickAddPriority('Medium')
+    resetQuickAdd()
   }
 
   // Pagination Logic
@@ -1531,13 +1544,7 @@ export default function TaskTable() {
                                     onChange={(e) => setQuickAddTitle(e.target.value)}
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') handleQuickAdd(colName)
-                                      if (e.key === 'Escape') {
-                                        setQuickAddCol(null)
-                                        setQuickAddTitle('')
-                                        setQuickAddAssignee([])
-                                        setQuickAddDueDate('')
-                                        setQuickAddPriority('Medium')
-                                      }
+                                      if (e.key === 'Escape') resetQuickAdd()
                                     }}
                                     className="w-full bg-transparent border-none text-body-sm text-on-surface focus:ring-0 outline-none placeholder:text-secondary font-bold"
                                   />
@@ -1548,6 +1555,20 @@ export default function TaskTable() {
 
                                 <div className="text-[11px] text-secondary mb-1">
                                   {new Date().toLocaleString('en-US', { month: 'short', year: '2-digit', timeZone: 'Asia/Kolkata' })}
+                                </div>
+
+                                <div className="flex items-center gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative">
+                                  <span className="material-symbols-outlined text-[16px] shrink-0">business</span>
+                                  <select
+                                    value={quickAddClient}
+                                    onChange={(e) => setQuickAddClient(e.target.value)}
+                                    className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
+                                  >
+                                    <option value="">Select client</option>
+                                    {allClientOptions.map(c => (
+                                      <option key={c} value={c}>{c}</option>
+                                    ))}
+                                  </select>
                                 </div>
 
                                 <div className="flex items-start gap-2 text-secondary hover:text-on-surface transition-colors w-full group relative flex-col">
@@ -1643,13 +1664,7 @@ export default function TaskTable() {
                                 </div>
 
                                 <div className="flex justify-start gap-2 mt-2">
-                                  <button onClick={() => {
-                                    setQuickAddCol(null);
-                                    setQuickAddTitle('');
-                                    setQuickAddAssignee([]);
-                                    setQuickAddDueDate('');
-                                    setQuickAddPriority('Medium');
-                                  }} className="px-3 py-1.5 text-[11px] font-bold text-secondary hover:bg-surface-container-high rounded transition-colors w-full border border-outline-variant/30">Cancel</button>
+                                  <button onClick={resetQuickAdd} className="px-3 py-1.5 text-[11px] font-bold text-secondary hover:bg-surface-container-high rounded transition-colors w-full border border-outline-variant/30">Cancel</button>
                                 </div>
                               </div>
                             )}
@@ -1675,14 +1690,7 @@ export default function TaskTable() {
                 })
               })()}
 
-              {/* Add new group placeholder */}
-              <div style={{ width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 280px)', padding: '0 8px' }}>
-                <div style={{ height: 36, marginBottom: 16 }}></div>
-                <button className="w-full h-[140px] flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[#E5E7EB] hover:border-[#702c91] hover:text-[#702c91] text-[#9CA3AF] text-[14px] font-bold rounded-[24px] transition-all bg-[#F9FAFB]/50 hover:bg-[#F5F3FF]">
-                  <span className="material-symbols-outlined text-[28px]">add_box</span>
-                  Add new group
-                </button>
-              </div>
+
             </div>
           </div>
         ) : (
