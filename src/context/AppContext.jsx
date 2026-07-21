@@ -1815,6 +1815,25 @@ export function AppProvider({ children }) {
     } catch (err) {
       console.warn('Failed to sync task update to Google Sheets:', err)
     }
+
+    // Sync status change to daily sheet row
+    if (hasStatusChange && profile?.email && isPunchedIn) {
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyIx1WX5PcorpKswkQ3QM4BirWLZtZMnxIGApBFM7I9-24QwYLXQuxhJxMxoxjl5IXLdw/exec';
+      if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        fetch(DAILY_SHEET_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'log_task_status_update',
+            email: profile.email,
+            name: profile?.name || 'Unknown',
+            date: getISTDate(),
+            title: mergedTask.title,
+            status: mergedTask.status
+          })
+        }).catch(() => {})
+      }
+    }
   }
 
   const markAllNotificationsRead = () => {

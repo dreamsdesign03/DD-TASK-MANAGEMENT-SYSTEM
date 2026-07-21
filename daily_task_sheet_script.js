@@ -362,6 +362,46 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === "log_task_status_update") {
+      var fullName = data.name || "Unknown";
+      var date = data.date || "";
+      var title = data.title || "";
+      var status = data.status || "";
+
+      var sheetName = fullName.split(" ")[0];
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no sheet" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var existingRow = findHeaderRow(sheet, date);
+      if (existingRow === -1) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no header" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var dataStartRow = existingRow + 2;
+      var blockEnd = findBlockDataEnd(sheet, existingRow);
+      var allData = sheet.getDataRange().getValues();
+      var updated = false;
+
+      for (var r = dataStartRow - 1; r < blockEnd - 1; r++) {
+        var rowTitle = String(allData[r][1] || "").trim();
+        if (rowTitle === title) {
+          sheet.getRange(r + 1, 3).setValue(status);
+          sheet.getRange(r + 1, 3).setHorizontalAlignment("center").setBackground(getStatusColor(status));
+          updated = true;
+          break;
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: updated ? "success" : "skipped",
+        action: "task_status_updated",
+        updated: updated
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "log_punch_out") {
       var fullName = data.name || "Unknown";
       var date = data.date || "";
