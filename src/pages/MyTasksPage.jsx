@@ -155,7 +155,7 @@ export default function MyTasksPage() {
                 <p className="text-[14px]">Please Punch In from the top navigation bar to view and manage your tasks.</p>
               </div>
             ) : (
-              <TaskTable />
+              <TaskTable key={location.pathname} />
             )}
           </div>
         </div>
