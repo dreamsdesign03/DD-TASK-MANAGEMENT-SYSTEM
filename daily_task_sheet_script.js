@@ -52,6 +52,45 @@ function formatSheetProject(val) {
   return String(val).trim();
 }
 
+/**
+ * Finds the 1-indexed row number where the data section of a block ends
+ * (the first empty row, next header, or end of sheet after the headerRowNum block).
+ */
+function findBlockDataEnd(sheet, headerRowNum) {
+  var dataStartRow = headerRowNum + 2;
+  var allData = sheet.getDataRange().getValues();
+  for (var r = dataStartRow - 1; r < allData.length; r++) {
+    var rowVals = allData[r];
+    var col1 = String(rowVals[0] || "").trim();
+    var isEmpty = true;
+    for (var c = 0; c < 6; c++) {
+      if (String(rowVals[c] || "").trim() !== "") {
+        isEmpty = false;
+        break;
+      }
+    }
+    if (isEmpty || col1.indexOf("Task :") === 0 || col1.indexOf("Today Task :") === 0) {
+      return r + 1;
+    }
+  }
+  return sheet.getLastRow() + 1;
+}
+
+/**
+ * Finds the 1-indexed row number of the "Punched Out" row within the block, or -1.
+ */
+function findPunchedOutRow(sheet, headerRowNum) {
+  var dataStartRow = headerRowNum + 2;
+  var blockEnd = findBlockDataEnd(sheet, headerRowNum);
+  var allData = sheet.getDataRange().getValues();
+  for (var r = dataStartRow - 1; r < blockEnd - 1; r++) {
+    if (String(allData[r][1] || "").trim() === "Punched Out") {
+      return r + 1;
+    }
+  }
+  return -1;
+}
+
 function getStatusColor(status) {
   var s = String(status || "").trim().toLowerCase();
   if (s === "done") return "#d4edda";       // Green
@@ -207,6 +246,165 @@ function doPost(e) {
       sheet.appendRow(["", "", "", "", "", ""]);
 
       return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "punch_in_logged" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "log_task_start") {
+      var fullName = data.name || "Unknown";
+      var date = data.date || "";
+      var project = data.project || "";
+      var title = data.title || "";
+      var status = data.status || "";
+      var startTime = data.startTime || "";
+      var sheetName = fullName.split(" ")[0];
+
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) { sheet = ss.insertSheet(sheetName); }
+
+      var headerText = makeHeaderText(date);
+      var existingRow = findHeaderRow(sheet, date);
+      if (existingRow === -1) {
+        // No block for today — create one with a "Punched In" row
+        var st = formatTime(startTime);
+        var lastRow = sheet.getLastRow();
+        if (lastRow > 0) { sheet.appendRow(["", "", "", "", "", ""]); }
+        sheet.appendRow([headerText, "", "", "", "", ""]);
+        var hdrR = sheet.getLastRow();
+        var hdrRng = sheet.getRange(hdrR, 1, 1, 6);
+        hdrRng.merge();
+        hdrRng.setBackground("#0b5394");
+        hdrRng.setFontColor("#FFFFFF");
+        hdrRng.setFontWeight("bold");
+        hdrRng.setHorizontalAlignment("center");
+        hdrRng.setBorder(true, true, true, true, true, true);
+
+        sheet.appendRow(["Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]);
+        var ttlR = sheet.getLastRow();
+        var ttl = sheet.getRange(ttlR, 1, 1, 6);
+        ttl.setBackground("#9fc5e8");
+        ttl.setFontColor("#000000");
+        ttl.setFontWeight("bold");
+        ttl.setHorizontalAlignment("center");
+        ttl.setBorder(true, true, true, true, true, true);
+
+        sheet.appendRow(["", "Punched In", "-", st, "", ""]);
+        var pr = sheet.getLastRow();
+        sheet.getRange(pr, 1, 1, 6).setBorder(true, true, true, true, true, true);
+        sheet.getRange(pr, 3).setHorizontalAlignment("center");
+        sheet.getRange(pr, 4).setHorizontalAlignment("center");
+        sheet.getRange(pr, 5).setHorizontalAlignment("center");
+
+        existingRow = findHeaderRow(sheet, date);
+      }
+
+      // Insert a new task row before the blank separator or next header
+      var punchOutRow = findPunchedOutRow(sheet, existingRow);
+      var insertAt = punchOutRow !== -1 ? punchOutRow : findBlockDataEnd(sheet, existingRow);
+      var st = formatTime(startTime);
+
+      sheet.insertRowBefore(insertAt);
+      sheet.getRange(insertAt, 1).setValue(formatSheetProject(project));
+      sheet.getRange(insertAt, 2).setValue(title);
+      sheet.getRange(insertAt, 3).setValue(status);
+      sheet.getRange(insertAt, 4).setValue(st);
+      sheet.getRange(insertAt, 5).setValue("");
+      sheet.getRange(insertAt, 6).setValue("");
+
+      sheet.getRange(insertAt, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+      sheet.getRange(insertAt, 3).setHorizontalAlignment("center").setBackground(getStatusColor(status));
+      sheet.getRange(insertAt, 4).setHorizontalAlignment("center");
+      sheet.getRange(insertAt, 5).setHorizontalAlignment("center");
+      sheet.getRange(insertAt, 1, 1, 6).setBorder(true, true, true, true, true, true);
+
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "task_start_logged" })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "log_task_end") {
+      var fullName = data.name || "Unknown";
+      var date = data.date || "";
+      var title = data.title || "";
+      var endTime = data.endTime || "";
+
+      var sheetName = fullName.split(" ")[0];
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no sheet" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var existingRow = findHeaderRow(sheet, date);
+      if (existingRow === -1) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no header" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var dataStartRow = existingRow + 2;
+      var blockEnd = findBlockDataEnd(sheet, existingRow);
+      var allData = sheet.getDataRange().getValues();
+      var et = formatTime(endTime);
+      var updated = false;
+
+      // Find the matching task row (by title) that has no end time yet
+      for (var r = dataStartRow - 1; r < blockEnd - 1; r++) {
+        var rowTitle = String(allData[r][1] || "").trim();
+        var rowEnd = String(allData[r][4] || "").trim();
+        if (rowTitle === title && rowEnd === "") {
+          sheet.getRange(r + 1, 5).setValue(et);
+          sheet.getRange(r + 1, 5).setHorizontalAlignment("center");
+          updated = true;
+          break;
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: updated ? "success" : "skipped",
+        action: "task_end_logged",
+        updated: updated
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === "log_punch_out") {
+      var fullName = data.name || "Unknown";
+      var date = data.date || "";
+      var endTime = data.endTime || "";
+
+      var sheetName = fullName.split(" ")[0];
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no sheet" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var existingRow = findHeaderRow(sheet, date);
+      if (existingRow === -1) {
+        return ContentService.createTextOutput(JSON.stringify({ status: "skipped", reason: "no header" })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      var punchOutRow = findPunchedOutRow(sheet, existingRow);
+      var et = formatTime(endTime);
+
+      if (punchOutRow !== -1) {
+        // Update existing punched out row's end time
+        sheet.getRange(punchOutRow, 5).setValue(et);
+        sheet.getRange(punchOutRow, 5).setHorizontalAlignment("center");
+      } else {
+        // Insert a "Punched Out" row before the blank separator
+        var insertAt = findBlockDataEnd(sheet, existingRow);
+        sheet.insertRowBefore(insertAt);
+        sheet.getRange(insertAt, 1).setValue("");
+        sheet.getRange(insertAt, 2).setValue("Punched Out");
+        sheet.getRange(insertAt, 3).setValue("-");
+        sheet.getRange(insertAt, 4).setValue("");
+        sheet.getRange(insertAt, 5).setValue(et);
+        sheet.getRange(insertAt, 6).setValue("");
+
+        sheet.getRange(insertAt, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+        sheet.getRange(insertAt, 3).setHorizontalAlignment("center");
+        sheet.getRange(insertAt, 4).setHorizontalAlignment("center");
+        sheet.getRange(insertAt, 5).setHorizontalAlignment("center");
+        sheet.getRange(insertAt, 1, 1, 6).setBorder(true, true, true, true, true, true);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "punch_out_logged" })).setMimeType(ContentService.MimeType.JSON);
     }
 
     if (action === "log_daily_tasks") {

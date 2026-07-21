@@ -544,82 +544,26 @@ export function AppProvider({ children }) {
       body: JSON.stringify({ action: 'punch_out', email: prevEmail })
     }).then(r => r.text()).then(t => console.log('Punch out response:', t)).catch(e => console.warn('Punch out failed:', e))
 
-    // Prepare Daily Task Sheet Data — script fetches times from Activity Sheet
+    // Log punch out to daily sheet (adds "Punched Out" row)
     if (prevEmail) {
-      const today = getISTDate();
-
-      // User requested to ONLY show Done tasks in the Daily Task Sheet
-      const validStatuses = ['done'];
-      const userTasks = tasksRef.current.filter(t => {
-        // Exclude Sub Tasks
-        if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
-
-        // Check assignment
-        let isAssigned = (t.assignedTo || '').includes(profile?.name || '---');
-        if (isAssigned && profile?.email) {
-          const taskEmails = (t.assignedEmail || '').trim().toLowerCase();
-          if (taskEmails) {
-            isAssigned = taskEmails.includes(profile.email.toLowerCase());
-          }
-        }
-
-        // Check status and if it was updated today
-        const isStatusValid = validStatuses.includes(String(t.status).toLowerCase());
-        let updatedToday = false;
-        if (isStatusValid && t.statusUpdatedOn) {
-          try {
-            updatedToday = formatDateShort(t.statusUpdatedOn) === formatDateShort(today);
-          } catch (e) {
-            updatedToday = false;
-          }
-        }
-
-        return isAssigned && isStatusValid && updatedToday;
-      });
-      const tasksPayload = userTasks.map(t => ({
-        project: t.client || t.project || 'N/A',
-        title: t.title,
-        status: t.status
-      }));
-
-      // NOTE: Replace this URL with the deployed Web App URL of your new daily_task_sheet_script.js
-      const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
-
-      if (DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
-        // Compute day's first punch-in and last punch-out directly from sessions
-        const computedFirstIn = (() => {
-          const sessions = todaysSessionsRef.current || []
-          if (sessions.length > 0) return sessions[0].in
-          return punchInTime
-        })()
-
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
+      if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
-          action: 'log_daily_tasks',
+          action: 'log_punch_out',
           email: prevEmail,
-          employeeId: profile?.employeeId || '',
           name: profile?.name || 'Unknown',
-          date: today,
-          firstPunchIn: computedFirstIn,
-          lastPunchOut: outTime,
-          startTime: punchInTime,
-          endTime: outTime,
-          tasks: tasksPayload
+          date: getISTDate(),
+          endTime: outTime
         });
-        // Primary: fetch with keepalive (survives page unload in most cases)
-        fetch(DAILY_SHEET_WEB_APP_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          keepalive: true,
+        fetch(DAILY_SHEET_URL, {
+          method: 'POST', mode: 'no-cors', keepalive: true,
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: payload
         }).catch(() => { })
-        // Fallback: sendBeacon guarantees delivery even if the page is being destroyed (shutdown/logout)
         try {
           const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' })
-          navigator.sendBeacon(DAILY_SHEET_WEB_APP_URL, blob)
+          navigator.sendBeacon(DAILY_SHEET_URL, blob)
         } catch (_) { }
-      } else {
-        console.warn("Please update DAILY_SHEET_WEB_APP_URL in AppContext.jsx to log tasks on punch out.");
       }
     }
   }
@@ -1904,6 +1848,22 @@ export function AppProvider({ children }) {
 
       updateTask(taskToToggle.id, { timeTaken: buildMultiUserTimeStr(timeData) });
       setActiveTimer(null);
+
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
+      if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        fetch(DAILY_SHEET_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'log_task_end',
+            email: profile.email,
+            name: profile?.name || 'Unknown',
+            date: getISTDate(),
+            title: taskToToggle.title,
+            endTime: getISTTime()
+          })
+        }).catch(() => {})
+      }
     } else {
       // Start timer
       if (activeTimer) {
@@ -1911,6 +1871,24 @@ export function AppProvider({ children }) {
         return;
       }
       setActiveTimer({ taskId: taskToToggle.id, taskTitle: taskToToggle.title, startTime: Date.now() });
+
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
+      if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
+        fetch(DAILY_SHEET_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'log_task_start',
+            email: profile.email,
+            name: profile?.name || 'Unknown',
+            date: getISTDate(),
+            project: taskToToggle.client || taskToToggle.project || '',
+            title: taskToToggle.title,
+            status: taskToToggle.status || '',
+            startTime: getISTTime()
+          })
+        }).catch(() => {})
+      }
     }
   }, [activeTimer, profile, addToast])
 
