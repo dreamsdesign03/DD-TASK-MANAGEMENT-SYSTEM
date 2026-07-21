@@ -205,10 +205,10 @@ export default function TaskCalendar({ tasks }) {
                     <div 
                       key={i}
                       onClick={() => navigate(`/tasks/${t.id}`)}
-                      className={`px-1 md:px-1.5 py-0.5 md:py-1 text-[8px] md:text-[10px] font-bold rounded-sm md:rounded-md border cursor-pointer hover:shadow-sm transition-all truncate ${getStatusColor(t.status)}`}
+                      className={`px-1.5 py-1 text-[9px] md:text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all flex items-center justify-start ${getStatusColor(t.status)}`}
                       title={`${t.title} (${t.status})`}
                     >
-                      <div className="truncate leading-tight">{t.title}</div>
+                      <span className="truncate w-full block pt-px">{t.title}</span>
                     </div>
                   ))}
                   {extraCount > 0 && (
@@ -238,8 +238,8 @@ export default function TaskCalendar({ tasks }) {
                         className={`px-2 py-1.5 text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all mb-1 last:mb-0 ${getStatusColor(t.status)}`}
                         title={`${t.title} (${t.status})`}
                       >
-                        <div className="leading-tight">{t.title}</div>
-                        <div className="text-[9px] font-normal text-gray-500 mt-0.5">{t.status}</div>
+                        <div className="leading-normal pt-px">{t.title}</div>
+                        <div className="text-[9px] font-normal opacity-70 mt-0.5">{t.status}</div>
                       </div>
                     ))}
                   </div>
