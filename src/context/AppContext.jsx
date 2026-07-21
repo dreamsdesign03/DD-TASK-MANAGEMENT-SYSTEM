@@ -427,6 +427,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     todaysSessionsRef.current = todaysSessions
   }, [todaysSessions])
+  const [isSessionRestored, setIsSessionRestored] = useState(false)
   const [activityLog, setActivityLog] = useState([])
 
   useEffect(() => {
@@ -477,9 +478,11 @@ export function AppProvider({ children }) {
           if (mySessions.length === 0) setFirstPunchInToday(null)
         }
         sessionRestoredRef.current = true
+        setIsSessionRestored(true)
       } catch (err) {
         console.error("Failed to fetch activities from sheet:", err)
         sessionRestoredRef.current = true
+        setIsSessionRestored(true)
       }
     }
     fetchActivities()
@@ -2596,6 +2599,7 @@ export function AppProvider({ children }) {
         getISTDate,
         logShutdown,
         fetchActivities,
+        isSessionRestored,
         activeTimer,
         sessionSecs,
         toggleTimer

@@ -70,10 +70,27 @@ function DesktopLauncher({ profile }) {
 }
 
 function ProtectedRoute({ children }) {
-  const { profile, isPunchedIn } = useApp()
+  const { profile, isPunchedIn, isSessionRestored } = useApp()
 
   if (!profile) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!isSessionRestored) {
+    return (
+      <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
+        <Sidebar />
+        <main className="page-main">
+          <TopNav title="" showSearch={false} />
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-10 h-10 border-4 border-[#702c91] border-t-transparent rounded-full animate-spin" />
+              <p className="text-[15px] text-gray-500">Restoring your session...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   if (!isPunchedIn) {
