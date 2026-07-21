@@ -97,7 +97,7 @@ export default function TaskCalendar({ tasks }) {
   }
 
   return (
-    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[400px] md:min-h-[800px] h-auto md:h-[calc(100vh-250px)]">
+    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[450px] md:min-h-[700px] h-auto md:h-[calc(100vh-280px)]">
       
       {/* Calendar Header */}
       <div className="flex items-center justify-between p-3 md:p-4 border-b border-[#E5E7EB]">
@@ -171,7 +171,7 @@ export default function TaskCalendar({ tasks }) {
         </div>
 
         {/* Days grid */}
-        <div className="flex-1 grid grid-cols-7 grid-rows-6">
+        <div className="flex-1 grid grid-cols-7 auto-rows-fr min-h-0">
           {days.map((cell, idx) => {
             const dateKey = `${cell.year}-${cell.month}-${cell.day}`
             const dayTasks = tasksByDate[dateKey] || []
@@ -180,23 +180,28 @@ export default function TaskCalendar({ tasks }) {
             return (
               <div 
                 key={idx} 
-                className={`relative border-r border-b border-[#E5E7EB] p-1 md:p-2 overflow-hidden flex flex-col group ${!cell.isCurrentMonth ? 'bg-gray-50/50' : 'bg-white'} ${currentIsToday ? 'bg-purple-50/30' : ''}`}
+                className={`relative border-r border-b border-[#E5E7EB] p-0.5 md:p-1.5 flex flex-col min-h-[60px] md:min-h-[90px] group ${!cell.isCurrentMonth ? 'bg-gray-50/50' : 'bg-white'} ${currentIsToday ? 'bg-purple-50/30' : ''}`}
               >
-                {/* Date Number at bottom right */}
-                <div className={`absolute bottom-1 md:bottom-2 right-1 md:right-2 text-[11px] md:text-[14px] font-medium ${!cell.isCurrentMonth ? 'text-[#D1D5DB]' : currentIsToday ? 'text-white bg-[#702c91] w-5 h-5 md:w-7 md:h-7 rounded-full flex items-center justify-center' : 'text-[#6B7280]'}`}>
+                {/* Date Number at top-left */}
+                <div className={`shrink-0 text-[10px] md:text-[13px] font-medium mb-0.5 md:mb-1 ${!cell.isCurrentMonth ? 'text-[#D1D5DB]' : currentIsToday ? 'text-white bg-[#702c91] w-4 h-4 md:w-6 md:h-6 rounded-full flex items-center justify-center' : 'text-[#6B7280]'}`}>
                   {cell.day}
                 </div>
 
                 {/* Tasks container */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-1 pr-1 pb-5 md:pb-6 relative z-10">
-                  {dayTasks.map((t, i) => (
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-0.5 md:gap-1 min-h-0">
+                  {dayTasks.length > 6 && (
+                    <div className="text-[8px] md:text-[10px] font-bold text-[#702c91] px-1">
+                      +{dayTasks.length - 6} more
+                    </div>
+                  )}
+                  {dayTasks.slice(0, 6).map((t, i) => (
                     <div 
                       key={i}
                       onClick={() => navigate(`/tasks/${t.id}`)}
-                      className={`px-1.5 md:px-2 py-1 md:py-1 text-[9px] md:text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all ${getStatusColor(t.status)}`}
+                      className={`px-1 md:px-1.5 py-0.5 md:py-1 text-[8px] md:text-[10px] font-bold rounded-sm md:rounded-md border cursor-pointer hover:shadow-sm transition-all truncate ${getStatusColor(t.status)}`}
                       title={`${t.title} (${t.status})`}
                     >
-                      <div className="line-clamp-2 leading-tight break-words">{t.title}</div>
+                      <div className="truncate leading-tight">{t.title}</div>
                     </div>
                   ))}
                 </div>
