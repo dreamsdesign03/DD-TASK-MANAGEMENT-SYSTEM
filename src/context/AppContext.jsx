@@ -476,8 +476,10 @@ export function AppProvider({ children }) {
           setPunchInTime(null)
           if (mySessions.length === 0) setFirstPunchInToday(null)
         }
+        sessionRestoredRef.current = true
       } catch (err) {
         console.error("Failed to fetch activities from sheet:", err)
+        sessionRestoredRef.current = true
       }
     }
     fetchActivities()
@@ -493,6 +495,12 @@ export function AppProvider({ children }) {
       return updated
     })
     addToast('Punched In successfully', 'success')
+
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec';
+    fetch(SCRIPT_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'punch_in', email: profile.email })
+    }).then(r => r.text()).then(t => console.log('Punch in response:', t)).catch(e => console.warn('Punch in failed:', e))
 
     const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwZg8GC-UhDH9HTaSGVg4I7-r0LGS3bdbkY_vB7Irevh9LidkV-eMzO2m6wDHJG8Ek/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
@@ -525,6 +533,13 @@ export function AppProvider({ children }) {
       return updated
     })
     addToast('Punched Out successfully', 'success')
+
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec';
+    fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors', keepalive: true,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'punch_out', email: prevEmail })
+    }).then(r => r.text()).then(t => console.log('Punch out response:', t)).catch(e => console.warn('Punch out failed:', e))
 
     // Prepare Daily Task Sheet Data — script fetches times from Activity Sheet
     if (prevEmail) {
@@ -609,16 +624,14 @@ export function AppProvider({ children }) {
   // Activity tracking: log punch in, heartbeat every 30s
   const heartbeatRef = useRef(null)
   const prevProfileEmailRef = useRef(null)
-  const initialMountRef = useRef(true)
+  const sessionRestoredRef = useRef(false)
 
   useEffect(() => {
     if (profile?.email) {
       prevProfileEmailRef.current = profile.email
     }
 
-    // On initial mount, restore local state but skip API calls
-    if (initialMountRef.current) {
-      initialMountRef.current = false
+    if (!sessionRestoredRef.current) {
       if (isPunchedIn && profile?.email) {
         setEmployees(prev => prev.map(e =>
           e.email === profile.email ? { ...e, status: 'Online' } : e
@@ -637,10 +650,6 @@ export function AppProvider({ children }) {
           action: 'user_online', email: profile.email, name: profile.name, timestamp: Date.now()
         }))
       }
-      fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'punch_in', email: profile.email })
-      }).then(r => r.text()).then(t => console.log('Punch in response:', t)).catch(e => console.warn('Punch in failed:', e))
       heartbeatRef.current = setInterval(() => updateHeartbeat(profile.email), 30000)
       return () => {
         if (heartbeatRef.current) { clearInterval(heartbeatRef.current) }
@@ -656,13 +665,6 @@ export function AppProvider({ children }) {
             action: 'user_offline', email: prevEmail, name: '', timestamp: Date.now()
           }))
         }
-        fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
-          method: 'POST',
-          mode: 'no-cors',
-          keepalive: true,
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'punch_out', email: prevEmail })
-        }).then(r => r.text()).then(t => console.log('Punch out response:', t)).catch(e => console.warn('Punch out failed:', e))
       }
       if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null }
       if (!profile?.email && isPunchedIn) { setIsPunchedIn(false) }
