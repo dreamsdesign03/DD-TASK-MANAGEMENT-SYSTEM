@@ -1876,6 +1876,11 @@ export function AppProvider({ children }) {
         }).catch(() => {})
       }
     } else {
+      // Don't start timer for completed tasks
+      if (taskToToggle.status === 'Done') {
+        addToast("Cannot start timer for a completed task.", "error");
+        return;
+      }
       // Start timer
       if (activeTimer) {
         addToast("Please stop the active timer before starting a new one.", "error");
