@@ -233,7 +233,7 @@ export default function ClientsPage() {
             </div>
             
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {profile?.systemRole && profile?.systemRole !== 'Manager' && (
+              {profile?.systemRole === 'Admin' && (
               <div
                 onMouseEnter={e => {
                   e.currentTarget.style.maxWidth = '300px';
