@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 export default function LandingPage() {
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
-  const DOWNLOAD_URL = 'https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/download/v0.0.1/Dreamsdesk.Setup.0.0.1.exe'
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -35,12 +35,12 @@ export default function LandingPage() {
           >
             Web Login
           </button>
-          <a 
-            href={DOWNLOAD_URL}
-            className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-semibold text-sm hover:bg-slate-800 transition-all shadow-md hover:shadow-lg active:scale-95"
+          <button
+            onClick={() => setShowComingSoon(true)}
+            className="px-6 py-2.5 bg-slate-900 text-white rounded-full font-semibold text-sm hover:bg-slate-800 transition-all shadow-md hover:shadow-lg active:scale-95 cursor-pointer border-none"
           >
             Download Now
-          </a>
+          </button>
         </div>
       </header>
 
@@ -65,15 +65,15 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-              <a 
-                href={DOWNLOAD_URL}
-                className="w-full sm:w-auto px-8 py-4 btn-gradient rounded-xl font-bold text-base transition-all shadow-[0_8px_20px_-6px_rgba(var(--color-primary),0.5)] flex items-center justify-center gap-3 active:scale-95"
+              <button
+                onClick={() => setShowComingSoon(true)}
+                className="w-full sm:w-auto px-8 py-4 btn-gradient rounded-xl font-bold text-base transition-all shadow-[0_8px_20px_-6px_rgba(var(--color-primary),0.5)] flex items-center justify-center gap-3 active:scale-95 cursor-pointer border-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Download for Windows
-              </a>
+              </button>
               <button 
                 onClick={() => navigate('/login')}
                 className="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 rounded-xl font-bold text-base border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-sm"
@@ -238,6 +238,51 @@ export default function LandingPage() {
       <footer className="relative z-10 py-10 text-center border-t border-slate-200 bg-white">
         <p className="text-slate-500 text-sm font-medium">&copy; {new Date().getFullYear()} Dreamsdesign. Built for high-performance teams.</p>
       </footer>
+
+      {showComingSoon && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24, animation: 'fadeIn 0.2s ease'
+        }} onClick={() => setShowComingSoon(false)}>
+          <div style={{
+            background: '#fff', borderRadius: 24, padding: '40px 36px 32px',
+            width: 400, maxWidth: '100%',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.2)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+            animation: 'scaleIn 0.25s cubic-bezier(0.4,0,0.2,1)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%',
+              background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 20,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#702c91', fontVariationSettings: "'FILL' 1" }}>pending</span>
+            </div>
+            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#1E1B2E', fontFamily: 'Inter,sans-serif', textAlign: 'center' }}>
+              Arriving Soon
+            </h2>
+            <p style={{ margin: '10px 0 0', fontSize: 14, color: '#6B7280', fontFamily: 'Inter,sans-serif', textAlign: 'center', lineHeight: 1.6 }}>
+              The Dreamsdesk desktop app is currently in development and will be available for download shortly. Stay tuned!
+            </p>
+            <button
+              onClick={() => setShowComingSoon(false)}
+              style={{
+                marginTop: 24, height: 44, padding: '0 32px', borderRadius: 12,
+                border: 'none', background: 'linear-gradient(to right, #702c91, #ec008c)',
+                color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                fontFamily: 'Inter,sans-serif', boxShadow: '0 4px 12px rgba(112,44,145,0.3)',
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
