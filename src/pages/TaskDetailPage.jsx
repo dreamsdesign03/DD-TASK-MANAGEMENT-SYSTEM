@@ -794,17 +794,18 @@ export default function TaskDetailPage() {
                         style={{ fontFamily: 'inherit' }}
                       />
                     ) : (
-                      <span
-                        onClick={() => {
-                          if ((isAssignee || isAssigner) && !isTaskDone) {
-                            setEditTitleContent(task.title)
-                            setIsEditingTitle(true)
-                          }
-                        }}
-                        className={`${(isAssignee || isAssigner) && !isTaskDone ? 'cursor-pointer hover:text-[#702c91] transition-colors' : ''}`}
-                      >
-                        {task.title}
-                      </span>
+                      <>
+                        <span>{task.title}</span>
+                        {(isAssignee || isAssigner) && !isTaskDone && (
+                          <button
+                            onClick={() => { setEditTitleContent(task.title); setIsEditingTitle(true) }}
+                            className="material-symbols-outlined text-[20px] text-gray-400 hover:text-[#702c91] transition-colors bg-transparent border-none cursor-pointer p-0 leading-none"
+                            title="Edit title"
+                          >
+                            edit
+                          </button>
+                        )}
+                      </>
                     )}
                     {task.isRecurring ? (
                       <span
