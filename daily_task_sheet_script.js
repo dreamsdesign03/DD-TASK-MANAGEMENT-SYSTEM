@@ -297,24 +297,48 @@ function doPost(e) {
         existingRow = findHeaderRow(sheet, date);
       }
 
-      // Insert a new task row before the blank separator or next header
+      // Check if a row for this task already exists with no end time — update it instead of duplicating
       var punchOutRow = findPunchedOutRow(sheet, existingRow);
-      var insertAt = punchOutRow !== -1 ? punchOutRow : findBlockDataEnd(sheet, existingRow);
+      var blockEnd = findBlockDataEnd(sheet, existingRow);
+      var dataStartRow = existingRow + 2;
+      var allData = sheet.getDataRange().getValues();
       var st = formatTime(startTime);
+      var updatedExisting = false;
 
-      sheet.insertRowBefore(insertAt);
-      sheet.getRange(insertAt, 1).setValue(formatSheetProject(project));
-      sheet.getRange(insertAt, 2).setValue(title);
-      sheet.getRange(insertAt, 3).setValue(status);
-      sheet.getRange(insertAt, 4).setValue(st);
-      sheet.getRange(insertAt, 5).setValue("");
-      sheet.getRange(insertAt, 6).setValue("");
+      for (var r = dataStartRow - 1; r < blockEnd - 1; r++) {
+        var rowTitle = String(allData[r][1] || "").trim();
+        var rowEnd = String(allData[r][4] || "").trim();
+        if (rowTitle === title && rowEnd === "") {
+          // Update start time on existing row
+          sheet.getRange(r + 1, 1).setValue(formatSheetProject(project));
+          sheet.getRange(r + 1, 3).setValue(status);
+          sheet.getRange(r + 1, 4).setValue(st);
+          sheet.getRange(r + 1, 3).setHorizontalAlignment("center").setBackground(getStatusColor(status));
+          sheet.getRange(r + 1, 4).setHorizontalAlignment("center");
+          sheet.getRange(r + 1, 5).setHorizontalAlignment("center");
+          updatedExisting = true;
+          break;
+        }
+      }
 
-      sheet.getRange(insertAt, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
-      sheet.getRange(insertAt, 3).setHorizontalAlignment("center").setBackground(getStatusColor(status));
-      sheet.getRange(insertAt, 4).setHorizontalAlignment("center");
-      sheet.getRange(insertAt, 5).setHorizontalAlignment("center");
-      sheet.getRange(insertAt, 1, 1, 6).setBorder(true, true, true, true, true, true);
+      if (!updatedExisting) {
+        // Insert a new task row before the blank separator or next header
+        var insertAt = punchOutRow !== -1 ? punchOutRow : blockEnd;
+
+        sheet.insertRowBefore(insertAt);
+        sheet.getRange(insertAt, 1).setValue(formatSheetProject(project));
+        sheet.getRange(insertAt, 2).setValue(title);
+        sheet.getRange(insertAt, 3).setValue(status);
+        sheet.getRange(insertAt, 4).setValue(st);
+        sheet.getRange(insertAt, 5).setValue("");
+        sheet.getRange(insertAt, 6).setValue("");
+
+        sheet.getRange(insertAt, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+        sheet.getRange(insertAt, 3).setHorizontalAlignment("center").setBackground(getStatusColor(status));
+        sheet.getRange(insertAt, 4).setHorizontalAlignment("center");
+        sheet.getRange(insertAt, 5).setHorizontalAlignment("center");
+        sheet.getRange(insertAt, 1, 1, 6).setBorder(true, true, true, true, true, true);
+      }
 
       return ContentService.createTextOutput(JSON.stringify({ status: "success", action: "task_start_logged" })).setMimeType(ContentService.MimeType.JSON);
     }

@@ -1104,6 +1104,42 @@ export default function TaskDetailPage() {
                             <span className="text-[11px] font-bold text-secondary truncate max-w-[100px]">{st.assignedTo}</span>
                           </div>
                         )}
+                        {!isTaskDone && (
+                          <>
+                            {(() => {
+                              const subTracking = activeTimer?.taskId === st.id
+                              return (
+                                <button
+                                  onClick={() => toggleTimer(st, profile?.name)}
+                                  disabled={subTracking ? false : (activeTimer !== null && activeTimer.taskId !== st.id)}
+                                  className={`p-1.5 rounded-full transition-colors shrink-0 border-none flex items-center justify-center ${
+                                    subTracking
+                                      ? 'text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-sm'
+                                      : activeTimer !== null
+                                        ? 'text-gray-300 cursor-not-allowed'
+                                        : 'text-[#702c91] bg-purple-50 hover:bg-purple-100'
+                                  }`}
+                                  title={subTracking ? 'Stop timer' : activeTimer !== null ? 'Another timer is running' : 'Start timer'}
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">{subTracking ? 'stop' : 'play_arrow'}</span>
+                                </button>
+                              )
+                            })()}
+                            <span className="text-[10px] font-bold text-gray-400 min-w-[40px] text-center">
+                              {(() => {
+                                const td = parseMultiUserTimeStr(st.timeTaken);
+                                const myName = profile?.name || 'Mansi Shah';
+                                const secs = td[myName] || 0;
+                                const isSubTracking = activeTimer?.taskId === st.id;
+                                const totalSecs = isSubTracking ? secs + (activeTimer ? Math.floor((Date.now() - activeTimer.startTime) / 1000) : 0) : secs;
+                                if (totalSecs === 0) return '';
+                                const h = Math.floor(totalSecs / 3600);
+                                const m = Math.floor((totalSecs % 3600) / 60);
+                                return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                              })()}
+                            </span>
+                          </>
+                        )}
                         {profile?.systemRole !== 'Employee' && (
                           <button
                             onClick={() => { if (!isTaskDone) setSubtaskToDelete(st.id) }}
