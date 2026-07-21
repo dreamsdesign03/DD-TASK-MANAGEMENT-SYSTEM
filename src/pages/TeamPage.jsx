@@ -202,7 +202,7 @@ export default function TeamPage() {
                           <button
                             onClick={() => {
                               setSearchQuery(emp.name)
-                              navigate('/tasks')
+                              navigate('/my-tasks')
                             }}
                             className="w-full h-[38px] border border-[#702c91] cursor-pointer rounded-full bg-white text-[#702c91] text-[13px] font-semibold flex items-center justify-center gap-2 hover:bg-purple-50 active:scale-95 transition-all"
                           >
