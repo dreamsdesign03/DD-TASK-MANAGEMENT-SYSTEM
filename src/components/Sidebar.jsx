@@ -13,6 +13,7 @@ export default function Sidebar() {
   const { setShowNewTaskModal, personalChats, groupChats, tasks, messagesByChatId, lastSeenTimestamps, profile, setProfile, fetchClients, isSidebarOpen, setIsSidebarOpen, addToast } = useApp()
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024)
@@ -291,20 +292,7 @@ export default function Sidebar() {
             }}>
               {!isElectron() && (
                 <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
-                      const data = await res.json();
-                      const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
-                      if (exeAsset) {
-                        window.location.href = exeAsset.browser_download_url;
-                      } else {
-                        window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                      }
-                    } catch (e) {
-                      window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                    }
-                  }}
+                  onClick={() => setShowComingSoon(true)}
                   style={{
                     display: 'flex', alignItems: 'center',
                     height: 44,
@@ -532,20 +520,7 @@ export default function Sidebar() {
             }}>
               {!isElectron() && (
                 <button
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('https://api.github.com/repos/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest');
-                      const data = await res.json();
-                      const exeAsset = data.assets?.find(a => a.name.endsWith('.exe'));
-                      if (exeAsset) {
-                        window.location.href = exeAsset.browser_download_url;
-                      } else {
-                        window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                      }
-                    } catch (e) {
-                      window.open('https://github.com/dreamsdesign03/DD-TASK-MANAGEMENT-SYSTEM/releases/latest', '_blank');
-                    }
-                  }}
+                  onClick={() => setShowComingSoon(true)}
                   style={{
                     display: 'flex', alignItems: 'center',
                     height: 44, margin: '0 10px',
@@ -587,6 +562,51 @@ export default function Sidebar() {
             </div>
           </aside>
         </>
+      )}
+
+      {showComingSoon && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 99999,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24, animation: 'fadeIn 0.2s ease'
+        }} onClick={() => setShowComingSoon(false)}>
+          <div style={{
+            background: '#fff', borderRadius: 24, padding: '40px 36px 32px',
+            width: 400, maxWidth: '100%',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.2)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
+            animation: 'scaleIn 0.25s cubic-bezier(0.4,0,0.2,1)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%',
+              background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              marginBottom: 20,
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#702c91', fontVariationSettings: "'FILL' 1" }}>pending</span>
+            </div>
+            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#1E1B2E', fontFamily: 'Inter,sans-serif', textAlign: 'center' }}>
+              Arriving Soon
+            </h2>
+            <p style={{ margin: '10px 0 0', fontSize: 14, color: '#6B7280', fontFamily: 'Inter,sans-serif', textAlign: 'center', lineHeight: 1.6 }}>
+              The Dreamsdesk desktop app is currently in development and will be available for download shortly. Stay tuned!
+            </p>
+            <button
+              onClick={() => setShowComingSoon(false)}
+              style={{
+                marginTop: 24, height: 44, padding: '0 32px', borderRadius: 12,
+                border: 'none', background: 'linear-gradient(to right, #702c91, #ec008c)',
+                color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                fontFamily: 'Inter,sans-serif', boxShadow: '0 4px 12px rgba(112,44,145,0.3)',
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
       )}
     </>
   )
