@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import EmojiPicker from 'emoji-picker-react'
 import Sidebar from '../components/Sidebar'
@@ -307,6 +307,14 @@ export default function ChatPage() {
   const [showBgModal, setShowBgModal] = useState(false)
 
   const ALL_EMPLOYEES = employees || []
+  const employeeStatusMap = useMemo(() => {
+    const map = {}
+    ALL_EMPLOYEES.forEach(e => { if (e.email) map[e.email.toLowerCase()] = e.status })
+    return map
+  }, [ALL_EMPLOYEES])
+  const getOnline = useCallback((email) => {
+    return email ? employeeStatusMap[email.toLowerCase()] === 'Online' : false
+  }, [employeeStatusMap])
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -1461,7 +1469,7 @@ export default function ChatPage() {
                       >
                         <div className="relative shrink-0">
                           {renderAvatar(c.avatar, c.name, "w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold", "text-[13px]", c.email)}
-                          {c.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-white rounded-full"></span>}
+                          {getOnline(c.email) && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-white rounded-full"></span>}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-1">
@@ -1570,8 +1578,8 @@ export default function ChatPage() {
                       </div>
                       <div className="flex flex-col">
                         <h3 className="text-[14px] font-bold text-[#151c27] m-0">{activeChat?.name}</h3>
-                        <p className={`text-[11px] font-medium m-0 ${activeChat?.online ? 'text-[#10B981]' : 'text-[#9CA3AF]'}`}>
-                          {activeChat?.online ? 'Online' : 'Offline'}
+                        <p className={`text-[11px] font-medium m-0 ${getOnline(activeChat?.email) ? 'text-[#10B981]' : 'text-[#9CA3AF]'}`}>
+                          {getOnline(activeChat?.email) ? 'Online' : 'Offline'}
                         </p>
                       </div>
                     </>

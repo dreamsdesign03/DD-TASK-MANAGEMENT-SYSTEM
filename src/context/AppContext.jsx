@@ -2247,7 +2247,7 @@ export function AppProvider({ children }) {
     )
 
     setEmployees(prev => {
-      if (prev.length === withStatus.length && prev.every((e, i) => e.id === withStatus[i].id)) {
+      if (prev.length === withStatus.length && prev.every((e, i) => e.id === withStatus[i].id && e.status === withStatus[i].status)) {
         return prev
       }
       return withStatus
