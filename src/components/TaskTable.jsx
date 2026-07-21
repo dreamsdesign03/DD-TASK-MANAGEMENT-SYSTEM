@@ -262,7 +262,7 @@ export default function TaskTable() {
   const [quickAddClient, setQuickAddClient] = useState('')
   const [quickAddAssignee, setQuickAddAssignee] = useState([])
   const [quickAddDueDate, setQuickAddDueDate] = useState('')
-  const [quickAddPriority, setQuickAddPriority] = useState('Medium')
+  const [quickAddPriority, setQuickAddPriority] = useState('')
 
   // Department File Upload State
   const fileInputRef = useRef(null)
@@ -346,7 +346,7 @@ export default function TaskTable() {
     setQuickAddClient('')
     setQuickAddAssignee([])
     setQuickAddDueDate('')
-    setQuickAddPriority('Medium')
+    setQuickAddPriority('')
   }
 
   // Extract unique users
@@ -503,7 +503,19 @@ export default function TaskTable() {
   // Quick Add Handler
   const handleQuickAdd = (department) => {
     if (!quickAddTitle.trim()) {
-      setQuickAddCol(null)
+      addToast('Please enter a task name', 'error')
+      return
+    }
+    if (!quickAddClient) {
+      addToast('Please select a project/client', 'error')
+      return
+    }
+    if (quickAddAssignee.length === 0) {
+      addToast('Please add at least one assignee', 'error')
+      return
+    }
+    if (!quickAddPriority) {
+      addToast('Please select a priority', 'error')
       return
     }
 
@@ -530,7 +542,7 @@ export default function TaskTable() {
     const newTask = {
       id: nextIdStr,
       title: quickAddTitle.trim(),
-      client: quickAddClient || selectedClient !== 'All Clients' ? (quickAddClient || selectedClient) : (tasks[0]?.client || ''),
+      client: quickAddClient || (selectedClient !== 'All Clients' ? selectedClient : (tasks[0]?.client || '')),
       project: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assigned: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
       assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' }),
@@ -1655,7 +1667,7 @@ export default function TaskTable() {
                                     onChange={(e) => setQuickAddPriority(e.target.value)}
                                     className="w-full bg-transparent border-none text-[12px] font-medium outline-none focus:ring-0 cursor-pointer text-secondary group-hover:text-on-surface appearance-none py-1"
                                   >
-                                    <option value="Medium">Add priority</option>
+                                    <option value="">Add priority</option>
                                     <option value="Urgent">Urgent</option>
                                     <option value="High">High</option>
                                     <option value="Medium">Medium</option>
