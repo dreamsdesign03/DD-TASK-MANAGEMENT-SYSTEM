@@ -189,12 +189,21 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
           <span className="material-symbols-outlined text-[#2563EB] text-[18px] sm:text-[20px]">chat_bubble</span>
         </button>
 
-        <div 
-          onClick={() => navigate('/settings')}
-          className="cursor-pointer hidden sm:block shrink-0"
-          title={profile?.name}
-        >
-          {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]", profile?.email)}
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#1E1B2E', lineHeight: 1.2 }}>{profile?.name?.split(' ')[0] || 'User'}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 600, color: isPunchedIn ? '#16A34A' : '#9CA3AF' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: isPunchedIn ? '#16A34A' : '#9CA3AF', display: 'inline-block' }} />
+              {isPunchedIn ? 'Online' : 'Offline'}
+            </span>
+          </div>
+          <div 
+            onClick={() => navigate('/settings')}
+            className="cursor-pointer"
+            title={profile?.name}
+          >
+            {renderAvatar(profile?.avatar, profile?.name, "w-10 h-10 rounded-full", "text-[14px]", profile?.email)}
+          </div>
         </div>
       </div>
     </header>

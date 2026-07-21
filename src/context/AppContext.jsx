@@ -287,18 +287,26 @@ export function AppProvider({ children }) {
     localStorage.setItem('dd_tasks_v1', JSON.stringify(tasks))
   }, [tasks])
 
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+    try { return match ? JSON.parse(decodeURIComponent(match[2])) : null } catch { return null }
+  }
+  function setCookie(name, value) {
+    document.cookie = name + '=' + encodeURIComponent(JSON.stringify(value)) + '; path=/; max-age=86400'
+  }
+  function removeCookie(name) {
+    document.cookie = name + '=; path=/; max-age=0'
+  }
+
   const [activeTimer, setActiveTimer] = useState(() => {
-    try {
-      const saved = localStorage.getItem('dd_active_timer')
-      return saved ? JSON.parse(saved) : null
-    } catch { return null }
+    return getCookie('dd_active_timer')
   })
 
   useEffect(() => {
     if (activeTimer) {
-      localStorage.setItem('dd_active_timer', JSON.stringify(activeTimer))
+      setCookie('dd_active_timer', activeTimer)
     } else {
-      localStorage.removeItem('dd_active_timer')
+      removeCookie('dd_active_timer')
     }
   }, [activeTimer])
 
