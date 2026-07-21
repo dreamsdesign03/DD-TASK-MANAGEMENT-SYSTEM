@@ -333,9 +333,9 @@ export default function TaskTable() {
   // Extract unique clients
   const uniqueClients = ['All Clients', ...new Set(tasks.map((t) => t.client).filter(c => c && c.toLowerCase() !== 'internal' && c.toLowerCase() !== 'unknown client'))]
 
-  // All known client names for the Quick Add client selector
+  // All known project names for the Quick Add client selector
   const allClientOptions = [...new Set([
-    ...(clients || []).map(c => c.clientName || c['Client Name'] || c['Company Name'] || c['Project Name'] || '').filter(Boolean),
+    ...(clients || []).map(c => c['Project Name'] || c.projectName || c.project || '').filter(Boolean),
     ...uniqueClients.filter(c => c !== 'All Clients')
   ])]
 
