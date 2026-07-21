@@ -106,10 +106,10 @@ export default function TaskCalendar({ tasks }) {
   const getDateKey = (cell) => `${cell.year}-${cell.month}-${cell.day}`
 
   return (
-    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] overflow-hidden flex flex-col min-h-[450px] md:min-h-[700px] h-auto md:h-[calc(100vh-280px)]">
+    <div className="bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)] border border-[#E5E7EB] flex flex-col min-h-[500px] md:h-[calc(100vh-220px)] w-full">
       
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-[#E5E7EB]">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-[#E5E7EB] rounded-t-[20px]">
         <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full">
           <button 
             onClick={goToToday}
@@ -205,18 +205,18 @@ export default function TaskCalendar({ tasks }) {
                     <div 
                       key={i}
                       onClick={() => navigate(`/tasks/${t.id}`)}
-                      className={`px-1.5 py-1 text-[9px] md:text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all flex items-center justify-start ${getStatusColor(t.status)}`}
+                      className={`px-1 md:px-1.5 py-0.5 md:py-1 text-[8px] md:text-[10px] font-bold rounded-sm md:rounded-md border cursor-pointer hover:shadow-sm transition-all truncate ${getStatusColor(t.status)}`}
                       title={`${t.title} (${t.status})`}
                     >
-                      <span className="truncate w-full block pt-px">{t.title}</span>
+                      <div className="truncate leading-tight">{t.title}</div>
                     </div>
                   ))}
                   {extraCount > 0 && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setPopupDay(isPopupOpen ? null : dateKey) }}
-                      className="text-[9px] md:text-[11px] font-bold text-[#702c91] hover:text-[#5a2374] text-left px-1 py-0.5 rounded transition-colors cursor-pointer border-none bg-transparent"
+                      className="text-[10px] md:text-[11px] font-bold text-[#702c91] hover:text-[#5a2374] text-left px-1 py-0.5 rounded transition-colors cursor-pointer border-none bg-transparent mt-auto"
                     >
-                      +{extraCount} more
+                      +{extraCount} task{extraCount > 1 ? 's' : ''}
                     </button>
                   )}
                 </div>
@@ -225,8 +225,7 @@ export default function TaskCalendar({ tasks }) {
                 {isPopupOpen && (
                   <div
                     ref={popupRef}
-                    className="absolute z-50 top-full left-0 mt-1 w-56 bg-white border border-[#E5E7EB] rounded-lg shadow-xl p-2 max-h-48 overflow-y-auto"
-                    style={{ minWidth: 200 }}
+                    className="absolute z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 bg-white border border-[#E5E7EB] rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] p-3 max-h-[300px] overflow-y-auto"
                   >
                     <div className="text-[10px] font-bold text-[#6B7280] mb-1.5 px-1">
                       {dayTasks.length} tasks on {months[cell.month]} {cell.day}
@@ -238,8 +237,8 @@ export default function TaskCalendar({ tasks }) {
                         className={`px-2 py-1.5 text-[11px] font-bold rounded-md border cursor-pointer hover:shadow-sm transition-all mb-1 last:mb-0 ${getStatusColor(t.status)}`}
                         title={`${t.title} (${t.status})`}
                       >
-                        <div className="leading-normal pt-px">{t.title}</div>
-                        <div className="text-[9px] font-normal opacity-70 mt-0.5">{t.status}</div>
+                        <div className="leading-tight">{t.title}</div>
+                        <div className="text-[9px] font-normal text-gray-500 mt-0.5">{t.status}</div>
                       </div>
                     ))}
                   </div>
