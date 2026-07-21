@@ -233,6 +233,7 @@ export default function ClientsPage() {
             </div>
             
             <div className="flex items-center gap-4 w-full md:w-auto">
+              {profile?.systemRole !== 'Manager' && (
               <div
                 onMouseEnter={e => {
                   e.currentTarget.style.maxWidth = '300px';
@@ -271,6 +272,7 @@ export default function ClientsPage() {
                 <span className="material-symbols-outlined" style={{ fontSize: 20, flexShrink: 0 }}>add</span>
                 <span className="add-client-text" style={{ width: 0, maxWidth: 0, opacity: 0, overflow: 'hidden', transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out', whiteSpace: 'nowrap' }}>Add Client</span>
               </div>
+              )}
 
               <div className="relative flex-1 md:flex-none">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
