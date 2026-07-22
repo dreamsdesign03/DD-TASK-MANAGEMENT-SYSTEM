@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage'
 import ProjectOverviewPage from './pages/ProjectOverviewPage'
 import TeamPage from './pages/TeamPage'
 import ClientsPage from './pages/ClientsPage'
+import AccountClientsPage from './pages/AccountClientsPage'
 import ActivityPage from './pages/ActivityPage'
 import TimerBadge from './components/TimerBadge'
 import Sidebar from './components/Sidebar'
@@ -150,6 +151,7 @@ export default function App() {
         <Route path="/projects/:projectName" element={<ProtectedRoute><ProjectOverviewPage /></ProtectedRoute>} />
         <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
         <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+        <Route path="/account-clients" element={<ProtectedRoute><AccountClientsPage /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><MonthlyReportPage /></ProtectedRoute>} />
         <Route path="/activity" element={<ProtectedRoute><ActivityPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
