@@ -60,9 +60,7 @@ export default function Sidebar() {
     { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
   ];
 
-  const _role = String(profile?.systemRole || '').toLowerCase()
-  const _dept = String(profile?.department || '').toLowerCase()
-  if (profile?.systemRole === 'Admin' || _role.includes('account') || _dept.includes('account')) {
+  if (profile?.systemRole === 'Admin' || profile?.systemRole === 'Accountant') {
     NAV_ITEMS.push({ icon: 'account_balance', label: 'Clients AC', path: '/account-clients' })
   }
 
