@@ -386,16 +386,15 @@ export default function AccountClientsPage() {
                 {paymentForm.gstType === 'GST' && (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">GST (%)</label>
-                    <select
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
                       value={paymentForm.gstPercent}
                       onChange={(e) => setPaymentForm(f => ({ ...f, gstPercent: e.target.value }))}
+                      placeholder="Enter GST %"
                       className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
-                    >
-                      <option value="">Select GST %</option>
-                      {GST_PERCENT_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
+                    />
                   </div>
                 )}
 
