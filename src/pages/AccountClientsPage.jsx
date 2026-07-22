@@ -51,7 +51,12 @@ export default function AccountClientsPage() {
     )
   })
 
-  const getPayment = (clientId) => payments.find(p => String(p['CLIENT ID']).trim() === String(clientId).trim())
+  const getAllPayments = (clientId) => payments.filter(p => String(p['CLIENT ID']).trim() === String(clientId).trim())
+
+  const getPayment = (clientId) => {
+    const all = getAllPayments(clientId)
+    return all.length > 0 ? all[all.length - 1] : null
+  }
 
   const hasPaymentDetails = (payment) => {
     if (!payment) return false
@@ -117,19 +122,17 @@ export default function AccountClientsPage() {
   const handleSaveRecord = async () => {
     if (!viewingClient) return
     setSaving(true)
-    const entryTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
     const existing = getPayment(viewingClient['Client ID'])
-    const totalCost = parseFloat(existing?.['TOTAL COST']) || 0
+    const lastPending = parseFloat(existing?.['PENDING AMOUNT']) || 0
     const payAmount = parseFloat(recordForm.amount) || 0
-    const pendingAmount = totalCost - payAmount
+    const newPending = Math.max(0, lastPending - payAmount)
     const success = await updatePayment({
-      action: 'update_payment',
+      action: 'record_payment',
       clientId: viewingClient['Client ID'],
-      'PAYMENT DATE': recordForm.date,
-      'PAYMENT AMOUNT': recordForm.amount,
-      'PENDING AMOUNT': pendingAmount >= 0 ? String(pendingAmount) : '0',
-      'NOTE': recordForm.note,
-      'DATA ENTRY DATE AND TIME': entryTime,
+      amount: recordForm.amount,
+      date: recordForm.date,
+      note: recordForm.note,
+      pendingAmount: String(newPending),
     })
     setSaving(false)
     if (success) {
@@ -323,55 +326,70 @@ export default function AccountClientsPage() {
                   <p className="text-[14px] text-[#4B5563] m-0">{viewingClient['Phone'] || '-'}</p>
                 </div>
 
-                {viewingPayment && (
-                  <div className="border-t border-gray-200 pt-4 mt-1">
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">Payment Details</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">GST / Non-GST</p>
-                        <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST/NON GST'] || '-'}</p>
-                      </div>
-                      {viewingPayment['GST/NON GST'] === 'GST' && (
+                {viewingPayment && (() => {
+                  const allClientPayments = getAllPayments(viewingClient['Client ID'])
+                  return (
+                    <div className="border-t border-gray-200 pt-4 mt-1">
+                      <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">Payment Details</label>
+                      <div className="grid grid-cols-2 gap-3 mb-4">
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-[10px] text-gray-400 m-0 mb-1">GST %</p>
-                          <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST (%)'] || '-'}%</p>
+                          <p className="text-[10px] text-gray-400 m-0 mb-1">GST / Non-GST</p>
+                          <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST/NON GST'] || '-'}</p>
+                        </div>
+                        {viewingPayment['GST/NON GST'] === 'GST' && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-[10px] text-gray-400 m-0 mb-1">GST %</p>
+                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST (%)'] || '-'}%</p>
+                          </div>
+                        )}
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring</p>
+                          <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING'] || '-'}</p>
+                        </div>
+                        {viewingPayment['RECURRING'] === 'Yes' && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring Type</p>
+                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING TYPE'] || '-'}</p>
+                          </div>
+                        )}
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-[10px] text-gray-400 m-0 mb-1">Total Cost</p>
+                          <p className="text-[13px] font-bold text-[#702c91] m-0">{viewingPayment['TOTAL COST'] ? `₹${viewingPayment['TOTAL COST']}` : '-'}</p>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-[10px] text-gray-400 m-0 mb-1">Pending Amount</p>
+                          <p className="text-[13px] font-bold text-[#ef4444] m-0">{viewingPayment['PENDING AMOUNT'] ? `₹${viewingPayment['PENDING AMOUNT']}` : '-'}</p>
+                        </div>
+                      </div>
+
+                      {/* Payment History */}
+                      {allClientPayments.length > 0 && allClientPayments.some(p => p['PAYMENT AMOUNT']) && (
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment History</label>
+                          <div className="flex flex-col gap-2">
+                            {allClientPayments.filter(p => p['PAYMENT AMOUNT']).map((p, idx) => (
+                              <div key={idx} className="bg-green-50 border border-green-100 rounded-lg p-3">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-[11px] font-bold text-green-700">Payment #{idx + 1}</span>
+                                  <span className="text-[11px] text-green-600">{p['PAYMENT DATE'] ? formatDateShort(p['PAYMENT DATE']) : '-'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[13px] font-bold text-[#16a34a]">₹{p['PAYMENT AMOUNT']}</span>
+                                  {p['PENDING AMOUNT'] && (
+                                    <span className="text-[11px] text-[#ef4444]">Pending: ₹{p['PENDING AMOUNT']}</span>
+                                  )}
+                                </div>
+                                {p['NOTE'] && (
+                                  <p className="text-[11px] text-gray-500 m-0 mt-1">{p['NOTE']}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring</p>
-                        <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING'] || '-'}</p>
-                      </div>
-                      {viewingPayment['RECURRING'] === 'Yes' && (
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring Type</p>
-                          <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING TYPE'] || '-'}</p>
-                        </div>
-                      )}
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Total Cost</p>
-                        <p className="text-[13px] font-bold text-[#702c91] m-0">{viewingPayment['TOTAL COST'] ? `₹${viewingPayment['TOTAL COST']}` : '-'}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Payment Date</p>
-                        <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['PAYMENT DATE'] ? formatDateShort(viewingPayment['PAYMENT DATE']) : '-'}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Payment Amount</p>
-                        <p className="text-[13px] font-bold text-[#16a34a] m-0">{viewingPayment['PAYMENT AMOUNT'] ? `₹${viewingPayment['PAYMENT AMOUNT']}` : '-'}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Pending Amount</p>
-                        <p className="text-[13px] font-bold text-[#ef4444] m-0">{viewingPayment['PENDING AMOUNT'] ? `₹${viewingPayment['PENDING AMOUNT']}` : '-'}</p>
-                      </div>
                     </div>
-                    {viewingPayment['NOTE'] && (
-                      <div className="mt-3 bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Note</p>
-                        <p className="text-[13px] text-[#1E1B2E] m-0">{viewingPayment['NOTE']}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             </div>
 
@@ -548,9 +566,9 @@ export default function AccountClientsPage() {
                   />
                   {viewingPayment && recordForm.amount && (
                     <div className="mt-2 bg-orange-50 border border-orange-100 rounded-lg p-3 flex justify-between items-center">
-                      <span className="text-[12px] text-orange-600 font-bold">Pending Amount</span>
+                      <span className="text-[12px] text-orange-600 font-bold">Pending After Payment</span>
                       <span className="text-[15px] font-bold text-orange-600">
-                        ₹{Math.max(0, (parseFloat(viewingPayment['TOTAL COST']) || 0) - (parseFloat(recordForm.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₹{Math.max(0, (parseFloat(viewingPayment['PENDING AMOUNT']) || 0) - (parseFloat(recordForm.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
                   )}

@@ -686,6 +686,71 @@ function doPost(e) {
   }
 
   // -------------------------
+  // 5.8. RECORD PAYMENT (append new row)
+  // -------------------------
+  if (payload.action === 'record_payment') {
+    if (!isUserAuthorized(payload.userEmail, ss)) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var sheet = ss.getSheetByName("Payment");
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+
+      // Find the latest existing row for this client to copy base info + get previous pending
+      var baseRow = null;
+      var lastPending = 0;
+      for (var i = data.length - 1; i >= 1; i--) {
+        if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
+          baseRow = data[i];
+          lastPending = parseFloat(data[i][headers.indexOf("PENDING AMOUNT")]) || 0;
+          break;
+        }
+      }
+
+      var payAmount = parseFloat(payload.amount) || 0;
+      var newPending = lastPending - payAmount;
+      if (newPending < 0) newPending = 0;
+      var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+
+      if (baseRow) {
+        // Copy base info from last row, update payment fields
+        var newRow = baseRow.slice();
+        var payDateIdx = headers.indexOf("PAYMENT DATE");
+        var payAmtIdx = headers.indexOf("PAYMENT AMOUNT");
+        var pendingIdx = headers.indexOf("PENDING AMOUNT");
+        var noteIdx = headers.indexOf("NOTE");
+        var entryIdx = headers.indexOf("DATA ENTRY DATE AND TIME");
+        if (payDateIdx >= 0) newRow[payDateIdx] = payload.date || "";
+        if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
+        if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
+        if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
+        if (entryIdx >= 0) newRow[entryIdx] = entryTime;
+        sheet.appendRow(newRow);
+      } else {
+        // No existing row — create minimal row
+        var newRow = [];
+        for (var h = 0; h < headers.length; h++) { newRow.push(""); }
+        var cidIdx = headers.indexOf("CLIENT ID");
+        if (cidIdx >= 0) newRow[cidIdx] = payload.clientId || "";
+        if (payDateIdx >= 0) newRow[payDateIdx] = payload.date || "";
+        if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
+        if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
+        if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
+        if (entryIdx >= 0) newRow[entryIdx] = entryTime;
+        sheet.appendRow(newRow);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // -------------------------
   // 6. HANDLE CHAT
   // -------------------------
   if (payload.action === 'send' || payload.action === 'edit' || payload.action === 'delete' || payload.action === 'react') {
