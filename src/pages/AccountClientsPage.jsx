@@ -150,6 +150,7 @@ export default function AccountClientsPage() {
                     <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Industry</th>
                     <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Services</th>
                     <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Start Date</th>
+                    {canEditPayment && <th className="py-4 px-6 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="block lg:table-row-group divide-y lg:divide-none divide-[#E5E7EB]">
@@ -194,11 +195,22 @@ export default function AccountClientsPage() {
                         <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Start:</span>
                         {safeDate(client['Project start Date'])}
                       </td>
+                      {canEditPayment && (
+                        <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-4 lg:px-6 text-[13px]">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setViewingClient(client); setShowPaymentForm(true) }}
+                            className="h-[32px] px-3 rounded-lg bg-[#702c91] hover:bg-[#5c2280] text-white text-[11px] font-bold cursor-pointer transition-all border-none flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">payments</span>
+                            {getPayment(client['Client ID']) ? 'Edit' : 'Add Payment'}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                   {filteredClients.length === 0 && (
                     <tr className="block lg:table-row">
-                      <td colSpan="6" className="block lg:table-cell py-12 text-center text-[#6B7280]">
+                      <td colSpan={canEditPayment ? 7 : 6} className="block lg:table-cell py-12 text-center text-[#6B7280]">
                         <div className="flex flex-col items-center justify-center">
                           <span className="material-symbols-outlined text-[48px] text-gray-300 mb-3">search_off</span>
                           <p className="text-[14px] font-medium m-0">No active clients found.</p>
