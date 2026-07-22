@@ -60,7 +60,9 @@ export default function Sidebar() {
     { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
   ];
 
-  if (profile?.systemRole === 'Admin' || profile?.systemRole === 'Accountant' || profile?.systemRole === 'Account' || String(profile?.systemRole || '').toLowerCase().includes('account')) {
+  const _role = String(profile?.systemRole || '').toLowerCase()
+  const _dept = String(profile?.department || '').toLowerCase()
+  if (profile?.systemRole === 'Admin' || _role.includes('account') || _dept.includes('account')) {
     NAV_ITEMS.push({ icon: 'account_balance', label: 'Clients AC', path: '/account-clients' })
   }
 
