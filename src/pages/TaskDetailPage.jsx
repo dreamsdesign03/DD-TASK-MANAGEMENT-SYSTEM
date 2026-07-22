@@ -256,10 +256,11 @@ export default function TaskDetailPage() {
   }
 
   const handleEditDescriptionClick = () => {
+    const isPlaceholder = (s) => !s || s.trim() === '' || s.trim() === 'No description provided.'
     const text = [
-      task.description?.intro,
+      !isPlaceholder(task.description?.intro) ? task.description.intro : '',
       task.description?.bullets?.length ? task.description.bullets.map(b => '- ' + b).join('\n') : '',
-      task.description?.outro
+      !isPlaceholder(task.description?.outro) ? task.description.outro : ''
     ].filter(Boolean).join('\n\n');
     setEditDescriptionContent(text);
     setIsEditingDescription(true);
