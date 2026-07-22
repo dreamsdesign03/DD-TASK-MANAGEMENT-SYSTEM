@@ -454,53 +454,6 @@ export default function AccountClientsPage() {
                     </div>
                   )}
                 </div>
-
-                {/* Payment Date */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment Date</label>
-                  <input
-                    type="date"
-                    value={paymentForm.paymentDate}
-                    onChange={(e) => setPaymentForm(f => ({ ...f, paymentDate: e.target.value }))}
-                    className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
-                  />
-                </div>
-
-                {/* Payment Amount */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment Amount (₹)</label>
-                  <input
-                    type="number"
-                    value={paymentForm.paymentAmount}
-                    onChange={(e) => setPaymentForm(f => ({ ...f, paymentAmount: e.target.value }))}
-                    placeholder="Amount received"
-                    className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
-                  />
-                </div>
-
-                {/* Pending Amount */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Pending Amount (₹)</label>
-                  <input
-                    type="number"
-                    value={paymentForm.pendingAmount}
-                    onChange={(e) => setPaymentForm(f => ({ ...f, pendingAmount: e.target.value }))}
-                    placeholder="Amount pending"
-                    className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
-                  />
-                </div>
-
-                {/* Payment Note */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment Note</label>
-                  <textarea
-                    value={paymentForm.paymentNote}
-                    onChange={(e) => setPaymentForm(f => ({ ...f, paymentNote: e.target.value }))}
-                    placeholder="Optional note..."
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all resize-none"
-                  />
-                </div>
               </div>
             </div>
 
