@@ -1,18 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import { useApp } from '../context/AppContext'
 import { formatDateShort } from '../utils/dateFormat'
 
 const safeDate = (val) => val ? formatDateShort(val) : '-'
-
-const GST_PERCENT_OPTIONS = [
-  { label: '0%', value: '0' },
-  { label: '5%', value: '5' },
-  { label: '12%', value: '12' },
-  { label: '18%', value: '18' },
-  { label: '28%', value: '28' },
-]
 
 const RECURRING_OPTIONS = ['Monthly', 'Quarterly', 'Half Yearly', 'Yearly']
 
@@ -22,10 +14,12 @@ const emptyPaymentForm = {
   recurring: '',
   recurringType: '',
   totalCost: '',
-  paymentDate: '',
-  paymentAmount: '',
-  paymentNote: '',
-  pendingAmount: '',
+}
+
+const emptyRecordForm = {
+  amount: '',
+  date: '',
+  note: '',
 }
 
 export default function AccountClientsPage() {
@@ -33,7 +27,12 @@ export default function AccountClientsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [viewingClient, setViewingClient] = useState(null)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [showRecordForm, setShowRecordForm] = useState(false)
   const [paymentForm, setPaymentForm] = useState({ ...emptyPaymentForm })
+  const [recordForm, setRecordForm] = useState({
+    ...emptyRecordForm,
+    date: new Date().toLocaleDateString('en-CA'),
+  })
   const [saving, setSaving] = useState(false)
 
   const role = String(profile?.systemRole || '').trim().toLowerCase()
@@ -54,6 +53,11 @@ export default function AccountClientsPage() {
 
   const getPayment = (clientId) => payments.find(p => String(p['CLIENT ID']).trim() === String(clientId).trim())
 
+  const hasPaymentDetails = (payment) => {
+    if (!payment) return false
+    return !!(payment['GST/NON GST'] && payment['TOTAL COST'])
+  }
+
   const openPaymentForm = () => {
     if (!viewingClient) return
     const existing = getPayment(viewingClient['Client ID'])
@@ -63,12 +67,24 @@ export default function AccountClientsPage() {
       recurring: existing?.['RECURRING'] || '',
       recurringType: existing?.['RECURRING TYPE'] || '',
       totalCost: existing?.['TOTAL COST'] || '',
-      paymentDate: existing?.['PAYMENT DATE'] || '',
-      paymentAmount: existing?.['PAYMENT AMOUNT'] || '',
-      paymentNote: existing?.['PAYMENT NOTE'] || '',
-      pendingAmount: existing?.['PENDING AMOUNT'] || '',
     })
     setShowPaymentForm(true)
+  }
+
+  const openRecordForm = () => {
+    if (!viewingClient) return
+    const existing = getPayment(viewingClient['Client ID'])
+    if (!hasPaymentDetails(existing)) {
+      addToast?.('First add payment details (GST & Project Cost)', 'warning')
+      openPaymentForm()
+      return
+    }
+    setRecordForm({
+      amount: '',
+      date: new Date().toLocaleDateString('en-CA'),
+      note: '',
+    })
+    setShowRecordForm(true)
   }
 
   const calcTotalWithGst = () => {
@@ -88,10 +104,6 @@ export default function AccountClientsPage() {
       'RECURRING': paymentForm.recurring,
       'RECURRING TYPE': paymentForm.recurring === 'Yes' ? paymentForm.recurringType : '',
       'TOTAL COST': paymentForm.totalCost,
-      'PAYMENT DATE': paymentForm.paymentDate,
-      'PAYMENT AMOUNT': paymentForm.paymentAmount,
-      'PAYMENT NOTE': paymentForm.paymentNote,
-      'PENDING AMOUNT': paymentForm.pendingAmount,
     })
     setSaving(false)
     if (success) {
@@ -99,6 +111,27 @@ export default function AccountClientsPage() {
       setShowPaymentForm(false)
     } else {
       addToast?.('Failed to save payment details', 'error')
+    }
+  }
+
+  const handleSaveRecord = async () => {
+    if (!viewingClient) return
+    setSaving(true)
+    const entryTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+    const success = await updatePayment({
+      action: 'update_payment',
+      clientId: viewingClient['Client ID'],
+      'PAYMENT DATE': recordForm.date,
+      'PAYMENT AMOUNT': recordForm.amount,
+      'NOTE': recordForm.note,
+      'DATA ENTRY DATE AND TIME': entryTime,
+    })
+    setSaving(false)
+    if (success) {
+      addToast?.('Payment recorded successfully', 'success')
+      setShowRecordForm(false)
+    } else {
+      addToast?.('Failed to record payment', 'error')
     }
   }
 
@@ -157,7 +190,7 @@ export default function AccountClientsPage() {
                   {filteredClients.map((client, idx) => (
                     <tr
                       key={client['Client ID'] || idx}
-                      onClick={() => { setViewingClient(client); setShowPaymentForm(false) }}
+                      onClick={() => { setViewingClient(client); setShowPaymentForm(false); setShowRecordForm(false) }}
                       className={`block lg:table-row bg-white border-b border-[#E5E7EB] lg:hover:bg-white lg:hover:scale-[1.01] lg:hover:shadow-[0_8px_24px_rgba(91,33,182,0.08)] transition-all duration-200 relative cursor-pointer ${idx === filteredClients.length - 1 ? 'border-b-0' : ''}`}
                     >
                       <td className="block lg:table-cell py-3 px-4 lg:py-4 lg:px-6 text-[13px] font-bold text-[#1E1B2E]">
@@ -198,11 +231,11 @@ export default function AccountClientsPage() {
                       {canEditPayment && (
                         <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-4 lg:px-6 text-[13px]">
                           <button
-                            onClick={(e) => { e.stopPropagation(); setViewingClient(client); setShowPaymentForm(true) }}
+                            onClick={(e) => { e.stopPropagation(); setViewingClient(client); openRecordForm() }}
                             className="h-[32px] px-3 rounded-lg bg-[#702c91] hover:bg-[#5c2280] text-white text-[11px] font-bold cursor-pointer transition-all border-none flex items-center gap-1"
                           >
                             <span className="material-symbols-outlined text-[14px]">payments</span>
-                            {getPayment(client['Client ID']) ? 'Edit' : 'Add Payment'}
+                            Add Payment
                           </button>
                         </td>
                       )}
@@ -226,10 +259,9 @@ export default function AccountClientsPage() {
       </main>
 
       {/* Client Info Modal */}
-      {viewingClient && !showPaymentForm && (
+      {viewingClient && !showPaymentForm && !showRecordForm && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-[460px] max-h-[85vh] rounded-2xl shadow-2xl flex flex-col animate-scale-in">
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 shrink-0">
               <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
                 <span className="material-symbols-outlined text-[20px]">business</span>
@@ -243,7 +275,6 @@ export default function AccountClientsPage() {
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5">
               <div className="flex flex-col gap-5">
                 <div>
@@ -287,7 +318,6 @@ export default function AccountClientsPage() {
                   <p className="text-[14px] text-[#4B5563] m-0">{viewingClient['Phone'] || '-'}</p>
                 </div>
 
-                {/* Payment Summary */}
                 {viewingPayment && (
                   <div className="border-t border-gray-200 pt-4 mt-1">
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">Payment Details</label>
@@ -324,15 +354,11 @@ export default function AccountClientsPage() {
                         <p className="text-[10px] text-gray-400 m-0 mb-1">Payment Amount</p>
                         <p className="text-[13px] font-bold text-[#16a34a] m-0">{viewingPayment['PAYMENT AMOUNT'] ? `₹${viewingPayment['PAYMENT AMOUNT']}` : '-'}</p>
                       </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Pending Amount</p>
-                        <p className="text-[13px] font-bold text-[#ef4444] m-0">{viewingPayment['PENDING AMOUNT'] ? `₹${viewingPayment['PENDING AMOUNT']}` : '-'}</p>
-                      </div>
                     </div>
-                    {viewingPayment['PAYMENT NOTE'] && (
+                    {viewingPayment['NOTE'] && (
                       <div className="mt-3 bg-gray-50 rounded-lg p-3">
-                        <p className="text-[10px] text-gray-400 m-0 mb-1">Payment Note</p>
-                        <p className="text-[13px] text-[#1E1B2E] m-0">{viewingPayment['PAYMENT NOTE']}</p>
+                        <p className="text-[10px] text-gray-400 m-0 mb-1">Note</p>
+                        <p className="text-[13px] text-[#1E1B2E] m-0">{viewingPayment['NOTE']}</p>
                       </div>
                     )}
                   </div>
@@ -340,15 +366,20 @@ export default function AccountClientsPage() {
               </div>
             </div>
 
-            {/* Footer */}
             {canEditPayment && (
-              <div className="border-t border-gray-200 px-6 py-4 shrink-0">
+              <div className="border-t border-gray-200 px-6 py-4 shrink-0 flex gap-3">
                 <button
                   onClick={openPaymentForm}
-                  className="w-full h-[42px] rounded-xl bg-[#702c91] hover:bg-[#5c2280] text-white text-[13px] font-bold cursor-pointer transition-all flex items-center justify-center gap-2 border-none"
+                  className="flex-1 h-[42px] rounded-xl bg-white border border-[#702c91] text-[#702c91] text-[13px] font-bold cursor-pointer hover:bg-purple-50 transition-all"
+                >
+                  {viewingPayment ? 'Edit Payment Details' : 'Add Payment Details'}
+                </button>
+                <button
+                  onClick={openRecordForm}
+                  className="flex-1 h-[42px] rounded-xl bg-[#702c91] hover:bg-[#5c2280] text-white text-[13px] font-bold cursor-pointer transition-all border-none flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined text-[18px]">payments</span>
-                  {viewingPayment ? 'Edit Payment Details' : 'Add Payment Details'}
+                  Add Payment
                 </button>
               </div>
             )}
@@ -356,14 +387,13 @@ export default function AccountClientsPage() {
         </div>
       )}
 
-      {/* Payment Details Form Modal */}
+      {/* Payment Details Form Modal (GST, Recurring, Cost) */}
       {viewingClient && showPaymentForm && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-[500px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col animate-scale-in">
-            {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 shrink-0">
               <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
-                <span className="material-symbols-outlined text-[20px]">payments</span>
+                <span className="material-symbols-outlined text-[20px]">receipt_long</span>
                 Payment Details — {viewingClient['Client ID']}
               </h2>
               <button
@@ -374,10 +404,8 @@ export default function AccountClientsPage() {
               </button>
             </div>
 
-            {/* Form */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5">
               <div className="flex flex-col gap-5">
-                {/* GST / Non-GST */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">GST / Non-GST</label>
                   <div className="flex gap-3">
@@ -394,7 +422,6 @@ export default function AccountClientsPage() {
                   </div>
                 </div>
 
-                {/* GST % */}
                 {paymentForm.gstType === 'GST' && (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">GST (%)</label>
@@ -410,7 +437,6 @@ export default function AccountClientsPage() {
                   </div>
                 )}
 
-                {/* Recurring */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recurring</label>
                   <div className="flex gap-3">
@@ -427,7 +453,6 @@ export default function AccountClientsPage() {
                   </div>
                 </div>
 
-                {/* Recurring Type */}
                 {paymentForm.recurring === 'Yes' && (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recurring Type</label>
@@ -446,7 +471,6 @@ export default function AccountClientsPage() {
                   </div>
                 )}
 
-                {/* Total Cost */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Project Cost (₹)</label>
                   <input
@@ -466,7 +490,6 @@ export default function AccountClientsPage() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="border-t border-gray-200 px-6 py-4 shrink-0 flex gap-3">
               <button
                 onClick={() => setShowPaymentForm(false)}
@@ -480,6 +503,78 @@ export default function AccountClientsPage() {
                 className="flex-1 h-[42px] rounded-xl bg-[#702c91] hover:bg-[#5c2280] text-white text-[13px] font-bold cursor-pointer transition-all border-none disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Payment Details'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Record Payment Form Modal (Amount, Date, Note) */}
+      {viewingClient && showRecordForm && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-[420px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col animate-scale-in">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 shrink-0">
+              <h2 className="text-[18px] font-bold text-[#702c91] flex items-center gap-2 m-0">
+                <span className="material-symbols-outlined text-[20px]">payments</span>
+                Record Payment — {viewingClient['Client ID']}
+              </h2>
+              <button
+                onClick={() => setShowRecordForm(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-transparent border-none cursor-pointer p-1 flex items-center justify-center rounded-full hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5">
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={recordForm.amount}
+                    onChange={(e) => setRecordForm(f => ({ ...f, amount: e.target.value }))}
+                    placeholder="Enter amount"
+                    className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Payment Date</label>
+                  <input
+                    type="date"
+                    value={recordForm.date}
+                    onChange={(e) => setRecordForm(f => ({ ...f, date: e.target.value }))}
+                    className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Note</label>
+                  <textarea
+                    value={recordForm.note}
+                    onChange={(e) => setRecordForm(f => ({ ...f, note: e.target.value }))}
+                    placeholder="Payment note..."
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 px-6 py-4 shrink-0 flex gap-3">
+              <button
+                onClick={() => setShowRecordForm(false)}
+                className="flex-1 h-[42px] rounded-xl bg-white border border-[#E5E7EB] text-[#4B5563] text-[13px] font-bold cursor-pointer hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRecord}
+                disabled={saving}
+                className="flex-1 h-[42px] rounded-xl bg-[#702c91] hover:bg-[#5c2280] text-white text-[13px] font-bold cursor-pointer transition-all border-none disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save Payment'}
               </button>
             </div>
           </div>
