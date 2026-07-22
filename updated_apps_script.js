@@ -12,8 +12,8 @@ function isUserAuthorized(email, ss) {
   var data = teamSheet.getDataRange().getValues();
   for (var i = 1; i < data.length; i++) {
     if (String(data[i][2]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
-      var role = String(data[i][8] || "").trim();
-      if (role === "Admin" || role === "Manager") return true;
+      var role = String(data[i][8] || "").trim().toLowerCase();
+      if (role === "admin" || role === "manager" || role === "accountant") return true;
       return false;
     }
   }
@@ -601,38 +601,6 @@ function doPost(e) {
   }
 
   // -------------------------
-  // 5.6. GET PAYMENTS
-  // -------------------------
-  if (payload.action === 'get_payments') {
-    if (!isUserAuthorized(payload.userEmail, ss)) {
-      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
-    }
-    try {
-      var sheet = ss.getSheetByName("Payment");
-      if (!sheet) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": [] })).setMimeType(ContentService.MimeType.JSON);
-      }
-      var data = sheet.getDataRange().getValues();
-      if (data.length < 2) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": [] })).setMimeType(ContentService.MimeType.JSON);
-      }
-      var headers = data[0];
-      var payments = [];
-      for (var i = 1; i < data.length; i++) {
-        var row = data[i];
-        var obj = {};
-        for (var h = 0; h < headers.length; h++) {
-          obj[headers[h]] = row[h];
-        }
-        payments.push(obj);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": payments })).setMimeType(ContentService.MimeType.JSON);
-    } catch (err) {
-      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
-    }
-  }
-
-  // -------------------------
   // 5.7. UPDATE PAYMENT
   // -------------------------
   if (payload.action === 'update_payment') {
@@ -651,9 +619,9 @@ function doPost(e) {
         if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
           found = true;
           for (var h = 0; h < headers.length; h++) {
-            var key = headers[h];
-            if (payload[key] !== undefined) {
-              sheet.getRange(i + 1, h + 1).setValue(payload[key]);
+            var headerKey = String(headers[h]).trim();
+            if (payload[headerKey] !== undefined) {
+              sheet.getRange(i + 1, h + 1).setValue(payload[headerKey]);
             }
           }
           break;
@@ -824,6 +792,30 @@ function doGet(e) {
       }
     }
     return ContentService.createTextOutput(JSON.stringify({ clients: clients })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // -------------------------
+  // 1.5. READ PAYMENTS
+  // -------------------------
+  if (action === 'get_payments') {
+    var sheet = ss.getSheetByName("Payment");
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify({ payments: [] })).setMimeType(ContentService.MimeType.JSON);
+    var data = sheet.getDataRange().getValues();
+    var payments = [];
+    if (data.length > 1) {
+      var headers = data[0];
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        if (row.length === 0 || !row[0]) continue;
+        var obj = {};
+        for (var j = 0; j < headers.length; j++) {
+          var headerStr = String(headers[j]).trim();
+          if (headerStr) obj[headerStr] = row[j];
+        }
+        payments.push(obj);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ payments: payments })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // -------------------------
