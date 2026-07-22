@@ -4,6 +4,15 @@
 // doGet handles Reads (Tasks, Team, Clients, Chat, and Approvals)
 // ============================================
 
+// Helper: find header index by trimmed, case-insensitive match
+function findHeaderIndex(headers, name) {
+  var target = String(name).trim().toLowerCase();
+  for (var i = 0; i < headers.length; i++) {
+    if (String(headers[i]).trim().toLowerCase() === target) return i;
+  }
+  return -1;
+}
+
 // Helper to check Authorization
 function isUserAuthorized(email, ss) {
   if (!email) return false;
@@ -706,7 +715,7 @@ function doPost(e) {
       for (var i = data.length - 1; i >= 1; i--) {
         if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
           baseRow = data[i];
-          lastPending = parseFloat(data[i][headers.indexOf("PENDING AMOUNT")]) || 0;
+          lastPending = parseFloat(data[i][findHeaderIndex(headers, "PENDING AMOUNT")]) || 0;
           break;
         }
       }
@@ -719,11 +728,11 @@ function doPost(e) {
       if (baseRow) {
         // Copy base info from last row, update payment fields
         var newRow = baseRow.slice();
-        var payDateIdx = headers.indexOf("PAYMENT DATE");
-        var payAmtIdx = headers.indexOf("PAYMENT AMOUNT");
-        var pendingIdx = headers.indexOf("PENDING AMOUNT");
-        var noteIdx = headers.indexOf("NOTE");
-        var entryIdx = headers.indexOf("DATA ENTRY DATE AND TIME");
+        var payDateIdx = findHeaderIndex(headers, "PAYMENT DATE");
+        var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
+        var pendingIdx = findHeaderIndex(headers, "PENDING AMOUNT");
+        var noteIdx = findHeaderIndex(headers, "NOTE");
+        var entryIdx = findHeaderIndex(headers, "DATA ENTRY DATE AND TIME");
         if (payDateIdx >= 0) newRow[payDateIdx] = payload.date || "";
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
         if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
@@ -734,7 +743,7 @@ function doPost(e) {
         // No existing row — create minimal row
         var newRow = [];
         for (var h = 0; h < headers.length; h++) { newRow.push(""); }
-        var cidIdx = headers.indexOf("CLIENT ID");
+        var cidIdx = findHeaderIndex(headers, "CLIENT ID");
         if (cidIdx >= 0) newRow[cidIdx] = payload.clientId || "";
         if (payDateIdx >= 0) newRow[payDateIdx] = payload.date || "";
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
