@@ -239,7 +239,7 @@ function doPost(e) {
           "Phone": row[5],
           "Joined Date": row[6],
           "Is Active": "Yes",
-          "System Role": row[8] || "Employee"
+          "System Role": String(row[8] || "Employee").trim()
         };
         return ContentService.createTextOutput(JSON.stringify({
           "ok": true, "authenticated": true, "user": userObj
