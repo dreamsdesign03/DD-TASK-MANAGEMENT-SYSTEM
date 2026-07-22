@@ -115,7 +115,7 @@ function getExistingStartTime(sheet, headerRowNum) {
 }
 
 function fetchActivityTimes(employeeId, date) {
-  var MAIN_BACKEND_URL = "https://script.google.com/macros/s/AKfycbwq48kZVWRN9hjA3kgVFQN1uCfS32fTH9XAQRTMYrAu8ZJwFaqYI0vX6DH5WVRXi34O/exec";
+  var MAIN_BACKEND_URL = "https://script.google.com/macros/s/AKfycbygvs37evVjG3HmdPADduCKUBIhzD0RH0hGaqCI4aR99OJfY3T1giFyDvHsBFDS92wv/exec";
   try {
     var res = UrlFetchApp.fetch(MAIN_BACKEND_URL + "?action=get_activities&t=" + Date.now(), { muteHttpExceptions: true });
     var json = JSON.parse(res.getContentText());
