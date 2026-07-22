@@ -386,18 +386,16 @@ export default function AccountClientsPage() {
                 {paymentForm.gstType === 'GST' && (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">GST (%)</label>
-                    <div className="flex gap-2 flex-wrap">
+                    <select
+                      value={paymentForm.gstPercent}
+                      onChange={(e) => setPaymentForm(f => ({ ...f, gstPercent: e.target.value }))}
+                      className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
+                    >
+                      <option value="">Select GST %</option>
                       {GST_PERCENT_OPTIONS.map(opt => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => setPaymentForm(f => ({ ...f, gstPercent: f.gstPercent === opt.value ? '' : opt.value }))}
-                          className={`h-[36px] px-4 rounded-lg text-[12px] font-bold cursor-pointer transition-all border ${paymentForm.gstPercent === opt.value ? 'bg-[#702c91] text-white border-[#702c91]' : 'bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#702c91]'}`}
-                        >
-                          {opt.label}
-                        </button>
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
                       ))}
-                    </div>
+                    </select>
                   </div>
                 )}
 
