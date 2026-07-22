@@ -51,12 +51,14 @@ export default function ClientsPage() {
   })
 
   const openClientInfo = (client) => {
-    if (profile?.systemRole === 'Employee') return
+    const role = String(profile?.systemRole || '').trim()
+    if (role !== 'Admin' && role !== 'Accountant') return
     setViewingClient(client)
   }
 
   const openEditModal = (client) => {
-    if (profile?.systemRole === 'Employee') return
+    const role = String(profile?.systemRole || '').trim()
+    if (role !== 'Admin' && role !== 'Accountant') return
     setViewingClient(null)
     const emails = client['Contact Email'] ? String(client['Contact Email']).split(',').map(e => e.trim()) : ['']
     const phones = client['Phone'] ? String(client['Phone']).split(',').map(p => p.trim()) : ['']
@@ -233,7 +235,7 @@ export default function ClientsPage() {
             </div>
             
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {profile?.systemRole === 'Admin' && (
+              {(profile?.systemRole === 'Admin' || profile?.systemRole === 'Accountant') && (
               <div
                 onMouseEnter={e => {
                   e.currentTarget.style.maxWidth = '300px';
@@ -319,7 +321,8 @@ export default function ClientsPage() {
                           <td
                             className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
                             onClick={() => {
-                              if (profile?.systemRole !== 'Employee') openClientInfo(client)
+                              const r = String(profile?.systemRole || '').trim()
+                              if (r === 'Admin' || r === 'Accountant') openClientInfo(client)
                             }}
                           >
                             <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Project Name:</span>
@@ -409,8 +412,8 @@ export default function ClientsPage() {
                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">ACTIVE STATUS</label>
                 <div className="flex items-center gap-3">
                   <div
-                    className={`relative inline-block w-11 h-6 align-middle select-none transition duration-200 ease-in cursor-pointer ${(isUpdating || profile?.systemRole === 'Employee') ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={() => { if (!isUpdating && profile?.systemRole !== 'Employee') handleToggleStatus(viewingClient) }}
+                    className={`relative inline-block w-11 h-6 align-middle select-none transition duration-200 ease-in cursor-pointer ${(isUpdating || (profile?.systemRole !== 'Admin' && profile?.systemRole !== 'Accountant')) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => { const r = String(profile?.systemRole || '').trim(); if (!isUpdating && (r === 'Admin' || r === 'Accountant')) handleToggleStatus(viewingClient) }}
                   >
                     <div className={`absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none transition-transform duration-300 ease-in-out z-10 ${(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'translate-x-5 border-[#10B981]' : 'translate-x-0 border-gray-300' })()}`}/>
                     <div className={`block overflow-hidden h-6 rounded-full transition-colors duration-300 ease-in-out ${(() => { const v = viewingClient['Is Active'] || viewingClient['isActive'] || viewingClient['is_active'] || viewingClient.isActive; return String(v).toLowerCase() === 'yes' || v === true ? 'bg-[#10B981]' : 'bg-gray-300' })()}`}/>

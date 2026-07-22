@@ -587,6 +587,54 @@ function doPost(e) {
           }
           if (payload.services !== undefined) sheet.getRange(i + 1, 9).setValue(payload.services);
           found = true;
+
+          // Also sync common fields to Payment sheet
+          try {
+            var paySheet = ss.getSheetByName("Payment");
+            if (paySheet) {
+              var payData = paySheet.getDataRange().getValues();
+              var payHeaders = payData[0];
+              for (var pi = 1; pi < payData.length; pi++) {
+                if (String(payData[pi][0]).trim() === String(payload.clientId).trim()) {
+                  if (payload.projectName !== undefined) {
+                    var colIdx = payHeaders.indexOf("PROJECT");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.projectName);
+                  }
+                  if (payload.clientName !== undefined) {
+                    var colIdx = payHeaders.indexOf("CLIENT");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.clientName);
+                  }
+                  if (payload.contactEmail !== undefined) {
+                    var colIdx = payHeaders.indexOf("EMAILS");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.contactEmail);
+                  }
+                  if (payload.phone !== undefined) {
+                    var colIdx = payHeaders.indexOf("PHONE NO");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.phone);
+                  }
+                  if (payload.industry !== undefined) {
+                    var colIdx = payHeaders.indexOf("INDUSTRY");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.industry);
+                  }
+                  if (payload.services !== undefined) {
+                    var colIdx = payHeaders.indexOf("SERVICES");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.services);
+                  }
+                  if (payload.isActive !== undefined) {
+                    var colIdx = payHeaders.indexOf("IS ACTIVE");
+                    if (colIdx >= 0) paySheet.getRange(pi + 1, colIdx + 1).setValue(payload.isActive);
+                    if (String(payload.isActive).toLowerCase() === 'no' || payload.isActive === false) {
+                      var colEnd = payHeaders.indexOf("PROJECT END DATE");
+                      if (colEnd >= 0) paySheet.getRange(pi + 1, colEnd + 1).setValue(Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss"));
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+          } catch (payErr) {
+            console.error("Payment sync failed: " + payErr.message);
+          }
           break;
         }
       }
