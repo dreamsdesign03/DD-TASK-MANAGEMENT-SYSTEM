@@ -118,11 +118,16 @@ export default function AccountClientsPage() {
     if (!viewingClient) return
     setSaving(true)
     const entryTime = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/(\d{2})\/(\d{2})\/(\d{4}),/, '$3-$2-$1')
+    const existing = getPayment(viewingClient['Client ID'])
+    const totalCost = parseFloat(existing?.['TOTAL COST']) || 0
+    const payAmount = parseFloat(recordForm.amount) || 0
+    const pendingAmount = totalCost - payAmount
     const success = await updatePayment({
       action: 'update_payment',
       clientId: viewingClient['Client ID'],
       'PAYMENT DATE': recordForm.date,
       'PAYMENT AMOUNT': recordForm.amount,
+      'PENDING AMOUNT': pendingAmount >= 0 ? String(pendingAmount) : '0',
       'NOTE': recordForm.note,
       'DATA ENTRY DATE AND TIME': entryTime,
     })
@@ -354,6 +359,10 @@ export default function AccountClientsPage() {
                         <p className="text-[10px] text-gray-400 m-0 mb-1">Payment Amount</p>
                         <p className="text-[13px] font-bold text-[#16a34a] m-0">{viewingPayment['PAYMENT AMOUNT'] ? `₹${viewingPayment['PAYMENT AMOUNT']}` : '-'}</p>
                       </div>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-[10px] text-gray-400 m-0 mb-1">Pending Amount</p>
+                        <p className="text-[13px] font-bold text-[#ef4444] m-0">{viewingPayment['PENDING AMOUNT'] ? `₹${viewingPayment['PENDING AMOUNT']}` : '-'}</p>
+                      </div>
                     </div>
                     {viewingPayment['NOTE'] && (
                       <div className="mt-3 bg-gray-50 rounded-lg p-3">
@@ -537,6 +546,14 @@ export default function AccountClientsPage() {
                     placeholder="Enter amount"
                     className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
                   />
+                  {viewingPayment && recordForm.amount && (
+                    <div className="mt-2 bg-orange-50 border border-orange-100 rounded-lg p-3 flex justify-between items-center">
+                      <span className="text-[12px] text-orange-600 font-bold">Pending Amount</span>
+                      <span className="text-[15px] font-bold text-orange-600">
+                        ₹{Math.max(0, (parseFloat(viewingPayment['TOTAL COST']) || 0) - (parseFloat(recordForm.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
