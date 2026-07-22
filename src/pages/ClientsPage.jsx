@@ -90,7 +90,7 @@ export default function ClientsPage() {
         services: clientForm.services.join(', '),
         userEmail: profile?.email
       }
-      const res = await fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
@@ -128,7 +128,7 @@ export default function ClientsPage() {
     setConfirmDeactivateClient(null)
     setIsUpdating(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ export default function ClientsPage() {
     }
     setIsAdding(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({

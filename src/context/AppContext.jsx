@@ -434,7 +434,7 @@ export function AppProvider({ children }) {
     if (!profile?.email) return
     const fetchActivities = async () => {
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec?action=get_activities')
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_activities')
         const data = await res.json()
         setActivityLog(data)
         const todayPrefix = getISTDate()
@@ -499,13 +499,13 @@ export function AppProvider({ children }) {
     })
     addToast('Punched In successfully', 'success')
 
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec';
     fetch(SCRIPT_URL, {
       method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'punch_in', email: profile.email })
     }).then(r => r.text()).then(t => console.log('Punch in response:', t)).catch(e => console.warn('Punch in failed:', e))
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyl-HHJ5ZGovyIN5Y8PHd-7jsKuaAwivn6A-6Tu4nx9dt1ZwxJkFL9aFzPzJMZcOhLdyg/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyn9_lexfiImLuWYDX8dU9DlNSqPf9JE9fyhHojOlYWwEonZHYp9eYXy-7kzb-GB4lOhw/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -537,7 +537,7 @@ export function AppProvider({ children }) {
     })
     addToast('Punched Out successfully', 'success')
 
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec';
     fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors', keepalive: true,
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -546,7 +546,7 @@ export function AppProvider({ children }) {
 
     // Log punch out to daily sheet (adds "Punched Out" row)
     if (prevEmail) {
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyl-HHJ5ZGovyIN5Y8PHd-7jsKuaAwivn6A-6Tu4nx9dt1ZwxJkFL9aFzPzJMZcOhLdyg/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyn9_lexfiImLuWYDX8dU9DlNSqPf9JE9fyhHojOlYWwEonZHYp9eYXy-7kzb-GB4lOhw/exec';
       if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const payload = JSON.stringify({
           action: 'log_punch_out',
@@ -666,9 +666,21 @@ export function AppProvider({ children }) {
     return []
   })
 
+  const [payments, setPayments] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_payments_v1')
+      if (saved) return JSON.parse(saved)
+    } catch (err) {}
+    return []
+  })
+
   useEffect(() => {
     localStorage.setItem('dd_clients_v1', JSON.stringify(clients))
   }, [clients])
+
+  useEffect(() => {
+    localStorage.setItem('dd_payments_v1', JSON.stringify(payments))
+  }, [payments])
 
   const [messagesByChatId, setMessagesByChatId] = useState(INITIAL_MESSAGES)
   const [activeChatSession, setActiveChatSession] = useState(null)
@@ -963,7 +975,7 @@ export function AppProvider({ children }) {
         timestamp: new Date().toISOString(),
         type: 'personal'
       }
-      fetch('https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec', {
+      fetch('https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(sheetPayload)
@@ -1062,7 +1074,7 @@ export function AppProvider({ children }) {
   // Fetch messages from n8n CHAT_ENGINE Webhook
   const fetchMessages = useCallback(async () => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec'
 
       let res = null;
       try {
@@ -1773,7 +1785,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec'
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1823,7 +1835,7 @@ export function AppProvider({ children }) {
 
     // Sync status change to daily sheet row
     if (hasStatusChange && profile?.email && isPunchedIn) {
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyl-HHJ5ZGovyIN5Y8PHd-7jsKuaAwivn6A-6Tu4nx9dt1ZwxJkFL9aFzPzJMZcOhLdyg/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyn9_lexfiImLuWYDX8dU9DlNSqPf9JE9fyhHojOlYWwEonZHYp9eYXy-7kzb-GB4lOhw/exec';
       if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
@@ -1865,7 +1877,7 @@ export function AppProvider({ children }) {
       updateTask(taskToToggle.id, { timeTaken: buildMultiUserTimeStr(timeData) });
       setActiveTimer(null);
 
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyl-HHJ5ZGovyIN5Y8PHd-7jsKuaAwivn6A-6Tu4nx9dt1ZwxJkFL9aFzPzJMZcOhLdyg/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyn9_lexfiImLuWYDX8dU9DlNSqPf9JE9fyhHojOlYWwEonZHYp9eYXy-7kzb-GB4lOhw/exec';
       if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
@@ -1893,7 +1905,7 @@ export function AppProvider({ children }) {
       }
       setActiveTimer({ taskId: taskToToggle.id, taskTitle: taskToToggle.title, startTime: Date.now() });
 
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyl-HHJ5ZGovyIN5Y8PHd-7jsKuaAwivn6A-6Tu4nx9dt1ZwxJkFL9aFzPzJMZcOhLdyg/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyn9_lexfiImLuWYDX8dU9DlNSqPf9JE9fyhHojOlYWwEonZHYp9eYXy-7kzb-GB4lOhw/exec';
       if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
@@ -1947,7 +1959,7 @@ export function AppProvider({ children }) {
     // Prevent this new task from being wiped out by an immediate sync
     recentTaskUpdates.current[newTask.id] = { timestamp: Date.now(), fields: newTask, isNew: true }
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec'
       await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1993,7 +2005,7 @@ export function AppProvider({ children }) {
 
   const deleteTask = async (id) => {
     try {
-      const url = 'https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec'
+      const url = 'https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec'
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2207,7 +2219,7 @@ export function AppProvider({ children }) {
     }
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec?action=get_tasks&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_tasks&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2303,7 +2315,7 @@ export function AppProvider({ children }) {
     let success = false
 
     try {
-      const url = `https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec?action=get_team&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_team&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2348,7 +2360,7 @@ export function AppProvider({ children }) {
 
   const fetchClients = async () => {
     try {
-      const url = `https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec?action=get_clients&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_clients&t=${Date.now()}`
       const res = await fetch(url)
 
       if (res.ok) {
@@ -2370,9 +2382,55 @@ export function AppProvider({ children }) {
     }
   }
 
+  const fetchPayments = async () => {
+    try {
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_payments&t=${Date.now()}`
+      const res = await fetch(url)
+      if (res.ok) {
+        const text = await res.text()
+        try {
+          const data = JSON.parse(text)
+          const items = data.payments || []
+          setPayments(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(items)) return prev;
+            return items;
+          })
+        } catch (e) {
+          console.warn('Failed to parse payments:', e)
+        }
+      }
+    } catch (err) {
+      console.warn('Payments fetch failed:', err)
+    }
+  }
+
+  const updatePayment = async (paymentData) => {
+    try {
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec`
+      const res = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({ ...paymentData, userEmail: profile?.email }),
+        headers: { 'Content-Type': 'text/plain' }
+      })
+      if (res.ok) {
+        const text = await res.text()
+        try {
+          const data = JSON.parse(text)
+          if (data.ok) {
+            fetchPayments()
+            return true
+          }
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Payment update failed:', err)
+    }
+    return false
+  }
+
   const fetchActivities = async () => {
     try {
-      const url = `https://script.google.com/macros/s/AKfycbw0t6pgjiyTOSyM-MdcC1I_eZOevIQTrxHgoShtJ1Mu9Y_qzOy_xwqCx0vO8fCt-fvR/exec?action=get_activities&t=${Date.now()}`
+      const url = `https://script.google.com/macros/s/AKfycbzyDJXeS0DtbGpm94AdTpAMb5U21KSgGMX-vGpWCmuoxilm813Vf0MeEqayNq_Xy69K/exec?action=get_activities&t=${Date.now()}`
       const res = await fetch(url)
       if (res.ok) {
         const text = await res.text()
@@ -2399,6 +2457,7 @@ export function AppProvider({ children }) {
     fetchSyncedTasks()
     fetchTeam()
     fetchClients()
+    fetchPayments()
     fetchMessages()
     fetchActivities()
 
@@ -2413,12 +2472,14 @@ export function AppProvider({ children }) {
     const taskInterval = setInterval(fetchSyncedTasks, 300000) // 5 minutes
     const teamInterval = setInterval(fetchTeam, 300000) // 5 minutes
     const clientInterval = setInterval(fetchClients, 300000) // 5 minutes
+    const paymentInterval = setInterval(fetchPayments, 300000) // 5 minutes
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchSyncedTasks()
         fetchTeam()
         fetchClients()
+        fetchPayments()
         fetchMessages()
         fetchActivities()
       }
@@ -2439,6 +2500,7 @@ export function AppProvider({ children }) {
             fetchSyncedTasks()
             fetchTeam()
             fetchClients()
+            fetchPayments()
           }
         } else if (topic === 'dd_status_engine_v1/status') {
           const { action, email, name } = payload
@@ -2564,6 +2626,9 @@ export function AppProvider({ children }) {
         employees,
         clients,
         fetchClients,
+        payments,
+        fetchPayments,
+        updatePayment,
         fetchTeam,
         messagesByChatId,
         setMessagesByChatId,

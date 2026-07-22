@@ -454,6 +454,40 @@ function doPost(e) {
         folderUrl
       ]);
 
+      // Also add to Payment sheet
+      try {
+        var paymentSheet = ss.getSheetByName("Payment");
+        if (!paymentSheet) {
+          paymentSheet = ss.insertSheet("Payment");
+          paymentSheet.appendRow(["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST (%)", "RECURRING", "RECURRING TYPE", "TOTAL COST", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "DATA ENTRY DATE AND TIME"]);
+        }
+        var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+        paymentSheet.appendRow([
+          newId,
+          payload.projectName || "",
+          payload.clientName || "",
+          payload.contactEmail || "",
+          formattedPhone,
+          projectStartDate,
+          payload.industry || "",
+          "Yes",
+          payload.services || "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          entryTime
+        ]);
+      } catch (payErr) {
+        console.error("Payment sheet write failed: " + payErr.message);
+      }
+
       // Send RICH HTML notification to ALL Admins
       try {
         var adminEmails = [];
@@ -560,6 +594,75 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
       } else {
         return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Client not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // -------------------------
+  // 5.6. GET PAYMENTS
+  // -------------------------
+  if (payload.action === 'get_payments') {
+    if (!isUserAuthorized(payload.userEmail, ss)) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var sheet = ss.getSheetByName("Payment");
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": [] })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var data = sheet.getDataRange().getValues();
+      if (data.length < 2) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": [] })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var headers = data[0];
+      var payments = [];
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        var obj = {};
+        for (var h = 0; h < headers.length; h++) {
+          obj[headers[h]] = row[h];
+        }
+        payments.push(obj);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ "ok": true, "payments": payments })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // -------------------------
+  // 5.7. UPDATE PAYMENT
+  // -------------------------
+  if (payload.action === 'update_payment') {
+    if (!isUserAuthorized(payload.userEmail, ss)) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var sheet = ss.getSheetByName("Payment");
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      var found = false;
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
+          found = true;
+          for (var h = 0; h < headers.length; h++) {
+            var key = headers[h];
+            if (payload[key] !== undefined) {
+              sheet.getRange(i + 1, h + 1).setValue(payload[key]);
+            }
+          }
+          break;
+        }
+      }
+      if (found) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment record not found for client " + payload.clientId })).setMimeType(ContentService.MimeType.JSON);
       }
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
