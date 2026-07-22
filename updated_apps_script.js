@@ -468,7 +468,7 @@ function doPost(e) {
         var paymentSheet = ss.getSheetByName("Payment");
         if (!paymentSheet) {
           paymentSheet = ss.insertSheet("Payment");
-          paymentSheet.appendRow(["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST (%)", "RECURRING", "RECURRING TYPE", "TOTAL COST", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "DATA ENTRY DATE AND TIME"]);
+          paymentSheet.appendRow(["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST (%)", "GST AMOUNT", "TOTAL COST", "TOTAL WITH GST", "RECURRING", "RECURRING TYPE", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "TOTAL PAID", "DATA ENTRY DATE AND TIME"]);
         }
         var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
         paymentSheet.appendRow([
@@ -481,6 +481,9 @@ function doPost(e) {
           payload.industry || "",
           "Yes",
           payload.services || "",
+          "",
+          "",
+          "",
           "",
           "",
           "",
@@ -671,24 +674,66 @@ function doPost(e) {
       }
       var data = sheet.getDataRange().getValues();
       var headers = data[0];
-      var found = false;
+
+      var gstType = payload['GST/NON GST'] || '';
+      var gstPct = parseFloat(payload['GST (%)']) || 0;
+      var totalCost = parseFloat(payload['TOTAL COST']) || 0;
+      var recurring = payload['RECURRING'] || '';
+      var recurringType = payload['RECURRING TYPE'] || '';
+      var gstAmount = gstType === 'GST' ? Math.round(totalCost * gstPct / 100) : 0;
+      var totalWithGst = totalCost + gstAmount;
+
+      var updateIdx = {
+        gstType: findHeaderIndex(headers, "GST/NON GST"),
+        gstPct: findHeaderIndex(headers, "GST (%)"),
+        gstAmt: findHeaderIndex(headers, "GST AMOUNT"),
+        totalCost: findHeaderIndex(headers, "TOTAL COST"),
+        totalWithGst: findHeaderIndex(headers, "TOTAL WITH GST"),
+        recurring: findHeaderIndex(headers, "RECURRING"),
+        recurringType: findHeaderIndex(headers, "RECURRING TYPE"),
+        pendingAmt: findHeaderIndex(headers, "PENDING AMOUNT"),
+        totalPaid: findHeaderIndex(headers, "TOTAL PAID"),
+      };
+
+      var matchedRows = [];
       for (var i = 1; i < data.length; i++) {
         if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
-          found = true;
-          for (var h = 0; h < headers.length; h++) {
-            var headerKey = String(headers[h]).trim();
-            if (payload[headerKey] !== undefined) {
-              sheet.getRange(i + 1, h + 1).setValue(payload[headerKey]);
-            }
-          }
-          break;
+          matchedRows.push({ rowIdx: i, rowData: data[i] });
         }
       }
-      if (found) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
-      } else {
+
+      if (matchedRows.length === 0) {
         return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment record not found for client " + payload.clientId })).setMimeType(ContentService.MimeType.JSON);
       }
+
+      // Collect all payment amounts for this client (sorted by row order)
+      var paymentAmounts = [];
+      for (var m = 0; m < matchedRows.length; m++) {
+        var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
+        paymentAmounts.push(payAmtIdx >= 0 ? (parseFloat(matchedRows[m].rowData[payAmtIdx]) || 0) : 0);
+      }
+
+      // Update ALL matching rows with the new payment details
+      var runningPaid = 0;
+      for (var m = 0; m < matchedRows.length; m++) {
+        var r = matchedRows[m].rowIdx;
+        runningPaid += paymentAmounts[m];
+
+        if (updateIdx.gstType >= 0) sheet.getRange(r + 1, updateIdx.gstType + 1).setValue(gstType);
+        if (updateIdx.gstPct >= 0) sheet.getRange(r + 1, updateIdx.gstPct + 1).setValue(gstType === 'GST' ? gstPct : '');
+        if (updateIdx.gstAmt >= 0) sheet.getRange(r + 1, updateIdx.gstAmt + 1).setValue(gstAmount);
+        if (updateIdx.totalCost >= 0) sheet.getRange(r + 1, updateIdx.totalCost + 1).setValue(totalCost);
+        if (updateIdx.totalWithGst >= 0) sheet.getRange(r + 1, updateIdx.totalWithGst + 1).setValue(totalWithGst);
+        if (updateIdx.recurring >= 0) sheet.getRange(r + 1, updateIdx.recurring + 1).setValue(recurring);
+        if (updateIdx.recurringType >= 0) sheet.getRange(r + 1, updateIdx.recurringType + 1).setValue(recurring === 'Yes' ? recurringType : '');
+        if (updateIdx.totalPaid >= 0) sheet.getRange(r + 1, updateIdx.totalPaid + 1).setValue(runningPaid);
+
+        // Recalculate PENDING AMOUNT for each row
+        var newPending = Math.max(0, totalWithGst - runningPaid);
+        if (updateIdx.pendingAmt >= 0) sheet.getRange(r + 1, updateIdx.pendingAmt + 1).setValue(newPending);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
     } catch (err) {
       return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -709,38 +754,49 @@ function doPost(e) {
       var data = sheet.getDataRange().getValues();
       var headers = data[0];
 
-      // Find the latest existing row for this client to copy base info + get previous pending
-      var baseRow = null;
-      var lastPending = 0;
-      for (var i = data.length - 1; i >= 1; i--) {
+      // Collect ALL rows for this client
+      var matchedRows = [];
+      for (var i = 1; i < data.length; i++) {
         if (String(data[i][0]).trim() === String(payload.clientId).trim()) {
-          baseRow = data[i];
-          lastPending = parseFloat(data[i][findHeaderIndex(headers, "PENDING AMOUNT")]) || 0;
-          break;
+          matchedRows.push({ rowIdx: i, rowData: data[i] });
         }
       }
 
+      var baseRow = matchedRows.length > 0 ? matchedRows[matchedRows.length - 1].rowData : null;
       var payAmount = parseFloat(payload.amount) || 0;
-      var newPending = lastPending - payAmount;
-      if (newPending < 0) newPending = 0;
       var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
 
+      // Calculate total paid so far (before this payment)
+      var totalPaidBefore = 0;
+      var totalWithGst = 0;
+      for (var m = 0; m < matchedRows.length; m++) {
+        var tpIdx = findHeaderIndex(headers, "TOTAL PAID");
+        var twgIdx = findHeaderIndex(headers, "TOTAL WITH GST");
+        totalPaidBefore += tpIdx >= 0 ? (parseFloat(matchedRows[m].rowData[tpIdx]) || 0) : 0;
+        if (twgIdx >= 0 && matchedRows[m].rowData[twgIdx]) {
+          totalWithGst = parseFloat(matchedRows[m].rowData[twgIdx]) || 0;
+        }
+      }
+      var totalPaidAfter = totalPaidBefore + payAmount;
+      var newPending = Math.max(0, totalWithGst - totalPaidAfter);
+
+      var payDateIdx = findHeaderIndex(headers, "PAYMENT DATE");
+      var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
+      var pendingIdx = findHeaderIndex(headers, "PENDING AMOUNT");
+      var noteIdx = findHeaderIndex(headers, "PAYMENT NOTE");
+      var entryIdx = findHeaderIndex(headers, "DATA ENTRY DATE AND TIME");
+      var totalPaidIdx = findHeaderIndex(headers, "TOTAL PAID");
+
       if (baseRow) {
-        // Copy base info from last row, update payment fields
         var newRow = baseRow.slice();
-        var payDateIdx = findHeaderIndex(headers, "PAYMENT DATE");
-        var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
-        var pendingIdx = findHeaderIndex(headers, "PENDING AMOUNT");
-        var noteIdx = findHeaderIndex(headers, "NOTE");
-        var entryIdx = findHeaderIndex(headers, "DATA ENTRY DATE AND TIME");
         if (payDateIdx >= 0) newRow[payDateIdx] = payload.date || "";
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
         if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
         if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
+        if (totalPaidIdx >= 0) newRow[totalPaidIdx] = String(totalPaidAfter);
         if (entryIdx >= 0) newRow[entryIdx] = entryTime;
         sheet.appendRow(newRow);
       } else {
-        // No existing row — create minimal row
         var newRow = [];
         for (var h = 0; h < headers.length; h++) { newRow.push(""); }
         var cidIdx = findHeaderIndex(headers, "CLIENT ID");
@@ -749,8 +805,24 @@ function doPost(e) {
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
         if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
         if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
+        if (totalPaidIdx >= 0) newRow[totalPaidIdx] = String(totalPaidAfter);
         if (entryIdx >= 0) newRow[entryIdx] = entryTime;
         sheet.appendRow(newRow);
+      }
+
+      // Update PENDING AMOUNT and TOTAL PAID on all existing rows
+      for (var m = 0; m < matchedRows.length; m++) {
+        var r = matchedRows[m].rowIdx;
+        var prevPaid = 0;
+        for (var p = 0; p <= m; p++) {
+          var pAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
+          prevPaid += pAmtIdx >= 0 ? (parseFloat(matchedRows[p].rowData[pAmtIdx]) || 0) : 0;
+        }
+        // Include current payment if this is the last row
+        if (m === matchedRows.length - 1) prevPaid += payAmount;
+        var rowPending = Math.max(0, totalWithGst - prevPaid);
+        if (pendingIdx >= 0) sheet.getRange(r + 1, pendingIdx + 1).setValue(rowPending);
+        if (totalPaidIdx >= 0) sheet.getRange(r + 1, totalPaidIdx + 1).setValue(prevPaid);
       }
 
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);

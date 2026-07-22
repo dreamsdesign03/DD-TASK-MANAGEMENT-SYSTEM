@@ -95,7 +95,14 @@ export default function AccountClientsPage() {
   const calcTotalWithGst = () => {
     const cost = parseFloat(paymentForm.totalCost) || 0
     const pct = paymentForm.gstType === 'GST' ? (parseFloat(paymentForm.gstPercent) || 0) : 0
-    return cost + (cost * pct / 100)
+    const gstAmt = Math.round(cost * pct / 100)
+    return cost + gstAmt
+  }
+
+  const calcGstAmount = () => {
+    const cost = parseFloat(paymentForm.totalCost) || 0
+    const pct = paymentForm.gstType === 'GST' ? (parseFloat(paymentForm.gstPercent) || 0) : 0
+    return Math.round(cost * pct / 100)
   }
 
   const handleSavePayment = async () => {
@@ -336,26 +343,44 @@ export default function AccountClientsPage() {
                           <p className="text-[10px] text-gray-400 m-0 mb-1">GST / Non-GST</p>
                           <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST/NON GST'] || '-'}</p>
                         </div>
-                        {viewingPayment['GST/NON GST'] === 'GST' && (
+                        {viewingPayment['GST/NON GST'] === 'GST' && viewingPayment['GST (%)'] && (
                           <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-[10px] text-gray-400 m-0 mb-1">GST %</p>
-                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST (%)'] || '-'}%</p>
+                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['GST (%)']}%</p>
+                          </div>
+                        )}
+                        {viewingPayment['GST/NON GST'] === 'GST' && viewingPayment['GST AMOUNT'] && (
+                          <div className="bg-gray-50 rounded-lg p-3">
+                            <p className="text-[10px] text-gray-400 m-0 mb-1">GST Amount</p>
+                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">₹{viewingPayment['GST AMOUNT']}</p>
                           </div>
                         )}
                         <div className="bg-gray-50 rounded-lg p-3">
                           <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring</p>
                           <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING'] || '-'}</p>
                         </div>
-                        {viewingPayment['RECURRING'] === 'Yes' && (
+                        {viewingPayment['RECURRING'] === 'Yes' && viewingPayment['RECURRING TYPE'] && (
                           <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-[10px] text-gray-400 m-0 mb-1">Recurring Type</p>
-                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING TYPE'] || '-'}</p>
+                            <p className="text-[13px] font-bold text-[#1E1B2E] m-0">{viewingPayment['RECURRING TYPE']}</p>
                           </div>
                         )}
                         <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-[10px] text-gray-400 m-0 mb-1">Total Cost</p>
+                          <p className="text-[10px] text-gray-400 m-0 mb-1">Project Cost</p>
                           <p className="text-[13px] font-bold text-[#702c91] m-0">{viewingPayment['TOTAL COST'] ? `₹${viewingPayment['TOTAL COST']}` : '-'}</p>
                         </div>
+                        {viewingPayment['TOTAL WITH GST'] && (
+                          <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                            <p className="text-[10px] text-[#702c91] m-0 mb-1">Total with GST</p>
+                            <p className="text-[13px] font-bold text-[#702c91] m-0">₹{viewingPayment['TOTAL WITH GST']}</p>
+                          </div>
+                        )}
+                        {viewingPayment['TOTAL PAID'] && parseFloat(viewingPayment['TOTAL PAID']) > 0 && (
+                          <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                            <p className="text-[10px] text-green-600 m-0 mb-1">Total Paid</p>
+                            <p className="text-[13px] font-bold text-green-700 m-0">₹{viewingPayment['TOTAL PAID']}</p>
+                          </div>
+                        )}
                         <div className="bg-gray-50 rounded-lg p-3">
                           <p className="text-[10px] text-gray-400 m-0 mb-1">Pending Amount</p>
                           <p className="text-[13px] font-bold text-[#ef4444] m-0">{viewingPayment['PENDING AMOUNT'] ? `₹${viewingPayment['PENDING AMOUNT']}` : '-'}</p>
@@ -379,8 +404,8 @@ export default function AccountClientsPage() {
                                     <span className="text-[11px] text-[#ef4444]">Pending: ₹{p['PENDING AMOUNT']}</span>
                                   )}
                                 </div>
-                                {p['NOTE'] && (
-                                  <p className="text-[11px] text-gray-500 m-0 mt-1">{p['NOTE']}</p>
+                                {p['PAYMENT NOTE'] && (
+                                  <p className="text-[11px] text-gray-500 m-0 mt-1">{p['PAYMENT NOTE']}</p>
                                 )}
                               </div>
                             ))}
@@ -508,9 +533,15 @@ export default function AccountClientsPage() {
                     className="w-full h-[40px] px-4 rounded-xl border border-[#E5E7EB] bg-white text-[13px] outline-none focus:border-[#702c91] focus:ring-1 focus:ring-[#702c91] transition-all"
                   />
                   {paymentForm.gstType === 'GST' && paymentForm.gstPercent && paymentForm.totalCost && (
-                    <div className="mt-2 bg-purple-50 border border-purple-100 rounded-lg p-3 flex justify-between items-center">
-                      <span className="text-[12px] text-[#702c91] font-bold">Total with GST</span>
-                      <span className="text-[15px] font-bold text-[#702c91]">₹{calcTotalWithGst().toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <div className="mt-2 flex flex-col gap-2">
+                      <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 flex justify-between items-center">
+                        <span className="text-[12px] text-[#702c91] font-bold">GST Amount</span>
+                        <span className="text-[15px] font-bold text-[#702c91]">₹{calcGstAmount().toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="bg-[#702c91] border border-[#5c2280] rounded-lg p-3 flex justify-between items-center">
+                        <span className="text-[12px] text-white font-bold">Total with GST</span>
+                        <span className="text-[15px] font-bold text-white">₹{calcTotalWithGst().toLocaleString('en-IN')}</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -568,8 +599,22 @@ export default function AccountClientsPage() {
                     <div className="mt-2 bg-orange-50 border border-orange-100 rounded-lg p-3 flex justify-between items-center">
                       <span className="text-[12px] text-orange-600 font-bold">Pending After Payment</span>
                       <span className="text-[15px] font-bold text-orange-600">
-                        ₹{Math.max(0, (parseFloat(viewingPayment['PENDING AMOUNT']) || 0) - (parseFloat(recordForm.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₹{Math.max(0, (parseFloat(viewingPayment['TOTAL WITH GST'] || viewingPayment['PENDING AMOUNT']) || 0) - (parseFloat(viewingPayment['TOTAL PAID'] || 0) || 0) - (parseFloat(recordForm.amount) || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
+                    </div>
+                  )}
+                  {viewingPayment && viewingPayment['TOTAL WITH GST'] && (
+                    <div className="mt-2 flex gap-3">
+                      <div className="flex-1 bg-purple-50 border border-purple-100 rounded-lg p-2 text-center">
+                        <p className="text-[9px] text-[#702c91] m-0">Total with GST</p>
+                        <p className="text-[12px] font-bold text-[#702c91] m-0">₹{viewingPayment['TOTAL WITH GST']}</p>
+                      </div>
+                      {viewingPayment['TOTAL PAID'] && parseFloat(viewingPayment['TOTAL PAID']) > 0 && (
+                        <div className="flex-1 bg-green-50 border border-green-100 rounded-lg p-2 text-center">
+                          <p className="text-[9px] text-green-600 m-0">Already Paid</p>
+                          <p className="text-[12px] font-bold text-green-700 m-0">₹{viewingPayment['TOTAL PAID']}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
