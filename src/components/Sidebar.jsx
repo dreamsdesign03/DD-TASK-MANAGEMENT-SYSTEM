@@ -60,8 +60,8 @@ export default function Sidebar() {
     { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
   ];
 
-  if (profile?.systemRole === 'Admin' || profile?.systemRole === 'Accountant') {
-    NAV_ITEMS.push({ icon: 'account_balance', label: 'Account Clients', path: '/account-clients' })
+  if (profile?.systemRole === 'Admin' || profile?.systemRole === 'Accountant' || profile?.systemRole === 'Account' || String(profile?.systemRole || '').toLowerCase().includes('account')) {
+    NAV_ITEMS.push({ icon: 'account_balance', label: 'Clients AC', path: '/account-clients' })
   }
 
   if (profile?.systemRole !== 'Employee') {
