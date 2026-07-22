@@ -56,7 +56,7 @@ export default function Sidebar() {
     { icon: 'notifications',   label: 'Notifications', path: '/notifications' },
     { icon: 'chat_bubble',     label: 'Chat',          path: '/chat',           count: totalUnreadChat, countBg: '#A78BFA' },
     { icon: 'group',           label: 'Team',          path: '/team'                    },
-    { icon: 'business_center', label: 'Clients',       path: '/clients'                 },
+    { icon: 'business_center', label: 'Projects',       path: '/clients'                 },
     { icon: 'bar_chart',       label: 'Reports',       path: '/reports'                 },
   ];
 
