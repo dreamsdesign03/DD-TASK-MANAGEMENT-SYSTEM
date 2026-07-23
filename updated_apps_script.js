@@ -363,6 +363,7 @@ function doPost(e) {
         "</div>";
 
       MailApp.sendEmail({
+        from: "marketing.dreamsdesign.in@gmail.com",
         to: adminEmail,
         subject: subject,
         htmlBody: htmlBody
@@ -546,6 +547,7 @@ function doPost(e) {
             "</div>";
 
           MailApp.sendEmail({
+            from: "marketing.dreamsdesign.in@gmail.com",
             to: Session.getActiveUser().getEmail(),
             bcc: adminEmails.join(","),
             subject: subject,
