@@ -469,7 +469,7 @@ function doPost(e) {
         var paymentSheet = ss.getSheetByName("Payment");
         if (!paymentSheet) {
           paymentSheet = ss.insertSheet("Payment");
-          paymentSheet.appendRow(["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST (%)", "GST AMOUNT", "TOTAL COST", "TOTAL WITH GST", "RECURRING", "RECURRING TYPE", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "TOTAL PAID", "DATA ENTRY DATE AND TIME"]);
+          paymentSheet.appendRow(["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST AMOUNT (NEW)", "GST (%)", "RECURRING", "RECURRING TYPE", "TOTAL COST", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "DATA ENTRY DATE AND TIME", "NOTE"]);
         }
         var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
         paymentSheet.appendRow([
@@ -493,9 +493,8 @@ function doPost(e) {
           "",
           "",
           "",
-          "",
-          "",
-          entryTime
+          entryTime,
+          ""
         ]);
       } catch (payErr) {
         console.error("Payment sheet write failed: " + payErr.message);
@@ -671,30 +670,37 @@ function doPost(e) {
     }
     try {
       var sheet = ss.getSheetByName("Payment");
+      var expectedHeaders = ["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST AMOUNT (NEW)", "GST (%)", "RECURRING", "RECURRING TYPE", "TOTAL COST", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "DATA ENTRY DATE AND TIME", "NOTE"];
       if (!sheet) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+        sheet = ss.insertSheet("Payment");
+        sheet.appendRow(expectedHeaders);
       }
       var data = sheet.getDataRange().getValues();
+      if (data.length === 0 || data[0].length === 0 || !data[0][0]) {
+        sheet.clear();
+        sheet.appendRow(expectedHeaders);
+        data = sheet.getDataRange().getValues();
+      }
       var headers = data[0];
 
       var gstType = payload['GST/NON GST'] || '';
-      var gstPct = parseFloat(payload['GST (%)']) || 0;
+      var gstPct = gstType === 'GST' ? 18 : 0;
       var totalCost = parseFloat(payload['TOTAL COST']) || 0;
       var recurring = payload['RECURRING'] || '';
       var recurringType = payload['RECURRING TYPE'] || '';
       var gstAmount = gstType === 'GST' ? Math.round(totalCost * gstPct / 100) : 0;
       var totalWithGst = totalCost + gstAmount;
+      var entryTime = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
 
       var updateIdx = {
         gstType: findHeaderIndex(headers, "GST/NON GST"),
+        gstAmt: findHeaderIndex(headers, "GST AMOUNT (NEW)"),
         gstPct: findHeaderIndex(headers, "GST (%)"),
-        gstAmt: findHeaderIndex(headers, "GST AMOUNT"),
         totalCost: findHeaderIndex(headers, "TOTAL COST"),
-        totalWithGst: findHeaderIndex(headers, "TOTAL WITH GST"),
         recurring: findHeaderIndex(headers, "RECURRING"),
         recurringType: findHeaderIndex(headers, "RECURRING TYPE"),
         pendingAmt: findHeaderIndex(headers, "PENDING AMOUNT"),
-        totalPaid: findHeaderIndex(headers, "TOTAL PAID"),
+        entryTime: findHeaderIndex(headers, "DATA ENTRY DATE AND TIME")
       };
 
       var matchedRows = [];
@@ -705,13 +711,59 @@ function doPost(e) {
       }
 
       if (matchedRows.length === 0) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment record not found for client " + payload.clientId })).setMimeType(ContentService.MimeType.JSON);
+        // Find client details in Clients sheet to pre-fill metadata
+        var clientSheet = ss.getSheetByName("Clients");
+        var clientInfo = {};
+        if (clientSheet) {
+          var cData = clientSheet.getDataRange().getValues();
+          if (cData.length > 1) {
+            var cHeaders = cData[0];
+            for (var ci = 1; ci < cData.length; ci++) {
+              if (String(cData[ci][0]).trim() === String(payload.clientId).trim()) {
+                for (var ch = 0; ch < cHeaders.length; ch++) {
+                  clientInfo[String(cHeaders[ch]).trim()] = cData[ci][ch];
+                }
+                break;
+              }
+            }
+          }
+        }
+
+        var newRow = [];
+        for (var h = 0; h < headers.length; h++) {
+          var hName = String(headers[h]).trim().toUpperCase();
+          if (hName === "CLIENT ID") newRow.push(payload.clientId || "");
+          else if (hName === "PROJECT") newRow.push(clientInfo["Project Name"] || payload.projectName || "");
+          else if (hName === "CLIENT") newRow.push(clientInfo["Client Name"] || clientInfo["Company Name"] || payload.clientName || "");
+          else if (hName === "EMAILS") newRow.push(clientInfo["Contact Email"] || payload.emails || "");
+          else if (hName === "PHONE NO") newRow.push(clientInfo["Phone"] || payload.phone || "");
+          else if (hName === "PROJECT START DATE") newRow.push(clientInfo["Project start Date"] || payload.projectStartDate || "");
+          else if (hName === "INDUSTRY") newRow.push(clientInfo["Industry"] || payload.industry || "");
+          else if (hName === "IS ACTIVE") newRow.push(clientInfo["Is Active"] || "Yes");
+          else if (hName === "SERVICES") newRow.push(clientInfo["Services"] || payload.services || "");
+          else if (hName === "PROJECT END DATE") newRow.push(clientInfo["Project Completion Date"] || payload.projectEndDate || "");
+          else if (hName === "GST/NON GST") newRow.push(gstType);
+          else if (hName === "GST AMOUNT (NEW)") newRow.push(gstAmount);
+          else if (hName === "GST (%)") newRow.push(gstType === 'GST' ? 18 : "");
+          else if (hName === "RECURRING") newRow.push(recurring);
+          else if (hName === "RECURRING TYPE") newRow.push(recurring === 'Yes' ? recurringType : "");
+          else if (hName === "TOTAL COST") newRow.push(totalCost);
+          else if (hName === "PAYMENT DATE") newRow.push("");
+          else if (hName === "PAYMENT AMOUNT") newRow.push("");
+          else if (hName === "PAYMENT NOTE") newRow.push("");
+          else if (hName === "PENDING AMOUNT") newRow.push(String(totalWithGst));
+          else if (hName === "DATA ENTRY DATE AND TIME") newRow.push(entryTime);
+          else if (hName === "NOTE") newRow.push("");
+          else newRow.push("");
+        }
+        sheet.appendRow(newRow);
+        return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
       }
 
       // Collect all payment amounts for this client (sorted by row order)
       var paymentAmounts = [];
+      var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
       for (var m = 0; m < matchedRows.length; m++) {
-        var payAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
         paymentAmounts.push(payAmtIdx >= 0 ? (parseFloat(matchedRows[m].rowData[payAmtIdx]) || 0) : 0);
       }
 
@@ -722,13 +774,12 @@ function doPost(e) {
         runningPaid += paymentAmounts[m];
 
         if (updateIdx.gstType >= 0) sheet.getRange(r + 1, updateIdx.gstType + 1).setValue(gstType);
-        if (updateIdx.gstPct >= 0) sheet.getRange(r + 1, updateIdx.gstPct + 1).setValue(gstType === 'GST' ? gstPct : '');
         if (updateIdx.gstAmt >= 0) sheet.getRange(r + 1, updateIdx.gstAmt + 1).setValue(gstAmount);
+        if (updateIdx.gstPct >= 0) sheet.getRange(r + 1, updateIdx.gstPct + 1).setValue(gstType === 'GST' ? gstPct : '');
         if (updateIdx.totalCost >= 0) sheet.getRange(r + 1, updateIdx.totalCost + 1).setValue(totalCost);
-        if (updateIdx.totalWithGst >= 0) sheet.getRange(r + 1, updateIdx.totalWithGst + 1).setValue(totalWithGst);
         if (updateIdx.recurring >= 0) sheet.getRange(r + 1, updateIdx.recurring + 1).setValue(recurring);
         if (updateIdx.recurringType >= 0) sheet.getRange(r + 1, updateIdx.recurringType + 1).setValue(recurring === 'Yes' ? recurringType : '');
-        if (updateIdx.totalPaid >= 0) sheet.getRange(r + 1, updateIdx.totalPaid + 1).setValue(runningPaid);
+        if (updateIdx.entryTime >= 0) sheet.getRange(r + 1, updateIdx.entryTime + 1).setValue(entryTime);
 
         // Recalculate PENDING AMOUNT for each row
         var newPending = Math.max(0, totalWithGst - runningPaid);
@@ -750,8 +801,10 @@ function doPost(e) {
     }
     try {
       var sheet = ss.getSheetByName("Payment");
+      var expectedHeaders = ["CLIENT ID", "PROJECT", "CLIENT", "EMAILS", "PHONE NO", "PROJECT START DATE", "INDUSTRY", "IS ACTIVE", "SERVICES", "PROJECT END DATE", "GST/NON GST", "GST AMOUNT (NEW)", "GST (%)", "RECURRING", "RECURRING TYPE", "TOTAL COST", "PAYMENT DATE", "PAYMENT AMOUNT", "PAYMENT NOTE", "PENDING AMOUNT", "DATA ENTRY DATE AND TIME", "NOTE"];
       if (!sheet) {
-        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Payment sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+        sheet = ss.insertSheet("Payment");
+        sheet.appendRow(expectedHeaders);
       }
       var data = sheet.getDataRange().getValues();
       var headers = data[0];
@@ -771,12 +824,15 @@ function doPost(e) {
       // Calculate total paid so far (before this payment)
       var totalPaidBefore = 0;
       var totalWithGst = 0;
+      var tpIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
+      var twgCostIdx = findHeaderIndex(headers, "TOTAL COST");
+      var twgGstAmtIdx = findHeaderIndex(headers, "GST AMOUNT (NEW)");
       for (var m = 0; m < matchedRows.length; m++) {
-        var tpIdx = findHeaderIndex(headers, "TOTAL PAID");
-        var twgIdx = findHeaderIndex(headers, "TOTAL WITH GST");
         totalPaidBefore += tpIdx >= 0 ? (parseFloat(matchedRows[m].rowData[tpIdx]) || 0) : 0;
-        if (twgIdx >= 0 && matchedRows[m].rowData[twgIdx]) {
-          totalWithGst = parseFloat(matchedRows[m].rowData[twgIdx]) || 0;
+        if (twgCostIdx >= 0 && matchedRows[m].rowData[twgCostIdx]) {
+          var rowCost = parseFloat(matchedRows[m].rowData[twgCostIdx]) || 0;
+          var rowGstAmt = twgGstAmtIdx >= 0 ? (parseFloat(matchedRows[m].rowData[twgGstAmtIdx]) || 0) : 0;
+          totalWithGst = rowCost + rowGstAmt;
         }
       }
       var totalPaidAfter = totalPaidBefore + payAmount;
@@ -787,7 +843,7 @@ function doPost(e) {
       var pendingIdx = findHeaderIndex(headers, "PENDING AMOUNT");
       var noteIdx = findHeaderIndex(headers, "PAYMENT NOTE");
       var entryIdx = findHeaderIndex(headers, "DATA ENTRY DATE AND TIME");
-      var totalPaidIdx = findHeaderIndex(headers, "TOTAL PAID");
+      var generalNoteIdx = findHeaderIndex(headers, "NOTE");
 
       if (baseRow) {
         var newRow = baseRow.slice();
@@ -795,7 +851,7 @@ function doPost(e) {
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
         if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
         if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
-        if (totalPaidIdx >= 0) newRow[totalPaidIdx] = String(totalPaidAfter);
+        if (generalNoteIdx >= 0) newRow[generalNoteIdx] = "";
         if (entryIdx >= 0) newRow[entryIdx] = entryTime;
         sheet.appendRow(newRow);
       } else {
@@ -807,12 +863,12 @@ function doPost(e) {
         if (payAmtIdx >= 0) newRow[payAmtIdx] = payload.amount || "";
         if (pendingIdx >= 0) newRow[pendingIdx] = String(newPending);
         if (noteIdx >= 0) newRow[noteIdx] = payload.note || "";
-        if (totalPaidIdx >= 0) newRow[totalPaidIdx] = String(totalPaidAfter);
+        if (generalNoteIdx >= 0) newRow[generalNoteIdx] = "";
         if (entryIdx >= 0) newRow[entryIdx] = entryTime;
         sheet.appendRow(newRow);
       }
 
-      // Update PENDING AMOUNT and TOTAL PAID on all existing rows
+      // Update PENDING AMOUNT on all existing rows
       for (var m = 0; m < matchedRows.length; m++) {
         var r = matchedRows[m].rowIdx;
         var prevPaid = 0;
@@ -820,11 +876,8 @@ function doPost(e) {
           var pAmtIdx = findHeaderIndex(headers, "PAYMENT AMOUNT");
           prevPaid += pAmtIdx >= 0 ? (parseFloat(matchedRows[p].rowData[pAmtIdx]) || 0) : 0;
         }
-        // Include current payment if this is the last row
-        if (m === matchedRows.length - 1) prevPaid += payAmount;
         var rowPending = Math.max(0, totalWithGst - prevPaid);
         if (pendingIdx >= 0) sheet.getRange(r + 1, pendingIdx + 1).setValue(rowPending);
-        if (totalPaidIdx >= 0) sheet.getRange(r + 1, totalPaidIdx + 1).setValue(prevPaid);
       }
 
       return ContentService.createTextOutput(JSON.stringify({ "ok": true })).setMimeType(ContentService.MimeType.JSON);
