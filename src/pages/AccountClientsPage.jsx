@@ -435,9 +435,9 @@ export default function AccountClientsPage() {
                           <p className="text-[13px] font-bold text-green-700 m-0">₹{totalPaid.toLocaleString('en-IN')}</p>
                         </div>
 
-                        <div className="bg-red-50 rounded-xl p-3 border border-red-100">
-                          <p className="text-[10px] text-red-500 m-0 mb-1">Pending Amount</p>
-                          <p className="text-[13px] font-bold text-[#ef4444] m-0">₹{pendingAmt.toLocaleString('en-IN')}</p>
+                        <div className={pendingAmt === 0 ? "bg-green-50 rounded-xl p-3 border border-green-100" : "bg-red-50 rounded-xl p-3 border border-red-100"}>
+                          <p className={pendingAmt === 0 ? "text-[10px] text-green-600 m-0 mb-1 font-bold" : "text-[10px] text-red-500 m-0 mb-1"}>Pending Amount</p>
+                          <p className={pendingAmt === 0 ? "text-[13px] font-bold text-green-700 m-0" : "text-[13px] font-bold text-[#ef4444] m-0"}>₹{pendingAmt.toLocaleString('en-IN')}</p>
                         </div>
                       </div>
 
@@ -454,9 +454,14 @@ export default function AccountClientsPage() {
                                 </div>
                                 <div className="flex justify-between items-center">
                                   <span className="text-[14px] font-bold text-[#16a34a]">₹{parseFloat(p['PAYMENT AMOUNT'] || 0).toLocaleString('en-IN')}</span>
-                                  {p['PENDING AMOUNT'] !== undefined && (
-                                    <span className="text-[11px] text-[#ef4444] font-medium">Balance: ₹{parseFloat(p['PENDING AMOUNT'] || 0).toLocaleString('en-IN')}</span>
-                                  )}
+                                  {p['PENDING AMOUNT'] !== undefined && (() => {
+                                    const pVal = parseFloat(p['PENDING AMOUNT'] || 0)
+                                    return (
+                                      <span className={`text-[11px] font-medium ${pVal === 0 ? 'text-green-700 font-bold' : 'text-[#ef4444]'}`}>
+                                        Pending Amount: ₹{pVal.toLocaleString('en-IN')}
+                                      </span>
+                                    )
+                                  })()}
                                 </div>
                                 {p['PAYMENT NOTE'] && (
                                   <p className="text-[11px] text-gray-500 m-0 mt-1 italic">"{p['PAYMENT NOTE']}"</p>
@@ -665,10 +670,11 @@ export default function AccountClientsPage() {
                     const allPays = getAllPayments(viewingClient['Client ID'])
                     const totalPaid = allPays.reduce((sum, p) => sum + (parseFloat(p['PAYMENT AMOUNT']) || 0), 0)
                     const pendingAfter = Math.max(0, totalWithGst - totalPaid - (parseFloat(recordForm.amount) || 0))
+                    const isZeroPending = pendingAfter === 0
                     return (
-                      <div className="mt-2 bg-orange-50 border border-orange-200 rounded-xl p-3 flex justify-between items-center shadow-xs">
-                        <span className="text-[12px] text-orange-700 font-bold">Remaining Balance After Payment</span>
-                        <span className="text-[15px] font-extrabold text-orange-700">
+                      <div className={isZeroPending ? "mt-2 bg-green-50 border border-green-200 rounded-xl p-3 flex justify-between items-center shadow-xs" : "mt-2 bg-orange-50 border border-orange-200 rounded-xl p-3 flex justify-between items-center shadow-xs"}>
+                        <span className={isZeroPending ? "text-[12px] text-green-700 font-bold" : "text-[12px] text-orange-700 font-bold"}>Pending Amount After Payment</span>
+                        <span className={isZeroPending ? "text-[15px] font-extrabold text-green-700" : "text-[15px] font-extrabold text-orange-700"}>
                           ₹{pendingAfter.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                         </span>
                       </div>
