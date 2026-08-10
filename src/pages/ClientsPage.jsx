@@ -60,7 +60,6 @@ export default function ClientsPage() {
   }
 
   const openClientInfo = (client) => {
-    if (!canManageClients(profile)) return
     setViewingClient(client)
   }
 
@@ -338,9 +337,7 @@ export default function ClientsPage() {
                         {/* Project Name */}
                         <td
                           className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-6 text-[13px] font-bold text-[#702c91] cursor-pointer hover:underline"
-                          onClick={() => {
-                            if (canManageClients(profile)) openClientInfo(client)
-                          }}
+                          onClick={() => openClientInfo(client)}
                         >
                           <span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Project Name:</span>
                           {client['Project Name'] || client['Client Name'] || client['Company Name'] || '-'}
@@ -500,18 +497,20 @@ export default function ClientsPage() {
               })()}
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => {
-                  openEditModal(viewingClient)
-                }}
-                className="px-5 py-2 btn-gradient border-none rounded-lg font-bold shadow-md text-[13px] cursor-pointer flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-[16px]">edit_square</span>
-                Edit Full Details
-              </button>
-            </div>
+            {canManageClients(profile) && (
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    openEditModal(viewingClient)
+                  }}
+                  className="px-5 py-2 btn-gradient border-none rounded-lg font-bold shadow-md text-[13px] cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">edit_square</span>
+                  Edit Full Details
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
