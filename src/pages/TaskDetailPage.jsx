@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import SelectDropdown from '../components/SelectDropdown'
@@ -88,7 +88,16 @@ const getPriorityConfig = (priority) => {
 export default function TaskDetailPage() {
   const { taskId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { tasks, updateTask, addTask, deleteTask, profile, employees, addSystemAndWebNotification, messagesByChatId, setMessagesByChatId, fetchMessages, markChatAsRead, addToast, activeTimer, sessionSecs: globalSessionSecs, toggleTimer, isPunchedIn } = useApp()
+
+  const handleBack = () => {
+    if (location.state?.from) {
+      navigate(location.state.from, { state: location.state })
+    } else {
+      navigate('/tasks')
+    }
+  }
 
   const task = (tasks || []).find((t) => t.id === taskId) || (tasks && tasks.length > 0 ? tasks[0] : {})
 
@@ -873,11 +882,11 @@ export default function TaskDetailPage() {
               {/* Header */}
               <div>
                 <button
-                  onClick={() => navigate('/tasks')}
+                  onClick={handleBack}
                   className="flex items-center gap-2 text-[#4B5563] hover:text-[#702c91] font-semibold text-[14px] bg-transparent border-none cursor-pointer p-0 mb-6 transition-colors"
                 >
                   <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-                  My Tasks
+                  {location.state?.from === '/my-tasks' ? 'My Tasks' : 'All Tasks'}
                 </button>
 
                 <div className="flex items-center gap-3 mb-4 flex-wrap">

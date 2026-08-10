@@ -149,22 +149,51 @@ function InlineStatusSelect({ value, onChange, disabled }) {
 export default function TaskTable() {
   const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients } = useApp()
   const location = useLocation()
-  const [activeFilter, setActiveFilter] = useState('All')
-  const [sortBy, setSortBy] = useState('Task ID (Descending)')
-  const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || 'All Clients')
-  const [selectedUser, setSelectedUser] = useState(location.pathname === '/my-tasks' ? (profile?.name || 'All Users') : 'All Users')
-  const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
-
-  const [viewMode, setViewMode] = useState(location.state?.viewMode || 'List') // 'List' | 'Board'
-  const [boardGrouping, setBoardGrouping] = useState('Department')
-
-  useEffect(() => {
-    if (location.pathname === '/my-tasks') {
-      setSelectedUser(profile?.name || 'All Users')
-    } else {
-      setSelectedUser('All Users')
+  const isMyTasks = location.pathname === '/my-tasks'
+  const storageKey = isMyTasks ? 'dd_table_state_my_tasks' : 'dd_table_state_all_tasks'
+  const readPersisted = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem(storageKey)) || {}
+    } catch (e) {
+      return {}
     }
-  }, [location.pathname, profile?.name])
+  }
+  const persisted = readPersisted()
+  const [activeFilter, setActiveFilter] = useState(location.state?.activeFilter || persisted.activeFilter || 'All')
+  const [sortBy, setSortBy] = useState(location.state?.sortBy || persisted.sortBy || 'Task ID (Descending)')
+  const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || persisted.selectedClient || 'All Clients')
+  const [selectedUser, setSelectedUser] = useState(location.state?.selectedUser || (isMyTasks ? (profile?.name || 'All Users') : (persisted.selectedUser || 'All Users')))
+  const [selectedDepartment, setSelectedDepartment] = useState(location.state?.selectedDepartment || persisted.selectedDepartment || 'All Departments')
+
+  const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board'
+  const [boardGrouping, setBoardGrouping] = useState(location.state?.boardGrouping || persisted.boardGrouping || 'Department')
+
+  // Persist table state (filters, view, sorting) across navigation so users
+  // return to the same view & filters they left.
+  useEffect(() => {
+    const state = {
+      activeFilter,
+      sortBy,
+      selectedClient,
+      selectedUser,
+      selectedDepartment,
+      viewMode,
+      boardGrouping,
+    }
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(state))
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, viewMode, boardGrouping, storageKey])
+
+  // Consume location.state so back-navigation doesn't re-apply stale filters
+  useEffect(() => {
+    if (location.state) {
+      window.history.replaceState({}, '')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Reset department filter if current selection is hidden by role
   useEffect(() => {
@@ -263,6 +292,25 @@ export default function TaskTable() {
     }
   }
   const navigate = useNavigate()
+
+  const openTaskDetail = (task) => {
+    if (!canAccessTask(task)) {
+      setUnauthorizedTaskTitle(task.title)
+      return
+    }
+    navigate(`/tasks/${task.id}`, {
+      state: {
+        from: location.pathname,
+        viewMode,
+        activeFilter,
+        selectedClient,
+        selectedUser,
+        selectedDepartment,
+        sortBy,
+        boardGrouping,
+      },
+    })
+  }
 
   // Hand Scrolling State
   const boardRef = useRef(null)
@@ -599,6 +647,7 @@ export default function TaskTable() {
   });
 
   const totalTasks = baseTasksForStats.length;
+  const pendingTasks = baseTasksForStats.filter(t => t.status === 'Pending').length;
   const inProgressTasks = baseTasksForStats.filter(t => t.status === 'In Progress').length;
   const completedTasks = baseTasksForStats.filter(t => t.status === 'Done').length;
   const overdueTasks = baseTasksForStats.filter(t => {
@@ -621,9 +670,10 @@ export default function TaskTable() {
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
         {[
           { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
+          { label: 'Pending', value: pendingTasks, icon: 'pending_actions', bg: '#F3F4F6', color: '#6B7280' },
           { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB' },
           { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A' },
           { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true },
@@ -966,11 +1016,7 @@ export default function TaskTable() {
                                   <td className="block p-0 w-full">
                                     <div
                                       onClick={() => {
-                                        if (!canAccessTask(task)) {
-                                          setUnauthorizedTaskTitle(task.title)
-                                          return
-                                        }
-                                        navigate(`/tasks/${task.id}`)
+                                        openTaskDetail(task)
                                       }}
                                       className={`bg-white rounded-xl border ${isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
                                     >
@@ -1052,11 +1098,7 @@ export default function TaskTable() {
                                   style={{ opacity: task.status === 'Done' ? (isDoneLate ? 0.8 : 0.4) : 1 }}
                                   onClick={(e) => {
                                     if (e.target.closest('button') || e.target.closest('.inline-status-select')) return
-                                    if (!canAccessTask(task)) {
-                                      setUnauthorizedTaskTitle(task.title)
-                                      return
-                                    }
-                                    navigate(`/tasks/${task.id}`)
+                                    openTaskDetail(task)
                                   }}
                                   onMouseEnter={(e) => {
                                     if (window.innerWidth >= 768) {
@@ -1116,11 +1158,7 @@ export default function TaskTable() {
                                         <a
                                           onClick={(e) => {
                                             e.stopPropagation()
-                                            if (!canAccessTask(task)) {
-                                              setUnauthorizedTaskTitle(task.title)
-                                              return
-                                            }
-                                            navigate(`/tasks/${task.id}`)
+                                            openTaskDetail(task)
                                           }}
                                           className="text-[14px] font-bold text-[#702c91] hover:underline cursor-pointer transition-all"
                                         >
@@ -1473,11 +1511,7 @@ export default function TaskTable() {
                                   }}
                                   onDragEnd={handleDragEnd}
                                   onClick={() => {
-                                    if (!canAccessTask(task)) {
-                                      setUnauthorizedTaskTitle(task.title)
-                                      return
-                                    }
-                                    navigate(`/tasks/${task.id}`)
+                                    openTaskDetail(task)
                                   }}
                                   style={{
                                     background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
