@@ -209,6 +209,35 @@ export default function TaskTable() {
   const [tasksPerPage, setTasksPerPage] = useState(10)
   const [taskToDelete, setTaskToDelete] = useState(null)
 
+  // Track recently added tasks so new tasks (by any user) float to the top
+  // of their department on the current page instead of landing on the last page.
+  const [recentlyAddedIds, setRecentlyAddedIds] = useState(() => new Set())
+  const prevTaskIdsRef = useRef(null)
+  useEffect(() => {
+    const currentIds = new Set(tasks.map((t) => t.id))
+    if (prevTaskIdsRef.current && prevTaskIdsRef.current.size > 0) {
+      const newIds = [...currentIds].filter((id) => !prevTaskIdsRef.current.has(id))
+      if (newIds.length > 0) {
+        setRecentlyAddedIds((prev) => {
+          const next = new Set(prev)
+          newIds.forEach((id) => next.add(id))
+          return next
+        })
+        setCurrentPage(1)
+        setTimeout(() => {
+          setRecentlyAddedIds((prev) => {
+            const next = new Set(prev)
+            newIds.forEach((id) => next.delete(id))
+            return next
+          })
+        }, 20000)
+      }
+    }
+    prevTaskIdsRef.current = currentIds
+  }, [tasks])
+
+  const isRecentlyAdded = (t) => recentlyAddedIds.has(t.id)
+
   // Unauthorized Access Modal
   const [unauthorizedTaskTitle, setUnauthorizedTaskTitle] = useState(null)
 
@@ -452,6 +481,9 @@ export default function TaskTable() {
     })
     // 2. Sort tasks
     .sort((a, b) => {
+      const aNew = isRecentlyAdded(a)
+      const bNew = isRecentlyAdded(b)
+      if (aNew !== bNew) return aNew ? -1 : 1
       if (sortBy === 'Task ID (Descending)') {
         const numA = parseInt(a.id.replace(/\D/g, '')) || 0
         const numB = parseInt(b.id.replace(/\D/g, '')) || 0
@@ -1323,7 +1355,6 @@ export default function TaskTable() {
                                             import('canvas-confetti').then((confetti) => {
                                               confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
                                             })
-                                            setViewMode('Board')
                                           }
                                         }
                                       }}
