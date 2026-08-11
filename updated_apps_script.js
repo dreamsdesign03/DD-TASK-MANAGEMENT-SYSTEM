@@ -1537,7 +1537,7 @@ function createDailyPendingEmailTrigger() {
       .timeBased()
       .onWeekDay(weekdays[w])
       .atHour(9)
-      .atMinute(0)
+      .nearMinute(0)
       .inTimezone("Asia/Kolkata")
       .create();
   }
