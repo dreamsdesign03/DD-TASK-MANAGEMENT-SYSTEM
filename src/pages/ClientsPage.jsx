@@ -478,14 +478,14 @@ export default function ClientsPage() {
                 return links.length > 0 ? (
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">IMPORTANT LINKS</label>
-                    <div className="flex flex-col gap-2">
+                    <div className="max-h-[140px] overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-2">
                       {links.map((link, idx) => (
                         <a
                           key={idx}
                           href={link.url || '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[13px] text-[#702c91] hover:underline font-medium m-0 flex items-center gap-2 w-fit"
+                          className="text-[13px] text-[#702c91] hover:underline font-medium m-0 flex items-center gap-2 w-fit shrink-0"
                         >
                           <span className="material-symbols-outlined text-[16px]">link</span>
                           {link.title || link.url}
