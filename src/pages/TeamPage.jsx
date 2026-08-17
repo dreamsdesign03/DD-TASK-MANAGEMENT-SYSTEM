@@ -9,11 +9,12 @@ import { renderAvatar } from '../utils/avatar'
 const INITIAL_EMPLOYEES = []
 
 export default function TeamPage() {
-  const { setSearchQuery, profile, employees: dynamicEmployees, tasks, addToast } = useApp()
+  const { setSearchQuery, profile, employees: dynamicEmployees, tasks, addToast, deleteUser } = useApp()
   const navigate = useNavigate()
   const [localEmployees, setLocalEmployees] = useState([])
   const [search, setSearch] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [deletingUser, setDeletingUser] = useState(null)
 
   // Add Member Form States
   const [newName, setNewName] = useState('')
@@ -75,6 +76,8 @@ export default function TeamPage() {
         return 'bg-gray-400'
     }
   }
+
+  const isAdmin = profile?.systemRole === 'Admin' || String(profile?.role || profile?.Role || '').trim().toLowerCase() === 'admin'
 
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
@@ -163,8 +166,19 @@ export default function TeamPage() {
                           "text-[20px]",
                           emp.email
                         )}
-                        <div className="relative mt-1 mr-1">
-                          {getStatusElement(emp.status)}
+                        <div className="flex items-center gap-2">
+                          {isAdmin && emp.email !== profile.email && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setDeletingUser(emp) }}
+                              className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center hover:bg-red-100 transition-colors cursor-pointer border-none"
+                              title="Delete user"
+                            >
+                              <span className="material-symbols-outlined text-[16px] text-red-500">delete</span>
+                            </button>
+                          )}
+                          <div className="relative mt-1 mr-1">
+                            {getStatusElement(emp.status)}
+                          </div>
                         </div>
                       </div>
 
@@ -218,6 +232,43 @@ export default function TeamPage() {
             </div>
           </div>
           </div>
+
+      {/* Delete User Confirmation Modal */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-[400px] rounded-2xl shadow-2xl p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[22px] text-red-500">person_remove</span>
+              </div>
+              <div>
+                <h3 className="text-[16px] font-bold text-gray-900 m-0">Delete User</h3>
+                <p className="text-[13px] text-gray-500 m-0 mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-[14px] text-gray-700 m-0">
+              Are you sure you want to delete <span className="font-bold text-[#702c91]">{deletingUser.name}</span>? They will be removed from the team and all their assigned tasks will be deleted.
+            </p>
+            <div className="flex justify-end gap-3 mt-2">
+              <button
+                onClick={() => setDeletingUser(null)}
+                className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-[13px] font-semibold cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const result = await deleteUser(deletingUser.email)
+                  setDeletingUser(null)
+                }}
+                className="px-4 py-2 rounded-lg border-none bg-red-500 text-white text-[13px] font-semibold cursor-pointer hover:bg-red-600 transition-colors"
+              >
+                Delete User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </main>
     </div>
   )

@@ -666,6 +666,68 @@ function doPost(e) {
   }
 
   // -------------------------
+  // 5.6. DELETE USER
+  // -------------------------
+  if (payload.action === 'delete_user') {
+    if (!isUserAuthorized(payload.userEmail, ss)) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    try {
+      var teamSheet = ss.getSheetByName("Team");
+      if (!teamSheet) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Team sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var targetEmail = String(payload.targetEmail || "").trim().toLowerCase();
+      if (!targetEmail) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "No target email provided" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var teamData = teamSheet.getDataRange().getValues();
+      var deletedName = "";
+      var deletedRow = -1;
+      for (var i = 1; i < teamData.length; i++) {
+        if (String(teamData[i][2]).trim().toLowerCase() === targetEmail) {
+          deletedName = String(teamData[i][1] || "").trim();
+          deletedRow = i + 1;
+          break;
+        }
+      }
+      if (deletedRow === -1) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "User not found" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      // Prevent admin from deleting themselves
+      if (targetEmail === String(payload.userEmail || "").trim().toLowerCase()) {
+        return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": "Cannot delete yourself" })).setMimeType(ContentService.MimeType.JSON);
+      }
+      // Delete the user row from Team sheet
+      teamSheet.deleteRow(deletedRow);
+      // Remove all tasks assigned to this user from Tasks sheet
+      try {
+        var taskSheet = ss.getSheetByName("Tasks");
+        if (taskSheet && deletedName) {
+          var taskData = taskSheet.getDataRange().getValues();
+          var rowsToDelete = [];
+          for (var t = 1; t < taskData.length; t++) {
+            var assignedTo = String(taskData[t][8] || "").trim();
+            var assignedEmails = String(taskData[t][10] || "").trim().toLowerCase();
+            if (assignedTo.toLowerCase() === deletedName.toLowerCase() || assignedEmails === targetEmail) {
+              rowsToDelete.push(t + 1);
+            }
+          }
+          // Delete from bottom to top to preserve row indices
+          for (var d = rowsToDelete.length - 1; d >= 0; d--) {
+            taskSheet.deleteRow(rowsToDelete[d]);
+          }
+        }
+      } catch (taskErr) {
+        console.error("Task cleanup failed: " + taskErr.message);
+      }
+      return ContentService.createTextOutput(JSON.stringify({ "ok": true, "deleted": deletedName })).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ "ok": false, "error": err.message })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // -------------------------
   // 5.7. UPDATE PAYMENT
   // -------------------------
   if (payload.action === 'update_payment') {

@@ -2636,6 +2636,34 @@ export function AppProvider({ children }) {
     }
   }
 
+  const deleteUser = async (targetEmail) => {
+    try {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbzs69465Gintz_UEvY_IjcncUVK_8SGKYxRolbUGpmh--HzqRzxNCYUNX36koPlYrWg/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'delete_user',
+          targetEmail,
+          userEmail: profile?.email || ''
+        })
+      })
+      const text = await res.text()
+      const data = JSON.parse(text)
+      if (data.ok) {
+        addToast(`User "${data.deleted}" deleted successfully`, 'success')
+        fetchTeam()
+        fetchTasks()
+      } else {
+        addToast(data.error || 'Failed to delete user', 'error')
+      }
+      return data
+    } catch (err) {
+      console.warn('Failed to delete user:', err)
+      addToast('Failed to delete user', 'error')
+      return { ok: false, error: err.message }
+    }
+  }
+
   const fetchClients = async () => {
     try {
       const url = `https://script.google.com/macros/s/AKfycbzs69465Gintz_UEvY_IjcncUVK_8SGKYxRolbUGpmh--HzqRzxNCYUNX36koPlYrWg/exec?action=get_clients&t=${Date.now()}`
@@ -2944,6 +2972,7 @@ export function AppProvider({ children }) {
         fetchPayments,
         updatePayment,
         fetchTeam,
+        deleteUser,
         messagesByChatId,
         setMessagesByChatId,
         activeChatSession,
