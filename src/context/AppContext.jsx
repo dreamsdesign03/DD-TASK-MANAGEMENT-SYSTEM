@@ -2596,13 +2596,18 @@ export function AppProvider({ children }) {
         const items = Array.isArray(data) ? data : [data]
 
         if (items.length > 0 && items[0]) {
+          const approvedItems = items.filter(item => {
+            const raw = item["Is Active"] || item['isActive'] || item['is_active'] || 'Yes'
+            return String(raw).trim().toLowerCase() !== 'pending'
+          })
+
           const nameCounts = {}
-          items.forEach(item => {
+          approvedItems.forEach(item => {
             const name = (item["Full Name"] || item.Name || item.name || '').trim()
             nameCounts[name] = (nameCounts[name] || 0) + 1
           })
 
-          fetchedTeam = items.map((item, idx) => {
+          fetchedTeam = approvedItems.map((item, idx) => {
             let name = (item["Full Name"] || item.Name || item.name || '').trim()
             const department = item.Department || item.department || 'Development'
             if (nameCounts[name] > 1) {

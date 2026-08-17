@@ -1117,6 +1117,9 @@ function doGet(e) {
               obj[headerStr] = row[j];
             }
           }
+          // Exclude users whose "Is Active" is "Pending" (not yet approved)
+          var isActiveVal = String(obj["Is Active"] || "").trim().toLowerCase();
+          if (isActiveVal === "pending") continue;
           teamResult.push(obj);
         }
       }
