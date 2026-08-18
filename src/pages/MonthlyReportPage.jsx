@@ -80,13 +80,15 @@ export default function MonthlyReportPage() {
   const completed = filteredTasks.filter((t) => t.status === 'Done').length
   const inProgress = filteredTasks.filter((t) => t.status === 'In Progress' || t.status === 'Review').length
   const blocked = filteredTasks.filter((t) => t.status === 'Blocked').length
-  const overdue = filteredTasks.filter((t) => t.daysOverdue && t.daysOverdue !== 'No').length
+  const overdue = filteredTasks.filter((t) => t.overdue).length
   const pending = filteredTasks.filter((t) => t.status === 'Pending').length
+  const other = totalTasks - completed - inProgress - blocked - pending
 
   const completedPct = totalTasks ? Math.round((completed / totalTasks) * 100) : 0
   const inProgressPct = totalTasks ? Math.round((inProgress / totalTasks) * 100) : 0
   const pendingPct = totalTasks ? Math.round((pending / totalTasks) * 100) : 0
   const blockedPct = totalTasks ? Math.round((blocked / totalTasks) * 100) : 0
+  const otherPct = totalTasks ? Math.round((other / totalTasks) * 100) : 0
 
   // Calculate conic gradient string for the donut chart
   // Order: Done -> In Progress -> Pending -> Blocked
@@ -422,7 +424,7 @@ export default function MonthlyReportPage() {
                     <span className="material-symbols-outlined text-[#F59E0B]">more_horiz</span>
                   </div>
                 </div>
-                <p className="text-[11px] font-medium text-[#6B7280] m-0">Active now</p>
+                <p className="text-[11px] font-medium text-[#6B7280] m-0">{inProgress > 0 ? 'Tasks being worked on' : 'No active tasks'}</p>
               </div>
 
               {/* Overdue */}
@@ -480,6 +482,12 @@ export default function MonthlyReportPage() {
                           strokeDasharray={`${blockedPct} 100`} 
                           strokeDashoffset={-(completedPct + inProgressPct + pendingPct)}></circle>
                       )}
+                      {/* Other */}
+                      {otherPct > 0 && (
+                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#9CA3AF" strokeWidth="6" 
+                          strokeDasharray={`${otherPct} 100`} 
+                          strokeDashoffset={-(completedPct + inProgressPct + pendingPct + blockedPct)}></circle>
+                      )}
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-[20px] font-black text-[#1E1B2E]">{totalTasks}</span>
@@ -505,6 +513,12 @@ export default function MonthlyReportPage() {
                       <div className="w-3 h-3 rounded-full bg-[#EF4444]"></div>
                       <span className="text-[13px] font-bold text-[#4B5563]">Blocked ({blockedPct}%)</span>
                     </div>
+                    {otherPct > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-[#9CA3AF]"></div>
+                        <span className="text-[13px] font-bold text-[#4B5563]">Other ({otherPct}%)</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
