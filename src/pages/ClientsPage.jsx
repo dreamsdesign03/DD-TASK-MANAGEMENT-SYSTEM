@@ -108,7 +108,7 @@ export default function ClientsPage() {
         importantLinks: JSON.stringify(clientForm.importantLinks.filter(l => (l.title || '').trim() || (l.url || '').trim())),
         userEmail: profile?.email
       }
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
@@ -146,7 +146,7 @@ export default function ClientsPage() {
     setConfirmDeactivateClient(null)
     setIsUpdating(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
@@ -187,7 +187,7 @@ export default function ClientsPage() {
     }
     setIsAdding(true)
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec', {
+      const res = await fetch('https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
