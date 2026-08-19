@@ -7,7 +7,7 @@ import SelectDropdown from '../components/SelectDropdown'
 import { isElectron } from '../utils/isElectron'
 
 const LOGO_SRC = '/logo.png'
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs69465Gintz_UEvY_IjcncUVK_8SGKYxRolbUGpmh--HzqRzxNCYUNX36koPlYrWg/exec'
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec'
 
 // Animated chevron arrow for the button
 const ChevronRight = () => (
