@@ -448,48 +448,63 @@ export function AppProvider({ children }) {
   const tasksLoadedRef = useRef(false)
 
   useEffect(() => {
-    if (!profile?.email) return
+    if (!profile?.email) {
+      setIsSessionRestored(true)
+      return
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+      sessionRestoredRef.current = true
+      setIsSessionRestored(true)
+    }, 2500)
+
     const fetchActivities = async () => {
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec?action=get_activities')
+        const res = await fetch('https://script.google.com/macros/s/AKfycbzaCGDCzSBb2jC4-T36wUdBYQxi0HwowivJSgYde1QDw8oJqeyg8rn8YFlSNW6Lk-Jy/exec?action=get_activities', {
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         setActivityLog(data)
         const todayPrefix = getISTDate()
         const mySessions = []
         let activeTime = null
         let staleSession = null
-        data.forEach(row => {
-          if ((row["Full Name"] === profile.name || row["Employee ID"] === profile.employeeId) && row["Login Date and Time"]) {
-            // e.g. "2026-07-10 13:02:55"
-            // The sheet might return a string or a Date object, ensure it's a string
-            let loginStr = row["Login Date and Time"]
-            if (loginStr && typeof loginStr === 'string' && loginStr.includes('T')) loginStr = loginStr.replace('T', ' ').substring(0, 19)
-            if (loginStr instanceof Date) {
-              const d = new Date(loginStr.getTime() - loginStr.getTimezoneOffset() * 60000)
-              loginStr = d.toISOString().replace('T', ' ').substring(0, 19)
-            }
-            if (String(loginStr).startsWith(todayPrefix)) {
-              const inTime = String(loginStr).split(' ')[1] || ""
-              let outStr = row["Logout Date and Time"] || ""
-              if (outStr instanceof Date) {
-                const d2 = new Date(outStr.getTime() - outStr.getTimezoneOffset() * 60000)
-                outStr = d2.toISOString().replace('T', ' ').substring(0, 19)
-              } else if (typeof outStr === 'string' && outStr.includes('T')) {
-                outStr = outStr.replace('T', ' ').substring(0, 19)
+        if (Array.isArray(data)) {
+          data.forEach(row => {
+            if ((row["Full Name"] === profile.name || row["Employee ID"] === profile.employeeId) && row["Login Date and Time"]) {
+              let loginStr = row["Login Date and Time"]
+              if (loginStr && typeof loginStr === 'string' && loginStr.includes('T')) loginStr = loginStr.replace('T', ' ').substring(0, 19)
+              if (loginStr instanceof Date) {
+                const d = new Date(loginStr.getTime() - loginStr.getTimezoneOffset() * 60000)
+                loginStr = d.toISOString().replace('T', ' ').substring(0, 19)
               }
-              const outTime = outStr ? String(outStr).split(' ')[1] : null
-              mySessions.push({ in: inTime, out: outTime })
-              if (!outTime) activeTime = inTime
-            } else if (!row["Logout Date and Time"]) {
-              const staleDate = String(loginStr).substring(0, 10)
-              if (/^\d{4}-\d{2}-\d{2}$/.test(staleDate) && staleDate < todayPrefix) {
-                if (!staleSession || staleDate > staleSession.date) {
-                  staleSession = { date: staleDate, in: String(loginStr).split(' ')[1] || "" }
+              if (String(loginStr).startsWith(todayPrefix)) {
+                const inTime = String(loginStr).split(' ')[1] || ""
+                let outStr = row["Logout Date and Time"] || ""
+                if (outStr instanceof Date) {
+                  const d2 = new Date(outStr.getTime() - outStr.getTimezoneOffset() * 60000)
+                  outStr = d2.toISOString().replace('T', ' ').substring(0, 19)
+                } else if (typeof outStr === 'string' && outStr.includes('T')) {
+                  outStr = outStr.replace('T', ' ').substring(0, 19)
+                }
+                const outTime = outStr ? String(outStr).split(' ')[1] : null
+                mySessions.push({ in: inTime, out: outTime })
+                if (!outTime) activeTime = inTime
+              } else if (!row["Logout Date and Time"]) {
+                const staleDate = String(loginStr).substring(0, 10)
+                if (/^\d{4}-\d{2}-\d{2}$/.test(staleDate) && staleDate < todayPrefix) {
+                  if (!staleSession || staleDate > staleSession.date) {
+                    staleSession = { date: staleDate, in: String(loginStr).split(' ')[1] || "" }
+                  }
                 }
               }
             }
-          }
-        })
+          })
+        }
         setTodaysSessions(mySessions)
         if (mySessions.length > 0) {
           setFirstPunchInToday(mySessions[0].in)
@@ -506,12 +521,14 @@ export function AppProvider({ children }) {
         setIsSessionRestored(true)
         if (staleSession) setPendingAutoPunchOut(staleSession)
       } catch (err) {
-        console.error("Failed to fetch activities from sheet:", err)
+        clearTimeout(timeoutId)
+        console.warn("Failed to fetch activities from sheet:", err)
         sessionRestoredRef.current = true
         setIsSessionRestored(true)
       }
     }
     fetchActivities()
+    return () => clearTimeout(timeoutId)
   }, [profile])
 
   const handlePunchIn = () => {
