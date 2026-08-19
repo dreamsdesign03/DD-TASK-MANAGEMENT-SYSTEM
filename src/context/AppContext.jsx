@@ -589,7 +589,7 @@ export function AppProvider({ children }) {
       body: JSON.stringify({ action: 'punch_in', email: profile.email })
     }).then(r => r.text()).then(t => console.log('Punch in response:', t)).catch(e => console.warn('Punch in failed:', e))
 
-    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec';
+    const DAILY_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
     if (profile?.email && DAILY_SHEET_WEB_APP_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_punch_in',
@@ -635,7 +635,7 @@ export function AppProvider({ children }) {
 
     // Log daily tasks & punch out to daily sheet
     if (prevEmail) {
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
       if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const todayIST = getISTDate();
         const myFirstPunchIn = (todaysSessions && todaysSessions.length > 0 && todaysSessions[0].in)
@@ -774,7 +774,7 @@ export function AppProvider({ children }) {
     }).then(r => r.text()).then(t => console.log('Auto punch out response:', t)).catch(e => console.warn('Auto punch out failed:', e))
 
     // 2. Log that day's tasks to the daily task sheet
-    const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec'
+    const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec'
     if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
       const payload = JSON.stringify({
         action: 'log_daily_tasks',
@@ -2107,7 +2107,7 @@ export function AppProvider({ children }) {
 
     // Sync status change to daily sheet row
     if (hasStatusChange && profile?.email && isPunchedIn) {
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
       if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
@@ -2156,7 +2156,7 @@ export function AppProvider({ children }) {
       updateTask(taskToToggle.id, { timeTaken: buildMultiUserTimeStr(timeData), startTime: startIST, endTime: endIST });
       setActiveTimer(null);
 
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
       if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
@@ -2187,7 +2187,7 @@ export function AppProvider({ children }) {
       updateTask(taskToToggle.id, { startTime: startIST, endTime: '' });
       setActiveTimer({ taskId: taskToToggle.id, taskTitle: taskToToggle.title, startTime: startMs, istStartTime: startIST });
 
-      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw8A0sXCwJtBBkfvvqFgAjN8GjEn1P7u-r0d8Gi2KhslbQC4reO2q7Va_iOh4Hh-LR4Vw/exec';
+      const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
       if (profile?.email && DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         fetch(DAILY_SHEET_URL, {
           method: 'POST', mode: 'no-cors',
