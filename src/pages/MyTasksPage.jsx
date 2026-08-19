@@ -11,7 +11,8 @@ import { useApp } from '../context/AppContext'
 export default function MyTasksPage() {
   const location = useLocation()
   const { showNewTaskModal, setShowNewTaskModal, addTask, profile, employees, tasks, clients, addToast, isPunchedIn, newTaskPrefillDept, setNewTaskPrefillDept } = useApp()
-  const teamNames = employees ? employees.map(emp => emp.name) : []
+  const taskAssigneeNames = (tasks || []).flatMap(t => (t.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean)
+  const teamNames = employees && employees.length > 0 ? employees.map(emp => emp.name) : []
 
   // Lock body scroll when new task modal is open
   useEffect(() => {

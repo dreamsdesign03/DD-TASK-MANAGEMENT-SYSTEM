@@ -876,6 +876,13 @@ export function AppProvider({ children }) {
 
   // Chat channels state
   const [employees, setEmployees] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dd_team_v1')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch (e) { }
     return STATIC_EMPLOYEES.map(staticEmp => ({
       id: staticEmp.id,
       name: staticEmp.name,
@@ -887,6 +894,12 @@ export function AppProvider({ children }) {
       location: 'Remote'
     }))
   })
+
+  useEffect(() => {
+    if (employees && employees.length > 0) {
+      localStorage.setItem('dd_team_v1', JSON.stringify(employees))
+    }
+  }, [employees])
 
   const [personalChats, setPersonalChats] = useState(() => {
     return STATIC_EMPLOYEES
