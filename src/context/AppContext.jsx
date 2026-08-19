@@ -453,6 +453,27 @@ export function AppProvider({ children }) {
       return
     }
 
+    // 1. Instantly restore punch-in session from localStorage if present for today
+    let localPunchedIn = false
+    const todayPrefix = getISTDate()
+    try {
+      const savedStr = localStorage.getItem(`dd_punch_session_${profile.email}`)
+      if (savedStr) {
+        const savedData = JSON.parse(savedStr)
+        if (savedData.date === todayPrefix && savedData.isPunchedIn) {
+          localPunchedIn = true
+          setIsPunchedIn(true)
+          if (savedData.inTime) setPunchInTime(savedData.inTime)
+          if (savedData.todaysSessions && Array.isArray(savedData.todaysSessions)) {
+            setTodaysSessions(savedData.todaysSessions)
+            if (savedData.todaysSessions.length > 0) setFirstPunchInToday(savedData.todaysSessions[0].in)
+          }
+        } else {
+          localStorage.removeItem(`dd_punch_session_${profile.email}`)
+        }
+      }
+    } catch (e) { }
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => {
       controller.abort()
@@ -469,7 +490,6 @@ export function AppProvider({ children }) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const data = await res.json()
         setActivityLog(data)
-        const todayPrefix = getISTDate()
         const mySessions = []
         let activeTime = null
         let staleSession = null
@@ -505,14 +525,23 @@ export function AppProvider({ children }) {
             }
           })
         }
-        setTodaysSessions(mySessions)
         if (mySessions.length > 0) {
+          setTodaysSessions(mySessions)
           setFirstPunchInToday(mySessions[0].in)
         }
         if (activeTime) {
           setIsPunchedIn(true)
           setPunchInTime(activeTime)
-        } else {
+          try {
+            localStorage.setItem(`dd_punch_session_${profile.email}`, JSON.stringify({
+              email: profile.email,
+              date: todayPrefix,
+              inTime: activeTime,
+              isPunchedIn: true,
+              todaysSessions: mySessions
+            }))
+          } catch (e) { }
+        } else if (!localPunchedIn) {
           setIsPunchedIn(false)
           setPunchInTime(null)
           if (mySessions.length === 0) setFirstPunchInToday(null)
@@ -533,11 +562,23 @@ export function AppProvider({ children }) {
 
   const handlePunchIn = () => {
     const inTime = getISTTime()
+    const todayDate = getISTDate()
     setIsPunchedIn(true)
     setPunchInTime(inTime)
 
     setTodaysSessions(prev => {
       const updated = [...prev, { in: inTime, out: null }]
+      try {
+        if (profile?.email) {
+          localStorage.setItem(`dd_punch_session_${profile.email}`, JSON.stringify({
+            email: profile.email,
+            date: todayDate,
+            inTime: inTime,
+            isPunchedIn: true,
+            todaysSessions: updated
+          }))
+        }
+      } catch (e) { }
       return updated
     })
     addToast('Punched In successfully', 'success')
@@ -573,6 +614,11 @@ export function AppProvider({ children }) {
     setIsPunchedIn(false)
     setPunchInTime(null)
     const outTime = getISTTime()
+    try {
+      if (prevEmail) {
+        localStorage.removeItem(`dd_punch_session_${prevEmail}`)
+      }
+    } catch (e) { }
     setTodaysSessions(prev => {
       const updated = [...prev]
       if (updated.length > 0) updated[updated.length - 1].out = outTime
