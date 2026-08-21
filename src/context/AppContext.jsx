@@ -445,6 +445,7 @@ export function AppProvider({ children }) {
   const [activityLog, setActivityLog] = useState([])
   const [pendingAutoPunchOut, setPendingAutoPunchOut] = useState(null)
   const autoPunchOutDoneRef = useRef(new Set())
+  const [tasksLoaded, setTasksLoaded] = useState(false)
   const tasksLoadedRef = useRef(false)
 
   useEffect(() => {
@@ -805,7 +806,7 @@ export function AppProvider({ children }) {
 
   // Trigger auto punch-out once the day's tasks have been synced
   useEffect(() => {
-    if (!pendingAutoPunchOut || !profile?.email || !sessionRestoredRef.current || !tasksLoadedRef.current) return
+    if (!pendingAutoPunchOut || !profile?.email || !sessionRestoredRef.current || !tasksLoaded) return
     const key = pendingAutoPunchOut.date
     if (autoPunchOutDoneRef.current.has(key)) {
       setPendingAutoPunchOut(null)
@@ -814,7 +815,7 @@ export function AppProvider({ children }) {
     autoPunchOutDoneRef.current.add(key)
     setPendingAutoPunchOut(null)
     handleAutoPunchOut(pendingAutoPunchOut)
-  }, [pendingAutoPunchOut, profile, handleAutoPunchOut])
+  }, [pendingAutoPunchOut, profile, handleAutoPunchOut, tasksLoaded])
 
   // Activity tracking: log punch in, heartbeat every 30s
   const heartbeatRef = useRef(null)
@@ -2596,6 +2597,7 @@ export function AppProvider({ children }) {
       console.warn('Direct Google Sheet task fetch failed:', err)
     }
     tasksLoadedRef.current = true
+    setTasksLoaded(true)
   }
 
   const updateTeamAndChats = useCallback((fetchedTeam) => {
