@@ -164,6 +164,7 @@ export default function TaskTable() {
   const [selectedClient, setSelectedClient] = useState(location.state?.clientFilter || persisted.selectedClient || 'All Clients')
   const [selectedUser, setSelectedUser] = useState(location.state?.selectedUser || (isMyTasks ? (profile?.name || 'All Users') : (persisted.selectedUser || 'All Users')))
   const [selectedDepartment, setSelectedDepartment] = useState(location.state?.selectedDepartment || persisted.selectedDepartment || 'All Departments')
+  const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || persisted.selectedDate || '')
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board'
   const [boardGrouping, setBoardGrouping] = useState(location.state?.boardGrouping || persisted.boardGrouping || 'Department')
@@ -177,6 +178,7 @@ export default function TaskTable() {
       selectedClient,
       selectedUser,
       selectedDepartment,
+      selectedDate,
       viewMode,
       boardGrouping,
     }
@@ -185,7 +187,7 @@ export default function TaskTable() {
     } catch (e) {
       // ignore storage errors
     }
-  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, viewMode, boardGrouping, storageKey])
+  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, selectedDate, viewMode, boardGrouping, storageKey])
 
   // Consume location.state so back-navigation doesn't re-apply stale filters
   useEffect(() => {
@@ -470,6 +472,15 @@ export default function TaskTable() {
 
       const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment
 
+      let matchesDate = true
+      if (selectedDate) {
+        const d = new Date(selectedDate + 'T00:00:00')
+        const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' })
+        const taskAssigned = t.assignedDate || t.assigned || ''
+        const taskDue = t.dueDate || ''
+        matchesDate = taskAssigned === formatted || taskDue === formatted
+      }
+
       const query = searchQuery.toLowerCase()
       const matchesSearch =
         t.title.toLowerCase().includes(query) ||
@@ -477,7 +488,7 @@ export default function TaskTable() {
         t.id.toLowerCase().includes(query) ||
         (t.assignedTo || '').toLowerCase().includes(query)
 
-      return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment
+      return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate
     })
     // 2. Sort tasks
     .sort((a, b) => {
@@ -882,6 +893,27 @@ export default function TaskTable() {
                     options={deduplicatedDepartments}
                     style={{ ...selectBaseStyle }}
                   />
+                </div>
+                <div className="flex flex-col gap-1.5 md:w-[160px]">
+                  <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Filter by Date</label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => { setSelectedDate(e.target.value); setCurrentPage(1) }}
+                      className="w-full"
+                      style={{ ...selectBaseStyle, paddingRight: selectedDate ? 30 : 16 }}
+                    />
+                    {selectedDate && (
+                      <button
+                        onClick={() => { setSelectedDate(''); setCurrentPage(1) }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-0 flex items-center justify-center"
+                        style={{ lineHeight: 0 }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {viewMode === 'Board' && (
