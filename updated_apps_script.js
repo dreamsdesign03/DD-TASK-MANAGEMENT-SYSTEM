@@ -1608,3 +1608,164 @@ function createDailyPendingEmailTrigger() {
   }
   console.info("Weekday 9:00 AM IST triggers installed (Mon-Fri, Asia/Kolkata).");
 }
+
+// -------------------------
+// AUTO PUNCH-OUT AT 11:59 PM DAILY
+// -------------------------
+
+/**
+ * Auto punch-out all users who are still "Online" at end of day.
+ * Runs daily at 11:59 PM IST via a time-driven trigger.
+ * Closes their Activity session, sets Team status to Offline,
+ * and logs their day's tasks to the Daily Task List spreadsheet.
+ */
+function autoPunchOutAll() {
+  var ss = SpreadsheetApp.openById("1DLdlDT21vVwsggGlPg8xpSt2zjNJ_-z7W_GbFr7qIXs");
+  var teamSheet = ss.getSheetByName("Team");
+  var activitySheet = ss.getSheetByName("Activity");
+  var taskSheet = ss.getSheetByName("Tasks");
+  if (!teamSheet) return;
+
+  var now = new Date();
+  var formattedLogout = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd HH:mm:ss");
+  var todayPrefix = Utilities.formatDate(now, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd");
+
+  var teamData = teamSheet.getDataRange().getValues();
+  var taskData = taskSheet ? taskSheet.getDataRange().getValues() : [];
+  var activityData = activitySheet ? activitySheet.getDataRange().getValues() : [];
+
+  var punchedOutCount = 0;
+
+  for (var i = 1; i < teamData.length; i++) {
+    var status = String(teamData[i][9] || "").trim();
+    if (status !== "Online") continue;
+
+    var empEmail = String(teamData[i][2] || "").trim();
+    var empId = String(teamData[i][0] || "").trim();
+    var empName = String(teamData[i][1] || "").trim();
+    var empRole = String(teamData[i][8] || "").trim();
+    var empDept = String(teamData[i][4] || "").trim();
+
+    if (!empEmail) continue;
+
+    // 1. Set Team status to Offline
+    teamSheet.getRange(i + 1, 10).setValue("Offline");
+
+    // 2. Close Activity session
+    if (activitySheet) {
+      for (var j = activityData.length - 1; j >= 1; j--) {
+        if (String(activityData[j][0]).trim() === String(empId).trim()) {
+          if (String(activityData[j][5]).trim() === "") {
+            activitySheet.getRange(j + 1, 6).setValue(formattedLogout);
+            break;
+          }
+        }
+      }
+    }
+
+    // 3. Log daily tasks to the Daily Task List spreadsheet
+    try {
+      var DAILY_LIST_SPREADSHEET_ID = '1TtffW2oS95WX5Xf0OtH7G-Vqsmv4eHXiTiKgnD_8lnQ';
+      var dailySs = SpreadsheetApp.openById(DAILY_LIST_SPREADSHEET_ID);
+      var firstName = empName.split(' ')[0];
+      var userSheet = dailySs.getSheetByName(firstName);
+      if (userSheet) {
+        // Find today's tasks assigned to this user
+        var userTasks = [];
+        for (var t = 1; t < taskData.length; t++) {
+          var taskRow = taskData[t];
+          var assignedTo = String(taskRow[8] || "").toLowerCase();
+          var assignedEmails = String(taskRow[10] || "").toLowerCase();
+          var taskStatus = String(taskRow[15] || "").trim();
+
+          var isMyTask = (assignedEmails === empEmail.toLowerCase()) ||
+            (assignedTo === empName.toLowerCase()) ||
+            (assignedTo.indexOf(empName.toLowerCase()) !== -1);
+
+          if (!isMyTask) continue;
+
+          var statusUpdated = String(taskRow[16] || "");
+          var assignedDate = String(taskRow[12] || "");
+          var taskDate = statusUpdated || assignedDate;
+
+          if (taskDate && taskDate.indexOf(todayPrefix) !== -1) {
+            userTasks.push({
+              project: taskRow[1] || "",
+              title: taskRow[3] || "",
+              status: taskStatus,
+              startTime: "",
+              endTime: "",
+              remark: taskRow[19] || ""
+            });
+          }
+        }
+
+        // Write to daily task sheet: find or create today's block
+        var headerRow = -1;
+        var dateParts = todayPrefix.split("-");
+        var displayDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+        var headerText = "Task : " + displayDate;
+        var sheetData = userSheet.getDataRange().getValues();
+        for (var h = 0; h < sheetData.length; h++) {
+          if (String(sheetData[h][0]).indexOf("Task :") !== -1 && String(sheetData[h][0]).indexOf(displayDate) !== -1) {
+            headerRow = h + 1;
+            break;
+          }
+        }
+
+        if (headerRow === -1) {
+          // Create new block for today
+          var lastRow = userSheet.getLastRow();
+          var insertAt = lastRow + 1;
+          if (lastRow > 0) insertAt = lastRow + 2; // blank row spacer
+
+          userSheet.getRange(insertAt, 1, 1, 6).merge()
+            .setBackground("#166534").setFontColor("#ffffff")
+            .setHorizontalAlignment("center").setFontSize(11).setFontWeight("bold")
+            .setValue(headerText);
+          userSheet.getRange(insertAt + 1, 1, 1, 6)
+            .setBackground("#dcfce7").setFontWeight("bold").setFontSize(10)
+            .setValues([["Project name", "Task Title", "Status", "Start Time", "End Time", "Remark"]]);
+
+          headerRow = insertAt;
+          var dataStartRow = insertAt + 2;
+
+          for (var ut = 0; ut < userTasks.length; ut++) {
+            var task = userTasks[ut];
+            userSheet.getRange(dataStartRow + ut, 1, 1, 6).setValues([[
+              task.project, task.title, task.status,
+              task.startTime || "", task.endTime || "23:59", task.remark
+            ]]);
+          }
+        }
+      }
+    } catch (dailyErr) {
+      console.error("Auto punch-out daily sheet sync failed for " + empName + ": " + dailyErr.message);
+    }
+
+    punchedOutCount++;
+  }
+
+  console.info("Auto punch-out completed. " + punchedOutCount + " user(s) punched out at " + formattedLogout);
+}
+
+/**
+ * Install (or refresh) a daily 11:59 PM IST trigger for autoPunchOutAll.
+ * Run ONCE from the Apps Script editor after deploying the updated script.
+ */
+function installAutoPunchOutTrigger() {
+  var existing = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < existing.length; i++) {
+    if (existing[i].getHandlerFunction() === "autoPunchOutAll") {
+      ScriptApp.deleteTrigger(existing[i]);
+    }
+  }
+  ScriptApp.newTrigger("autoPunchOutAll")
+    .timeBased()
+    .everyDays(1)
+    .atHour(23)
+    .nearMinute(59)
+    .inTimezone("Asia/Kolkata")
+    .create();
+  console.info("Daily 11:59 PM IST auto punch-out trigger installed.");
+}
