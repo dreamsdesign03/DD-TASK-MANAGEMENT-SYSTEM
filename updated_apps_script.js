@@ -1670,6 +1670,19 @@ function autoPunchOutAll() {
       var firstName = empName.split(' ')[0];
       var userSheet = dailySs.getSheetByName(firstName);
       if (userSheet) {
+        // Helper: parse any date string to yyyy-MM-dd
+        function parseToISO(val) {
+          if (!val) return '';
+          if (val instanceof Date) return Utilities.formatDate(val, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd");
+          var s = String(val).trim();
+          // Already yyyy-MM-dd
+          if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+          // Try parsing "Aug 21, 2026" etc.
+          var d = new Date(s);
+          if (!isNaN(d.getTime())) return Utilities.formatDate(d, Session.getScriptTimeZone() || "GMT+5:30", "yyyy-MM-dd");
+          return '';
+        }
+
         // Find today's tasks assigned to this user
         var userTasks = [];
         for (var t = 1; t < taskData.length; t++) {
@@ -1684,11 +1697,11 @@ function autoPunchOutAll() {
 
           if (!isMyTask) continue;
 
-          var statusUpdated = String(taskRow[16] || "");
-          var assignedDate = String(taskRow[12] || "");
+          var statusUpdated = parseToISO(taskRow[16]);
+          var assignedDate = parseToISO(taskRow[12]);
           var taskDate = statusUpdated || assignedDate;
 
-          if (taskDate && taskDate.indexOf(todayPrefix) !== -1) {
+          if (taskDate && taskDate === todayPrefix) {
             userTasks.push({
               project: taskRow[1] || "",
               title: taskRow[3] || "",
