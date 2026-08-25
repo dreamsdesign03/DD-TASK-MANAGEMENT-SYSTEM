@@ -639,8 +639,9 @@ export function AppProvider({ children }) {
       const DAILY_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzaixhkaz0LeFo1zKNlf-olIL7cdmLcYheHkvbPfxDVYIMRoeXp7Rh-rphIYK0JJ3kCIQ/exec';
       if (DAILY_SHEET_URL !== 'YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE') {
         const todayIST = getISTDate();
-        const myFirstPunchIn = (todaysSessions && todaysSessions.length > 0 && todaysSessions[0].in)
-          ? todaysSessions[0].in
+        const currentSessions = todaysSessionsRef.current || [];
+        const myFirstPunchIn = (currentSessions.length > 0 && currentSessions[0].in)
+          ? currentSessions[0].in
           : (punchInTime || outTime);
 
         const myName = (profile?.name || '').trim().toLowerCase();
