@@ -1750,6 +1750,81 @@ function autoPunchOutAll() {
               task.startTime || "", task.endTime || "23:59", task.remark
             ]]);
           }
+        } else {
+          // UPDATE existing block — add tasks to it
+          var dataStartRow = headerRow + 2;
+          var allData = userSheet.getDataRange().getValues();
+
+          // Find block end (next header or empty row)
+          var blockEnd = allData.length + 1;
+          for (var r = dataStartRow; r < allData.length; r++) {
+            var col1 = String(allData[r][0] || "").trim();
+            var isEmpty = true;
+            for (var c = 0; c < 6; c++) {
+              if (String(allData[r][c] || "").trim() !== "") { isEmpty = false; break; }
+            }
+            if (isEmpty || col1.indexOf("Task :") === 0) {
+              blockEnd = r + 1;
+              break;
+            }
+          }
+
+          // Preserve existing start time from Punched In row
+          var existingStartTime = "";
+          for (var r = dataStartRow - 1; r < blockEnd - 1; r++) {
+            var rowTitle = String(allData[r][1] || "").trim();
+            var rowST = String(allData[r][3] || "").trim();
+            if (rowTitle === "Punched In" && rowST) {
+              existingStartTime = rowST.split(":").slice(0, 2).join(":");
+              break;
+            }
+          }
+
+          // Delete old data rows (keep header + title rows)
+          var deleteCount = blockEnd - dataStartRow;
+          if (deleteCount > 0) {
+            userSheet.deleteRows(dataStartRow, deleteCount);
+          }
+
+          // Insert Punched In row
+          userSheet.getRange(dataStartRow, 1, 1, 6).setValues([[
+            "", "Punched In", "-", existingStartTime || "", "", ""
+          ]]);
+          userSheet.getRange(dataStartRow, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+          userSheet.getRange(dataStartRow, 3).setHorizontalAlignment("center");
+          userSheet.getRange(dataStartRow, 4).setHorizontalAlignment("center");
+          userSheet.getRange(dataStartRow, 5).setHorizontalAlignment("center");
+          userSheet.getRange(dataStartRow, 1, 1, 6).setBorder(true, true, true, true, true, true);
+
+          // Insert task rows
+          for (var ut = 0; ut < userTasks.length; ut++) {
+            var task = userTasks[ut];
+            var insertIdx = dataStartRow + 1 + ut;
+            userSheet.insertRowBefore(insertIdx);
+            userSheet.getRange(insertIdx, 1).setValue(task.project);
+            userSheet.getRange(insertIdx, 2).setValue(task.title);
+            userSheet.getRange(insertIdx, 3).setValue(task.status);
+            userSheet.getRange(insertIdx, 4).setValue("-");
+            userSheet.getRange(insertIdx, 5).setValue("23:59");
+            userSheet.getRange(insertIdx, 6).setValue(task.remark);
+            userSheet.getRange(insertIdx, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+            userSheet.getRange(insertIdx, 3).setHorizontalAlignment("center");
+            userSheet.getRange(insertIdx, 4).setHorizontalAlignment("center");
+            userSheet.getRange(insertIdx, 5).setHorizontalAlignment("center");
+            userSheet.getRange(insertIdx, 1, 1, 6).setBorder(true, true, true, true, true, true);
+          }
+
+          // Insert Punched Out row
+          var punchOutIdx = dataStartRow + 1 + userTasks.length;
+          userSheet.insertRowBefore(punchOutIdx);
+          userSheet.getRange(punchOutIdx, 1, 1, 6).setValues([[
+            "", "Punched Out", "-", "", "23:59", ""
+          ]]);
+          userSheet.getRange(punchOutIdx, 1, 1, 6).setBackground("#ffffff").setFontWeight("normal").setFontColor("#000000");
+          userSheet.getRange(punchOutIdx, 3).setHorizontalAlignment("center");
+          userSheet.getRange(punchOutIdx, 4).setHorizontalAlignment("center");
+          userSheet.getRange(punchOutIdx, 5).setHorizontalAlignment("center");
+          userSheet.getRange(punchOutIdx, 1, 1, 6).setBorder(true, true, true, true, true, true);
         }
       }
     } catch (dailyErr) {
