@@ -6,7 +6,7 @@ import SelectDropdown from '../components/SelectDropdown'
 import LinkifiedText from '../components/LinkifiedText'
 import { useApp, parseMultiUserTimeStr, formatTimeStr, getActiveTimerMs } from '../context/AppContext'
 import { processMessagesList, renderMessageText } from './ChatPage'
-import { renderAvatar } from '../utils/avatar'
+import { renderAvatar, getUserColor, getInitials } from '../utils/avatar'
 import { formatTime, formatDateTime, computeRecurringDueDate } from '../utils/dateFormat'
 import CHAT_BACKGROUNDS from '../data/chatBackgrounds'
 /* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -2091,6 +2091,17 @@ export default function TaskDetailPage() {
               <h2 className="text-label-lg font-bold text-on-surface">Edit Subtask</h2>
             </div>
             <div className="px-6 py-5 bg-surface-container-lowest flex flex-col gap-4">
+              {editingSubtask.assignedBy && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">Created By</label>
+                  <div className="flex items-center gap-2 w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2">
+                    <div className="w-6 h-6 rounded-full text-white flex items-center justify-center text-[10px] font-bold border border-white" style={{ backgroundColor: getUserColor(editingSubtask.assignedBy) }}>
+                      {getInitials(editingSubtask.assignedBy)}
+                    </div>
+                    <span className="text-[13px] font-semibold text-on-surface">{editingSubtask.assignedBy}</span>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-secondary uppercase tracking-wider pl-1">Title</label>
                 <input

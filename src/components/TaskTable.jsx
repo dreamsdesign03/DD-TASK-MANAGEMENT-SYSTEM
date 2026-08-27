@@ -452,6 +452,25 @@ export default function TaskTable() {
   const uniqueDepartments = allDepts.filter(d => !hiddenDepts.includes(d))
   const deduplicatedDepartments = [...new Set(uniqueDepartments)]
 
+  // Compute parent task IDs that have matching sub-tasks (for search highlighting)
+  const parentIdsWithMatchingSubs = React.useMemo(() => {
+    if (!searchQuery.trim()) return new Set()
+    const query = searchQuery.toLowerCase()
+    const ids = new Set()
+    const subTasks = tasks.filter(t => t.taskType === 'Sub Task' || t.taskType === 'Subtask')
+    for (const sub of subTasks) {
+      const matches =
+        sub.title.toLowerCase().includes(query) ||
+        sub.client.toLowerCase().includes(query) ||
+        sub.id.toLowerCase().includes(query) ||
+        (sub.assignedTo || '').toLowerCase().includes(query)
+      if (matches && sub.mainTaskId) {
+        ids.add(String(sub.mainTaskId))
+      }
+    }
+    return ids
+  }, [tasks, searchQuery])
+
   // 1. Filter tasks
   const filtered = tasks
     .filter((t) => {
@@ -486,7 +505,8 @@ export default function TaskTable() {
         t.title.toLowerCase().includes(query) ||
         t.client.toLowerCase().includes(query) ||
         t.id.toLowerCase().includes(query) ||
-        (t.assignedTo || '').toLowerCase().includes(query)
+        (t.assignedTo || '').toLowerCase().includes(query) ||
+        (!query ? false : parentIdsWithMatchingSubs.has(String(t.id)))
 
       return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate
     })
@@ -1062,17 +1082,23 @@ export default function TaskTable() {
                                 }
                               }
 
-                              const rowClass = isTaskOverdue
-                                ? 'bg-error-container'
-                                : isDoneLate
-                                  ? 'bg-[#FFF8F0]'
-                                  : task.status === 'Done'
-                                    ? 'opacity-60'
-                                    : ''
+                              const isSubSearchHit = searchQuery.trim() && parentIdsWithMatchingSubs.has(String(task.id))
 
-                              const firstTdClass = isTaskOverdue
-                                ? 'border-l-4 border-urgent-red'
-                                : 'border-l-4 border-transparent'
+                              const rowClass = isSubSearchHit
+                                ? 'bg-purple-50 ring-2 ring-primary/30'
+                                : isTaskOverdue
+                                  ? 'bg-error-container'
+                                  : isDoneLate
+                                    ? 'bg-[#FFF8F0]'
+                                    : task.status === 'Done'
+                                      ? 'opacity-60'
+                                      : ''
+
+                              const firstTdClass = isSubSearchHit
+                                ? 'border-l-4 border-primary'
+                                : isTaskOverdue
+                                  ? 'border-l-4 border-urgent-red'
+                                  : 'border-l-4 border-transparent'
 
                               return (
                                 <React.Fragment key={task.id}>
@@ -1082,7 +1108,7 @@ export default function TaskTable() {
                                       onClick={() => {
                                         openTaskDetail(task)
                                       }}
-                                      className={`bg-white rounded-xl border ${isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
+                                      className={`${isSubSearchHit ? 'bg-purple-50 ring-2 ring-primary/30' : 'bg-white'} rounded-xl border ${isSubSearchHit ? 'border-primary shadow-md' : isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
                                     >
                                       <div className="p-4 space-y-3">
                                         <div className="flex justify-between items-start">
@@ -1561,6 +1587,8 @@ export default function TaskTable() {
 
                               const canUpdateStatus = canAccessTask(task);
 
+                              const isSubSearchHit = searchQuery.trim() && parentIdsWithMatchingSubs.has(String(task.id))
+
                               return (
                                 <div
                                   key={task.id}
@@ -1577,9 +1605,12 @@ export default function TaskTable() {
                                     openTaskDetail(task)
                                   }}
                                   style={{
-                                    background: 'white', borderRadius: 18, padding: 20, marginBottom: 16,
-                                    boxShadow: '0 4px 16px rgba(91,33,182,0.06)',
-                                    borderLeft: `4px solid ${cardBorderColor}`, cursor: 'grab', position: 'relative', zIndex: 1,
+                                    background: isSubSearchHit ? '#FAF5FF' : 'white', borderRadius: 18, padding: 20, marginBottom: 16,
+                                    boxShadow: isSubSearchHit ? '0 4px 20px rgba(112,44,145,0.18)' : '0 4px 16px rgba(91,33,182,0.06)',
+                                    borderLeft: `4px solid ${isSubSearchHit ? '#702c91' : cardBorderColor}`,
+                                    outline: isSubSearchHit ? '2px solid rgba(112,44,145,0.3)' : 'none',
+                                    outlineOffset: '-1px',
+                                    cursor: 'grab', position: 'relative', zIndex: 1,
                                     transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s'
                                   }}
                                   onMouseEnter={e => {
