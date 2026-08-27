@@ -91,6 +91,10 @@ export default function MyTasksPage() {
       addToast('Please fill out all required fields', 'error')
       return
     }
+    if (!assignedTo || assignedTo.length === 0 || (assignedTo.length === 1 && !assignedTo[0].trim())) {
+      addToast('Please select at least one assignee for the task', 'error')
+      return
+    }
 
     let formattedDate = ''
     if (dueDate) {

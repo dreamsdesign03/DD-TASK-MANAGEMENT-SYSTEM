@@ -315,6 +315,10 @@ export default function TaskDetailPage() {
 
   const handleAddSubtask = () => {
     if (!newSubtaskTitle.trim()) return
+    if (!newSubtaskAssignee || newSubtaskAssignee.length === 0) {
+      addToast('Please select at least one assignee for the subtask', 'error')
+      return
+    }
     let maxSubIdNum = 0;
     const existingSubtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'));
     existingSubtasks.forEach(st => {
@@ -1206,10 +1210,15 @@ export default function TaskDetailPage() {
                             <span className="text-[11px] font-bold text-secondary">{new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                           </div>
                         )}
-                        {st.assignedTo && (
+                        {st.assignedTo ? (
                           <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50 shrink-0">
                             <span className="material-symbols-outlined text-[13px] text-secondary">person</span>
                             <span className="text-[11px] font-bold text-secondary truncate max-w-[150px]">{st.assignedTo.split(',').map(n => n.trim()).filter(Boolean).join(', ')}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200 shrink-0">
+                            <span className="material-symbols-outlined text-[13px] text-gray-400">person_off</span>
+                            <span className="text-[11px] font-bold text-gray-400">Unassigned</span>
                           </div>
                         )}
                         {!isTaskDone && (
