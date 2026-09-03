@@ -165,6 +165,7 @@ export default function TaskTable() {
   const [selectedUser, setSelectedUser] = useState(location.state?.selectedUser || (isMyTasks ? (profile?.name || 'All Users') : (persisted.selectedUser || 'All Users')))
   const [selectedDepartment, setSelectedDepartment] = useState(location.state?.selectedDepartment || persisted.selectedDepartment || 'All Departments')
   const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || persisted.selectedDate || '')
+  const [showAllTasks, setShowAllTasks] = useState(location.state?.showAllTasks || persisted.showAllTasks || false)
 
   const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board'
   const [boardGrouping, setBoardGrouping] = useState(location.state?.boardGrouping || persisted.boardGrouping || 'Department')
@@ -181,13 +182,14 @@ export default function TaskTable() {
       selectedDate,
       viewMode,
       boardGrouping,
+      showAllTasks,
     }
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(state))
     } catch (e) {
       // ignore storage errors
     }
-  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, selectedDate, viewMode, boardGrouping, storageKey])
+  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, selectedDate, viewMode, boardGrouping, showAllTasks, storageKey])
 
   // Consume location.state so back-navigation doesn't re-apply stale filters
   useEffect(() => {
@@ -480,7 +482,6 @@ export default function TaskTable() {
       const matchesStatus = activeFilter === 'All' || t.status === activeFilter
       const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient
       let matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser)
-      
       // Strict disambiguation: If looking specifically at my tasks, ensure my exact email is assigned (if emails exist on task)
       if (matchesUser && selectedUser !== 'All Users' && selectedUser === profile?.name && profile?.email) {
         const taskEmails = (t.assignedEmail || '').trim().toLowerCase()
@@ -508,7 +509,22 @@ export default function TaskTable() {
         (t.assignedTo || '').toLowerCase().includes(query) ||
         (!query ? false : parentIdsWithMatchingSubs.has(String(t.id)))
 
-      return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate
+      // Hide "Done" tasks that were completed before the current month,
+      // unless the user switched to "All Tasks" mode.
+      let matchesMonthDone = true
+      if (!showAllTasks && t.status === 'Done') {
+        const doneTs = t.statusUpdatedOn ? new Date(t.statusUpdatedOn) : null
+        const now = new Date()
+        const currentMonth = now.getMonth()
+        const currentYear = now.getFullYear()
+        if (doneTs && !isNaN(doneTs.getTime())) {
+          if (doneTs.getFullYear() < currentYear || (doneTs.getFullYear() === currentYear && doneTs.getMonth() < currentMonth)) {
+            matchesMonthDone = false
+          }
+        }
+      }
+
+      return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate && matchesMonthDone
     })
     // 2. Sort tasks
     .sort((a, b) => {
@@ -706,7 +722,19 @@ export default function TaskTable() {
     const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient;
     const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser);
     const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment;
-    return matchesClient && matchesUser && matchesDepartment;
+    let matchesMonthDone = true
+    if (!showAllTasks && t.status === 'Done') {
+      const doneTs = t.statusUpdatedOn ? new Date(t.statusUpdatedOn) : null
+      const now = new Date()
+      const currentMonth = now.getMonth()
+      const currentYear = now.getFullYear()
+      if (doneTs && !isNaN(doneTs.getTime())) {
+        if (doneTs.getFullYear() < currentYear || (doneTs.getFullYear() === currentYear && doneTs.getMonth() < currentMonth)) {
+          matchesMonthDone = false
+        }
+      }
+    }
+    return matchesClient && matchesUser && matchesDepartment && matchesMonthDone;
   });
 
   const totalTasks = baseTasksForStats.length;
@@ -803,6 +831,14 @@ export default function TaskTable() {
           ))}
         </div>
         <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4 w-full md:w-auto mt-2 md:mt-0">
+          <div className="flex gap-1 md:gap-2 bg-white rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-50">
+            <button onClick={() => setShowAllTasks(false)} className={`px-4 py-2 rounded-full text-[12px] font-bold transition-colors whitespace-nowrap ${!showAllTasks ? 'bg-[#702c91]/10 text-[#702c91]' : 'text-gray-400 hover:text-gray-600'}`} title="Show only current month tasks">
+              Current Month
+            </button>
+            <button onClick={() => setShowAllTasks(true)} className={`px-4 py-2 rounded-full text-[12px] font-bold transition-colors whitespace-nowrap ${showAllTasks ? 'bg-[#702c91]/10 text-[#702c91]' : 'text-gray-400 hover:text-gray-600'}`} title="Show all tasks including previous months">
+              All Tasks
+            </button>
+          </div>
           <div className="flex gap-1 md:gap-2 bg-white rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-50">
             <button onClick={() => setViewMode('List')} className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'List' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
               <span className="material-symbols-outlined text-[20px]">view_list</span>
