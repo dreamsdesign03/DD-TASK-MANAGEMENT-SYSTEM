@@ -761,7 +761,7 @@ export default function TaskTable() {
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-5">
         {[
           { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
           { label: 'Pending', value: pendingTasks, icon: 'pending_actions', bg: '#F3F4F6', color: '#6B7280' },
@@ -769,13 +769,10 @@ export default function TaskTable() {
           { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A' },
           { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true },
         ].map(s => (
-          <div key={s.label} style={{
-            background: 'white', borderRadius: 20, padding: '20px 20px',
-            display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+          <div key={s.label} className="p-3.5 sm:p-5 flex items-start justify-between bg-white rounded-[16px] sm:rounded-[20px] cursor-pointer" style={{
             border: `1px solid ${s.color}40`,
             boxShadow: '0 8px 24px rgba(91,33,182,0.05)',
             transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
-            cursor: 'pointer'
           }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-2px)';
@@ -789,11 +786,11 @@ export default function TaskTable() {
             }}
           >
             <div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</p>
-              <h2 style={{ fontSize: 28, fontWeight: 800, color: s.overdue ? '#DC2626' : '#1E1B2E', margin: 0 }}>{String(s.value).padStart(2, '0')}</h2>
+              <p className="text-[10px] sm:text-[12px] font-semibold text-[#9CA3AF] tracking-[0.05em] uppercase mb-1">{s.label}</p>
+              <h2 className="text-[20px] sm:text-[28px] font-extrabold m-0" style={{ color: s.overdue ? '#DC2626' : '#1E1B2E' }}>{String(s.value).padStart(2, '0')}</h2>
             </div>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className="material-symbols-outlined" style={{ color: s.color, fontSize: 22 }}>{s.icon}</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
+              <span className="material-symbols-outlined text-[18px] sm:text-[22px]" style={{ color: s.color }}>{s.icon}</span>
             </div>
           </div>
         ))}
@@ -801,10 +798,10 @@ export default function TaskTable() {
 
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
       {/* FILTERS + VIEW TOGGLE */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
-        <div className="flex flex-wrap gap-2 md:gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-5">
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-3">
           {FILTERS.map(f => (
-            <button key={f} onClick={() => setActiveFilter(f)} className={`px-4 md:px-6 py-2 rounded-full text-[13px] md:text-sm font-semibold transition-all ${f === activeFilter ? 'text-white' : 'bg-white text-gray-600 border border-gray-100 hover:border-gray-200'}`} style={{
+            <button key={f} onClick={() => setActiveFilter(f)} className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12px] sm:text-sm font-semibold transition-all ${f === activeFilter ? 'text-white' : 'bg-white text-gray-600 border border-gray-100 hover:border-gray-200'}`} style={{
               background: f === activeFilter ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
               backgroundSize: f === activeFilter ? '200% auto' : 'auto',
               backgroundPosition: 'left center',
@@ -830,9 +827,10 @@ export default function TaskTable() {
             </button>
           ))}
         </div>
-        <div className="flex items-center justify-between md:justify-end gap-3 md:gap-4 w-full md:w-auto mt-2 md:mt-0">
+        <div className="flex flex-wrap items-center justify-between md:justify-end gap-2 md:gap-4 w-full md:w-auto mt-1 md:mt-0">
           <div className="flex gap-1 md:gap-2 bg-white rounded-full p-1 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-gray-50">
-            <button onClick={() => setShowAllTasks(false)} className={`px-4 py-2 rounded-full text-[12px] font-bold transition-colors whitespace-nowrap ${!showAllTasks ? 'bg-[#702c91]/10 text-[#702c91]' : 'text-gray-400 hover:text-gray-600'}`} title="Show only current month tasks">
+            <button onClick={() => setShowAllTasks(false)} className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[11px] sm:text-[12px] font-bold transition-colors whitespace-nowrap ${!showAllTasks ? 'bg-[#702c91]/10 text-[#702c91]' : 'text-gray-400 hover:text-gray-600'}`} title="Show only current month tasks">
+
               Current Month
             </button>
             <button onClick={() => setShowAllTasks(true)} className={`px-4 py-2 rounded-full text-[12px] font-bold transition-colors whitespace-nowrap ${showAllTasks ? 'bg-[#702c91]/10 text-[#702c91]' : 'text-gray-400 hover:text-gray-600'}`} title="Show all tasks including previous months">

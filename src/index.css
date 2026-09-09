@@ -425,4 +425,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   overflow: hidden;
 }
 
+@media (max-width: 1023px) {
+  :root {
+    --sidebar-ml: 0px !important;
+  }
+  .page-main, main {
+    margin-left: 0 !important;
+  }
+}
+
+
 

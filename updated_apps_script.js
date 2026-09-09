@@ -1346,10 +1346,8 @@ var PENDING_EMAIL_SUBJECT = "Your pending tasks for today";
 var PENDING_EMAIL_SENDER_NAME = "Dreamsdesk - Dreams Design";
 var PENDING_EMAIL_REPLY_TO = "marketing.dreamsdesign.in@gmail.com";
 
-// 0-indexed columns in the Tasks sheet
+// Dynamic header lookup fallback constants if headers are missing
 var PENDING_TASK_COL = { TITLE: 3, CLIENT: 1, ASSIGNED_TO: 8, EMPLOYEE_IDS: 9, ASSIGNED_EMAILS: 10, DUE_DATE: 13, PRIORITY: 14, STATUS: 15 };
-
-// 0-indexed columns in the Team sheet
 var PENDING_TEAM_COL = { EMP_ID: 0, NAME: 1, EMAIL: 2, IS_ACTIVE: 7 };
 
 function sendDailyPendingEmails() {
@@ -1368,16 +1366,53 @@ function sendDailyPendingEmails() {
     return 0;
   }
 
-  // ---- Build team lookup maps (email / name / employee id) ----
+  // ---- Dynamic Header Lookup for Tasks Sheet ----
+  var taskRows = taskSheet.getDataRange().getValues();
+  if (taskRows.length <= 1) return 0;
+
+  var taskHeaders = taskRows[0];
+  var colTitle = findHeaderIndex(taskHeaders, "Task Title");
+  if (colTitle === -1) colTitle = findHeaderIndex(taskHeaders, "Title");
+  var colClient = findHeaderIndex(taskHeaders, "Client");
+  var colAssignedTo = findHeaderIndex(taskHeaders, "Assigned To");
+  var colEmpIds = findHeaderIndex(taskHeaders, "Employee IDs");
+  var colAssignedEmails = findHeaderIndex(taskHeaders, "Assigned Emails");
+  var colDueDate = findHeaderIndex(taskHeaders, "Due Date");
+  var colPriority = findHeaderIndex(taskHeaders, "Priority");
+  var colStatus = findHeaderIndex(taskHeaders, "Status");
+
+  // Fallback defaults if header search returns -1
+  if (colTitle === -1) colTitle = PENDING_TASK_COL.TITLE;
+  if (colClient === -1) colClient = PENDING_TASK_COL.CLIENT;
+  if (colAssignedTo === -1) colAssignedTo = PENDING_TASK_COL.ASSIGNED_TO;
+  if (colEmpIds === -1) colEmpIds = PENDING_TASK_COL.EMPLOYEE_IDS;
+  if (colAssignedEmails === -1) colAssignedEmails = PENDING_TASK_COL.ASSIGNED_EMAILS;
+  if (colDueDate === -1) colDueDate = PENDING_TASK_COL.DUE_DATE;
+  if (colPriority === -1) colPriority = PENDING_TASK_COL.PRIORITY;
+  if (colStatus === -1) colStatus = PENDING_TASK_COL.STATUS;
+
+  // ---- Dynamic Header Lookup for Team Sheet ----
   var teamRows = teamSheet.getDataRange().getValues();
+  var teamHeaders = teamRows[0];
+  var colTeamEmail = findHeaderIndex(teamHeaders, "Email Address");
+  var colTeamName = findHeaderIndex(teamHeaders, "Full Name");
+  var colTeamEmpId = findHeaderIndex(teamHeaders, "Employee ID");
+  var colTeamActive = findHeaderIndex(teamHeaders, "Is Active");
+
+  if (colTeamEmail === -1) colTeamEmail = PENDING_TEAM_COL.EMAIL;
+  if (colTeamName === -1) colTeamName = PENDING_TEAM_COL.NAME;
+  if (colTeamEmpId === -1) colTeamEmpId = PENDING_TEAM_COL.EMP_ID;
+  if (colTeamActive === -1) colTeamActive = PENDING_TEAM_COL.IS_ACTIVE;
+
+  // ---- Build team lookup maps (email / name / employee id) ----
   var byEmail = {};
   var byName = {};
   var byEmpId = {};
   for (var r = 1; r < teamRows.length; r++) {
-    var email = String(teamRows[r][PENDING_TEAM_COL.EMAIL] || "").trim().toLowerCase();
-    var name = String(teamRows[r][PENDING_TEAM_COL.NAME] || "").trim();
-    var empId = String(teamRows[r][PENDING_TEAM_COL.EMP_ID] || "").trim();
-    var isActive = String(teamRows[r][PENDING_TEAM_COL.IS_ACTIVE] || "").trim().toLowerCase();
+    var email = String(teamRows[r][colTeamEmail] || "").trim().toLowerCase();
+    var name = String(teamRows[r][colTeamName] || "").trim();
+    var empId = String(teamRows[r][colTeamEmpId] || "").trim();
+    var isActive = String(teamRows[r][colTeamActive] || "").trim().toLowerCase();
     if (!email) continue;
     var active = isActive !== "pending"; // only pending-approval users are excluded
     byEmail[email] = { email: email, name: name || email, active: active };
@@ -1386,21 +1421,23 @@ function sendDailyPendingEmails() {
   }
 
   // ---- Collect pending tasks per email ----
-  var tasks = taskSheet.getDataRange().getValues();
   var pendingByEmail = {};
   var today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  for (var r = 1; r < tasks.length; r++) {
-    var row = tasks[r];
-    var status = String(row[PENDING_TASK_COL.STATUS] || "").trim();
-    // Only tasks with status "Pending" are included in the email.
-    if (status !== "Pending") continue;
+  for (var r = 1; r < taskRows.length; r++) {
+    var row = taskRows[r];
+    var status = String(row[colStatus] || "").trim();
+    
+    // Strict Case-Insensitive Check: ONLY include if status is truly "Pending"
+    // Excludes "Done", "In Progress", "Review", "Blocked", etc.
+    if (status.toLowerCase() !== "pending") continue;
 
-    var taskEmails = parsePendingEmails(row[PENDING_TASK_COL.ASSIGNED_EMAILS]);
+    var rawEmails = row[colAssignedEmails];
+    var taskEmails = parsePendingEmails(rawEmails);
     if (taskEmails.length === 0) {
       // Fallback 1: match "Assigned To" names against the Team sheet
-      var names = String(row[PENDING_TASK_COL.ASSIGNED_TO] || "").split(",");
+      var names = String(row[colAssignedTo] || "").split(",");
       for (var n = 0; n < names.length; n++) {
         var nameKey = names[n].trim().toLowerCase();
         if (nameKey && byName[nameKey]) taskEmails.push(byName[nameKey].email);
@@ -1408,7 +1445,7 @@ function sendDailyPendingEmails() {
     }
     if (taskEmails.length === 0) {
       // Fallback 2: match "Employee IDs" against the Team sheet
-      var empIds = String(row[PENDING_TASK_COL.EMPLOYEE_IDS] || "").split(",");
+      var empIds = String(row[colEmpIds] || "").split(",");
       for (var idn = 0; idn < empIds.length; idn++) {
         var empKey = empIds[idn].trim().toLowerCase();
         if (empKey && byEmpId[empKey]) taskEmails.push(byEmpId[empKey].email);
@@ -1417,12 +1454,12 @@ function sendDailyPendingEmails() {
     if (taskEmails.length === 0) continue;
 
     var entry = {
-      title: String(row[PENDING_TASK_COL.TITLE] || "Untitled task"),
-      project: String(row[PENDING_TASK_COL.CLIENT] || ""),
-      priority: String(row[PENDING_TASK_COL.PRIORITY] || ""),
-      status: status || "Pending",
-      dueDate: pendingDateString(row[PENDING_TASK_COL.DUE_DATE]),
-      overdue: pendingIsOverdue(row[PENDING_TASK_COL.DUE_DATE], today)
+      title: String(row[colTitle] || "Untitled task"),
+      project: String(row[colClient] || ""),
+      priority: String(row[colPriority] || ""),
+      status: "Pending",
+      dueDate: pendingDateString(row[colDueDate]),
+      overdue: pendingIsOverdue(row[colDueDate], today)
     };
 
     var seen = {};
