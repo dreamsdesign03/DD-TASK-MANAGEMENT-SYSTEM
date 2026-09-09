@@ -1102,7 +1102,7 @@ export function AppProvider({ children }) {
   const initialTaskData = useRef({})
   const recentTaskUpdates = useRef({}) // { taskId: { timestamp, fields } }
 
-  const addSystemAndWebNotification = (category, title, subtitle, taskId = null) => {
+  const addSystemAndWebNotification = (category, title, subtitle, taskId = null, showToastPopup = false) => {
     // Cross-tab deduplication: prevent multiple open tabs from triggering the exact same notification
     const notifHash = `${category}_${title}_${subtitle}_${taskId}`
     try {
@@ -1133,13 +1133,14 @@ export function AppProvider({ children }) {
     }
     setNotifications(prev => [newNotif, ...prev])
 
-    // Show beautiful UI toast notification
-    let toastType = 'info'
-    if (category === 'Status Updates' || title.toLowerCase().includes('success') || title.toLowerCase().includes('done')) toastType = 'success'
-    if (title.toLowerCase().includes('overdue') || category === 'Error') toastType = 'error'
+    // Show beautiful UI toast notification only if requested
+    if (showToastPopup) {
+      let toastType = 'info'
+      if (category === 'Status Updates' || title.toLowerCase().includes('success') || title.toLowerCase().includes('done')) toastType = 'success'
+      if (title.toLowerCase().includes('overdue') || category === 'Error') toastType = 'error'
 
-    // Don't show toast if it's just a general system sync unless important
-    addToast(`${title} - ${subtitle}`, toastType)
+      addToast(`${title} - ${subtitle}`, toastType)
+    }
 
     if (window.require) {
       try {
@@ -2017,42 +2018,32 @@ export function AppProvider({ children }) {
     let updateTitle = `Task ${id} Updated`
     let updateSubtitle = mergedTask.title
 
-    // Update our tracker so we don't notify ourselves
-    initialTaskData.current[id] = mergedTask
-    recentTaskUpdates.current[id] = { timestamp: Date.now(), fields }
-
-    let shouldNotify = true
-
-    if (hasStatusChange) {
-      initialTaskStatuses.current[id] = fields.status
-      updateTitle = `Task ${id} status updated to ${fields.status}`
-    } else if (fields.comments && (!currentTask.comments || fields.comments.length > currentTask.comments.length)) {
-      // New comment added locally — if the author is the current user, don't self-notify
-      const latestComment = fields.comments[fields.comments.length - 1]
-      const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
-      const cAuthor = String(latestComment?.author || '').trim().toLowerCase()
-      if (cAuthor === myName) shouldNotify = false
-      updateTitle = `New comment on Task ${id}`
-    } else if (fields.comments && currentTask.comments && fields.comments.length === currentTask.comments.length) {
-      // Same comment count (like/update) — user's own interaction, no self-notify
-      shouldNotify = false
-    } else if (fields.attachments && (!currentTask.attachments || fields.attachments.length > currentTask.attachments.length)) {
-      updateTitle = `Attachment added to Task ${id}`
-    } else if (fields.assignedTo && fields.assignedTo !== currentTask.assignedTo) {
-      updateTitle = `Task Reassigned`
-      updateSubtitle = `You have been assigned to ${mergedTask.title}`
-      updateType = 'Task Reminders'
-    } else if (fields.description && fields.description !== currentTask.description) {
-      updateTitle = `Task ${id} description updated`
+    // Update our tracker immediately so subsequent syncs and tab navigations don't re-notify
+    const normKey = normalizeTaskIdKey(id)
+    const compKey = `${id}_${(mergedTask.title || '').trim().toLowerCase()}`
+    
+    if (fields.status) {
+      initialTaskStatuses.current[normKey] = fields.status
+      initialTaskStatuses.current[compKey] = fields.status
     }
+    initialTaskData.current[normKey] = { ...mergedTask }
+    initialTaskData.current[compKey] = { ...mergedTask }
+    recentTaskUpdates.current[id] = { timestamp: Date.now(), fields }
 
     const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
     const assigneesArr = (mergedTask.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
     const assignedByStr = String(mergedTask.assignedBy || '').trim().toLowerCase()
     const isRelated = assigneesArr.includes(myNameStr) || assignedByStr === myNameStr
 
-    if (shouldNotify && isRelated) {
-      addToast(`${updateTitle}`, 'success')
+    if (hasStatusChange && isRelated) {
+      addToast(`Task status updated to ${fields.status}`, 'success')
+      addSystemAndWebNotification(
+        'Status Updates',
+        `Task Status Updated to ${fields.status}`,
+        `${mergedTask.title}`,
+        id,
+        false
+      )
     }
 
     // Auto-stop timer if task is marked Done
@@ -2407,9 +2398,13 @@ export function AppProvider({ children }) {
           initialTaskIds.current = new Set()
           newTasksList.forEach(t => {
             const key = getTaskKey(t)
+            const normKey = normalizeTaskIdKey(t.id)
             initialTaskIds.current.add(key)
+            initialTaskIds.current.add(normKey)
             initialTaskStatuses.current[key] = t.status
+            initialTaskStatuses.current[normKey] = t.status
             initialTaskData.current[key] = { ...t }
+            initialTaskData.current[normKey] = { ...t }
           })
         } else {
           const myName = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
@@ -2417,23 +2412,29 @@ export function AppProvider({ children }) {
           newTasksList.forEach(nt => {
             if (!nt || !nt.id) return
             const key = getTaskKey(nt)
-            const hasTask = initialTaskIds.current.has(key)
+            const normKey = normalizeTaskIdKey(nt.id)
+            const hasTask = initialTaskIds.current.has(key) || initialTaskIds.current.has(normKey)
 
             if (!hasTask) {
               initialTaskIds.current.add(key)
+              initialTaskIds.current.add(normKey)
               initialTaskStatuses.current[key] = nt.status
+              initialTaskStatuses.current[normKey] = nt.status
               initialTaskData.current[key] = { ...nt }
+              initialTaskData.current[normKey] = { ...nt }
 
               const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
               const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
 
               // ONLY show notification for new task if assigned to current user AND created by someone else!
               if (myName && assigneesArr.includes(myName) && assignedByStr !== myName) {
+                addToast(`New Task Assigned to You: ${nt.title}`, 'info')
                 addSystemAndWebNotification(
                   'Task Reminders',
                   `New Task Assigned to You`,
                   `${nt.assignedBy || 'Someone'} assigned you: ${nt.title}`,
-                  nt.id
+                  nt.id,
+                  false
                 )
               }
 
@@ -2445,29 +2446,34 @@ export function AppProvider({ children }) {
                 }
               }
             } else {
-              const oldData = initialTaskData.current[key] || {}
-              const oldStatus = oldData.status || initialTaskStatuses.current[key]
+              const oldData = initialTaskData.current[key] || initialTaskData.current[normKey] || {}
+              const oldStatus = oldData.status || initialTaskStatuses.current[key] || initialTaskStatuses.current[normKey]
 
               const assigneesArr = (nt.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
               const assignedByStr = String(nt.assignedBy || '').trim().toLowerCase()
               const isRelated = assigneesArr.includes(myName) || assignedByStr === myName
 
-              // ONLY show notification if task STATUS actually changed!
+              // ONLY show notification if task STATUS actually changed remotely!
               if (oldStatus && oldStatus !== nt.status) {
                 initialTaskStatuses.current[key] = nt.status
+                initialTaskStatuses.current[normKey] = nt.status
                 initialTaskData.current[key] = { ...nt }
+                initialTaskData.current[normKey] = { ...nt }
 
                 if (isRelated) {
+                  addToast(`Task Status Updated to ${nt.status}`, 'success')
                   addSystemAndWebNotification(
                     'Status Updates',
                     `Task Status Updated to ${nt.status}`,
-                    `${nt.title} (Status changed from ${oldStatus} to ${nt.status})`,
-                    nt.id
+                    `${nt.title}`,
+                    nt.id,
+                    false
                   )
                 }
               } else {
                 // Keep task data updated silently without notifying
                 initialTaskData.current[key] = { ...nt }
+                initialTaskData.current[normKey] = { ...nt }
               }
             }
           })
