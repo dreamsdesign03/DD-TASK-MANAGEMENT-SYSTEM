@@ -2461,7 +2461,6 @@ export function AppProvider({ children }) {
                 initialTaskData.current[normKey] = { ...nt }
 
                 if (isRelated) {
-                  addToast(`Task Status Updated to ${nt.status}`, 'success')
                   addSystemAndWebNotification(
                     'Status Updates',
                     `Task Status Updated to ${nt.status}`,
