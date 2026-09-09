@@ -130,6 +130,7 @@ const mapWebhookTaskToApp = (item) => {
 
   return {
     id: finalId,
+    rawTaskId: String(id || finalId).trim(),
     title: title,
     taskType: taskType,
     mainTaskId: mainTaskId,
@@ -1999,10 +2000,10 @@ export function AppProvider({ children }) {
 
   const updateTask = async (id, fields) => {
     setTasks((prev) =>
-      prev.map((t) => (isSameTaskId(t.id, id) ? { ...t, ...fields } : t))
+      prev.map((t) => (isSameTaskId(t.id, id) || (t.rawTaskId && isSameTaskId(t.rawTaskId, id)) ? { ...t, ...fields } : t))
     )
 
-    const currentTask = tasks.find((t) => isSameTaskId(t.id, id))
+    const currentTask = tasks.find((t) => isSameTaskId(t.id, id) || (t.rawTaskId && isSameTaskId(t.rawTaskId, id)))
     if (!currentTask) return
 
     let hasStatusChange = fields.status !== undefined && fields.status !== currentTask.status;
@@ -2014,21 +2015,24 @@ export function AppProvider({ children }) {
       ...currentTask,
       ...fields
     }
-    let updateType = 'Status Updates'
-    let updateTitle = `Task ${id} Updated`
-    let updateSubtitle = mergedTask.title
 
     // Update our tracker immediately so subsequent syncs and tab navigations don't re-notify
     const normKey = normalizeTaskIdKey(id)
+    const rawKey = mergedTask.rawTaskId ? normalizeTaskIdKey(mergedTask.rawTaskId) : ''
     const compKey = `${id}_${(mergedTask.title || '').trim().toLowerCase()}`
     
     if (fields.status) {
       initialTaskStatuses.current[normKey] = fields.status
+      if (rawKey) initialTaskStatuses.current[rawKey] = fields.status
       initialTaskStatuses.current[compKey] = fields.status
     }
     initialTaskData.current[normKey] = { ...mergedTask }
+    if (rawKey) initialTaskData.current[rawKey] = { ...mergedTask }
     initialTaskData.current[compKey] = { ...mergedTask }
     recentTaskUpdates.current[id] = { timestamp: Date.now(), fields }
+    if (mergedTask.rawTaskId) {
+      recentTaskUpdates.current[mergedTask.rawTaskId] = { timestamp: Date.now(), fields }
+    }
 
     const myNameStr = String(profile?.name || 'Mansi Shah').trim().toLowerCase()
     const assigneesArr = (mergedTask.assignedTo || '').split(',').map(s => s.trim().toLowerCase())
@@ -2058,7 +2062,7 @@ export function AppProvider({ children }) {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'update_task',
-          taskId: mergedTask.id,
+          taskId: mergedTask.rawTaskId || mergedTask.id,
           client: mergedTask.client,
           month: mergedTask.project || '',
           taskTitle: mergedTask.title,
@@ -2074,7 +2078,7 @@ export function AppProvider({ children }) {
           dueDate: mergedTask.dueDate,
           priority: mergedTask.priority,
           status: mergedTask.status,
-          statusUpdatedOn: new Date().toISOString().split('T')[0],
+          statusUpdatedOn: mergedTask.statusUpdatedOn || new Date().toISOString().split('T')[0],
           timeTaken: mergedTask.timeTaken || '0h 0m',
           daysOverdue: mergedTask.daysOverdue || 'No',
           remarks: mergedTask.comments && mergedTask.comments.length > 0 ? mergedTask.comments[mergedTask.comments.length - 1].text : '',
@@ -2344,27 +2348,30 @@ export function AppProvider({ children }) {
 
   const deleteTask = async (id) => {
     try {
+      const taskToDelete = tasks.find((t) => isSameTaskId(t.id, id) || (t.rawTaskId && isSameTaskId(t.rawTaskId, id)))
+      const taskIdToSend = taskToDelete?.rawTaskId || id
+
       const url = 'https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec'
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'delete_task',
-          taskId: id,
+          taskId: taskIdToSend,
           userEmail: profile?.email
         })
       })
       if (response.ok) {
-        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
+        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id) && (!t.rawTaskId || !isSameTaskId(t.rawTaskId, id))))
         if (mqttClient && mqttClient.connected) {
           mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
         }
       } else {
-        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
+        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id) && (!t.rawTaskId || !isSameTaskId(t.rawTaskId, id))))
       }
     } catch (err) {
       console.warn('Delete task failed:', err)
-      setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
+      setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id) && (!t.rawTaskId || !isSameTaskId(t.rawTaskId, id))))
     }
   }
 
