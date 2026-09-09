@@ -11,14 +11,23 @@ export function formatTaskId(id) {
     str = 'T-' + str.slice(4)
   }
 
-  // Handle scientific notation e.g. T-1.5153779060281494e+26623854 or 1.5153779060281494e+26
+  // Handle scientific notation e.g. T-1.5153779060281494e+26055274 or 1.5153779060281494e+26
   if (str.includes('e+') || str.includes('E+')) {
     const parts = str.split(/e\+/i)
-    if (parts[1]) {
-      const suffix = parts[1].replace(/\D/g, '')
-      str = `T-${suffix || '0001'}`
+    const basePart = parts[0] || ''
+    const expPart = parts[1] || ''
+
+    const mantissaDigits = basePart.replace(/\D/g, '')
+
+    if (expPart.length > 2) {
+      // Suffix was concatenated with exponent e.g. e+26055274 -> suffix 26055274
+      const expDigits = expPart.replace(/\D/g, '')
+      str = `T-${expDigits}`
     } else {
-      str = 'T-' + str.replace(/\D/g, '').slice(-4)
+      // Standard scientific notation e.g. 1.5153779060281494e+26
+      // Use the last 6 digits of the mantissa so every task retains a unique ID!
+      const uniqueDigits = mantissaDigits.slice(-6) || '0001'
+      str = `T-${uniqueDigits}`
     }
   }
 
@@ -26,17 +35,11 @@ export function formatTaskId(id) {
 }
 
 /**
- * Normalizes a task ID string into a unified comparison key (e.g. "T-26" for T-0026, T-26, 26, #DD-T-0026)
+ * Normalizes a task ID string into a comparison key.
  */
 export function normalizeTaskIdKey(id) {
   if (!id) return ''
-  const str = formatTaskId(id).trim()
-  if (!str) return ''
-  const numMatch = str.match(/^(?:#DD-)?T-?0*(\d+)$/i)
-  if (numMatch && numMatch[1]) {
-    return `T-${numMatch[1]}`
-  }
-  return str.toLowerCase()
+  return formatTaskId(id).trim().toLowerCase()
 }
 
 /**
@@ -50,22 +53,34 @@ export function isSameTaskId(id1, id2) {
 
 /**
  * Deduplicates an array of tasks by normalized Task ID key.
+ * If two distinct task objects have the exact same raw ID and normalized key,
+ * fallback to differentiating by title so no backend tasks are lost!
  */
 export function deduplicateTasks(taskList) {
   if (!Array.isArray(taskList)) return []
   const map = new Map()
-  taskList.forEach(t => {
+  taskList.forEach((t, idx) => {
     if (!t) return
-    const key = t.id ? normalizeTaskIdKey(t.id) : null
-    if (key) {
-      if (!map.has(key)) {
+    let key = t.id ? normalizeTaskIdKey(t.id) : `task-index-${idx}`
+
+    if (map.has(key)) {
+      const existing = map.get(key)
+      const existingTitle = String(existing.title || '').trim().toLowerCase()
+      const currentTitle = String(t.title || '').trim().toLowerCase()
+
+      if (existingTitle && currentTitle && existingTitle !== currentTitle) {
+        // Different tasks sharing a duplicate raw ID! Keep both!
+        key = `${key}_${currentTitle.slice(0, 10).replace(/\W/g, '')}_${idx}`
         map.set(key, t)
       } else {
-        const existing = map.get(key)
+        // Same task! Merge properties
         map.set(key, { ...t, ...existing })
       }
+    } else {
+      map.set(key, t)
     }
   })
   return Array.from(map.values())
 }
+
 

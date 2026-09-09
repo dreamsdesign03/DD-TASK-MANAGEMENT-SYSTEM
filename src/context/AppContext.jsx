@@ -50,8 +50,9 @@ const mapWebhookTaskToApp = (item) => {
 
   let finalId = id
   if (!finalId || String(finalId).trim() === '') {
-    const rand = Math.floor(1000 + Math.random() * 9000)
-    finalId = `T-${employeeId || 'SYNC'}-${rand}`
+    finalId = `T-${Date.now()}`
+  } else {
+    finalId = formatTaskId(finalId)
   }
 
   const finalClient = client || 'General'

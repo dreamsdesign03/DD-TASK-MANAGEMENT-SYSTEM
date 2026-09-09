@@ -614,22 +614,7 @@ function VoiceBotInner({ onTaskAdd }) {
           }
         }
 
-        // Calculate next ID
-        let maxIdNum = 0;
-        if (tasks && tasks.length > 0) {
-          tasks.forEach(t => {
-            if (t.id && (!t.taskType || t.taskType === 'Main Task' || t.taskType === 'Task') && String(t.id).match(/^T-\d+$/)) {
-              const match = String(t.id).match(/^T-(\d+)$/);
-              if (match) {
-                const num = parseInt(match[1], 10);
-                if (num > maxIdNum) maxIdNum = num;
-              }
-            }
-          });
-        }
-        const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1;
-        // Timestamp suffix keeps task IDs unique even when two users create at the same time
-        const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}${Date.now().toString().slice(-6)}`;
+        const nextIdStr = `T-${Date.now()}`;
 
         // Get Assignees with Validation & Fuzzy Matching
         const rawAssignee = params.assignee;

@@ -320,18 +320,7 @@ export default function TaskDetailPage() {
       addToast('Please select at least one assignee for the subtask', 'error')
       return
     }
-    let maxSubIdNum = 0;
-    const existingSubtasks = tasks.filter(t => String(t.mainTaskId) === String(task.id) && (t.taskType === 'Sub Task' || t.taskType === 'Subtask'));
-    existingSubtasks.forEach(st => {
-      const match = String(st.id).match(/-(\d+)$/);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxSubIdNum) maxSubIdNum = num;
-      }
-    });
-    const nextSubIdNum = maxSubIdNum + 1;
-    // Timestamp suffix keeps subtask IDs unique even when two users add a subtask at the same time
-    const newStId = `${task.id}-${String(nextSubIdNum).padStart(2, '0')}${Date.now().toString().slice(-6)}`;
+    const newStId = `${task.id}-SUB-${Date.now()}`;
 
     let calculatedOverdue = 'No';
     if (newSubtaskDueDate) {

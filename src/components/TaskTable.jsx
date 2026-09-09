@@ -672,18 +672,7 @@ export default function TaskTable() {
       return
     }
 
-    let maxIdNum = 0
-    tasks.forEach((t) => {
-      if (t.id && (!t.taskType || t.taskType === 'Main Task' || t.taskType === 'Task') && String(t.id).match(/^T-\d+$/)) {
-        const match = String(t.id).match(/^T-(\d+)$/)
-        if (match) {
-          const num = parseInt(match[1], 10)
-          if (num > maxIdNum) maxIdNum = num
-        }
-      }
-    })
-    const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1
-    const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`
+    const nextIdStr = `T-${Date.now()}`
 
     const isComplete = boardGrouping === 'Department' && department === 'COMPLETE'
     const newDept = boardGrouping === 'Process Stage' ? 'COMMON' : (isComplete ? 'COMMON' : department)
