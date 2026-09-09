@@ -63,6 +63,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
   return (
     <>
     <header className="dd-topnav" style={{
+      position: 'relative',
       height: 72, background: isDarkMode ? '#1e1b2e' : 'white', margin: '12px 12px 0',
       borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',

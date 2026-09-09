@@ -502,13 +502,24 @@ export default function TaskTable() {
         matchesDate = taskAssigned === formatted || taskDue === formatted
       }
 
-      const query = searchQuery.toLowerCase()
-      const matchesSearch =
+      const query = searchQuery.trim().toLowerCase()
+      const cleanFormattedId = formatTaskId(t.id).toLowerCase()
+      const rawId = String(t.id || '').toLowerCase()
+
+      const matchesSearch = !query ? true : (
         t.title.toLowerCase().includes(query) ||
         t.client.toLowerCase().includes(query) ||
-        t.id.toLowerCase().includes(query) ||
+        rawId.includes(query) ||
+        cleanFormattedId.includes(query) ||
         (t.assignedTo || '').toLowerCase().includes(query) ||
-        (!query ? false : parentIdsWithMatchingSubs.has(String(t.id)))
+        (t.assignedBy || '').toLowerCase().includes(query) ||
+        (t.department || '').toLowerCase().includes(query) ||
+        (t.priority || '').toLowerCase().includes(query) ||
+        (t.status || '').toLowerCase().includes(query) ||
+        (t.remarks || '').toLowerCase().includes(query) ||
+        (t.description?.intro || '').toLowerCase().includes(query) ||
+        parentIdsWithMatchingSubs.has(String(t.id))
+      )
 
       // Hide "Done" tasks that were completed before the current month,
       // unless the user switched to "All Tasks" mode.
@@ -924,6 +935,29 @@ export default function TaskTable() {
             };
             return (
               <React.Fragment>
+                {/* Mobile inline search bar */}
+                <div className="col-span-2 md:hidden flex flex-col gap-1.5 mb-1">
+                  <label className="text-[10px] font-bold text-[#6B7280] uppercase">Search Tasks</label>
+                  <div className="relative w-full">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
+                    <input 
+                      type="text"
+                      placeholder="Search title, ID, client, assignee..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-[40px] rounded-xl border border-[#E5E7EB] bg-white pl-9 pr-8 text-[13px] font-semibold text-[#1E1B2E] outline-none focus:border-[#702c91] transition-colors"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 bg-transparent border-none cursor-pointer p-0 flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div className="col-span-2 flex flex-col gap-1.5 md:w-[160px]">
                   <label className="text-[10px] md:text-[11px] font-bold text-[#6B7280] uppercase">Filter by Client</label>
                   <SelectDropdown
