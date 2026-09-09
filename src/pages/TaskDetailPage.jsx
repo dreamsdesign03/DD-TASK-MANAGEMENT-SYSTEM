@@ -1167,7 +1167,7 @@ export default function TaskDetailPage() {
                 {subtasks.length > 0 && (
                   <div className="space-y-2">
                     {subtasks.map((st) => (
-                      <div key={st.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-[#E5E7EB] rounded-xl transition-colors hover:border-[#702c91]/30">
+                      <div key={st.id} className="flex items-start gap-3 p-3 bg-gray-50 border border-[#E5E7EB] rounded-xl transition-colors hover:border-[#702c91]/30">
                         <input
                           type="checkbox"
                           checked={st.status === 'Done'}
@@ -1185,98 +1185,106 @@ export default function TaskDetailPage() {
                               }
                             }
                           }}
-                          className={`w-5 h-5 accent-primary rounded ${isTaskDone || !isSubtaskAssignee(st) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                          className={`w-5 h-5 accent-primary rounded mt-0.5 ${isTaskDone || !isSubtaskAssignee(st) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                         />
-                        <div className={`flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
-                          <p className={`font-medium text-[14px] ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
-                          {st.status === 'Done' && st.statusUpdatedOn && (
-                            <p className="text-[10px] text-gray-400 mt-0.5 font-normal">
-                              {formatDateTime(st.statusUpdatedOn)}
-                            </p>
-                          )}
-                        </div>
-                        {st.priority && (
-                          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold shrink-0 ${st.priority === 'Urgent' ? 'bg-urgent-red/10 border-urgent-red/30 text-urgent-red' :
-                            st.priority === 'High' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' :
-                              st.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' :
-                                'bg-blue-500/10 border-blue-500/30 text-blue-600'
-                            }`}>
-                            <span className="material-symbols-outlined text-[12px]">flag</span>
-                            {st.priority}
-                          </div>
-                        )}
-                        {st.dueDate && (
-                          <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50 shrink-0">
-                            <span className="material-symbols-outlined text-[13px] text-secondary">calendar_month</span>
-                            <span className="text-[11px] font-bold text-secondary">{new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                          </div>
-                        )}
-                        {st.assignedTo ? (
-                          <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50 shrink-0">
-                            <span className="material-symbols-outlined text-[13px] text-secondary">person</span>
-                            <span className="text-[11px] font-bold text-secondary truncate max-w-[150px]">{st.assignedTo.split(',').map(n => n.trim()).filter(Boolean).join(', ')}</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200 shrink-0">
-                            <span className="material-symbols-outlined text-[13px] text-gray-400">person_off</span>
-                            <span className="text-[11px] font-bold text-gray-400">Unassigned</span>
-                          </div>
-                        )}
-                        {!isTaskDone && (
-                          <>
-                            {(() => {
-                              const subTracking = activeTimer?.taskId === st.id
-                              return (
+                        <div className="flex-1 min-w-0 flex flex-col gap-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className={`min-w-0 flex-1 ${st.status === 'Done' ? 'line-through text-secondary' : 'text-on-surface'}`}>
+                              <p className={`font-medium text-[14px] break-words ${st.overdue ? 'text-urgent-red' : ''}`}>{st.title}</p>
+                              {st.status === 'Done' && st.statusUpdatedOn && (
+                                <p className="text-[10px] text-gray-400 mt-0.5 font-normal">
+                                  {formatDateTime(st.statusUpdatedOn)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {!isTaskDone && (
+                                <>
+                                  {(() => {
+                                    const subTracking = activeTimer?.taskId === st.id
+                                    return (
+                                      <button
+                                        onClick={() => toggleTimer(st, profile?.name)}
+                                        disabled={subTracking ? false : (activeTimer !== null && activeTimer.taskId !== st.id)}
+                                        className={`p-1.5 rounded-full transition-colors shrink-0 border-none flex items-center justify-center ${
+                                          subTracking
+                                            ? 'text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-sm'
+                                            : activeTimer !== null
+                                              ? 'text-gray-300 cursor-not-allowed'
+                                              : 'text-[#702c91] bg-purple-50 hover:bg-purple-100'
+                                        }`}
+                                        title={subTracking ? 'Stop timer' : activeTimer !== null ? 'Another timer is running' : 'Start timer'}
+                                      >
+                                        <span className="material-symbols-outlined text-[16px]">{subTracking ? 'stop' : 'play_arrow'}</span>
+                                      </button>
+                                    )
+                                  })()}
+                                  <span className="text-[10px] font-bold text-gray-400 min-w-[40px] text-center">
+                                    {(() => {
+                                      const td = parseMultiUserTimeStr(st.timeTaken);
+                                      const myName = profile?.name || 'Mansi Shah';
+                                      const secs = td[myName] || 0;
+                                      const isSubTracking = activeTimer?.taskId === st.id;
+                                      const totalSecs = isSubTracking ? secs + (activeTimer ? Math.floor(getActiveTimerMs(activeTimer) / 1000) : 0) : secs;
+                                      if (totalSecs === 0) return '';
+                                      const h = Math.floor(totalSecs / 3600);
+                                      const m = Math.floor((totalSecs % 3600) / 60);
+                                      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+                                    })()}
+                                  </span>
+                                </>
+                              )}
+                              {!isTaskDone && canEditSubtask(st) && (
                                 <button
-                                  onClick={() => toggleTimer(st, profile?.name)}
-                                  disabled={subTracking ? false : (activeTimer !== null && activeTimer.taskId !== st.id)}
-                                  className={`p-1.5 rounded-full transition-colors shrink-0 border-none flex items-center justify-center ${
-                                    subTracking
-                                      ? 'text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-sm'
-                                      : activeTimer !== null
-                                        ? 'text-gray-300 cursor-not-allowed'
-                                        : 'text-[#702c91] bg-purple-50 hover:bg-purple-100'
-                                  }`}
-                                  title={subTracking ? 'Stop timer' : activeTimer !== null ? 'Another timer is running' : 'Start timer'}
+                                  onClick={() => openEditSubtask(st)}
+                                  className="p-1 transition-colors shrink-0 text-secondary hover:text-primary cursor-pointer border-none flex items-center justify-center"
+                                  title="Edit Subtask"
                                 >
-                                  <span className="material-symbols-outlined text-[16px]">{subTracking ? 'stop' : 'play_arrow'}</span>
+                                  <span className="material-symbols-outlined text-[18px]">edit</span>
                                 </button>
-                              )
-                            })()}
-                            <span className="text-[10px] font-bold text-gray-400 min-w-[40px] text-center">
-                              {(() => {
-                                const td = parseMultiUserTimeStr(st.timeTaken);
-                                const myName = profile?.name || 'Mansi Shah';
-                                const secs = td[myName] || 0;
-                                const isSubTracking = activeTimer?.taskId === st.id;
-                                const totalSecs = isSubTracking ? secs + (activeTimer ? Math.floor(getActiveTimerMs(activeTimer) / 1000) : 0) : secs;
-                                if (totalSecs === 0) return '';
-                                const h = Math.floor(totalSecs / 3600);
-                                const m = Math.floor((totalSecs % 3600) / 60);
-                                return h > 0 ? `${h}h ${m}m` : `${m}m`;
-                              })()}
-                            </span>
-                          </>
-                        )}
-                        {!isTaskDone && canEditSubtask(st) && (
-                          <button
-                            onClick={() => openEditSubtask(st)}
-                            className="p-1 transition-colors shrink-0 text-secondary hover:text-primary cursor-pointer border-none flex items-center justify-center"
-                            title="Edit Subtask"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">edit</span>
-                          </button>
-                        )}
-                        {profile?.systemRole !== 'Employee' && (
-                          <button
-                            onClick={() => { if (!isTaskDone) setSubtaskToDelete(st.id) }}
-                            disabled={isTaskDone}
-                            className={`p-1 transition-colors shrink-0 ${isTaskDone ? 'text-gray-300 cursor-not-allowed' : 'text-secondary hover:text-urgent-red cursor-pointer'}`}
-                            title={isTaskDone ? "Cannot delete when task is done" : "Delete Subtask"}
-                          >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
-                        )}
+                              )}
+                              {profile?.systemRole !== 'Employee' && (
+                                <button
+                                  onClick={() => { if (!isTaskDone) setSubtaskToDelete(st.id) }}
+                                  disabled={isTaskDone}
+                                  className={`p-1 transition-colors shrink-0 ${isTaskDone ? 'text-gray-300 cursor-not-allowed' : 'text-secondary hover:text-urgent-red cursor-pointer'}`}
+                                  title={isTaskDone ? "Cannot delete when task is done" : "Delete Subtask"}
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {st.priority && (
+                              <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-bold ${st.priority === 'Urgent' ? 'bg-urgent-red/10 border-urgent-red/30 text-urgent-red' :
+                                st.priority === 'High' ? 'bg-orange-500/10 border-orange-500/30 text-orange-600' :
+                                  st.priority === 'Medium' ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' :
+                                    'bg-blue-500/10 border-blue-500/30 text-blue-600'
+                                }`}>
+                                <span className="material-symbols-outlined text-[12px]">flag</span>
+                                {st.priority}
+                              </div>
+                            )}
+                            {st.dueDate && (
+                              <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50">
+                                <span className="material-symbols-outlined text-[13px] text-secondary">calendar_month</span>
+                                <span className="text-[11px] font-bold text-secondary">{new Date(st.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                              </div>
+                            )}
+                            {st.assignedTo ? (
+                              <div className="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/50">
+                                <span className="material-symbols-outlined text-[13px] text-secondary">person</span>
+                                <span className="text-[11px] font-bold text-secondary truncate max-w-[150px]">{st.assignedTo.split(',').map(n => n.trim()).filter(Boolean).join(', ')}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1.5 bg-gray-100 px-2.5 py-1 rounded-full border border-gray-200">
+                                <span className="material-symbols-outlined text-[13px] text-gray-400">person_off</span>
+                                <span className="text-[11px] font-bold text-gray-400">Unassigned</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

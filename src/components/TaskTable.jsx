@@ -1179,13 +1179,13 @@ export default function TaskTable() {
                                       className={`${isSubSearchHit ? 'bg-purple-50 ring-2 ring-primary/30' : 'bg-white'} rounded-xl border ${isSubSearchHit ? 'border-primary shadow-md' : isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
                                     >
                                       <div className="p-4 space-y-3">
-                                        <div className="flex justify-between items-center gap-2">
-                                          <div className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded font-bold shrink-0">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                          <div className="bg-gray-100 text-gray-500 text-[11px] px-2.5 py-1 rounded font-bold truncate max-w-full" title={formatTaskId(task.id)}>
                                             {formatTaskId(task.id)}
                                           </div>
-                                          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0 max-w-[75%]">
-                                            <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap`}>{task.priority}</span>
-                                            <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap flex items-center gap-1`}>
+                                          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+                                            <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase whitespace-nowrap`}>{task.priority}</span>
+                                            <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase whitespace-nowrap flex items-center gap-1`}>
                                               {task.status}
                                               {task.status === 'Done' && <span className="material-symbols-outlined text-[12px]">check</span>}
                                             </span>
@@ -1281,8 +1281,8 @@ export default function TaskTable() {
                                   <td className={`flex md:table-cell items-center justify-between px-4 py-5 border-b border-outline-variant/30 md:border-none md:border-l-4 ${firstTdClass}`}>
                                     <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Task ID</span>
                                     <div className="flex items-center gap-2">
-                                      <span className="bg-[#F3F4F6] px-2 py-1 rounded-md text-[12px] font-bold text-[#6B7280] whitespace-nowrap inline-block">
-                                        {task.id.replace('#DD-', 'T-00')}
+                                      <span className="bg-[#F3F4F6] px-2 py-1 rounded-md text-[12px] font-bold text-[#6B7280] whitespace-nowrap inline-block truncate max-w-[120px]" title={formatTaskId(task.id)}>
+                                        {formatTaskId(task.id)}
                                       </span>
                                       {(() => {
                                         const msgs = messagesByChatId?.[task.id]
