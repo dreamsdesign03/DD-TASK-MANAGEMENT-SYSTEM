@@ -4,6 +4,7 @@ import { useToast } from './ToastContext'
 import { updateHeartbeat, logShutdown, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime, getISTTimeAt } from '../utils/activityLog'
 import { formatDateShort, formatDateTime, computeRecurringDueDate } from '../utils/dateFormat'
 import { isElectron } from '../utils/isElectron'
+import { formatTaskId, normalizeTaskIdKey, isSameTaskId, deduplicateTasks } from '../utils/formatTaskId'
 
 export const mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt')
 
@@ -285,7 +286,7 @@ export function AppProvider({ children }) {
   const [tasks, setTasks] = useState(() => {
     try {
       const saved = localStorage.getItem('dd_tasks_v1')
-      if (saved) return JSON.parse(saved)
+      if (saved) return deduplicateTasks(JSON.parse(saved))
     } catch (err) {
       console.warn('Failed to parse saved tasks:', err)
     }
@@ -1996,10 +1997,10 @@ export function AppProvider({ children }) {
 
   const updateTask = async (id, fields) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...fields } : t))
+      prev.map((t) => (isSameTaskId(t.id, id) ? { ...t, ...fields } : t))
     )
 
-    const currentTask = tasks.find((t) => t.id === id)
+    const currentTask = tasks.find((t) => isSameTaskId(t.id, id))
     if (!currentTask) return
 
     let hasStatusChange = fields.status !== undefined && fields.status !== currentTask.status;
@@ -2283,7 +2284,11 @@ export function AppProvider({ children }) {
   }, [activeTimer, toggleTimer, profile])
 
   const addTask = async (newTask) => {
-    setTasks((prev) => [newTask, ...prev])
+    setTasks((prev) => {
+      const normKey = normalizeTaskIdKey(newTask.id)
+      const filtered = prev.filter(t => normalizeTaskIdKey(t.id) !== normKey)
+      return [newTask, ...filtered]
+    })
 
     // Notifications for newly created tasks will be handled by fetchTasks via MQTT sync
     // for the relevant assignees. No need to show local notifications here to the creator.
@@ -2358,16 +2363,16 @@ export function AppProvider({ children }) {
         })
       })
       if (response.ok) {
-        setTasks((prev) => prev.filter((t) => t.id !== id))
+        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
         if (mqttClient && mqttClient.connected) {
           mqttClient.publish('dd_task_engine_v1/sync', JSON.stringify({ action: 'sync' }))
         }
       } else {
-        setTasks((prev) => prev.filter((t) => t.id !== id))
+        setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
       }
     } catch (err) {
       console.warn('Delete task failed:', err)
-      setTasks((prev) => prev.filter((t) => t.id !== id))
+      setTasks((prev) => prev.filter((t) => !isSameTaskId(t.id, id)))
     }
   }
 
@@ -2375,17 +2380,20 @@ export function AppProvider({ children }) {
     const handleSetTasksWithNotification = (newTasksList) => {
       // OVERRIDE server state immediately if we updated this task locally in the last 15 seconds
       newTasksList.forEach(nt => {
-        const recent = recentTaskUpdates.current[nt.id]
-        if (recent && Date.now() - recent.timestamp < 15000) {
-          Object.assign(nt, recent.fields)
-          if (recent.isNew) recent.isNew = false // Task has arrived from server
-        }
+        const normKey = normalizeTaskIdKey(nt.id)
+        Object.entries(recentTaskUpdates.current).forEach(([recId, recent]) => {
+          if (normalizeTaskIdKey(recId) === normKey && recent && Date.now() - recent.timestamp < 15000) {
+            Object.assign(nt, recent.fields)
+            if (recent.isNew) recent.isNew = false // Task has arrived from server
+          }
+        })
       })
 
       // INJECT newly created tasks that haven't made it to the server yet
-      Object.entries(recentTaskUpdates.current).forEach(([id, recent]) => {
+      Object.entries(recentTaskUpdates.current).forEach(([recId, recent]) => {
         if (recent.isNew && Date.now() - recent.timestamp < 15000) {
-          if (!newTasksList.find(t => t.id === id)) {
+          const recKey = normalizeTaskIdKey(recId)
+          if (!newTasksList.some(t => normalizeTaskIdKey(t.id) === recKey)) {
             newTasksList.unshift(recent.fields)
           }
         }
@@ -2545,8 +2553,16 @@ export function AppProvider({ children }) {
           })
         }
         setTasks((prevTasks) => {
-          const finalTasks = newTasksList.map(newTask => {
-            const existingTask = prevTasks.find(t => t.id === newTask.id)
+          const finalTasks = []
+          const seenKeys = new Set()
+
+          newTasksList.forEach(newTask => {
+            if (!newTask || !newTask.id) return
+            const key = normalizeTaskIdKey(newTask.id)
+            if (seenKeys.has(key)) return
+            seenKeys.add(key)
+
+            const existingTask = prevTasks.find(t => normalizeTaskIdKey(t.id) === key)
             if (existingTask && existingTask.comments && existingTask.comments.length > 0) {
               const mergedComments = [...existingTask.comments]
               if (newTask.comments) {
@@ -2559,8 +2575,9 @@ export function AppProvider({ children }) {
               newTask.comments = mergedComments
             }
 
-            return newTask
+            finalTasks.push(newTask)
           })
+
           return finalTasks
         })
       } else {
@@ -2936,9 +2953,10 @@ export function AppProvider({ children }) {
     }
   }, [profile])
   const visibleTasks = useMemo(() => {
-    if (!profile) return tasks;
+    const rawTasks = deduplicateTasks(tasks);
+    if (!profile) return rawTasks;
     const role = profile.systemRole || 'Employee';
-    if (role === 'Admin') return tasks;
+    if (role === 'Admin') return rawTasks;
 
     const normalizeName = (name) => {
       if (!name) return '';

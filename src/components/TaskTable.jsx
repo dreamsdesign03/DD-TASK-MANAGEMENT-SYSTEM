@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { computeRecurringDueDate } from '../utils/dateFormat'
-import { formatTaskId } from '../utils/formatTaskId'
+import { formatTaskId, deduplicateTasks } from '../utils/formatTaskId'
 import TaskCalendar from './TaskCalendar'
 import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
@@ -475,7 +475,7 @@ export default function TaskTable() {
   }, [tasks, searchQuery])
 
   // 1. Filter tasks
-  const filtered = tasks
+  const filtered = deduplicateTasks(tasks)
     .filter((t) => {
       // Exclude Sub Tasks from main table view
       if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
