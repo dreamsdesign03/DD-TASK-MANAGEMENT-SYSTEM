@@ -17,6 +17,7 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
   const { searchQuery, setSearchQuery, profile, notifications, isDarkMode, setIsDarkMode, setIsSidebarOpen, isPunchedIn, handlePunchIn, handlePunchOut, punchInTime, todaysSessions } = useApp()
 
   const [showPunchOutConfirm, setShowPunchOutConfirm] = useState(false)
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
 
   const firstPunchInToday = todaysSessions?.[0]?.in || null
 
@@ -159,17 +160,67 @@ export default function TopNav({ title, badgeCount, showSearch = true }) {
         </div>
 
         {isSearchVisible && (
-          <div className="relative w-[300px] hidden md:block shrink-0">
-            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">search</span>
-            <input 
-              type="text" 
-              placeholder="Search tasks..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-[42px] rounded-full border-none pl-11 pr-4 text-[14px] outline-none font-sans"
-              style={{ background: isDarkMode ? '#2d2a3d' : '#F8F7FC', color: isDarkMode ? '#fff' : '#1E1B2E' }} 
-            />
-          </div>
+          <>
+            {/* Desktop search input */}
+            <div className="relative w-[240px] lg:w-[300px] hidden md:block shrink-0">
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[20px]">search</span>
+              <input 
+                type="text" 
+                placeholder="Search tasks..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-[42px] rounded-full border-none pl-11 pr-4 text-[14px] outline-none font-sans"
+                style={{ background: isDarkMode ? '#2d2a3d' : '#F8F7FC', color: isDarkMode ? '#fff' : '#1E1B2E' }} 
+              />
+            </div>
+
+            {/* Mobile search toggle button */}
+            <button
+              onClick={() => setIsMobileSearchOpen(true)}
+              className="md:hidden flex items-center justify-center w-[34px] h-[34px] bg-[#F5F3FF] text-[#702c91] rounded-full border-none cursor-pointer shrink-0"
+              title="Search tasks"
+            >
+              <span className="material-symbols-outlined text-[20px]">search</span>
+            </button>
+
+            {/* Mobile search expanded overlay */}
+            {isMobileSearchOpen && (
+              <div 
+                className="absolute inset-0 px-3 z-50 flex items-center gap-2 rounded-[20px] shadow-lg animate-fade-in"
+                style={{ background: isDarkMode ? '#1e1b2e' : 'white' }}
+              >
+                <button
+                  onClick={() => {
+                    setIsMobileSearchOpen(false)
+                    setSearchQuery('')
+                  }}
+                  className="flex items-center justify-center p-1 bg-transparent border-none text-[#702c91] cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+                </button>
+                <div className="relative flex-1">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-[18px]">search</span>
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-[40px] rounded-full border-none pl-9 pr-8 text-[14px] outline-none font-sans"
+                    style={{ background: isDarkMode ? '#2d2a3d' : '#F8F7FC', color: isDarkMode ? '#fff' : '#1E1B2E' }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 bg-transparent border-none cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
         
         <button 
