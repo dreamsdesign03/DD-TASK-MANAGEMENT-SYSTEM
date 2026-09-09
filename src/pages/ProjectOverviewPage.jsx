@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import SelectDropdown from '../components/SelectDropdown'
+import { formatTaskId } from '../utils/formatTaskId'
 
 export default function ProjectOverviewPage() {
   const { projectName } = useParams()
@@ -369,7 +370,7 @@ export default function ProjectOverviewPage() {
                               </div>
                               <div className="flex flex-col min-w-0">
                                 <p className="text-[13px] font-extrabold text-[#1E1B2E] truncate group-hover:text-[#702c91] transition-colors">
-                                  {task.title} <span className="text-[#9CA3AF] font-medium text-[11px] ml-1">#{task.id}</span>
+                                  {task.title} <span className="text-[#9CA3AF] font-medium text-[11px] ml-1">#{formatTaskId(task.id)}</span>
                                 </p>
                                 <p className="text-[11px] text-[#6B7280] truncate mt-0.5">
                                   {task.dueDate} • {task.client}

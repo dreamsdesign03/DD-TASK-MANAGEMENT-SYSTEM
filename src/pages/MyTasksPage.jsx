@@ -117,8 +117,7 @@ export default function MyTasksPage() {
       }
     })
     const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1
-    // Timestamp suffix keeps IDs unique even when two users create a task at the same time
-    const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}${Date.now().toString().slice(-6)}`
+    const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`
 
     const assignedEmps = employees?.filter(e => assignedTo.includes(e.name)) || []
 

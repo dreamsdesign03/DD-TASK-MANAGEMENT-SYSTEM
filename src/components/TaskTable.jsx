@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { computeRecurringDueDate } from '../utils/dateFormat'
+import { formatTaskId } from '../utils/formatTaskId'
 import TaskCalendar from './TaskCalendar'
 import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
@@ -671,8 +672,7 @@ export default function TaskTable() {
       }
     })
     const nextIdNum = maxIdNum > 0 ? maxIdNum + 1 : 1
-    // Timestamp suffix keeps IDs unique even when two users create a task at the same time
-    const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}${Date.now().toString().slice(-6)}`
+    const nextIdStr = `T-${String(nextIdNum).padStart(4, '0')}`
 
     const isComplete = boardGrouping === 'Department' && department === 'COMPLETE'
     const newDept = boardGrouping === 'Process Stage' ? 'COMMON' : (isComplete ? 'COMMON' : department)
@@ -1145,11 +1145,13 @@ export default function TaskTable() {
                                       className={`${isSubSearchHit ? 'bg-purple-50 ring-2 ring-primary/30' : 'bg-white'} rounded-xl border ${isSubSearchHit ? 'border-primary shadow-md' : isTaskOverdue ? 'border-error shadow-sm' : 'border-gray-100 shadow-sm'} overflow-hidden cursor-pointer`}
                                     >
                                       <div className="p-4 space-y-3">
-                                        <div className="flex justify-between items-start">
-                                          <div className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded font-bold">{task.id.replace('#DD-', 'T-00')}</div>
-                                          <div className="flex gap-2">
-                                            <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} text-[10px] font-bold px-3 py-1 rounded-full uppercase`}>{task.priority}</span>
-                                            <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} text-[10px] font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1`}>
+                                        <div className="flex justify-between items-center gap-2">
+                                          <div className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded font-bold shrink-0">
+                                            {formatTaskId(task.id)}
+                                          </div>
+                                          <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0 max-w-[75%]">
+                                            <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap`}>{task.priority}</span>
+                                            <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap flex items-center gap-1`}>
                                               {task.status}
                                               {task.status === 'Done' && <span className="material-symbols-outlined text-[12px]">check</span>}
                                             </span>

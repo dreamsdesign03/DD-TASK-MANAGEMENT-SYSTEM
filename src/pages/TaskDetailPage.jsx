@@ -8,6 +8,7 @@ import { useApp, parseMultiUserTimeStr, formatTimeStr, getActiveTimerMs } from '
 import { processMessagesList, renderMessageText } from './ChatPage'
 import { renderAvatar, getUserColor, getInitials } from '../utils/avatar'
 import { formatTime, formatDateTime, computeRecurringDueDate } from '../utils/dateFormat'
+import { formatTaskId } from '../utils/formatTaskId'
 import CHAT_BACKGROUNDS from '../data/chatBackgrounds'
 /* â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function PriorityBadge({ priority }) {
@@ -890,7 +891,7 @@ export default function TaskDetailPage() {
                 </button>
 
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
-                  <span className="bg-[#E5E7EB] text-[#4B5563] text-[11px] font-bold px-3 py-1 rounded-full">{task.id}</span>
+                  <span className="bg-[#E5E7EB] text-[#4B5563] text-[11px] font-bold px-3 py-1 rounded-full">{formatTaskId(task.id)}</span>
                   <h1 className="text-[28px] font-black text-[#1E1B2E] m-0 flex items-center gap-2">
                     {isEditingTitle ? (
                       <input
