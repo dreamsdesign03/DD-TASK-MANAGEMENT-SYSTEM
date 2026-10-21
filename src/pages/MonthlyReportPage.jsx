@@ -68,6 +68,17 @@ export default function MonthlyReportPage() {
 
   const isAdmin = profile?.systemRole === 'Admin' || profile?.role === 'Admin'
 
+  // Non-admins only ever see their own report (no Overall / Company / User scope)
+  const myName  = (profile?.name  || '').trim().toLowerCase()
+  const myEmail = (profile?.email || '').trim().toLowerCase()
+  const matchesMe = t => {
+    const names  = String(t.assignedTo   || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean)
+    const emails = String(t.assignedEmail || '').toLowerCase().split(/[,;]/).map(s => s.trim()).filter(Boolean)
+    if (myName && names.some(n => n === myName || n.includes(myName) || myName.includes(n))) return true
+    if (myEmail && emails.includes(myEmail)) return true
+    return false
+  }
+
   // ── filter state ──────────────────────────────────────────────────────────
   const [filterType,    setFilterType]    = useState('Overall') // Overall | Company | User
   const [selectedValue, setSelectedValue] = useState('')
@@ -139,16 +150,18 @@ export default function MonthlyReportPage() {
   }
 
   // ── filtered tasks — identical rules to the Tasks page (utils/taskStats) ───
+  // Admins scope via Overall/Company/User; everyone else is locked to self.
   const filteredTasks = useMemo(() => {
     return deduplicateTasks(tasks || []).filter(t => {
       if (isSubTask(t)) return false
       if (!passesMonthDoneRule(t, showAllTasks)) return false
       if (!isInDateRange(t)) return false
+      if (!isAdmin) return matchesMe(t)
       if (filterType === 'Company' && selectedValue && t.client !== selectedValue) return false
       if (filterType === 'User' && selectedValue && !String(t.assignedTo || '').includes(selectedValue)) return false
       return true
     })
-  }, [tasks, filterType, selectedValue, dateFrom, dateTo, showAllTasks])
+  }, [tasks, filterType, selectedValue, dateFrom, dateTo, showAllTasks, isAdmin, myName, myEmail])
 
   // ── status-filtered tasks (for the table only) ───────────────────────────
   const tableTasks = useMemo(() => {
@@ -245,6 +258,14 @@ export default function MonthlyReportPage() {
       if (filterType === 'User') {
         assignedUsers = assignedUsers.filter(u => u === selectedValue)
       }
+      if (!isAdmin) {
+        // Own report only — count my tasks under my name
+        assignedUsers = assignedUsers.filter(u => {
+          const lu = u.toLowerCase()
+          return lu === myName || (myEmail && lu === myEmail) || (myName && (lu.includes(myName) || myName.includes(lu)))
+        })
+        if (assignedUsers.length === 0) assignedUsers = [profile?.name || profile?.email || 'Me']
+      }
 
       assignedUsers.forEach(u => {
         if (!breakdown[company]) breakdown[company] = {}
@@ -262,7 +283,7 @@ export default function MonthlyReportPage() {
       })
     })
     return breakdown
-  }, [filteredTasks, filterType, selectedValue])
+  }, [filteredTasks, filterType, selectedValue, isAdmin, myName, myEmail, profile])
 
   // ── date range label ──────────────────────────────────────────────────────
   const dateRangeLabel = useMemo(() => {
@@ -344,7 +365,7 @@ export default function MonthlyReportPage() {
         }
       }
       const rangeSlug = dateRangeLabel.replace(/\s+/g, '_').replace(/[→]/g, '-')
-      const valSlug   = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
+      const valSlug   = !isAdmin ? 'My_Report' : filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
       pdf.save(`Dreamsdesk_Report_${rangeSlug}_${valSlug}.pdf`)
     } catch (err) {
       console.error(err)
@@ -415,7 +436,7 @@ export default function MonthlyReportPage() {
                   Report Analysis
                 </h2>
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: '4px 0 0', fontWeight: 500 }}>
-                  {showAllTasks ? 'All Tasks' : 'Current Month'}{dateFrom || dateTo ? ` · ${dateRangeLabel}` : ''} · {filterType === 'Overall' ? 'All Users' : selectedValue}
+                  {showAllTasks ? 'All Tasks' : 'Current Month'}{dateFrom || dateTo ? ` · ${dateRangeLabel}` : ''} · {isAdmin ? (filterType === 'Overall' ? 'All Users' : selectedValue) : 'My Report'}
                 </p>
               </div>
               <button
@@ -435,11 +456,10 @@ export default function MonthlyReportPage() {
             <div className="flex flex-wrap items-center gap-3 mb-7"
               style={{ background: 'white', borderRadius: 16, padding: '14px 18px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(112,44,145,0.04)' }}>
 
-              {/* Filter type tabs */}
-              <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max" style={{ flexShrink: 0 }}>
-                {['Overall', 'Company', 'User'].map(type => {
-                  if (type === 'User' && !isAdmin) return null
-                  return (
+              {/* Filter type tabs — admin only; non-admins get a locked "My Report" */}
+              {isAdmin ? (
+                <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max" style={{ flexShrink: 0 }}>
+                  {['Overall', 'Company', 'User'].map(type => (
                     <button
                       key={type}
                       onClick={() => handleFilterChange(type)}
@@ -449,17 +469,25 @@ export default function MonthlyReportPage() {
                           : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
                       }`}
                     >{type}</button>
-                  )
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-2 px-4 py-2 rounded-full"
+                  style={{ flexShrink: 0, background: 'linear-gradient(to right, #702c91, #ec008c)', color: 'white', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(112,44,145,0.25)' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>person</span>
+                  My Report
+                </div>
+              )}
 
-              {filterType === 'Company' && (
+              {isAdmin && filterType === 'Company' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Company:</span>
                   <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 200, flexShrink: 0 }} />
                 </div>
               )}
-              {filterType === 'User' && (
+              {isAdmin && filterType === 'User' && (
                 <div className="flex items-center gap-2">
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>User:</span>
                   <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 200, flexShrink: 0 }} />
@@ -600,7 +628,7 @@ export default function MonthlyReportPage() {
                   <div style={{ borderLeft:`4px solid #ec008c`, paddingLeft:12, paddingTop:6, paddingBottom:6 }}>
                     <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>Completion Rate</p>
                     <p style={{ margin:'2px 0 0', fontSize:12, color:'#6B7280' }}>
-                      {filterType === 'Overall' ? 'Overall' : selectedValue} — <strong style={{ color:'#702c91' }}>{completedPct}%</strong> done.{' '}
+                      {!isAdmin ? 'Your report' : filterType === 'Overall' ? 'Overall' : selectedValue} — <strong style={{ color:'#702c91' }}>{completedPct}%</strong> done.{' '}
                       {completedPct >= 70 ? '🎉 Great progress!' : completedPct >= 40 ? '📈 Making progress.' : '⚠️ Needs attention.'}
                     </p>
                   </div>
@@ -787,7 +815,7 @@ export default function MonthlyReportPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                 <h3 style={{ margin:0, fontSize:15, fontWeight:800, color:'#1E1B2E', display:'flex', alignItems:'center', gap:8 }}>
                   <span className="material-symbols-outlined" style={{ fontSize:18, color:'#702c91' }}>list_alt</span>
-                  {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Tasks Activity`}
+                  {!isAdmin ? 'My Tasks Activity' : filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Tasks Activity`}
                   <span style={{ fontSize:12, fontWeight:600, color:'#9CA3AF', fontStyle:'normal' }}>
                     ({tableTasks.length} task{tableTasks.length !== 1 ? 's' : ''})
                   </span>
