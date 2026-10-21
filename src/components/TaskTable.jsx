@@ -136,7 +136,7 @@ function InlineStatusSelect({ value, onChange, disabled }) {
 
 
 export default function TaskTable() {
-  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients, fetchSyncedTasks } = useApp()
+  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients, fetchSyncedTasks, tasksLoaded } = useApp()
   const location = useLocation()
   const isMyTasks = location.pathname === '/my-tasks'
   const isAdmin = profile?.systemRole === 'Admin'
@@ -1930,6 +1930,8 @@ export default function TaskTable() {
             setActiveFilter={setActiveFilter}
             floatingActive={floatingEnabled && toolbarOffscreen}
             refreshTasks={fetchSyncedTasks}
+            allEmployees={employees}
+            tasksLoaded={tasksLoaded}
           />
         ) : (
           <div className="mt-6">

@@ -3,6 +3,8 @@ import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { deduplicateTasks } from '../utils/formatTaskId'
 import { isSubTask, isTaskOverdue, passesMonthDoneRule } from '../utils/taskStats'
+import TodayActivityBanner from './TodayActivityBanner'
+import { computeMissingToday, todayIST } from '../utils/todayActivity'
 import SelectDropdown from './SelectDropdown'
 
 const COL_STYLE = {
@@ -38,7 +40,7 @@ function ColumnHeader({ children }) {
   )
 }
 
-export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask, activeFilter, setActiveFilter, floatingActive, refreshTasks }) {
+export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask, activeFilter, floatingActive, refreshTasks, allEmployees, tasksLoaded }) {
   const [selectedEmployee, setSelectedEmployee] = useState('All employees')
   const [selectedClient, setSelectedClient] = useState('All Clients')
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
@@ -163,6 +165,13 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
 
   const filteredEmployees = employees.filter((e) => e.name.toLowerCase().includes(employeeQuery.trim().toLowerCase()))
 
+  // Names of active employees who haven't created any task today (IST) — drives
+  // the amber dot in the Employees list. Same derivation as the top banner.
+  const missingNames = useMemo(() => {
+    const set = new Set(computeMissingToday(tasks, allEmployees, todayIST()).map((e) => e.name.toLowerCase()))
+    return set
+  }, [tasks, allEmployees])
+
   const handleSelectEmployee = (name) => {
     setSelectedEmployee(name)
     // Selecting an employee resets client and department to All
@@ -171,21 +180,31 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '240px minmax(0, 1fr)',
-        gap: 16,
-        alignItems: 'start',
-        height: BOARD_HEIGHT,
-      }}
-      className="admin-board-grid mt-6"
-    >
-      <style>{`
-        @media (max-width: 1023px) {
-          .admin-board-grid { grid-template-columns: 1fr !important; height: auto !important; }
-        }
-      `}</style>
+    <div style={{ display: 'flex', flexDirection: 'column', height: BOARD_HEIGHT }}>
+      <TodayActivityBanner
+        tasks={tasks}
+        employees={allEmployees}
+        loaded={tasksLoaded}
+        onSelectEmployee={handleSelectEmployee}
+      />
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '240px minmax(0, 1fr)',
+          gap: 16,
+          alignItems: 'start',
+          flex: 1,
+          minHeight: 0,
+          marginTop: 16,
+        }}
+        className="admin-board-grid"
+      >
+        <style>{`
+          @media (max-width: 1023px) {
+            .admin-board-grid { grid-template-columns: 1fr !important; height: auto !important; }
+          }
+        `}</style>
 
       {/* ── Column 1: Employees ── */}
       <div style={{ ...COL_STYLE, height: '100%' }}>
@@ -229,7 +248,15 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                 <div className="w-7 h-7 rounded-full text-white flex items-center justify-center text-[11px] font-bold shrink-0" style={{ backgroundColor: getUserColor(emp.name) }}>
                   {getInitials(emp.name)}
                 </div>
-                <span className="flex-1 text-[13px] font-semibold truncate" style={{ color: active ? '#702c91' : '#4B5563' }} title={emp.name}>{emp.name}</span>
+                <span className="flex-1 text-[13px] font-semibold truncate" style={{ color: active ? '#702c91' : '#4B5563' }} title={emp.name}>
+                  {emp.name}
+                  {missingNames.has(emp.name.toLowerCase()) && (
+                    <span
+                      title="Hasn't added a task today"
+                      style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#F59E0B', marginLeft: 6, verticalAlign: 'middle' }}
+                    />
+                  )}
+                </span>
                 <span className="text-[11px] font-bold" style={{ color: emp.count === 0 ? '#D1D5DB' : '#9CA3AF' }}>{emp.count}</span>
               </button>
             )
@@ -346,6 +373,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
           )}
         </div>
       </div>
+    </div>
     </div>
   )
 }

@@ -2968,6 +2968,7 @@ export function AppProvider({ children }) {
       value={{
         tasks: visibleTasks,
         setTasks,
+        tasksLoaded,
         updateTask,
         addTask,
         deleteTask,
