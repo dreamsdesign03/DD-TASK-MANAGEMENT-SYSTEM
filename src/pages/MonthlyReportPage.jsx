@@ -406,9 +406,11 @@ export default function MonthlyReportPage() {
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 9px; height: 9px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(112,44,145,0.06); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #702c91; border-radius: 10px; border: 2px solid #F0EDF8; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #5b2176; }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #702c91 rgba(112,44,145,0.06); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
