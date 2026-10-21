@@ -829,7 +829,7 @@ export default function MonthlyReportPage() {
                           <tr
                             key={row.id}
                             className="task-row"
-                            style={{ borderBottom: idx < tableasks.length - 1 ? '1px solid #F3F4F6' : 'none', cursor:'pointer' }}
+                            style={{ borderBottom: idx < tableTasks.length - 1 ? '1px solid #F3F4F6' : 'none', cursor:'pointer' }}
                             onClick={() => navigate(`/tasks/${row.id}`)}
                           >
                             <td style={{ padding:'11px 14px', fontSize:12, fontWeight:800, color:'#702c91', fontFamily:'monospace' }}>
