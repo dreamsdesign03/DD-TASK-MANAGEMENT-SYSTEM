@@ -9,6 +9,7 @@ import { computeMissingToday, todayIST, todayLabel } from '../utils/todayActivit
 export default function TodayActivityBanner({ tasks, employees, loaded, onSelectEmployee }) {
   // Recompute when the IST calendar day rolls over (check each minute)
   const [day, setDay] = useState(todayIST())
+  const [expanded, setExpanded] = useState(false)
   useEffect(() => {
     const id = setInterval(() => setDay(todayIST()), 60000)
     return () => clearInterval(id)
@@ -44,8 +45,9 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
   }
 
   // ── Amber banner: N employees missing ──
-  const visibleChips = missing.slice(0, 8)
-  const more = n - visibleChips.length
+  const more = n - 8
+  const showAll = expanded || more <= 0
+  const visibleChips = showAll ? missing : missing.slice(0, 8)
 
   return (
     <div
@@ -59,7 +61,14 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
         </span>
         <span className="ml-auto text-[12px] font-semibold text-[#B45309]">{label}</span>
       </div>
-      <div className="flex items-center gap-2 flex-wrap mt-2" style={{ maxHeight: 60, overflow: 'hidden' }}>
+      <div
+        className="flex items-center gap-2 flex-wrap mt-2"
+        style={{
+          maxHeight: showAll ? Math.ceil(missing.length / 4) * 40 + 40 : 60,
+          overflow: 'hidden',
+          transition: 'max-height 150ms ease',
+        }}
+      >
         {visibleChips.map((u) => (
           <button
             key={u.name}
@@ -78,7 +87,15 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
           </button>
         ))}
         {more > 0 && (
-          <span className="text-[12px] font-bold text-[#B45309] px-2 py-1">+{more} more</span>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="text-[12px] font-bold text-[#B45309] px-2 py-1 cursor-pointer hover:underline bg-transparent border-none"
+            title={expanded ? 'Show fewer' : `Show all ${n} employees`}
+          >
+            {expanded ? 'Show less' : `+${more} more`}
+          </button>
         )}
       </div>
     </div>
