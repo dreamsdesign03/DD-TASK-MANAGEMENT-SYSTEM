@@ -3,8 +3,7 @@ import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { deduplicateTasks } from '../utils/formatTaskId'
 import { isSubTask, isTaskOverdue, passesMonthDoneRule } from '../utils/taskStats'
-
-const STATUS_CHIPS = ['All', 'Pending', 'In Progress', 'Review', 'Done', 'Blocked']
+import SelectDropdown from './SelectDropdown'
 
 const COL_STYLE = {
   background: 'white',
@@ -16,9 +15,19 @@ const COL_STYLE = {
   overflow: 'hidden',
 }
 
-const COL_BODY_STYLE = {
-  maxHeight: 'calc(100vh - 380px)',
-  overflowY: 'auto',
+// Board fills the viewport below the sticky app header (TopNav ≈ 84px) minus 16px.
+const BOARD_HEIGHT = 'calc(100vh - 100px)'
+
+const selectBaseStyle = {
+  height: 38,
+  padding: '8px 12px',
+  borderRadius: 10,
+  border: '1px solid #E5E7EB',
+  background: 'white',
+  fontSize: 12,
+  color: '#1E1B2E',
+  fontWeight: 600,
+  outline: 'none',
 }
 
 function ColumnHeader({ children }) {
@@ -29,10 +38,10 @@ function ColumnHeader({ children }) {
   )
 }
 
-export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask }) {
+export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask, activeFilter, setActiveFilter }) {
   const [selectedEmployee, setSelectedEmployee] = useState('All employees')
-  const [selectedDepartment, setSelectedDepartment] = useState('All')
-  const [statusFilter, setStatusFilter] = useState('All')
+  const [selectedClient, setSelectedClient] = useState('All Clients')
+  const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
   const [employeeQuery, setEmployeeQuery] = useState('')
 
   // Base pool: respect the page-level top filters (search + Current Month / All Tasks)
@@ -71,7 +80,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [baseTasks])
 
-  // Pool for the selected employee (feeding the department column + summary)
+  // Pool for the selected employee (feeds client/department options + summary)
   const employeeScopedTasks = useMemo(() => {
     if (selectedEmployee === 'All employees') return baseTasks
     return baseTasks.filter((t) => matchesEmployee(t, selectedEmployee))
@@ -79,72 +88,75 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
 
   const employeeTotal = baseTasks.length
 
-  // Departments with counts (respecting selected employee)
-  const departments = useMemo(() => {
+  // Client options (All Clients + list), from the employee-scoped pool
+  const clientOptions = useMemo(() => {
+    const names = new Set()
+    for (const t of employeeScopedTasks) {
+      const c = (t.client || '').trim()
+      if (c && c.toLowerCase() !== 'internal' && c.toLowerCase() !== 'unknown client') names.add(c)
+    }
+    return ['All Clients', ...[...names].sort((a, b) => a.localeCompare(b))]
+  }, [employeeScopedTasks])
+
+  // Department options with task count per department for the current employee selection
+  const departmentOptions = useMemo(() => {
     const counts = new Map()
     for (const t of employeeScopedTasks) {
       const dept = (t.department || 'COMMON').toUpperCase()
       counts.set(dept, (counts.get(dept) || 0) + 1)
     }
-    return [...counts.entries()]
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    return [
+      { value: 'All Departments', label: 'All Departments' },
+      ...sorted.map(([name, count]) => ({ value: name, label: `${name} (${count})` })),
+    ]
   }, [employeeScopedTasks])
 
-  // Selection summary (Total / Done / Overdue)
+  // Selection summary (Total / Done / Overdue) for the current employee selection
   const summary = useMemo(() => {
     const done = employeeScopedTasks.filter((t) => t.status === 'Done').length
     const overdue = employeeScopedTasks.filter(isTaskOverdue).length
     return { total: employeeScopedTasks.length, done, overdue }
   }, [employeeScopedTasks])
 
-  // Tasks for the wide third column (employee + department + status chip)
+  // Tasks for the wide column (employee -> client + department + status pill)
   const visibleTasks = useMemo(() => {
     return employeeScopedTasks.filter((t) => {
-      if (selectedDepartment !== 'All' && (t.department || 'COMMON').toUpperCase() !== selectedDepartment) return false
-      if (statusFilter !== 'All' && t.status !== statusFilter) return false
+      if (selectedClient !== 'All Clients' && (t.client || '') !== selectedClient) return false
+      if (selectedDepartment !== 'All Departments' && (t.department || 'COMMON').toUpperCase() !== selectedDepartment) return false
+      if (activeFilter && activeFilter !== 'All' && t.status !== activeFilter) return false
       return true
     })
-  }, [employeeScopedTasks, selectedDepartment, statusFilter])
+  }, [employeeScopedTasks, selectedClient, selectedDepartment, activeFilter])
 
   const filteredEmployees = employees.filter((e) => e.name.toLowerCase().includes(employeeQuery.trim().toLowerCase()))
 
   const handleSelectEmployee = (name) => {
     setSelectedEmployee(name)
-    setSelectedDepartment('All') // selecting an employee resets department to All
+    // Selecting an employee resets client and department to All
+    setSelectedClient('All Clients')
+    setSelectedDepartment('All Departments')
   }
-
-  const chipStyle = (active) => ({
-    padding: '5px 12px',
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: 'pointer',
-    border: active ? 'transparent' : '1px solid #E5E7EB',
-    background: active ? 'linear-gradient(to right, #702c91 0%, #ec008c 50%, #702c91 100%)' : 'white',
-    color: active ? 'white' : '#6B7280',
-    transition: 'all 0.15s',
-    whiteSpace: 'nowrap',
-  })
 
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '240px 260px minmax(0, 1fr)',
+        gridTemplateColumns: '240px minmax(0, 1fr)',
         gap: 16,
         alignItems: 'start',
+        height: BOARD_HEIGHT,
       }}
       className="admin-board-grid mt-6"
     >
       <style>{`
         @media (max-width: 1023px) {
-          .admin-board-grid { grid-template-columns: 1fr !important; }
+          .admin-board-grid { grid-template-columns: 1fr !important; height: auto !important; }
         }
       `}</style>
 
       {/* ── Column 1: Employees ── */}
-      <div style={COL_STYLE}>
+      <div style={{ ...COL_STYLE, height: '100%' }}>
         <ColumnHeader>Employees</ColumnHeader>
         <div className="p-3 border-b border-[#F3F4F6]">
           <div className="relative">
@@ -158,7 +170,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
             />
           </div>
         </div>
-        <div style={COL_BODY_STYLE} className="p-2 flex flex-col gap-0.5">
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} className="custom-scrollbar p-2 flex flex-col gap-0.5">
           <button
             onClick={() => handleSelectEmployee('All employees')}
             className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer"
@@ -196,71 +208,31 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
         </div>
       </div>
 
-      {/* ── Column 2: Departments ── */}
-      <div style={COL_STYLE}>
-        <ColumnHeader>Departments</ColumnHeader>
-        <div style={COL_BODY_STYLE} className="p-2 flex flex-col gap-0.5">
-          <button
-            onClick={() => setSelectedDepartment('All')}
-            className="flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer"
-            style={{ background: selectedDepartment === 'All' ? '#F5F3FF' : 'transparent', border: 'none' }}
-          >
-            <span className="text-[13px] font-bold" style={{ color: selectedDepartment === 'All' ? '#702c91' : '#4B5563' }}>All</span>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: selectedDepartment === 'All' ? '#702c91' : '#F3F4F6', color: selectedDepartment === 'All' ? '#fff' : '#6B7280' }}>{summary.total}</span>
-          </button>
-          {departments.map((dept) => {
-            const active = selectedDepartment === dept.name
-            return (
-              <button
-                key={dept.name}
-                onClick={() => setSelectedDepartment(dept.name)}
-                className="flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors cursor-pointer"
-                style={{ background: active ? '#F5F3FF' : 'transparent', border: 'none' }}
-                onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = '#FAFAFB' }}
-                onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent' }}
-              >
-                <span className="text-[13px] font-semibold truncate" style={{ color: active ? '#702c91' : '#4B5563' }}>{dept.name}</span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: active ? '#702c91' : '#F3F4F6', color: active ? '#fff' : '#6B7280' }}>{dept.count}</span>
-              </button>
-            )
-          })}
-          {departments.length === 0 && (
-            <div className="text-center py-6 text-[12px] text-[#9CA3AF]">No departments</div>
-          )}
-        </div>
-        <div className="flex items-center justify-between px-3 py-3 border-t border-[#F3F4F6] bg-[#F9FAFB]">
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold text-[#9CA3AF] uppercase">Total</span>
-            <span className="text-[15px] font-extrabold text-[#1E1B2E]">{summary.total}</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold text-[#9CA3AF] uppercase">Done</span>
-            <span className="text-[15px] font-extrabold text-[#16A34A]">{summary.done}</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[10px] font-bold text-[#9CA3AF] uppercase">Overdue</span>
-            <span className="text-[15px] font-extrabold text-[#DC2626]">{summary.overdue}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Column 3: Tasks ── */}
-      <div style={COL_STYLE}>
+      {/* ── Column 2: Tasks ── */}
+      <div style={{ ...COL_STYLE, height: '100%' }}>
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-[#F3F4F6] bg-[#F9FAFB]">
           <div className="flex items-center gap-2 min-w-0">
             <h3 className="text-[14px] font-extrabold text-[#702c91] m-0 truncate">
-              Tasks · {selectedEmployee} · {selectedDepartment === 'All' ? 'All Departments' : selectedDepartment}
+              Tasks · {selectedEmployee}
             </h3>
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#702c91] text-white shrink-0">{visibleTasks.length}</span>
+            <div className="flex items-center gap-3 ml-1">
+              <span className="text-[11px] font-semibold text-[#9CA3AF]">Total <b className="text-[#1E1B2E]">{summary.total}</b></span>
+              <span className="text-[11px] font-semibold text-[#9CA3AF]">Done <b className="text-[#16A34A]">{summary.done}</b></span>
+              <span className="text-[11px] font-semibold text-[#9CA3AF]">Overdue <b className="text-[#DC2626]">{summary.overdue}</b></span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {STATUS_CHIPS.map((s) => (
-              <button key={s} style={chipStyle(statusFilter === s)} onClick={() => setStatusFilter(s)}>{s}</button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <div style={{ width: 170 }}>
+              <SelectDropdown value={selectedClient} onChange={setSelectedClient} options={clientOptions} style={selectBaseStyle} />
+            </div>
+            <div style={{ width: 190 }}>
+              <SelectDropdown value={selectedDepartment} onChange={setSelectedDepartment} options={departmentOptions} style={selectBaseStyle} />
+            </div>
           </div>
         </div>
 
-        <div style={{ maxHeight: 'calc(100vh - 380px)', overflowY: 'auto' }} className="custom-scrollbar">
+        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} className="custom-scrollbar">
           {visibleTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-[#9CA3AF]">
               <span className="material-symbols-outlined text-[36px] mb-2 opacity-50">inbox</span>
@@ -268,11 +240,11 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[640px]">
+              <table className="w-full text-left border-collapse min-w-[720px]">
                 <thead>
                   <tr className="bg-white border-b border-[#E5E7EB]">
-                    {['Task Title', 'Client', 'Assigned By', 'Due Date', 'Priority', 'Status'].map((h) => (
-                      <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap">{h}</th>
+                    {['Task Title', 'Client', 'Department', 'Assigned By', 'Due Date', 'Priority', 'Status'].map((h) => (
+                      <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap" style={{ position: 'sticky', top: 0, background: 'white', zIndex: 2 }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -295,6 +267,12 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                           <span className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">domain</span>
                             {task.client}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-[12px] text-[#6B7280] max-w-[160px]">
+                          <span className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">folder_open</span>
+                            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={task.department || 'COMMON'}>{(task.department || 'COMMON').toUpperCase()}</span>
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">

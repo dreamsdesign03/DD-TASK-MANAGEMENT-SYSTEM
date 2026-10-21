@@ -360,6 +360,28 @@ export default function TaskTable() {
   const [uploadDept, setUploadDept] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
 
+  // Toolbar visibility observer — floats the mic/add buttons on the Admin Board
+  // once the toolbar row scrolls out of view. Only active for admins in Admin view.
+  const toolbarRef = useRef(null)
+  const [toolbarOffscreen, setToolbarOffscreen] = useState(false)
+  const floatingEnabled = isAdmin && viewMode === 'Admin'
+
+  useEffect(() => {
+    if (!floatingEnabled) {
+      setToolbarOffscreen(false)
+      return
+    }
+    const el = toolbarRef.current
+    if (!el) return
+    const root = el.closest('.overflow-y-auto') || null
+    const observer = new IntersectionObserver(
+      ([entry]) => setToolbarOffscreen(!entry.isIntersecting),
+      { root, threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [floatingEnabled])
+
   const handleDeptUploadClick = (e, dept) => {
     e.stopPropagation()
     if (!selectedClient || selectedClient === 'All Clients') {
@@ -716,7 +738,50 @@ export default function TaskTable() {
   const completedTasks = taskStats.completed;
   const overdueTasks = taskStats.overdue;
 
-
+  // Shared mic + add-task controls. Rendered in the toolbar normally; moved to a
+  // fixed bottom-right cluster (Admin Board only) once the toolbar scrolls away.
+  const micButton = (
+    <VoiceBot onTaskAdd={async (params) => {
+      await addTask(params)
+      addToast('Task added via VoiceBot!', 'success')
+    }} />
+  )
+  const addTaskButton = (
+    <div
+      onMouseEnter={e => {
+        e.currentTarget.style.maxWidth = '300px';
+        e.currentTarget.style.gap = '8px';
+        e.currentTarget.style.padding = '0 20px 0 14px';
+        e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
+        const text = e.currentTarget.querySelector('.add-task-text');
+        if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.maxWidth = '44px';
+        e.currentTarget.style.gap = '0';
+        e.currentTarget.style.padding = '0';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
+        const text = e.currentTarget.querySelector('.add-task-text');
+        if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
+      }}
+      onClick={() => setShowNewTaskModal(true)}
+      className="rounded-full flex items-center justify-center text-white cursor-pointer shadow-sm overflow-hidden whitespace-nowrap"
+      style={{
+        height: 44,
+        width: 'auto',
+        minWidth: 44,
+        maxWidth: 44,
+        background: 'linear-gradient(to right, #702c91, #ec008c)',
+        boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
+        fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, gap: 0,
+        transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
+      }}
+      title="Add Task"
+    >
+      <span className="material-symbols-outlined shrink-0 text-[20px]">add</span>
+      <span className="add-task-text opacity-0 w-0 max-w-0 overflow-hidden whitespace-nowrap" style={{ transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out' }}>Add Task</span>
+    </div>
+  )
 
   return (
     <>
@@ -765,7 +830,7 @@ export default function TaskTable() {
 
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
       {/* FILTERS + VIEW TOGGLE */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-5">
+      <div ref={toolbarRef} className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 mb-5">
         <div className="flex flex-wrap items-center gap-1.5 md:gap-3">
           {FILTERS.map(f => (
             <button key={f} onClick={() => setActiveFilter(f)} className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12px] sm:text-sm font-semibold transition-all ${f === activeFilter ? 'text-white' : 'bg-white text-gray-600 border border-gray-100 hover:border-gray-200'}`} style={{
@@ -834,44 +899,8 @@ export default function TaskTable() {
             >
               <span className="material-symbols-outlined text-[20px]">open_in_new</span>
             </button>
-            <VoiceBot onTaskAdd={async (params) => {
-              await addTask(params)
-              addToast('Task added via VoiceBot!', 'success')
-            }} />
-            <div
-              onMouseEnter={e => {
-                e.currentTarget.style.maxWidth = '300px';
-                e.currentTarget.style.gap = '8px';
-                e.currentTarget.style.padding = '0 20px 0 14px';
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(112,44,145,0.35)';
-                const text = e.currentTarget.querySelector('.add-task-text');
-                if (text) { text.style.maxWidth = '120px'; text.style.width = 'auto'; text.style.opacity = '1'; }
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.maxWidth = '44px';
-                e.currentTarget.style.gap = '0';
-                e.currentTarget.style.padding = '0';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(91,33,182,0.06)';
-                const text = e.currentTarget.querySelector('.add-task-text');
-                if (text) { text.style.maxWidth = '0'; text.style.width = '0'; text.style.opacity = '0'; }
-              }}
-              onClick={() => setShowNewTaskModal(true)}
-              className="rounded-full flex items-center justify-center text-white cursor-pointer shadow-sm overflow-hidden whitespace-nowrap"
-              style={{
-                height: 44,
-                width: 'auto',
-                minWidth: 44,
-                maxWidth: 44,
-                background: 'linear-gradient(to right, #702c91, #ec008c)',
-                boxShadow: '0 2px 8px rgba(91,33,182,0.06)',
-                fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 700, gap: 0,
-                transition: 'max-width 0.35s ease-out, padding 0.35s ease-out, gap 0.35s ease-out, box-shadow 0.3s ease-out',
-              }}
-              title="Add Task"
-            >
-              <span className="material-symbols-outlined shrink-0 text-[20px]">add</span>
-              <span className="add-task-text opacity-0 w-0 max-w-0 overflow-hidden whitespace-nowrap" style={{ transition: 'max-width 0.35s ease-out, opacity 0.2s ease-out' }}>Add Task</span>
-            </div>
+            {!toolbarOffscreen && micButton}
+            {!toolbarOffscreen && addTaskButton}
           </div>
         </div>
       </div>
@@ -1897,6 +1926,8 @@ export default function TaskTable() {
             searchQuery={searchQuery}
             showAllTasks={showAllTasks}
             onOpenTask={openTaskDetail}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
           />
         ) : (
           <div className="mt-6">
@@ -1906,6 +1937,18 @@ export default function TaskTable() {
 
         {/* FAB is now rendered by the parent page outside the scroll container */}
       </div>
+
+      {/* Floating mic + add-task cluster — Admin Board only, once the toolbar scrolls away */}
+      {floatingEnabled && toolbarOffscreen && (
+        <div
+          className="fixed z-[1000] flex flex-col items-end gap-3"
+          style={{ right: 24, bottom: 24, animation: 'fabFloatIn 0.25s ease-out both' }}
+        >
+          <style>{`@keyframes fabFloatIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          {micButton}
+          {addTaskButton}
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {taskToDelete && createPortal(
