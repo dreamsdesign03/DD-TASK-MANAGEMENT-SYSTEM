@@ -157,7 +157,22 @@ export default function TaskTable() {
   const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || persisted.selectedDate || '')
   const [showAllTasks, setShowAllTasks] = useState(location.state?.showAllTasks || persisted.showAllTasks || false)
 
-  const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board' | 'Calendar' | 'Admin'
+  // Explicit ?view=... in the URL wins for this visit only.
+  const urlView = new URLSearchParams(location.search).get('view') // 'list' | 'board' | 'calendar' | 'admin'
+  const urlViewMap = { list: 'List', board: 'Board', calendar: 'Calendar', admin: 'Admin' }
+  const resolvedUrlView = urlViewMap[String(urlView || '').toLowerCase()] || null
+
+  // Default view:
+  //  • URL ?view=...          -> use it (one visit only)
+  //  • admin                  -> always start on Admin Board (ignores sessionStorage)
+  //  • everyone else          -> previously saved view, else List (unchanged)
+  const initialViewMode = (() => {
+    if (resolvedUrlView && (resolvedUrlView !== 'Admin' || isAdmin)) return resolvedUrlView
+    if (isAdmin) return 'Admin'
+    return persisted.viewMode || 'List'
+  })()
+
+  const [viewMode, setViewMode] = useState(initialViewMode) // 'List' | 'Board' | 'Calendar' | 'Admin'
   const [boardGrouping, setBoardGrouping] = useState(location.state?.boardGrouping || persisted.boardGrouping || 'Department')
 
   // Security guard: only admins may use the Admin Board view. If a non-admin
@@ -168,6 +183,7 @@ export default function TaskTable() {
 
   // Persist table state (filters, view, sorting) across navigation so users
   // return to the same view & filters they left.
+  // Admins never persist their view: they always re-open on the Admin Board.
   useEffect(() => {
     const state = {
       activeFilter,
@@ -176,7 +192,7 @@ export default function TaskTable() {
       selectedUser,
       selectedDepartment,
       selectedDate,
-      viewMode,
+      viewMode: isAdmin ? 'Admin' : viewMode,
       boardGrouping,
       showAllTasks,
     }
@@ -185,7 +201,7 @@ export default function TaskTable() {
     } catch (e) {
       // ignore storage errors
     }
-  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, selectedDate, viewMode, boardGrouping, showAllTasks, storageKey])
+  }, [activeFilter, sortBy, selectedClient, selectedUser, selectedDepartment, selectedDate, viewMode, boardGrouping, showAllTasks, storageKey, isAdmin])
 
   // Consume location.state so back-navigation doesn't re-apply stale filters
   useEffect(() => {
