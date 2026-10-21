@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { deduplicateTasks } from '../utils/formatTaskId'
@@ -32,17 +32,32 @@ const selectBaseStyle = {
 
 function ColumnHeader({ children }) {
   return (
-    <div className="px-4 py-3 border-b border-[#F3F4F6] bg-[#F9FAFB]">
+    <div className="px-3 py-3 border-b border-[#F3F4F6] bg-[#F9FAFB]">
       <span className="text-[11px] font-bold text-[#6B7280] tracking-[0.05em] uppercase">{children}</span>
     </div>
   )
 }
 
-export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask, activeFilter, setActiveFilter }) {
+export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpenTask, activeFilter, setActiveFilter, floatingActive, refreshTasks }) {
   const [selectedEmployee, setSelectedEmployee] = useState('All employees')
   const [selectedClient, setSelectedClient] = useState('All Clients')
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
   const [employeeQuery, setEmployeeQuery] = useState('')
+
+  // Light background refresh fallback, active only while the Admin Board is
+  // mounted. Reuses the app's existing fetchSyncedTasks (which feeds the shared
+  // tasks state) — no new dependency, no separate cache. Realtime edits from
+  // other users arrive via the app-wide MQTT sync; this covers focus/30s drift.
+  useEffect(() => {
+    if (!refreshTasks) return
+    const onFocus = () => { if (document.visibilityState === 'visible') refreshTasks() }
+    window.addEventListener('focus', onFocus)
+    const interval = setInterval(onFocus, 30000)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      clearInterval(interval)
+    }
+  }, [refreshTasks])
 
   // Base pool: respect the page-level top filters (search + Current Month / All Tasks)
   const baseTasks = useMemo(() => {
@@ -67,26 +82,42 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
       .map((s) => s.trim())
       .includes(employee)
 
-  // Employees derived from the base pool (all employees that appear on tasks)
+  // Top-level status pill applied on top of the base pool. Everything downstream
+  // (employee counts, header stats, table rows) derives from this single pool so
+  // they always stay in sync with the table.
+  const statusScopedTasks = useMemo(() => {
+    if (!activeFilter || activeFilter === 'All') return baseTasks
+    return baseTasks.filter((t) => t.status === activeFilter)
+  }, [baseTasks, activeFilter])
+
+  // Employee roster: every employee that appears on a task in the base pool.
+  // Counts come from the status-scoped pool, so an employee filtered out by the
+  // active pill shows 0 (dimmed) instead of disappearing.
   const employees = useMemo(() => {
-    const counts = new Map()
+    const roster = new Set()
     for (const t of baseTasks) {
+      for (const name of (t.assignedTo || '').split(',').map((s) => s.trim()).filter(Boolean)) {
+        roster.add(name)
+      }
+    }
+    const counts = new Map()
+    for (const t of statusScopedTasks) {
       for (const name of (t.assignedTo || '').split(',').map((s) => s.trim()).filter(Boolean)) {
         counts.set(name, (counts.get(name) || 0) + 1)
       }
     }
-    return [...counts.entries()]
-      .map(([name, count]) => ({ name, count }))
+    return [...roster]
+      .map((name) => ({ name, count: counts.get(name) || 0 }))
       .sort((a, b) => a.name.localeCompare(b.name))
-  }, [baseTasks])
+  }, [baseTasks, statusScopedTasks])
 
-  // Pool for the selected employee (feeds client/department options + summary)
+  // Pool for the selected employee (feeds client/department options + table)
   const employeeScopedTasks = useMemo(() => {
-    if (selectedEmployee === 'All employees') return baseTasks
-    return baseTasks.filter((t) => matchesEmployee(t, selectedEmployee))
-  }, [baseTasks, selectedEmployee])
+    if (selectedEmployee === 'All employees') return statusScopedTasks
+    return statusScopedTasks.filter((t) => matchesEmployee(t, selectedEmployee))
+  }, [statusScopedTasks, selectedEmployee])
 
-  const employeeTotal = baseTasks.length
+  const employeeTotal = statusScopedTasks.length
 
   // Client options (All Clients + list), from the employee-scoped pool
   const clientOptions = useMemo(() => {
@@ -112,22 +143,23 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
     ]
   }, [employeeScopedTasks])
 
-  // Selection summary (Total / Done / Overdue) for the current employee selection
-  const summary = useMemo(() => {
-    const done = employeeScopedTasks.filter((t) => t.status === 'Done').length
-    const overdue = employeeScopedTasks.filter(isTaskOverdue).length
-    return { total: employeeScopedTasks.length, done, overdue }
-  }, [employeeScopedTasks])
-
-  // Tasks for the wide column (employee -> client + department + status pill)
+  // Tasks for the wide column (employee -> client + department). Status is
+  // already applied in statusScopedTasks above.
   const visibleTasks = useMemo(() => {
     return employeeScopedTasks.filter((t) => {
       if (selectedClient !== 'All Clients' && (t.client || '') !== selectedClient) return false
       if (selectedDepartment !== 'All Departments' && (t.department || 'COMMON').toUpperCase() !== selectedDepartment) return false
-      if (activeFilter && activeFilter !== 'All' && t.status !== activeFilter) return false
       return true
     })
-  }, [employeeScopedTasks, selectedClient, selectedDepartment, activeFilter])
+  }, [employeeScopedTasks, selectedClient, selectedDepartment])
+
+  // Header summary (Total / Done / Overdue) derived from the exact rows the
+  // table renders, so it always matches what is on screen.
+  const summary = useMemo(() => {
+    const done = visibleTasks.filter((t) => t.status === 'Done').length
+    const overdue = visibleTasks.filter(isTaskOverdue).length
+    return { total: visibleTasks.length, done, overdue }
+  }, [visibleTasks])
 
   const filteredEmployees = employees.filter((e) => e.name.toLowerCase().includes(employeeQuery.trim().toLowerCase()))
 
@@ -198,7 +230,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                   {getInitials(emp.name)}
                 </div>
                 <span className="flex-1 text-[13px] font-semibold truncate" style={{ color: active ? '#702c91' : '#4B5563' }} title={emp.name}>{emp.name}</span>
-                <span className="text-[11px] font-bold text-[#9CA3AF]">{emp.count}</span>
+                <span className="text-[11px] font-bold" style={{ color: emp.count === 0 ? '#D1D5DB' : '#9CA3AF' }}>{emp.count}</span>
               </button>
             )
           })}
@@ -232,19 +264,24 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
           </div>
         </div>
 
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }} className="custom-scrollbar">
+        <div
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
+          className="custom-scrollbar"
+        >
           {visibleTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-[#9CA3AF]">
               <span className="material-symbols-outlined text-[36px] mb-2 opacity-50">inbox</span>
               <span className="text-[13px] font-semibold">No tasks for this selection</span>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[720px]">
+            <div
+              className="overflow-x-auto"
+            >
+              <table className="w-full text-left border-collapse min-w-[660px]">
                 <thead>
                   <tr className="bg-white border-b border-[#E5E7EB]">
                     {['Task Title', 'Client', 'Department', 'Assigned By', 'Due Date', 'Priority', 'Status'].map((h) => (
-                      <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap" style={{ position: 'sticky', top: 0, background: 'white', zIndex: 2 }}>{h}</th>
+                      <th key={h} className="px-3 py-2.5 text-left text-[10px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap" style={{ position: 'sticky', top: 0, background: 'white', zIndex: 2, paddingRight: h === 'Status' && floatingActive ? 112 : undefined }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -257,25 +294,25 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                         onClick={() => onOpenTask && onOpenTask(task)}
                         className="border-b border-[#F3F4F6] hover:bg-[#FAF5FF] transition-colors cursor-pointer"
                       >
-                        <td className="px-4 py-3 max-w-[260px]">
+                        <td className="px-3 py-3 max-w-[260px]">
                           <div className="flex items-center gap-2">
                             <span className="text-[13px] font-bold text-[#1E1B2E] truncate" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={task.title}>{task.title}</span>
                             {task.isRecurring && <span className="material-symbols-outlined text-[14px] text-primary shrink-0">event_repeat</span>}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-[12px] text-[#6B7280] whitespace-nowrap">
+                        <td className="px-3 py-3 text-[12px] text-[#6B7280] whitespace-nowrap">
                           <span className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">domain</span>
                             {task.client}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[12px] text-[#6B7280] max-w-[160px]">
+                        <td className="px-3 py-3 text-[12px] text-[#6B7280] max-w-[160px]">
                           <span className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">folder_open</span>
                             <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={task.department || 'COMMON'}>{(task.department || 'COMMON').toUpperCase()}</span>
                           </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {(() => {
                               const cleanName = String(task.assignedBy || '').replace(/[^\w\s-]/g, '').trim() || '—'
@@ -288,13 +325,13 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                             })()}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <span className={`text-[12px] font-bold ${overdue ? 'text-[#DC2626]' : 'text-[#6B7280]'}`}>{task.dueDate || 'No Date'}</span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <span className={`${PRIORITY_STYLES[task.priority] || 'bg-gray-400 text-white'} inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider`}>{task.priority || 'Medium'}</span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap" style={{ paddingRight: floatingActive ? 112 : undefined }}>
                           <span className={`${STATUS_STYLES[task.status] || 'bg-gray-100 text-gray-700'} inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase`}>
                             {task.status}
                             {task.status === 'Done' && <span className="material-symbols-outlined text-[12px]">check</span>}

@@ -136,7 +136,7 @@ function InlineStatusSelect({ value, onChange, disabled }) {
 
 
 export default function TaskTable() {
-  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients } = useApp()
+  const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients, fetchSyncedTasks } = useApp()
   const location = useLocation()
   const isMyTasks = location.pathname === '/my-tasks'
   const isAdmin = profile?.systemRole === 'Admin'
@@ -1928,6 +1928,8 @@ export default function TaskTable() {
             onOpenTask={openTaskDetail}
             activeFilter={activeFilter}
             setActiveFilter={setActiveFilter}
+            floatingActive={floatingEnabled && toolbarOffscreen}
+            refreshTasks={fetchSyncedTasks}
           />
         ) : (
           <div className="mt-6">
@@ -1938,16 +1940,28 @@ export default function TaskTable() {
         {/* FAB is now rendered by the parent page outside the scroll container */}
       </div>
 
-      {/* Floating mic + add-task cluster — Admin Board only, once the toolbar scrolls away */}
-      {floatingEnabled && toolbarOffscreen && (
+      {/* Floating mic + add-task cluster — Admin Board only, once the toolbar scrolls away.
+          Rendered via portal into document.body so position:fixed anchors to the viewport
+          (ancestor .animate-fade-in-up leaves a transform that breaks fixed positioning). */}
+      {floatingEnabled && toolbarOffscreen && createPortal(
         <div
-          className="fixed z-[1000] flex flex-col items-end gap-3"
-          style={{ right: 24, bottom: 24, animation: 'fabFloatIn 0.25s ease-out both' }}
+          className="flex flex-col items-end"
+          style={{
+            position: 'fixed',
+            right: 24,
+            bottom: 'calc(24px + env(safe-area-inset-bottom, 0px))',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            zIndex: 50,
+            animation: 'fabFloatIn 0.25s ease-out both',
+          }}
         >
           <style>{`@keyframes fabFloatIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }`}</style>
           {micButton}
           {addTaskButton}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal */}
