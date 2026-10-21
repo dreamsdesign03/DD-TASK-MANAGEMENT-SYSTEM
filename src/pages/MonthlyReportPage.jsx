@@ -1,254 +1,406 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
-
 import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
+// ─── helpers ─────────────────────────────────────────────────────────────────
+function parseSheetDT(val) {
+  if (!val) return null
+  const str = String(val).trim()
+  const parts = str.split(/[ T]/)
+  const datePart = parts[0] || ''
+  const timePart = (parts[1] || '00:00:00').split('.')[0]
+  return { date: datePart, time: timePart }
+}
+
+function timeToSecs(t) {
+  if (!t) return 0
+  const [h, m, s] = t.split(':').map(Number)
+  return (h || 0) * 3600 + (m || 0) * 60 + (s || 0)
+}
+
+function fmtDur(secs) {
+  if (!secs || secs <= 0) return '0h 0m'
+  const h = Math.floor(secs / 3600)
+  const m = Math.floor((secs % 3600) / 60)
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
+}
+
+function getISTNow() {
+  return new Date(Date.now() + 5.5 * 60 * 60 * 1000)
+}
+function getISTDateStr(d = getISTNow()) {
+  return d.toISOString().split('T')[0]
+}
+function getISTTimeStr(d = getISTNow()) {
+  return [d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()]
+    .map(v => String(v).padStart(2, '0')).join(':')
+}
+
+const STATUS_COLORS = {
+  Done:        { bg: '#DCFCE7', text: '#16A34A', bar: '#22C55E' },
+  'In Progress':{ bg: '#FEF9C3', text: '#B45309', bar: '#F59E0B' },
+  Review:       { bg: '#FEF9C3', text: '#B45309', bar: '#F59E0B' },
+  Pending:      { bg: '#EFF6FF', text: '#1D4ED8', bar: '#3B82F6' },
+  Blocked:      { bg: '#FEE2E2', text: '#DC2626', bar: '#EF4444' },
+}
+function statusStyle(s) {
+  return STATUS_COLORS[s] || { bg: '#F3F4F6', text: '#6B7280', bar: '#9CA3AF' }
+}
+
+// ─── component ───────────────────────────────────────────────────────────────
 export default function MonthlyReportPage() {
   const navigate = useNavigate()
-  const { tasks, addToast, profile, clients: globalClients } = useApp()
+  const {
+    tasks, addToast, profile, activityLog,
+    fetchActivities, employees
+  } = useApp()
+
   const isAdmin = profile?.systemRole === 'Admin' || profile?.role === 'Admin'
-  const [filterType, setFilterType] = useState('Overall')
+
+  // ── filter state ──────────────────────────────────────────────────────────
+  const [filterType,    setFilterType]    = useState('Overall') // Overall | Company | User
   const [selectedValue, setSelectedValue] = useState('')
+  const [statusFilter,  setStatusFilter]  = useState('All')     // NEW: status filter
+  const [dateFrom,      setDateFrom]      = useState('')
+  const [dateTo,        setDateTo]        = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
 
-  // Date range filter state
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  // ── activity month selector ───────────────────────────────────────────────
+  const now = new Date()
+  const [actMonth, setActMonth] = useState(now.getMonth() + 1)
+  const [actYear,  setActYear]  = useState(now.getFullYear())
+  const [activities, setActivities] = useState(activityLog || [])
+  const [actLoading, setActLoading] = useState(false)
+  const [nowTs, setNowTs] = useState(Date.now())
 
-  const clients = [...new Set((tasks || []).map((t) => t?.client).filter(c => c && String(c).toLowerCase() !== 'internal'))].sort()
-  const users = [...new Set((tasks || []).flatMap((t) => String(t?.assignedTo || '').split(',').map(s => s.trim())).filter(Boolean))].sort()
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Date.now()), 60000)
+    return () => clearInterval(t)
+  }, [])
 
-  const handleFilterChange = (type) => {
+  useEffect(() => {
+    if (activityLog && activityLog.length > 0) {
+      setActivities(activityLog)
+    } else {
+      ;(async () => {
+        setActLoading(true)
+        try {
+          const data = await fetchActivities()
+          if (Array.isArray(data)) setActivities(data)
+        } catch {}
+        setActLoading(false)
+      })()
+    }
+  }, [activityLog, fetchActivities])
+
+  // ── clients / users derived from tasks ───────────────────────────────────
+  const clients = useMemo(() =>
+    [...new Set((tasks || [])
+      .map(t => t?.client)
+      .filter(c => c && String(c).toLowerCase() !== 'internal')
+    )].sort()
+  , [tasks])
+
+  const users = useMemo(() =>
+    [...new Set((tasks || [])
+      .flatMap(t => String(t?.assignedTo || '').split(',').map(s => s.trim()))
+      .filter(Boolean)
+    )].sort()
+  , [tasks])
+
+  // ── filter handlers ───────────────────────────────────────────────────────
+  const handleFilterChange = type => {
     setFilterType(type)
     if (type === 'Overall') setSelectedValue('')
     else if (type === 'Company') setSelectedValue(clients[0] || '')
     else if (type === 'User') setSelectedValue(users[0] || '')
   }
 
-  const isInDateRange = (task) => {
+  const isInDateRange = task => {
     if (!dateFrom && !dateTo) return true
-    const d = task.dueDate ? new Date(task.dueDate) : null
+    const raw = task.statusUpdatedOn || task.dueDate || task.assigned
+    const d = raw ? new Date(raw) : null
     if (!d || isNaN(d.getTime())) return !dateFrom && !dateTo
-    const from = dateFrom ? new Date(dateFrom) : null
-    const to = dateTo ? new Date(dateTo) : null
-    if (from && d < from) return false
-    if (to) {
-      const toEnd = new Date(to)
+    if (dateFrom && d < new Date(dateFrom)) return false
+    if (dateTo) {
+      const toEnd = new Date(dateTo)
       toEnd.setHours(23, 59, 59, 999)
       if (d > toEnd) return false
     }
     return true
   }
 
-  const sanitizedDateRange = useMemo(() => {
-    if (dateFrom && dateTo) return `${dateFrom} to ${dateTo}`
-    if (dateFrom) return `from ${dateFrom}`
-    if (dateTo) return `until ${dateTo}`
-    return 'All Dates'
-  }, [dateFrom, dateTo])
-
+  // ── filtered tasks (respects user role + filters) ─────────────────────────
   const filteredTasks = useMemo(() => {
-    return (tasks || []).filter((t) => {
-      // If not an admin, strictly only show tasks assigned to this user
+    return (tasks || []).filter(t => {
+      // Non-admins: only their own tasks
       if (!isAdmin) {
         const assignees = (t.assignedTo || '').toLowerCase()
         const myName = (profile?.name || '').trim().toLowerCase()
-        if (myName && !assignees.includes(myName)) {
-          return false
-        }
+        if (myName && !assignees.includes(myName)) return false
       }
-
       if (t?.client && String(t.client).toLowerCase() === 'internal') return false
       if (!isInDateRange(t)) return false
-      if (filterType === 'Company' && selectedValue) {
-        return t.client === selectedValue
-      }
-      if (filterType === 'User' && selectedValue) {
-        return (t.assignedTo || '').includes(selectedValue)
-      }
+      if (filterType === 'Company' && selectedValue && t.client !== selectedValue) return false
+      if (filterType === 'User' && selectedValue && !String(t.assignedTo || '').includes(selectedValue)) return false
       return true
     })
   }, [tasks, filterType, selectedValue, dateFrom, dateTo, isAdmin, profile])
 
-  // Compute metrics
-  const totalTasks = filteredTasks.length
-  const completed = filteredTasks.filter((t) => t.status === 'Done').length
-  const inProgress = filteredTasks.filter((t) => t.status === 'In Progress' || t.status === 'Review').length
-  const blocked = filteredTasks.filter((t) => t.status === 'Blocked').length
-  const overdue = filteredTasks.filter((t) => t.overdue).length
-  const pending = filteredTasks.filter((t) => t.status === 'Pending').length
-  const other = totalTasks - completed - inProgress - blocked - pending
+  // ── status-filtered tasks (for the table only) ───────────────────────────
+  const tableTasks = useMemo(() => {
+    if (statusFilter === 'All') return filteredTasks
+    if (statusFilter === 'Overdue') return filteredTasks.filter(t => t.overdue && t.status !== 'Done')
+    return filteredTasks.filter(t => t.status === statusFilter)
+  }, [filteredTasks, statusFilter])
 
-  const completedPct = totalTasks ? Math.round((completed / totalTasks) * 100) : 0
-  const inProgressPct = totalTasks ? Math.round((inProgress / totalTasks) * 100) : 0
-  const pendingPct = totalTasks ? Math.round((pending / totalTasks) * 100) : 0
-  const blockedPct = totalTasks ? Math.round((blocked / totalTasks) * 100) : 0
-  const otherPct = totalTasks ? Math.round((other / totalTasks) * 100) : 0
+  // ── metrics ───────────────────────────────────────────────────────────────
+  const totalTasks   = filteredTasks.length
+  const completed    = filteredTasks.filter(t => t.status === 'Done').length
+  const inProgress   = filteredTasks.filter(t => t.status === 'In Progress' || t.status === 'Review').length
+  const blocked      = filteredTasks.filter(t => t.status === 'Blocked').length
+  const overdueCount = filteredTasks.filter(t => t.overdue && t.status !== 'Done').length
+  const pending      = filteredTasks.filter(t => t.status === 'Pending').length
+  const other        = totalTasks - completed - inProgress - blocked - pending
 
-  // Calculate conic gradient string for the donut chart
-  // Order: Done -> In Progress -> Pending -> Blocked
-  // SVG Donut Chart Calculations
+  const pct = n => totalTasks ? Math.round((n / totalTasks) * 100) : 0
+  const completedPct   = pct(completed)
+  const inProgressPct  = pct(inProgress)
+  const pendingPct     = pct(pending)
+  const blockedPct     = pct(blocked)
+  const otherPct       = pct(other)
 
+  // ── activity data per user per month ────────────────────────────────────
+  const monthStr = `${actYear}-${String(actMonth).padStart(2, '0')}`
+  const todayIST = getISTDateStr()
+  const nowTimeIST = getISTTimeStr(new Date(nowTs + 5.5 * 60 * 60 * 1000))
+
+  // Build per-user activity summary for the selected month
+  const userActivitySummary = useMemo(() => {
+    const summary = {}
+    ;(activities || []).forEach(row => {
+      const loginDt = parseSheetDT(row['Login Date and Time'])
+      if (!loginDt || !loginDt.date.startsWith(monthStr)) return
+
+      const email = String(row['Employee ID'] || row.email || '').trim()
+      const name  = String(row['Full Name'] || row.Name || row.name || email || 'Unknown').trim()
+      const key   = email || name
+
+      if (!key) return
+      if (!summary[key]) {
+        summary[key] = {
+          name,
+          email,
+          totalSecs: 0,
+          sessions: 0,
+          activeDays: new Set(),
+        }
+      }
+
+      const logoutDt = parseSheetDT(row['Logout Date and Time'])
+      const loginTime  = loginDt.time
+      let   logoutTime = logoutDt?.time
+
+      // If still active today, use current IST time as logout
+      if (!logoutTime && loginDt.date === todayIST) {
+        logoutTime = nowTimeIST
+      } else if (!logoutTime) {
+        logoutTime = loginTime
+      }
+
+      const dur = Math.max(0, timeToSecs(logoutTime) - timeToSecs(loginTime))
+      summary[key].totalSecs += dur
+      summary[key].sessions  += 1
+      summary[key].activeDays.add(loginDt.date)
+    })
+
+    // Filter to admin view or self view
+    return Object.values(summary)
+      .filter(u => {
+        if (isAdmin) return true
+        const myName  = (profile?.name || '').trim().toLowerCase()
+        const myEmail = (profile?.email || '').trim().toLowerCase()
+        return u.name.toLowerCase() === myName || u.email.toLowerCase() === myEmail
+      })
+      .map(u => ({ ...u, activeDays: u.activeDays.size }))
+      .sort((a, b) => b.totalSecs - a.totalSecs)
+  }, [activities, monthStr, isAdmin, profile, todayIST, nowTimeIST])
+
+  // ── company + user breakdown table data ──────────────────────────────────
+  const companyBreakdown = useMemo(() => {
+    const breakdown = {}
+    filteredTasks.forEach(t => {
+      const company = t.client || 'General'
+      if (filterType === 'Company' && company !== selectedValue) return
+
+      let assignedUsers = (t.assignedTo || 'Unassigned')
+        .split(',').map(s => s.trim()).filter(Boolean)
+      if (assignedUsers.length === 0) assignedUsers = ['Unassigned']
+      if (filterType === 'User') {
+        assignedUsers = assignedUsers.filter(u => u === selectedValue)
+      }
+      if (!isAdmin) {
+        const myName = (profile?.name || '').trim().toLowerCase()
+        assignedUsers = assignedUsers.filter(u => u.toLowerCase() === myName)
+      }
+
+      assignedUsers.forEach(u => {
+        if (!breakdown[company]) breakdown[company] = {}
+        if (!breakdown[company][u]) {
+          breakdown[company][u] = { total:0, done:0, inProgress:0, pending:0, blocked:0, overdue:0 }
+        }
+        const d = breakdown[company][u]
+        d.total++
+        if (t.status === 'Done') d.done++
+        else if (t.status === 'In Progress' || t.status === 'Review') d.inProgress++
+        else if (t.status === 'Pending') d.pending++
+        else if (t.status === 'Blocked') d.blocked++
+        if (t.overdue && t.status !== 'Done') d.overdue++
+      })
+    })
+    return breakdown
+  }, [filteredTasks, filterType, selectedValue, isAdmin, profile])
+
+  // ── date range label ──────────────────────────────────────────────────────
+  const dateRangeLabel = useMemo(() => {
+    if (dateFrom && dateTo) return `${dateFrom} → ${dateTo}`
+    if (dateFrom) return `From ${dateFrom}`
+    if (dateTo)   return `Until ${dateTo}`
+    return 'All Dates'
+  }, [dateFrom, dateTo])
+
+  // ── month navigation for activity ─────────────────────────────────────────
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  const prevActMonth = () => {
+    if (actMonth === 1) { setActMonth(12); setActYear(y => y - 1) }
+    else setActMonth(m => m - 1)
+  }
+  const nextActMonth = () => {
+    const nowDate = new Date()
+    if (actYear > nowDate.getFullYear() || (actYear === nowDate.getFullYear() && actMonth >= nowDate.getMonth() + 1)) return
+    if (actMonth === 12) { setActMonth(1); setActYear(y => y + 1) }
+    else setActMonth(m => m + 1)
+  }
+
+  // ── PDF export ────────────────────────────────────────────────────────────
   const handleDownloadPDF = async () => {
     setIsDownloading(true)
     const element = document.getElementById('report-content')
     if (!element) return
-
     try {
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        onclone: (clonedDoc) => {
-          clonedDoc.documentElement.classList.remove('dark')
-          const clonedElement = clonedDoc.getElementById('report-content')
-          if (clonedElement) {
-            clonedElement.style.backgroundColor = '#fbf9f8'
-            clonedElement.style.padding = '40px'
-            clonedElement.style.lineHeight = '1.5'
-            clonedElement.style.fontFamily = 'Arial, Helvetica, sans-serif'
-
-            const truncates = clonedElement.querySelectorAll('.truncate')
-            truncates.forEach(el => {
-              el.classList.remove('truncate', 'max-w-[150px]', 'inline-block')
-            })
-
-            const selects = clonedElement.querySelectorAll('select')
-            selects.forEach(sel => {
-              const selectedText = sel.options[sel.selectedIndex]?.text || ''
-              const span = clonedDoc.createElement('span')
-              span.innerText = selectedText
-              span.style.cssText = 'display: inline-flex; align-items: center; padding: 10px 16px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; line-height: 1.4; white-space: nowrap;'
-              sel.parentNode.replaceChild(span, sel)
-            })
-
-            const dateInputs = clonedElement.querySelectorAll('input[type="date"]')
-            dateInputs.forEach(input => {
-              const span = clonedDoc.createElement('span')
-              span.innerText = input.value || '—'
-              span.style.cssText = 'display: inline-flex; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px solid #E5E7EB; background: white; font-size: 13px; font-weight: 600; color: #1E1B2E; line-height: 1.4;'
-              input.parentNode.replaceChild(span, input)
-            })
-
-            const dropdownTriggers = clonedElement.querySelectorAll('[style*="overflow: hidden"]')
-            dropdownTriggers.forEach(el => {
-              if (el.style.overflow === 'hidden') el.style.overflow = 'visible'
-              el.style.lineHeight = '1.4'
-              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
-            })
-
-            const badges = clonedElement.querySelectorAll('span[class*="rounded-full"], span[class*="rounded"]')
-            badges.forEach(el => {
-              el.style.paddingTop = '4px'
-              el.style.paddingBottom = '4px'
-              el.style.lineHeight = '1.3'
-            })
-
-            const allSpans = clonedElement.querySelectorAll('span')
-            allSpans.forEach(el => {
-              if (el.classList.contains('material-symbols-outlined') || (el.className && el.className.includes('material-symbols'))) return
-              el.style.lineHeight = '1.5'
-              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
-            })
-
-            const allTdTh = clonedElement.querySelectorAll('td, th')
-            allTdTh.forEach(el => {
-              el.style.lineHeight = '1.5'
-              el.style.paddingTop = '14px'
-              el.style.paddingBottom = '14px'
-              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
-            })
-
-            const headings = clonedElement.querySelectorAll('h2, h3, h4')
-            headings.forEach(el => {
-              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
-            })
-
-            const labels = clonedElement.querySelectorAll('label, p, button')
-            labels.forEach(el => {
-              el.style.fontFamily = 'Arial, Helvetica, sans-serif'
-              el.style.lineHeight = '1.5'
-            })
-          }
+        onclone: clonedDoc => {
+          const el = clonedDoc.getElementById('report-content')
+          if (!el) return
+          el.style.backgroundColor = '#fbf9f8'
+          el.style.padding = '32px'
+          el.style.fontFamily = 'Arial, Helvetica, sans-serif'
+          // Replace select/date inputs with readable text
+          el.querySelectorAll('select').forEach(sel => {
+            const span = clonedDoc.createElement('span')
+            span.innerText = sel.options[sel.selectedIndex]?.text || ''
+            span.style.cssText = 'display:inline-flex;padding:8px 14px;border-radius:10px;border:1px solid #E5E7EB;background:white;font-size:13px;font-weight:600;'
+            sel.parentNode.replaceChild(span, sel)
+          })
+          el.querySelectorAll('input[type="date"]').forEach(inp => {
+            const span = clonedDoc.createElement('span')
+            span.innerText = inp.value || '—'
+            span.style.cssText = 'display:inline-flex;padding:8px 12px;border-radius:10px;border:1px solid #E5E7EB;background:white;font-size:13px;font-weight:600;'
+            inp.parentNode.replaceChild(span, inp)
+          })
+          el.querySelectorAll('td, th').forEach(c => {
+            c.style.lineHeight = '1.5'
+            c.style.fontFamily = 'Arial, Helvetica, sans-serif'
+          })
         }
       })
-
       const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      })
-
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+      const pw = pdf.internal.pageSize.getWidth()
+      const ph = pdf.internal.pageSize.getHeight()
       const margin = 6
-      const usableWidth = pageWidth - margin * 2
-      const usableHeight = pageHeight - margin * 2
-
-      const contentRatio = canvas.height / canvas.width
-      const pageRatio = usableHeight / usableWidth
-
-      if (contentRatio <= pageRatio) {
-        const imgHeight = usableWidth * contentRatio
-        const yOffset = margin + (usableHeight - imgHeight) / 2
-        pdf.addImage(imgData, 'PNG', margin, yOffset, usableWidth, imgHeight)
+      const uw = pw - margin * 2
+      const uh = ph - margin * 2
+      const ratio = canvas.height / canvas.width
+      if (ratio <= uh / uw) {
+        pdf.addImage(imgData, 'PNG', margin, margin + (uh - uw * ratio) / 2, uw, uw * ratio)
       } else {
-        const totalPages = (contentRatio * usableWidth) / usableHeight
-        if (totalPages <= 1.35) {
-          const scale = usableHeight / (usableWidth * contentRatio)
-          pdf.addImage(imgData, 'PNG', margin, margin, usableWidth * scale, usableHeight)
-        } else {
-          const sliceH = Math.round((usableHeight * canvas.width) / usableWidth)
-          let remaining = canvas.height
-          let srcY = 0
-          while (remaining > 0) {
-            if (srcY > 0) pdf.addPage()
-            const pageH = Math.min(remaining, sliceH)
-            const pageCanvas = document.createElement('canvas')
-            pageCanvas.width = canvas.width
-            pageCanvas.height = pageH
-            const ctx = pageCanvas.getContext('2d')
-            ctx.drawImage(canvas, 0, srcY, canvas.width, pageH, 0, 0, canvas.width, pageH)
-            const pageImgData = pageCanvas.toDataURL('image/png')
-            const pageImgH = (pageH / canvas.width) * usableWidth
-            pdf.addImage(pageImgData, 'PNG', margin, margin, usableWidth, pageImgH)
-            srcY += pageH
-            remaining -= pageH
-          }
+        const sliceH = Math.round((uh * canvas.width) / uw)
+        let remaining = canvas.height, srcY = 0
+        while (remaining > 0) {
+          if (srcY > 0) pdf.addPage()
+          const pageH = Math.min(remaining, sliceH)
+          const pc = document.createElement('canvas')
+          pc.width = canvas.width; pc.height = pageH
+          pc.getContext('2d').drawImage(canvas, 0, srcY, canvas.width, pageH, 0, 0, canvas.width, pageH)
+          const pH2 = (pageH / canvas.width) * uw
+          pdf.addImage(pc.toDataURL('image/png'), 'PNG', margin, margin, uw, pH2)
+          srcY += pageH; remaining -= pageH
         }
       }
-
-      const sanitizedRange = sanitizedDateRange.replace(/\s+/g, '_').replace(/-/g, '')
-      const sanitizedValue = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
-      const fileName = `Dreamsdesk_Report_${sanitizedRange}_${sanitizedValue}.pdf`
-
-      pdf.save(fileName)
-    } catch (error) {
-      console.error('Failed to generate PDF:', error)
+      const rangeSlug = dateRangeLabel.replace(/\s+/g, '_').replace(/[→]/g, '-')
+      const valSlug   = filterType === 'Overall' ? 'Overall' : selectedValue.replace(/\s+/g, '_')
+      pdf.save(`Dreamsdesk_Report_${rangeSlug}_${valSlug}.pdf`)
+    } catch (err) {
+      console.error(err)
       addToast('Failed to generate PDF. Please try again.', 'error')
     } finally {
       setIsDownloading(false)
     }
   }
 
+  // ── status pill helper ────────────────────────────────────────────────────
+  const StatusBadge = ({ status, dueDate, statusUpdatedOn }) => {
+    let isDoneLate = false
+    if (status === 'Done' && dueDate && statusUpdatedOn) {
+      const due = new Date(dueDate)
+      due.setHours(23, 59, 59, 999)
+      if (new Date(statusUpdatedOn) > due) isDoneLate = true
+    }
+    const label = isDoneLate ? 'Done (Late)' : status
+    const s = isDoneLate
+      ? { bg: '#FEF3C7', text: '#B45309' }
+      : statusStyle(status)
+    return (
+      <span
+        style={{
+          background: s.bg, color: s.text,
+          padding: '2px 9px', borderRadius: 99,
+          fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+          whiteSpace: 'nowrap'
+        }}
+      >{label}</span>
+    )
+  }
+
+  // ── all statuses for the filter pill row ─────────────────────────────────
+  const statusOptions = ['All', 'Done', 'In Progress', 'Pending', 'Blocked', 'Review', 'Overdue']
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="bg-[#F0EDF8] font-['Inter',sans-serif] text-[#151c27] overflow-hidden h-screen flex">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F8; border-radius: 10px; }
-
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .donut-segment {
-          transition: stroke-dasharray 0.3s ease;
-        }
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(112,44,145,0.10); }
+        .act-row:hover { background: #faf5ff; }
+        .task-row:hover { background: #faf5ff; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+        .fade-up { animation: fadeUp 0.35s ease both; }
+        .status-pill { cursor:pointer; transition: all 0.15s; }
+        .status-pill:hover { filter: brightness(0.94); }
       `}</style>
 
       <Sidebar />
@@ -256,538 +408,480 @@ export default function MonthlyReportPage() {
       <main className="page-main">
         <TopNav title="Reports" showSearch={false} />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-5 pb-6 animate-fade-in-up">
-          <div id="report-content" className="w-full">
-            
-            {/* Header Row */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-5 pb-8 fade-up">
+          <div id="report-content" className="w-full max-w-[1300px] mx-auto">
+
+            {/* ── Header ── */}
             <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-              <h2 className="text-[26px] font-bold text-[#702c91] m-0">Report Analysis</h2>
+              <div>
+                <h2 style={{ fontSize: 26, fontWeight: 900, color: '#702c91', margin: 0, lineHeight: 1.2 }}>
+                  Report Analysis
+                </h2>
+                <p style={{ fontSize: 13, color: '#9CA3AF', margin: '4px 0 0', fontWeight: 500 }}>
+                  {dateRangeLabel} · {filterType === 'Overall' ? 'All Users' : selectedValue}
+                </p>
+              </div>
+              <button
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                data-html2canvas-ignore
+                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#ec008c] rounded-lg text-[13px] font-bold text-[#702c91] shadow-sm hover:bg-purple-50 transition-colors disabled:opacity-70 disabled:cursor-wait"
+              >
+                {isDownloading
+                  ? <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Generating…</>
+                  : <><span className="material-symbols-outlined text-[18px]">download</span>Download PDF</>
+                }
+              </button>
             </div>
 
-            {/* Filter Tabs & Date Range */}
-            <div className="flex flex-wrap items-center gap-4 mb-8">
+            {/* ── Filters Row ── */}
+            <div className="flex flex-wrap items-center gap-3 mb-7"
+              style={{ background: 'white', borderRadius: 16, padding: '14px 18px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(112,44,145,0.04)' }}>
+
+              {/* Filter type tabs */}
               <div className="flex bg-[#F3F4F6] p-1 rounded-lg w-max" style={{ flexShrink: 0 }}>
                 {['Overall', 'Company', 'User'].map(type => {
-                  if (type === 'User' && !isAdmin) return null;
+                  if (type === 'User' && !isAdmin) return null
                   return (
-                  <button
-                    key={type}
-                    onClick={() => handleFilterChange(type)}
-                    className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
-                      filterType === type 
-                        ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm' 
-                        : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                )})}
+                    <button
+                      key={type}
+                      onClick={() => handleFilterChange(type)}
+                      className={`px-4 py-1.5 rounded-full text-[13px] font-bold cursor-pointer transition-all border-none ${
+                        filterType === type
+                          ? 'bg-gradient-to-r from-[#702c91] to-[#ec008c] text-white shadow-sm'
+                          : 'bg-transparent text-[#6B7280] hover:text-[#1E1B2E]'
+                      }`}
+                    >{type}</button>
+                  )
+                })}
               </div>
 
               {filterType === 'Company' && (
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT COMPANY:</span>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 220, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>Company:</span>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={clients} style={{ width: 200, flexShrink: 0 }} />
                 </div>
               )}
               {filterType === 'User' && (
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>SELECT USER:</span>
-                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 220, flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>User:</span>
+                  <SelectDropdown value={selectedValue} onChange={setSelectedValue} options={users} style={{ width: 200, flexShrink: 0 }} />
                 </div>
               )}
 
               <div style={{ flex: '1 1 0' }} />
 
-              <div className="flex items-center gap-3">
-                <div style={{ position: 'relative', width: 160, overflow: 'visible', paddingTop: 8 }}>
+              {/* Date range */}
+              <div className="flex items-center gap-2">
+                <div style={{ position: 'relative', paddingTop: 8 }}>
                   <input
-                    type="date"
-                    value={dateFrom}
-                    onChange={e => setDateFrom(e.target.value)}
-                    style={{
-                      width: '100%',
-                      background: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: 12,
-                      padding: '10px 12px',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: '#1E1B2E',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      minHeight: 44,
-                      fontFamily: 'Inter, sans-serif',
-                      transition: 'border-color 0.2s, box-shadow 0.2s',
-                    }}
-                    onFocus={e => { e.target.style.borderColor = '#702c91'; e.target.style.boxShadow = '0 0 0 3px rgba(112,44,145,0.1)' }}
-                    onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none' }}
+                    type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                    style={{ width: 148, background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#1E1B2E', outline: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                    onFocus={e => e.target.style.borderColor = '#702c91'}
+                    onBlur={e => e.target.style.borderColor = '#E5E7EB'}
                   />
-                  <span style={{
-                    position: 'absolute',
-                    left: 12,
-                    top: 0,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: '#9CA3AF',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background: 'white',
-                    padding: '0 4px',
-                    pointerEvents: 'none',
-                    lineHeight: 1,
-                  }}>From</span>
+                  <span style={{ position:'absolute', left:10, top:0, fontSize:9, fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.05em', background:'white', padding:'0 4px', pointerEvents:'none', lineHeight:1 }}>From</span>
                 </div>
-                <div style={{ position: 'relative', width: 160, overflow: 'visible', paddingTop: 8 }}>
+                <div style={{ position: 'relative', paddingTop: 8 }}>
                   <input
-                    type="date"
-                    value={dateTo}
-                    onChange={e => setDateTo(e.target.value)}
-                    style={{
-                      width: '100%',
-                      background: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: 12,
-                      padding: '10px 12px',
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: '#1E1B2E',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      minHeight: 44,
-                      fontFamily: 'Inter, sans-serif',
-                      transition: 'border-color 0.2s, box-shadow 0.2s',
-                    }}
-                    onFocus={e => { e.target.style.borderColor = '#702c91'; e.target.style.boxShadow = '0 0 0 3px rgba(112,44,145,0.1)' }}
-                    onBlur={e => { e.target.style.borderColor = '#E5E7EB'; e.target.style.boxShadow = 'none' }}
+                    type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                    style={{ width: 148, background: 'white', border: '1px solid #E5E7EB', borderRadius: 10, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#1E1B2E', outline: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                    onFocus={e => e.target.style.borderColor = '#702c91'}
+                    onBlur={e => e.target.style.borderColor = '#E5E7EB'}
                   />
-                  <span style={{
-                    position: 'absolute',
-                    left: 12,
-                    top: 0,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: '#9CA3AF',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background: 'white',
-                    padding: '0 4px',
-                    pointerEvents: 'none',
-                    lineHeight: 1,
-                  }}>To</span>
+                  <span style={{ position:'absolute', left:10, top:0, fontSize:9, fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.05em', background:'white', padding:'0 4px', pointerEvents:'none', lineHeight:1 }}>To</span>
                 </div>
+                {(dateFrom || dateTo) && (
+                  <button
+                    onClick={() => { setDateFrom(''); setDateTo('') }}
+                    style={{ background:'#FEE2E2', color:'#DC2626', border:'none', borderRadius:8, padding:'6px 10px', fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:3 }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize:14 }}>close</span>Clear
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              {/* Total Tasks */}
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#ec008c]"></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Total Tasks</p>
-                    <h3 className="text-[32px] font-black text-[#702c91] leading-none m-0">{totalTasks}</h3>
+            {/* ── Summary Cards ── */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-7">
+              {[
+                { label: 'Total',       value: totalTasks,   color: '#702c91', icon: 'assignment',    bg: '#F5F3FF' },
+                { label: 'Done',        value: completed,    color: '#16A34A', icon: 'check_circle',  bg: '#DCFCE7', pct: completedPct },
+                { label: 'In Progress', value: inProgress,   color: '#B45309', icon: 'more_horiz',    bg: '#FEF9C3', pct: inProgressPct },
+                { label: 'Pending',     value: pending,      color: '#1D4ED8', icon: 'schedule',      bg: '#EFF6FF', pct: pendingPct },
+                { label: 'Blocked',     value: blocked,      color: '#DC2626', icon: 'block',         bg: '#FEE2E2', pct: blockedPct },
+                { label: 'Overdue',     value: overdueCount, color: '#EA580C', icon: 'warning',       bg: '#FFEDD5', pct: overdueCount > 0 ? Math.round(overdueCount / Math.max(totalTasks,1) * 100) : 0 },
+              ].map(({ label, value, color, icon, bg, pct: p }) => (
+                <div key={label} className="stat-card bg-white rounded-xl p-4 shadow-sm border border-[#E5E7EB] flex flex-col gap-2 cursor-default"
+                  onClick={() => { if (label !== 'Total') setStatusFilter(statusFilter === label ? 'All' : label) }}
+                  style={{ outline: statusFilter === label ? `2px solid ${color}` : 'none', cursor: label !== 'Total' ? 'pointer' : 'default' }}
+                >
+                  <div className="flex items-center justify-between">
+                    <p style={{ margin:0, fontSize:10, fontWeight:700, color:'#9CA3AF', textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</p>
+                    <div style={{ width:28, height:28, borderRadius:'50%', background:bg, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize:16, color }}>{icon}</span>
+                    </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#702c91]">assignment</span>
-                  </div>
+                  <p style={{ margin:0, fontSize:28, fontWeight:900, color, lineHeight:1 }}>{value}</p>
+                  {p !== undefined && (
+                    <div style={{ width:'100%', height:3, background:'#F3F4F6', borderRadius:99 }}>
+                      <div style={{ width:`${p}%`, height:'100%', background:color, borderRadius:99, transition:'width 0.4s' }} />
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              {/* Completed */}
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#10B981]"></div>
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Completed</p>
-                    <h3 className="text-[32px] font-black text-[#10B981] leading-none m-0">{completed}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#10B981]">check_circle</span>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-[#10B981] h-full rounded-full" style={{ width: `${completedPct}%` }}></div>
-                </div>
-              </div>
-
-              {/* In Progress */}
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#F59E0B]"></div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">In Progress</p>
-                    <h3 className="text-[32px] font-black text-[#F59E0B] leading-none m-0">{inProgress}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#F59E0B]">more_horiz</span>
-                  </div>
-                </div>
-                <p className="text-[11px] font-medium text-[#6B7280] m-0">{inProgress > 0 ? 'Tasks being worked on' : 'No active tasks'}</p>
-              </div>
-
-              {/* Overdue */}
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-[#E5E7EB] relative overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-900/10 cursor-default">
-                <div className="absolute top-0 left-0 w-full h-1 bg-[#EF4444]"></div>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-[11px] font-bold text-[#9CA3AF] uppercase tracking-wider mb-1">Overdue</p>
-                    <h3 className="text-[32px] font-black text-[#EF4444] leading-none m-0">{overdue}</h3>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#EF4444]">warning</span>
-                  </div>
-                </div>
-                <p className={`text-[11px] font-bold m-0 ${overdue > 0 ? 'text-[#EF4444]' : 'text-[#10B981]'}`}>
-                  {overdue > 0 ? 'Requires attention!' : 'All on track'}
-                </p>
-              </div>
+              ))}
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              {/* Status Breakdown */}
-              <div>
-                <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-6 flex items-center gap-2">
-                  Status Breakdown
-                </h3>
-                <div className="flex items-center gap-8 bg-white p-6 rounded-xl border border-[#E5E7EB] shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-purple-900/5 hover:-translate-y-1">
-                  
-                  {/* SVG Donut Chart */}
-                  <div className="relative w-40 h-40 shrink-0">
-                    <svg viewBox="0 0 42 42" className="w-full h-full -rotate-90">
-                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#E5E7EB" strokeWidth="6"></circle>
-                      {/* Done */}
-                      {completedPct > 0 && (
-                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#10B981" strokeWidth="6" 
-                          strokeDasharray={`${completedPct} 100`} 
-                          strokeDashoffset="0"></circle>
-                      )}
-                      {/* In Progress */}
-                      {inProgressPct > 0 && (
-                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F59E0B" strokeWidth="6" 
-                          strokeDasharray={`${inProgressPct} 100`} 
-                          strokeDashoffset={-completedPct}></circle>
-                      )}
-                      {/* Pending */}
-                      {pendingPct > 0 && (
-                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3B82F6" strokeWidth="6" 
-                          strokeDasharray={`${pendingPct} 100`} 
-                          strokeDashoffset={-(completedPct + inProgressPct)}></circle>
-                      )}
-                      {/* Blocked */}
-                      {blockedPct > 0 && (
-                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#EF4444" strokeWidth="6" 
-                          strokeDasharray={`${blockedPct} 100`} 
-                          strokeDashoffset={-(completedPct + inProgressPct + pendingPct)}></circle>
-                      )}
-                      {/* Other */}
-                      {otherPct > 0 && (
-                        <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#9CA3AF" strokeWidth="6" 
-                          strokeDasharray={`${otherPct} 100`} 
-                          strokeDashoffset={-(completedPct + inProgressPct + pendingPct + blockedPct)}></circle>
-                      )}
+            {/* ── Charts Row ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-7">
+
+              {/* Donut chart */}
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-5">
+                <h3 style={{ margin:'0 0 16px', fontSize:15, fontWeight:800, color:'#1E1B2E' }}>Status Breakdown</h3>
+                <div className="flex items-center gap-8">
+                  <div style={{ position:'relative', width:140, height:140, flexShrink:0 }}>
+                    <svg viewBox="0 0 42 42" style={{ width:'100%', height:'100%', transform:'rotate(-90deg)' }}>
+                      <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#E5E7EB" strokeWidth="6" />
+                      {completedPct  > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#22C55E" strokeWidth="6" strokeDasharray={`${completedPct} 100`} strokeDashoffset="0" />}
+                      {inProgressPct > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F59E0B" strokeWidth="6" strokeDasharray={`${inProgressPct} 100`} strokeDashoffset={-completedPct} />}
+                      {pendingPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3B82F6" strokeWidth="6" strokeDasharray={`${pendingPct} 100`} strokeDashoffset={-(completedPct + inProgressPct)} />}
+                      {blockedPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#EF4444" strokeWidth="6" strokeDasharray={`${blockedPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + pendingPct)} />}
+                      {otherPct      > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#9CA3AF" strokeWidth="6" strokeDasharray={`${otherPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + pendingPct + blockedPct)} />}
                     </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-[20px] font-black text-[#1E1B2E]">{totalTasks}</span>
-                      <span className="text-[11px] text-[#6B7280] font-medium">Total</span>
+                    <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
+                      <span style={{ fontSize:20, fontWeight:900, color:'#1E1B2E', lineHeight:1 }}>{totalTasks}</span>
+                      <span style={{ fontSize:10, color:'#6B7280', fontWeight:600 }}>Total</span>
                     </div>
                   </div>
-                  
-                  {/* Legend */}
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
-                      <span className="text-[13px] font-bold text-[#4B5563]">Done ({completedPct}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-                      <span className="text-[13px] font-bold text-[#4B5563]">In Progress ({inProgressPct}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#3B82F6]"></div>
-                      <span className="text-[13px] font-bold text-[#4B5563]">Pending ({pendingPct}%)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-[#EF4444]"></div>
-                      <span className="text-[13px] font-bold text-[#4B5563]">Blocked ({blockedPct}%)</span>
-                    </div>
-                    {otherPct > 0 && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#9CA3AF]"></div>
-                        <span className="text-[13px] font-bold text-[#4B5563]">Other ({otherPct}%)</span>
+                  <div className="flex flex-col gap-2.5">
+                    {[
+                      { label:'Done',        pct:completedPct,  color:'#22C55E' },
+                      { label:'In Progress', pct:inProgressPct, color:'#F59E0B' },
+                      { label:'Pending',     pct:pendingPct,    color:'#3B82F6' },
+                      { label:'Blocked',     pct:blockedPct,    color:'#EF4444' },
+                      ...(otherPct > 0 ? [{ label:'Other', pct:otherPct, color:'#9CA3AF' }] : []),
+                    ].map(({ label, pct: p, color }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }} />
+                        <span style={{ fontSize:12, fontWeight:700, color:'#4B5563' }}>{label}</span>
+                        <span style={{ fontSize:12, color:'#9CA3AF', fontWeight:600, marginLeft:'auto', minWidth:36, textAlign:'right' }}>{p}%</span>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Key Insights */}
-              <div>
-                <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-6 flex items-center gap-2">
-                  Key Insights
-                </h3>
-                <div className="flex flex-col gap-4">
-                  <div className="bg-white border-l-4 border-[#ec008c] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-purple-50 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="material-symbols-outlined text-[#702c91] text-[14px]">info</span>
-                      </div>
-                      <div>
-                        <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Completion Rate</h4>
-                        <p className="text-[12px] text-[#6B7280] m-0">{filterType === 'Overall' ? 'Overall' : selectedValue} has a completion rate of {completedPct}%. {completedPct > 50 ? 'Great progress!' : 'There is room for improvement.'}</p>
-                      </div>
-                    </div>
+              {/* Key insights */}
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm p-5">
+                <h3 style={{ margin:'0 0 16px', fontSize:15, fontWeight:800, color:'#1E1B2E' }}>Key Insights</h3>
+                <div className="flex flex-col gap-3">
+                  <div style={{ borderLeft:`4px solid #ec008c`, paddingLeft:12, paddingTop:6, paddingBottom:6 }}>
+                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>Completion Rate</p>
+                    <p style={{ margin:'2px 0 0', fontSize:12, color:'#6B7280' }}>
+                      {filterType === 'Overall' ? 'Overall' : selectedValue} — <strong style={{ color:'#702c91' }}>{completedPct}%</strong> done.{' '}
+                      {completedPct >= 70 ? '🎉 Great progress!' : completedPct >= 40 ? '📈 Making progress.' : '⚠️ Needs attention.'}
+                    </p>
                   </div>
-                  
-                  <div className="bg-white border-l-4 border-[#F59E0B] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-yellow-50 flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="material-symbols-outlined text-[#F59E0B] text-[14px]">arrow_forward</span>
-                      </div>
-                      <div>
-                        <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Active Workload</h4>
-                        <p className="text-[12px] text-[#6B7280] m-0">There are {inProgress} tasks currently actively being worked on.</p>
-                      </div>
-                    </div>
+                  <div style={{ borderLeft:`4px solid #F59E0B`, paddingLeft:12, paddingTop:6, paddingBottom:6 }}>
+                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>Active Workload</p>
+                    <p style={{ margin:'2px 0 0', fontSize:12, color:'#6B7280' }}>
+                      <strong style={{ color:'#B45309' }}>{inProgress}</strong> task{inProgress !== 1 ? 's' : ''} currently in progress.{' '}
+                      <strong style={{ color:'#1D4ED8' }}>{pending}</strong> pending.
+                    </p>
                   </div>
-                  
-                  {overdue > 0 && (
-                    <div className="bg-white border-l-4 border-[#EF4444] p-4 rounded-r-xl shadow-sm border-y border-r border-[#E5E7EB] transition-all duration-300 hover:translate-x-1 hover:shadow-md cursor-default">
-                      <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="material-symbols-outlined text-[#EF4444] text-[14px]">warning</span>
-                        </div>
-                        <div>
-                          <h4 className="text-[14px] font-bold text-[#1E1B2E] m-0 mb-1">Overdue Alerts</h4>
-                          <p className="text-[12px] text-[#6B7280] m-0">{overdue} tasks are overdue. Immediate follow up is recommended.</p>
-                        </div>
-                      </div>
+                  {overdueCount > 0 && (
+                    <div style={{ borderLeft:`4px solid #EF4444`, paddingLeft:12, paddingTop:6, paddingBottom:6 }}>
+                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>Overdue Alert</p>
+                      <p style={{ margin:'2px 0 0', fontSize:12, color:'#6B7280' }}>
+                        <strong style={{ color:'#DC2626' }}>{overdueCount}</strong> task{overdueCount !== 1 ? 's are' : ' is'} overdue. Immediate follow-up recommended.
+                      </p>
+                    </div>
+                  )}
+                  {overdueCount === 0 && (
+                    <div style={{ borderLeft:`4px solid #22C55E`, paddingLeft:12, paddingTop:6, paddingBottom:6 }}>
+                      <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>All On Track</p>
+                      <p style={{ margin:'2px 0 0', fontSize:12, color:'#6B7280' }}>No overdue tasks. 🟢 Everything on schedule.</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-          {/* Company & User Breakdown */}
-            <div className="mb-10">
-              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4 flex items-center gap-2">
+            {/* ── User Activity Summary ── */}
+            <div className="mb-7">
+              <div className="flex items-center justify-between mb-3">
+                <h3 style={{ margin:0, fontSize:15, fontWeight:800, color:'#1E1B2E', display:'flex', alignItems:'center', gap:8 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize:18, color:'#702c91' }}>monitoring</span>
+                  User Activity
+                </h3>
+                {/* Month navigator */}
+                <div className="flex items-center gap-2">
+                  <button onClick={prevActMonth} style={{ background:'white', border:'1px solid #E5E7EB', borderRadius:8, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize:16 }}>chevron_left</span>
+                  </button>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#1E1B2E', minWidth:90, textAlign:'center' }}>
+                    {monthNames[actMonth - 1]} {actYear}
+                  </span>
+                  <button onClick={nextActMonth} style={{ background:'white', border:'1px solid #E5E7EB', borderRadius:8, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize:16 }}>chevron_right</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+                {actLoading ? (
+                  <div style={{ padding:32, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>
+                    <span className="material-symbols-outlined animate-spin" style={{ fontSize:24, display:'block', margin:'0 auto 8px' }}>progress_activity</span>
+                    Loading activity data…
+                  </div>
+                ) : userActivitySummary.length === 0 ? (
+                  <div style={{ padding:32, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>
+                    No activity data found for {monthNames[actMonth - 1]} {actYear}.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto hide-scrollbar">
+                    <table className="w-full text-left border-collapse" style={{ minWidth:700 }}>
+                      <thead>
+                        <tr style={{ background:'#F9FAFB', borderBottom:'1px solid #E5E7EB' }}>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em' }}>Employee</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Active Days</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Sessions</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Total Hours Worked</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Avg/Day</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Tasks Assigned</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Tasks Done</th>
+                          <th style={{ padding:'10px 16px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign:'right' }}>Completion %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userActivitySummary.map((u, idx) => {
+                          const avgSecs = u.activeDays > 0 ? Math.floor(u.totalSecs / u.activeDays) : 0
+                          // Match tasks for this user
+                          const userTasks = filteredTasks.filter(t =>
+                            String(t.assignedTo || '').split(',').map(s => s.trim()).some(name =>
+                              name.toLowerCase() === u.name.toLowerCase() ||
+                              (u.email && name.toLowerCase() === u.email.toLowerCase())
+                            )
+                          )
+                          const userDone = userTasks.filter(t => t.status === 'Done').length
+                          const userTotal = userTasks.length
+                          const userPct = userTotal > 0 ? Math.round(userDone / userTotal * 100) : 0
+                          return (
+                            <tr key={u.email || u.name} className="act-row" style={{ borderBottom: idx < userActivitySummary.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                              <td style={{ padding:'12px 16px' }}>
+                                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                                  <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#702c91,#ec008c)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:13, fontWeight:800, flexShrink:0 }}>
+                                    {u.name.slice(0,1).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:'#1E1B2E' }}>{u.name}</p>
+                                    {u.email && <p style={{ margin:0, fontSize:11, color:'#9CA3AF' }}>{u.email}</p>}
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding:'12px 16px', textAlign:'right', fontSize:13, fontWeight:700, color:'#702c91' }}>{u.activeDays}</td>
+                              <td style={{ padding:'12px 16px', textAlign:'right', fontSize:13, fontWeight:600, color:'#4B5563' }}>{u.sessions}</td>
+                              <td style={{ padding:'12px 16px', textAlign:'right' }}>
+                                <span style={{ fontSize:14, fontWeight:900, color:'#1E1B2E' }}>{fmtDur(u.totalSecs)}</span>
+                              </td>
+                              <td style={{ padding:'12px 16px', textAlign:'right', fontSize:12, color:'#6B7280', fontWeight:600 }}>{fmtDur(avgSecs)}</td>
+                              <td style={{ padding:'12px 16px', textAlign:'right', fontSize:13, fontWeight:700, color:'#1E1B2E' }}>{userTotal}</td>
+                              <td style={{ padding:'12px 16px', textAlign:'right', fontSize:13, fontWeight:700, color:'#16A34A' }}>{userDone}</td>
+                              <td style={{ padding:'12px 16px', textAlign:'right' }}>
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8 }}>
+                                  <div style={{ width:60, height:4, background:'#F3F4F6', borderRadius:99, overflow:'hidden' }}>
+                                    <div style={{ width:`${userPct}%`, height:'100%', background: userPct >= 70 ? '#22C55E' : userPct >= 40 ? '#F59E0B' : '#EF4444', borderRadius:99, transition:'width 0.4s' }} />
+                                  </div>
+                                  <span style={{ fontSize:12, fontWeight:800, color: userPct >= 70 ? '#16A34A' : userPct >= 40 ? '#B45309' : '#DC2626', minWidth:32, textAlign:'right' }}>{userPct}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── Company & User Breakdown ── */}
+            <div className="mb-7">
+              <h3 style={{ margin:'0 0 12px', fontSize:15, fontWeight:800, color:'#1E1B2E', display:'flex', alignItems:'center', gap:8 }}>
+                <span className="material-symbols-outlined" style={{ fontSize:18, color:'#702c91' }}>corporate_fare</span>
                 Company & User Breakdown
               </h3>
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto hide-scrollbar">
-                  <table className="block lg:table w-full text-left border-collapse min-w-full lg:min-w-[900px]">
-                    <thead className="hidden lg:table-header-group">
-                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">Company</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider">User</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Total</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Done</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">In Progress</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Pending</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Blocked</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right">Overdue</th>
+                  <table className="w-full text-left border-collapse" style={{ minWidth:860 }}>
+                    <thead>
+                      <tr style={{ background:'#F9FAFB', borderBottom:'1px solid #E5E7EB' }}>
+                        {['Company','User','Total','Done','In Progress','Pending','Blocked','Overdue'].map(h => (
+                          <th key={h} style={{ padding:'10px 14px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign: h === 'Company' || h === 'User' ? 'left' : 'right' }}>{h}</th>
+                        ))}
                       </tr>
                     </thead>
-                    <tbody className="block lg:table-row-group divide-y lg:divide-none divide-[#E5E7EB]">
-                      {(() => {
-                        const breakdown = {}
-                        filteredTasks.forEach(t => {
-                          const company = t.client || 'General'
-                          if (filterType === 'Company' && company !== selectedValue) return
-                          let assignedUsers = (t.assignedTo || 'Unassigned').split(',').map(s => s.trim()).filter(Boolean)
-                          if (assignedUsers.length === 0) assignedUsers.push('Unassigned')
-                          if (filterType === 'User') assignedUsers = assignedUsers.filter(u => u === selectedValue)
-                          
-                          if (!isAdmin) {
-                            const myName = String(profile?.name || '').trim().toLowerCase()
-                            assignedUsers = assignedUsers.filter(u => u.toLowerCase() === myName)
-                          }
-
-                          assignedUsers.forEach(u => {
-                            if (!breakdown[company]) breakdown[company] = {}
-                            if (!breakdown[company][u]) {
-                              breakdown[company][u] = { total: 0, done: 0, inProgress: 0, pending: 0, blocked: 0, overdue: 0 }
-                            }
-                            breakdown[company][u].total++
-                            if (t.status === 'Done') breakdown[company][u].done++
-                            else if (t.status === 'In Progress' || t.status === 'Review') breakdown[company][u].inProgress++
-                            else if (t.status === 'Pending') breakdown[company][u].pending++
-                            else if (t.status === 'Blocked') breakdown[company][u].blocked++
-                            if (t.overdue && t.status !== 'Done') breakdown[company][u].overdue++
-                          })
-                        })
-                        const companyNames = Object.keys(breakdown).sort()
-                        if (companyNames.length === 0) {
-                          return (
-                            <tr className="block lg:table-row">
-                              <td colSpan="8" className="block lg:table-cell text-center py-8 text-secondary text-sm">No data for this selection.</td>
-                            </tr>
-                          )
-                        }
-                        const rows = []
-                        companyNames.forEach((company, ci) => {
-                          const userNames = Object.keys(breakdown[company]).sort()
-                          userNames.forEach((u, ui) => {
-                            const d = breakdown[company][u]
-                            rows.push(
-                              <tr key={`${company}-${u}`} className={`block lg:table-row border-b border-[#E5E7EB] ${ci === companyNames.length - 1 && ui === userNames.length - 1 ? 'border-b-0' : ''} transition-all lg:hover:bg-purple-50/40`}>
+                    <tbody>
+                      {Object.keys(companyBreakdown).sort().length === 0 ? (
+                        <tr><td colSpan={8} style={{ padding:32, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>No data for this selection.</td></tr>
+                      ) : (
+                        Object.keys(companyBreakdown).sort().flatMap((company, ci, arr) =>
+                          Object.keys(companyBreakdown[company]).sort().map((u, ui, uArr) => {
+                            const d = companyBreakdown[company][u]
+                            return (
+                              <tr key={`${company}-${u}`}
+                                style={{ borderBottom: (ci === arr.length-1 && ui === uArr.length-1) ? 'none' : '1px solid #F3F4F6' }}
+                                className="act-row"
+                              >
                                 {ui === 0 ? (
-                                  <td className="block lg:table-cell py-3 px-4 lg:py-4 lg:px-5 text-[13px] font-bold text-[#702c91] border-b border-gray-100 lg:border-none" rowSpan={userNames.length}>
-                                    <div className="flex items-center gap-2">
-                                      <span className="material-symbols-outlined text-[18px]">business</span>
+                                  <td rowSpan={uArr.length} style={{ padding:'12px 14px', fontSize:13, fontWeight:800, color:'#702c91', verticalAlign:'top', borderRight:'1px solid #F3F4F6' }}>
+                                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                                      <span className="material-symbols-outlined" style={{ fontSize:15 }}>business</span>
                                       {company}
                                     </div>
                                   </td>
-                                ) : (
-                                  <td className="lg:hidden block py-3 px-4 text-[13px] font-bold text-[#702c91] border-b border-gray-100">
-                                    <div className="flex items-center gap-2">
-                                      <span className="material-symbols-outlined text-[18px]">business</span>
-                                      {company}
-                                    </div>
-                                  </td>
-                                )}
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#4B5563] font-semibold"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">User:</span>{u}</td>
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#1E1B2E] font-bold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Total:</span>{d.total}</td>
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#10B981] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Done:</span>{d.done}</td>
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#F59E0B] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">In Progress:</span>{d.inProgress}</td>
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#3B82F6] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Pending:</span>{d.pending}</td>
-                                <td className="block lg:table-cell py-2 px-4 lg:py-4 lg:px-5 text-[13px] text-[#EF4444] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Blocked:</span>{d.blocked}</td>
-                                <td className="block lg:table-cell py-2 px-4 pb-4 lg:py-4 lg:px-5 text-[13px] text-[#EF4444] font-semibold lg:text-right"><span className="lg:hidden text-[10px] uppercase text-[#6B7280] mr-2">Overdue:</span>{d.overdue}</td>
+                                ) : null}
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:600, color:'#4B5563' }}>{u}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:800, color:'#1E1B2E', textAlign:'right' }}>{d.total}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#16A34A', textAlign:'right' }}>{d.done}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#B45309', textAlign:'right' }}>{d.inProgress}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#1D4ED8', textAlign:'right' }}>{d.pending}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#DC2626', textAlign:'right' }}>{d.blocked}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#EA580C', textAlign:'right' }}>{d.overdue}</td>
                               </tr>
                             )
                           })
-                        })
-                        return rows
-                      })()}
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
 
-          {/* All Tasks Activity */}
-            <div className="mb-10">
-              <h3 className="text-[16px] font-bold text-[#1E1B2E] mb-4">
-                {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Activity`}
-              </h3>
+            {/* ── All Tasks Activity (with Status Filter) ── */}
+            <div className="mb-8">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <h3 style={{ margin:0, fontSize:15, fontWeight:800, color:'#1E1B2E', display:'flex', alignItems:'center', gap:8 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize:18, color:'#702c91' }}>list_alt</span>
+                  {filterType === 'Overall' ? 'All Tasks Activity' : `${selectedValue} Tasks Activity`}
+                  <span style={{ fontSize:12, fontWeight:600, color:'#9CA3AF', fontStyle:'normal' }}>
+                    ({tableTasks.length} task{tableTasks.length !== 1 ? 's' : ''})
+                  </span>
+                </h3>
+
+                {/* Status filter pills */}
+                <div data-html2canvas-ignore className="flex flex-wrap items-center gap-1.5">
+                  {statusOptions.map(s => {
+                    const active = statusFilter === s
+                    const col = s === 'All' ? { bg: active ? '#702c91' : '#F3F4F6', text: active ? 'white' : '#6B7280' }
+                      : s === 'Overdue' ? { bg: active ? '#EA580C' : '#FFF7ED', text: active ? 'white' : '#EA580C' }
+                      : { bg: active ? statusStyle(s).bar : statusStyle(s).bg, text: active ? 'white' : statusStyle(s).text }
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setStatusFilter(s)}
+                        className="status-pill"
+                        style={{
+                          background: col.bg, color: col.text,
+                          border: 'none', borderRadius: 99,
+                          padding: '4px 12px', fontSize: 12, fontWeight: 700,
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          boxShadow: active ? '0 2px 8px rgba(0,0,0,0.12)' : 'none'
+                        }}
+                      >{s}</button>
+                    )
+                  })}
+                </div>
+              </div>
+
               <div className="bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                 <div className="overflow-x-auto hide-scrollbar">
-                  <table className="w-full text-left border-collapse min-w-[900px]">
+                  <table className="w-full text-left border-collapse" style={{ minWidth:900 }}>
                     <thead>
-                      <tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Task ID</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[30%]">Task Title</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[12%]">Due Date</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[18%]">Client</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[15%]">Assigned To</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider w-[10%]">Status</th>
-                        <th className="py-3 px-5 text-[11px] font-bold text-[#6B7280] uppercase tracking-wider text-right w-[10%]">Action</th>
+                      <tr style={{ background:'#F9FAFB', borderBottom:'1px solid #E5E7EB' }}>
+                        {[
+                          { label:'Task ID',    w:'9%' },
+                          { label:'Task Title', w:'28%' },
+                          { label:'Status Updated', w:'12%' },
+                          { label:'Due Date',   w:'11%' },
+                          { label:'Client',     w:'14%' },
+                          { label:'Assigned To',w:'16%' },
+                          { label:'Status',     w:'10%' },
+                          { label:'',           w:'6%' },
+                        ].map(({ label, w }) => (
+                          <th key={label} style={{ padding:'10px 14px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', width:w, textAlign: label === '' ? 'right' : 'left' }}>
+                            {label}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
-                    {filteredTasks.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="text-center py-8 text-secondary text-[14px]">
-                          No tasks found for this selection.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredTasks.map((row, idx) => (
-                        <tr 
-                          key={row.id} 
-                          className={`border-b border-[#E5E7EB] transition-all duration-200 relative ${idx === filteredTasks.length - 1 ? 'border-b-0' : ''}`}
-                          style={{ cursor: 'pointer' }}
-                          onMouseEnter={e => { 
-                            e.currentTarget.style.background = 'white'; 
-                            e.currentTarget.style.transform = 'scale(1.01)'; 
-                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.08)';
-                            e.currentTarget.style.zIndex = 10;
-                          }}
-                          onMouseLeave={e => { 
-                            e.currentTarget.style.background = 'transparent'; 
-                            e.currentTarget.style.transform = 'scale(1)'; 
-                            e.currentTarget.style.boxShadow = 'none';
-                            e.currentTarget.style.zIndex = 1;
-                          }}
-                        >
-                          <td className="py-4 px-5 text-[12px] font-bold text-[#4B5563]">
-                            {row.id}
-                          </td>
-                          <td className="py-4 px-5 text-[13px] text-[#4B5563]">
-                            <span className={row.status === 'Done' ? 'line-through text-[#9CA3AF]' : ''}>{row.title}</span>
-                          </td>
-                          <td className="py-4 px-5">
-                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${row.dueDate ? 'text-[#702c91] bg-purple-50 border border-purple-200' : 'text-[#9CA3AF]'}`}>
-                              {row.dueDate || '-'}
-                            </span>
-                          </td>
-                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
-                            {row.client}
-                          </td>
-                          <td className="py-4 px-5 text-[12px] text-[#6B7280]">
-                            {row.assignedTo || 'Unassigned'}
-                          </td>
-                          <td className="py-4 px-5">
-                            {(() => {
-                               let isDoneLate = false;
-                               if (row.status === 'Done' && row.dueDate && row.statusUpdatedOn) {
-                                  const due = new Date(row.dueDate);
-                                  const updated = new Date(row.statusUpdatedOn);
-                                  due.setHours(23, 59, 59, 999);
-                                  if (updated > due) isDoneLate = true;
-                               }
-                               return (
-                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                   row.status === 'Done' 
-                                     ? (isDoneLate ? 'text-amber-700 bg-amber-100' : 'text-green-600 bg-green-50') 
-                                     : row.status === 'Blocked' ? 'text-red-600 bg-red-50' 
-                                     : 'text-pink-600 bg-pink-50'
-                                 }`}>
-                                   {row.status === 'Done' && isDoneLate ? 'Done (Late)' : row.status}
-                                 </span>
-                               )
-                            })()}
-                          </td>
-                          <td className="py-4 px-5 text-right">
-                            <button 
-                              onClick={() => navigate(`/tasks/${row.id}`)}
-                              className="text-[12px] font-bold text-[#702c91] hover:text-[#702c91] transition-colors bg-transparent border-none cursor-pointer inline-flex items-center gap-1"
-                            >
-                              View <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                            </button>
+                      {tableTasks.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} style={{ padding:40, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>
+                            <span className="material-symbols-outlined" style={{ fontSize:32, display:'block', margin:'0 auto 8px', opacity:0.4 }}>search_off</span>
+                            No tasks found{statusFilter !== 'All' ? ` with status "${statusFilter}"` : ''}.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        tableTasks.map((row, idx) => (
+                          <tr
+                            key={row.id}
+                            className="task-row"
+                            style={{ borderBottom: idx < tableasks.length - 1 ? '1px solid #F3F4F6' : 'none', cursor:'pointer' }}
+                            onClick={() => navigate(`/tasks/${row.id}`)}
+                          >
+                            <td style={{ padding:'11px 14px', fontSize:12, fontWeight:800, color:'#702c91', fontFamily:'monospace' }}>
+                              {row.id}
+                            </td>
+                            <td style={{ padding:'11px 14px', fontSize:13, color:'#4B5563', maxWidth:0 }}>
+                              <span style={{ display:'block', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', textDecoration: row.status === 'Done' ? 'line-through' : 'none', color: row.status === 'Done' ? '#9CA3AF' : '#4B5563' }}>
+                                {row.title}
+                              </span>
+                            </td>
+                            <td style={{ padding:'11px 14px', fontSize:11, color:'#6B7280' }}>
+                              {row.statusUpdatedOn
+                                ? (() => {
+                                    try {
+                                      const d = new Date(row.statusUpdatedOn)
+                                      return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', timeZone:'Asia/Kolkata' })
+                                    } catch { return row.statusUpdatedOn }
+                                  })()
+                                : <span style={{ color:'#E5E7EB' }}>—</span>
+                              }
+                            </td>
+                            <td style={{ padding:'11px 14px' }}>
+                              {row.dueDate
+                                ? <span style={{ fontSize:11, fontWeight:700, color: row.overdue && row.status !== 'Done' ? '#DC2626' : '#702c91', background: row.overdue && row.status !== 'Done' ? '#FEE2E2' : '#F5F3FF', padding:'2px 8px', borderRadius:6 }}>{row.dueDate}</span>
+                                : <span style={{ color:'#E5E7EB', fontSize:11 }}>—</span>
+                              }
+                            </td>
+                            <td style={{ padding:'11px 14px', fontSize:12, color:'#6B7280' }}>{row.client || '—'}</td>
+                            <td style={{ padding:'11px 14px', fontSize:12, color:'#6B7280' }}>{row.assignedTo || 'Unassigned'}</td>
+                            <td style={{ padding:'11px 14px' }}>
+                              <StatusBadge status={row.status} dueDate={row.dueDate} statusUpdatedOn={row.statusUpdatedOn} />
+                              {row.overdue && row.status !== 'Done' && (
+                                <span style={{ display:'block', fontSize:9, fontWeight:700, color:'#DC2626', marginTop:2 }}>Overdue</span>
+                              )}
+                            </td>
+                            <td style={{ padding:'11px 14px', textAlign:'right' }}>
+                              <span style={{ fontSize:11, fontWeight:700, color:'#702c91', display:'flex', alignItems:'center', justifyContent:'flex-end', gap:2 }}>
+                                View <span className="material-symbols-outlined" style={{ fontSize:13 }}>arrow_forward</span>
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
 
-
-
-          {/* Footer Action */}
-            <div className="flex justify-end pb-8" data-html2canvas-ignore>
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-[#ec008c] rounded-lg text-[14px] font-bold text-[#702c91] shadow-sm hover:bg-purple-50 transition-colors group disabled:opacity-70 disabled:cursor-wait"
-              >
-                {isDownloading ? (
-                  <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-y-1">download</span>
-                )}
-                {isDownloading ? 'Generating PDF...' : 'Download PDF Report'}
-              </button>
-            </div>
           </div>
         </div>
       </main>
     </div>
   )
 }
-
