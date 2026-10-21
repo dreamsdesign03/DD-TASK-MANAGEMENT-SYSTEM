@@ -9,6 +9,7 @@ import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { computeRecurringDueDate } from '../utils/dateFormat'
 import { formatTaskId, deduplicateTasks } from '../utils/formatTaskId'
+import { computeTaskStats, formatStatCount, passesMonthDoneRule } from '../utils/taskStats'
 import TaskCalendar from './TaskCalendar'
 import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
@@ -523,18 +524,7 @@ export default function TaskTable() {
 
       // Hide "Done" tasks that were completed before the current month,
       // unless the user switched to "All Tasks" mode.
-      let matchesMonthDone = true
-      if (!showAllTasks && t.status === 'Done') {
-        const doneTs = t.statusUpdatedOn ? new Date(t.statusUpdatedOn) : null
-        const now = new Date()
-        const currentMonth = now.getMonth()
-        const currentYear = now.getFullYear()
-        if (doneTs && !isNaN(doneTs.getTime())) {
-          if (doneTs.getFullYear() < currentYear || (doneTs.getFullYear() === currentYear && doneTs.getMonth() < currentMonth)) {
-            matchesMonthDone = false
-          }
-        }
-      }
+      const matchesMonthDone = passesMonthDoneRule(t, showAllTasks)
 
       return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate && matchesMonthDone
     })
@@ -716,38 +706,21 @@ export default function TaskTable() {
   const indexOfFirstTask = indexOfLastTask - tasksPerPage
   const currentTasks = filtered.slice(indexOfFirstTask, indexOfLastTask)
 
-  // Metrics Logic
+  // Metrics Logic — counting rules live in utils/taskStats so the Report page
+  // always shows the exact same numbers.
   const baseTasksForStats = tasks.filter((t) => {
-    if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
     const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient;
     const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser);
     const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment;
-    let matchesMonthDone = true
-    if (!showAllTasks && t.status === 'Done') {
-      const doneTs = t.statusUpdatedOn ? new Date(t.statusUpdatedOn) : null
-      const now = new Date()
-      const currentMonth = now.getMonth()
-      const currentYear = now.getFullYear()
-      if (doneTs && !isNaN(doneTs.getTime())) {
-        if (doneTs.getFullYear() < currentYear || (doneTs.getFullYear() === currentYear && doneTs.getMonth() < currentMonth)) {
-          matchesMonthDone = false
-        }
-      }
-    }
-    return matchesClient && matchesUser && matchesDepartment && matchesMonthDone;
+    return matchesClient && matchesUser && matchesDepartment && passesMonthDoneRule(t, showAllTasks);
   });
 
-  const totalTasks = baseTasksForStats.length;
-  const pendingTasks = baseTasksForStats.filter(t => t.status === 'Pending').length;
-  const inProgressTasks = baseTasksForStats.filter(t => t.status === 'In Progress').length;
-  const completedTasks = baseTasksForStats.filter(t => t.status === 'Done').length;
-  const overdueTasks = baseTasksForStats.filter(t => {
-    if (t.status === 'Done' || !t.dueDate) return false;
-    const due = new Date(t.dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return due < today;
-  }).length;
+  const taskStats = computeTaskStats(baseTasksForStats);
+  const totalTasks = taskStats.total;
+  const pendingTasks = taskStats.pending;
+  const inProgressTasks = taskStats.inProgress;
+  const completedTasks = taskStats.completed;
+  const overdueTasks = taskStats.overdue;
 
 
 
@@ -787,7 +760,7 @@ export default function TaskTable() {
           >
             <div>
               <p className="text-[10px] sm:text-[12px] font-semibold text-[#9CA3AF] tracking-[0.05em] uppercase mb-1">{s.label}</p>
-              <h2 className="text-[20px] sm:text-[28px] font-extrabold m-0" style={{ color: s.overdue ? '#DC2626' : '#1E1B2E' }}>{String(s.value).padStart(2, '0')}</h2>
+              <h2 className="text-[20px] sm:text-[28px] font-extrabold m-0" style={{ color: s.overdue ? '#DC2626' : '#1E1B2E' }}>{formatStatCount(s.value)}</h2>
             </div>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
               <span className="material-symbols-outlined text-[18px] sm:text-[22px]" style={{ color: s.color }}>{s.icon}</span>

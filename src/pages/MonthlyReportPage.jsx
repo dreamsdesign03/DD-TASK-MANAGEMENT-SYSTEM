@@ -4,6 +4,11 @@ import Sidebar from '../components/Sidebar'
 import TopNav from '../components/TopNav'
 import SelectDropdown from '../components/SelectDropdown'
 import { useApp } from '../context/AppContext'
+import { deduplicateTasks } from '../utils/formatTaskId'
+import {
+  isSubTask, isTaskOverdue, passesMonthDoneRule,
+  computeTaskStats, formatStatCount, taskDateToISO
+} from '../utils/taskStats'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
@@ -69,6 +74,8 @@ export default function MonthlyReportPage() {
   const [statusFilter,  setStatusFilter]  = useState('All')     // NEW: status filter
   const [dateFrom,      setDateFrom]      = useState('')
   const [dateTo,        setDateTo]        = useState('')
+  // Same "Current Month / All Tasks" mode as the Tasks page (default: Current Month)
+  const [showAllTasks,  setShowAllTasks]  = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
   // ── activity month selector ───────────────────────────────────────────────
@@ -124,54 +131,47 @@ export default function MonthlyReportPage() {
 
   const isInDateRange = task => {
     if (!dateFrom && !dateTo) return true
-    const raw = task.statusUpdatedOn || task.dueDate || task.assigned
-    const d = raw ? new Date(raw) : null
-    if (!d || isNaN(d.getTime())) return !dateFrom && !dateTo
-    if (dateFrom && d < new Date(dateFrom)) return false
-    if (dateTo) {
-      const toEnd = new Date(dateTo)
-      toEnd.setHours(23, 59, 59, 999)
-      if (d > toEnd) return false
-    }
+    const iso = taskDateToISO(task.statusUpdatedOn || task.dueDate || task.assigned)
+    if (!iso) return false
+    if (dateFrom && iso < dateFrom) return false
+    if (dateTo && iso > dateTo) return false
     return true
   }
 
-  // ── filtered tasks (respects user role + filters) ─────────────────────────
+  // ── filtered tasks — identical rules to the Tasks page (utils/taskStats) ───
   const filteredTasks = useMemo(() => {
-    return (tasks || []).filter(t => {
-      // Non-admins: only their own tasks
-      if (!isAdmin) {
-        const assignees = (t.assignedTo || '').toLowerCase()
-        const myName = (profile?.name || '').trim().toLowerCase()
-        if (myName && !assignees.includes(myName)) return false
-      }
-      if (t?.client && String(t.client).toLowerCase() === 'internal') return false
+    return deduplicateTasks(tasks || []).filter(t => {
+      if (isSubTask(t)) return false
+      if (!passesMonthDoneRule(t, showAllTasks)) return false
       if (!isInDateRange(t)) return false
       if (filterType === 'Company' && selectedValue && t.client !== selectedValue) return false
       if (filterType === 'User' && selectedValue && !String(t.assignedTo || '').includes(selectedValue)) return false
       return true
     })
-  }, [tasks, filterType, selectedValue, dateFrom, dateTo, isAdmin, profile])
+  }, [tasks, filterType, selectedValue, dateFrom, dateTo, showAllTasks])
 
   // ── status-filtered tasks (for the table only) ───────────────────────────
   const tableTasks = useMemo(() => {
     if (statusFilter === 'All') return filteredTasks
-    if (statusFilter === 'Overdue') return filteredTasks.filter(t => t.overdue && t.status !== 'Done')
+    if (statusFilter === 'Overdue') return filteredTasks.filter(isTaskOverdue)
     return filteredTasks.filter(t => t.status === statusFilter)
   }, [filteredTasks, statusFilter])
 
-  // ── metrics ───────────────────────────────────────────────────────────────
-  const totalTasks   = filteredTasks.length
-  const completed    = filteredTasks.filter(t => t.status === 'Done').length
-  const inProgress   = filteredTasks.filter(t => t.status === 'In Progress' || t.status === 'Review').length
-  const blocked      = filteredTasks.filter(t => t.status === 'Blocked').length
-  const overdueCount = filteredTasks.filter(t => t.overdue && t.status !== 'Done').length
-  const pending      = filteredTasks.filter(t => t.status === 'Pending').length
-  const other        = totalTasks - completed - inProgress - blocked - pending
+  // ── metrics (shared with the Tasks page) ─────────────────────────────────
+  const stats = useMemo(() => computeTaskStats(filteredTasks), [filteredTasks])
+  const totalTasks   = stats.total
+  const completed    = stats.completed
+  const inProgress   = stats.inProgress
+  const review       = stats.review
+  const blocked      = stats.blocked
+  const overdueCount = stats.overdue
+  const pending      = stats.pending
+  const other        = stats.other
 
   const pct = n => totalTasks ? Math.round((n / totalTasks) * 100) : 0
   const completedPct   = pct(completed)
   const inProgressPct  = pct(inProgress)
+  const reviewPct      = pct(review)
   const pendingPct     = pct(pending)
   const blockedPct     = pct(blocked)
   const otherPct       = pct(other)
@@ -245,27 +245,24 @@ export default function MonthlyReportPage() {
       if (filterType === 'User') {
         assignedUsers = assignedUsers.filter(u => u === selectedValue)
       }
-      if (!isAdmin) {
-        const myName = (profile?.name || '').trim().toLowerCase()
-        assignedUsers = assignedUsers.filter(u => u.toLowerCase() === myName)
-      }
 
       assignedUsers.forEach(u => {
         if (!breakdown[company]) breakdown[company] = {}
         if (!breakdown[company][u]) {
-          breakdown[company][u] = { total:0, done:0, inProgress:0, pending:0, blocked:0, overdue:0 }
+          breakdown[company][u] = { total:0, done:0, inProgress:0, review:0, pending:0, blocked:0, overdue:0 }
         }
         const d = breakdown[company][u]
         d.total++
         if (t.status === 'Done') d.done++
-        else if (t.status === 'In Progress' || t.status === 'Review') d.inProgress++
+        else if (t.status === 'In Progress') d.inProgress++
+        else if (t.status === 'Review') d.review++
         else if (t.status === 'Pending') d.pending++
         else if (t.status === 'Blocked') d.blocked++
-        if (t.overdue && t.status !== 'Done') d.overdue++
+        if (isTaskOverdue(t)) d.overdue++
       })
     })
     return breakdown
-  }, [filteredTasks, filterType, selectedValue, isAdmin, profile])
+  }, [filteredTasks, filterType, selectedValue])
 
   // ── date range label ──────────────────────────────────────────────────────
   const dateRangeLabel = useMemo(() => {
@@ -382,7 +379,7 @@ export default function MonthlyReportPage() {
   }
 
   // ── all statuses for the filter pill row ─────────────────────────────────
-  const statusOptions = ['All', 'Done', 'In Progress', 'Pending', 'Blocked', 'Review', 'Overdue']
+  const statusOptions = ['All', 'Done', 'In Progress', 'Review', 'Pending', 'Blocked', 'Overdue']
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
@@ -418,7 +415,7 @@ export default function MonthlyReportPage() {
                   Report Analysis
                 </h2>
                 <p style={{ fontSize: 13, color: '#9CA3AF', margin: '4px 0 0', fontWeight: 500 }}>
-                  {dateRangeLabel} · {filterType === 'Overall' ? 'All Users' : selectedValue}
+                  {showAllTasks ? 'All Tasks' : 'Current Month'}{dateFrom || dateTo ? ` · ${dateRangeLabel}` : ''} · {filterType === 'Overall' ? 'All Users' : selectedValue}
                 </p>
               </div>
               <button
@@ -471,6 +468,28 @@ export default function MonthlyReportPage() {
 
               <div style={{ flex: '1 1 0' }} />
 
+              {/* Current Month / All Tasks — same mode as the Tasks page */}
+              <div className="flex bg-[#F3F4F6] p-1 rounded-lg" style={{ flexShrink: 0 }}>
+                <button
+                  onClick={() => setShowAllTasks(false)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 99, border: 'none', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, transition: 'all 0.15s',
+                    background: !showAllTasks ? 'linear-gradient(to right, #702c91, #ec008c)' : 'transparent',
+                    color: !showAllTasks ? 'white' : '#6B7280'
+                  }}
+                >Current Month</button>
+                <button
+                  onClick={() => setShowAllTasks(true)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 99, border: 'none', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, transition: 'all 0.15s',
+                    background: showAllTasks ? 'linear-gradient(to right, #702c91, #ec008c)' : 'transparent',
+                    color: showAllTasks ? 'white' : '#6B7280'
+                  }}
+                >All Tasks</button>
+              </div>
+
               {/* Date range */}
               <div className="flex items-center gap-2">
                 <div style={{ position: 'relative', paddingTop: 8 }}>
@@ -503,11 +522,12 @@ export default function MonthlyReportPage() {
             </div>
 
             {/* ── Summary Cards ── */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-7">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4 mb-7">
               {[
                 { label: 'Total',       value: totalTasks,   color: '#702c91', icon: 'assignment',    bg: '#F5F3FF' },
                 { label: 'Done',        value: completed,    color: '#16A34A', icon: 'check_circle',  bg: '#DCFCE7', pct: completedPct },
                 { label: 'In Progress', value: inProgress,   color: '#B45309', icon: 'more_horiz',    bg: '#FEF9C3', pct: inProgressPct },
+                { label: 'Review',      value: review,       color: '#7C3AED', icon: 'rate_review',   bg: '#F5F3FF', pct: reviewPct },
                 { label: 'Pending',     value: pending,      color: '#1D4ED8', icon: 'schedule',      bg: '#EFF6FF', pct: pendingPct },
                 { label: 'Blocked',     value: blocked,      color: '#DC2626', icon: 'block',         bg: '#FEE2E2', pct: blockedPct },
                 { label: 'Overdue',     value: overdueCount, color: '#EA580C', icon: 'warning',       bg: '#FFEDD5', pct: overdueCount > 0 ? Math.round(overdueCount / Math.max(totalTasks,1) * 100) : 0 },
@@ -522,7 +542,7 @@ export default function MonthlyReportPage() {
                       <span className="material-symbols-outlined" style={{ fontSize:16, color }}>{icon}</span>
                     </div>
                   </div>
-                  <p style={{ margin:0, fontSize:28, fontWeight:900, color, lineHeight:1 }}>{value}</p>
+                  <p style={{ margin:0, fontSize:28, fontWeight:900, color, lineHeight:1 }}>{formatStatCount(value)}</p>
                   {p !== undefined && (
                     <div style={{ width:'100%', height:3, background:'#F3F4F6', borderRadius:99 }}>
                       <div style={{ width:`${p}%`, height:'100%', background:color, borderRadius:99, transition:'width 0.4s' }} />
@@ -544,12 +564,13 @@ export default function MonthlyReportPage() {
                       <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#E5E7EB" strokeWidth="6" />
                       {completedPct  > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#22C55E" strokeWidth="6" strokeDasharray={`${completedPct} 100`} strokeDashoffset="0" />}
                       {inProgressPct > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#F59E0B" strokeWidth="6" strokeDasharray={`${inProgressPct} 100`} strokeDashoffset={-completedPct} />}
-                      {pendingPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3B82F6" strokeWidth="6" strokeDasharray={`${pendingPct} 100`} strokeDashoffset={-(completedPct + inProgressPct)} />}
-                      {blockedPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#EF4444" strokeWidth="6" strokeDasharray={`${blockedPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + pendingPct)} />}
-                      {otherPct      > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#9CA3AF" strokeWidth="6" strokeDasharray={`${otherPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + pendingPct + blockedPct)} />}
+                      {reviewPct     > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#8B5CF6" strokeWidth="6" strokeDasharray={`${reviewPct} 100`} strokeDashoffset={-(completedPct + inProgressPct)} />}
+                      {pendingPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#3B82F6" strokeWidth="6" strokeDasharray={`${pendingPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + reviewPct)} />}
+                      {blockedPct    > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#EF4444" strokeWidth="6" strokeDasharray={`${blockedPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + reviewPct + pendingPct)} />}
+                      {otherPct      > 0 && <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#9CA3AF" strokeWidth="6" strokeDasharray={`${otherPct} 100`} strokeDashoffset={-(completedPct + inProgressPct + reviewPct + pendingPct + blockedPct)} />}
                     </svg>
                     <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                      <span style={{ fontSize:20, fontWeight:900, color:'#1E1B2E', lineHeight:1 }}>{totalTasks}</span>
+                      <span style={{ fontSize:20, fontWeight:900, color:'#1E1B2E', lineHeight:1 }}>{formatStatCount(totalTasks)}</span>
                       <span style={{ fontSize:10, color:'#6B7280', fontWeight:600 }}>Total</span>
                     </div>
                   </div>
@@ -557,6 +578,7 @@ export default function MonthlyReportPage() {
                     {[
                       { label:'Done',        pct:completedPct,  color:'#22C55E' },
                       { label:'In Progress', pct:inProgressPct, color:'#F59E0B' },
+                      { label:'Review',      pct:reviewPct,     color:'#8B5CF6' },
                       { label:'Pending',     pct:pendingPct,    color:'#3B82F6' },
                       { label:'Blocked',     pct:blockedPct,    color:'#EF4444' },
                       ...(otherPct > 0 ? [{ label:'Other', pct:otherPct, color:'#9CA3AF' }] : []),
@@ -716,14 +738,14 @@ export default function MonthlyReportPage() {
                   <table className="w-full text-left border-collapse" style={{ minWidth:860 }}>
                     <thead>
                       <tr style={{ background:'#F9FAFB', borderBottom:'1px solid #E5E7EB' }}>
-                        {['Company','User','Total','Done','In Progress','Pending','Blocked','Overdue'].map(h => (
+                        {['Company','User','Total','Done','In Progress','Review','Pending','Blocked','Overdue'].map(h => (
                           <th key={h} style={{ padding:'10px 14px', fontSize:10, fontWeight:700, color:'#6B7280', textTransform:'uppercase', letterSpacing:'0.05em', textAlign: h === 'Company' || h === 'User' ? 'left' : 'right' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {Object.keys(companyBreakdown).sort().length === 0 ? (
-                        <tr><td colSpan={8} style={{ padding:32, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>No data for this selection.</td></tr>
+                        <tr><td colSpan={9} style={{ padding:32, textAlign:'center', color:'#9CA3AF', fontSize:13 }}>No data for this selection.</td></tr>
                       ) : (
                         Object.keys(companyBreakdown).sort().flatMap((company, ci, arr) =>
                           Object.keys(companyBreakdown[company]).sort().map((u, ui, uArr) => {
@@ -745,6 +767,7 @@ export default function MonthlyReportPage() {
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:800, color:'#1E1B2E', textAlign:'right' }}>{d.total}</td>
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#16A34A', textAlign:'right' }}>{d.done}</td>
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#B45309', textAlign:'right' }}>{d.inProgress}</td>
+                                <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#7C3AED', textAlign:'right' }}>{d.review}</td>
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#1D4ED8', textAlign:'right' }}>{d.pending}</td>
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#DC2626', textAlign:'right' }}>{d.blocked}</td>
                                 <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'#EA580C', textAlign:'right' }}>{d.overdue}</td>
