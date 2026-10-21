@@ -10,16 +10,11 @@ import { getUserColor, getInitials } from '../utils/avatar'
 import { computeRecurringDueDate } from '../utils/dateFormat'
 import { formatTaskId, deduplicateTasks } from '../utils/formatTaskId'
 import { computeTaskStats, formatStatCount, passesMonthDoneRule } from '../utils/taskStats'
+import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import TaskCalendar from './TaskCalendar'
+import AdminBoardView from './AdminBoardView'
 import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
-
-const PRIORITY_STYLES = {
-  Urgent: 'bg-[#E74C3C] text-white',
-  High: 'bg-[#F39C12] text-white',
-  Medium: 'bg-[#3498DB] text-white',
-  Low: 'bg-[#95A5A6] text-white',
-}
 
 const PRIORITY_WEIGHTS = {
   Urgent: 4,
@@ -29,14 +24,6 @@ const PRIORITY_WEIGHTS = {
 }
 
 /* ─── Status badge config ───────────────────────────────────────────────── */
-const STATUS_STYLES = {
-  Blocked: 'bg-red-100 text-red-700',
-  'In Progress': 'bg-amber-100 text-amber-700',
-  Review: 'bg-blue-100 text-blue-700',
-  Done: 'bg-green-100 text-green-700',
-  Pending: 'bg-gray-100 text-gray-700',
-}
-
 const STATUS_CONFIG = {
   'Pending': { bg: '#F3F4F6', color: '#4B5563' },
   'In Progress': { bg: '#FEF3C7', color: '#D97706' },
@@ -152,6 +139,7 @@ export default function TaskTable() {
   const { tasks, searchQuery, deleteTask, profile, employees, messagesByChatId, lastSeenTimestamps, updateTask, addTask, addToast, setShowNewTaskModal, setNewTaskPrefillDept, clients } = useApp()
   const location = useLocation()
   const isMyTasks = location.pathname === '/my-tasks'
+  const isAdmin = profile?.systemRole === 'Admin'
   const storageKey = isMyTasks ? 'dd_table_state_my_tasks' : 'dd_table_state_all_tasks'
   const readPersisted = () => {
     try {
@@ -169,8 +157,14 @@ export default function TaskTable() {
   const [selectedDate, setSelectedDate] = useState(location.state?.selectedDate || persisted.selectedDate || '')
   const [showAllTasks, setShowAllTasks] = useState(location.state?.showAllTasks || persisted.showAllTasks || false)
 
-  const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board'
+  const [viewMode, setViewMode] = useState(location.state?.viewMode || persisted.viewMode || 'List') // 'List' | 'Board' | 'Calendar' | 'Admin'
   const [boardGrouping, setBoardGrouping] = useState(location.state?.boardGrouping || persisted.boardGrouping || 'Department')
+
+  // Security guard: only admins may use the Admin Board view. If a non-admin
+  // somehow has viewMode = 'Admin' (localStorage / URL param), fall back to List.
+  useEffect(() => {
+    if (viewMode === 'Admin' && !isAdmin) setViewMode('List')
+  }, [viewMode, isAdmin])
 
   // Persist table state (filters, view, sorting) across navigation so users
   // return to the same view & filters they left.
@@ -820,6 +814,11 @@ export default function TaskTable() {
             <button onClick={() => setViewMode('Calendar')} className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'Calendar' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
               <span className="material-symbols-outlined text-[20px]">calendar_month</span>
             </button>
+            {isAdmin && (
+              <button onClick={() => setViewMode('Admin')} title="Admin Board" className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${viewMode === 'Admin' ? 'bg-[#F9F4FB] text-[#702c91]' : 'bg-transparent text-gray-400 hover:text-gray-600'}`}>
+                <span className="material-symbols-outlined text-[20px]">view_column</span>
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <button
@@ -885,8 +884,8 @@ export default function TaskTable() {
             ? { background: 'white', borderRadius: 20, boxShadow: '0 8px 24px rgba(91,33,182,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column', flexShrink: 0 }
             : { display: 'flex', flexDirection: 'column', flexShrink: 0 }
         }>
-        {/* ADVANCED FILTER BAR */}
-        {/* ADVANCED FILTER BAR */}
+        {/* ADVANCED FILTER BAR — replaced by the Admin Board columns when active */}
+        {viewMode !== 'Admin' && (
         <div className={`p-4 md:p-6 grid grid-cols-2 md:flex md:items-end gap-3 md:gap-4 ${viewMode === 'List' ? 'bg-[#F8F9FA] border-b border-[#F5F3FF]' : 'bg-white rounded-[20px] shadow-[0_8px_24px_rgba(91,33,182,0.08)]'}`}>
           {(() => {
             const selectBaseStyle = {
@@ -998,6 +997,7 @@ export default function TaskTable() {
             );
           })()}
         </div>
+        )}
 
         {/* ──────────────────────────────────────────────────────────── */}
         {viewMode === 'List' ? (
@@ -1891,6 +1891,13 @@ export default function TaskTable() {
 
             </div>
           </div>
+        ) : viewMode === 'Admin' ? (
+          <AdminBoardView
+            tasks={tasks}
+            searchQuery={searchQuery}
+            showAllTasks={showAllTasks}
+            onOpenTask={openTaskDetail}
+          />
         ) : (
           <div className="mt-6">
             <TaskCalendar tasks={filtered} />
