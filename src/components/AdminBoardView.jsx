@@ -46,6 +46,13 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
   const [selectedDepartment, setSelectedDepartment] = useState('All Departments')
   const [employeeQuery, setEmployeeQuery] = useState('')
 
+  // IST calendar day — re-checked every minute so the day rolls over live.
+  const [istDay, setIstDay] = useState(todayIST())
+  useEffect(() => {
+    const id = setInterval(() => setIstDay(todayIST()), 60000)
+    return () => clearInterval(id)
+  }, [])
+
   // Light background refresh fallback, active only while the Admin Board is
   // mounted. Reuses the app's existing fetchSyncedTasks (which feeds the shared
   // tasks state) — no new dependency, no separate cache. Realtime edits from
@@ -165,12 +172,13 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
 
   const filteredEmployees = employees.filter((e) => e.name.toLowerCase().includes(employeeQuery.trim().toLowerCase()))
 
-  // Names of active employees who haven't created any task today (IST) — drives
-  // the amber dot in the Employees list. Same derivation as the top banner.
+  // Names of active employees who haven't added a task or updated a task status
+  // today (IST) — drives the amber dot in the Employees list. Same derivation
+  // as the top banner.
   const missingNames = useMemo(() => {
-    const set = new Set(computeMissingToday(tasks, allEmployees, todayIST()).map((e) => e.name.toLowerCase()))
+    const set = new Set(computeMissingToday(tasks, allEmployees, istDay).map((e) => e.name.toLowerCase()))
     return set
-  }, [tasks, allEmployees])
+  }, [tasks, allEmployees, istDay])
 
   const handleSelectEmployee = (name) => {
     setSelectedEmployee(name)
@@ -252,7 +260,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                   {emp.name}
                   {missingNames.has(emp.name.toLowerCase()) && (
                     <span
-                      title="Hasn't added a task today"
+                      title="Hasn't added a task or updated a task status today"
                       style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#F59E0B', marginLeft: 6, verticalAlign: 'middle' }}
                     />
                   )}

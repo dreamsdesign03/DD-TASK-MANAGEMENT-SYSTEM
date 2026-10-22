@@ -13,6 +13,7 @@ import { computeTaskStats, formatStatCount, passesMonthDoneRule } from '../utils
 import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import TaskCalendar from './TaskCalendar'
 import AdminBoardView from './AdminBoardView'
+import UserActivityReminder from './UserActivityReminder'
 import VoiceBot from './VoiceBot'
 import SelectDropdown from './SelectDropdown'
 
@@ -808,6 +809,9 @@ export default function TaskTable() {
         onChange={handleDeptFileUpload}
       />
       {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ─── Personal "active today" reminder (logged-in user only) ───────────── */}
+      <UserActivityReminder />
+
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-5">
         {[

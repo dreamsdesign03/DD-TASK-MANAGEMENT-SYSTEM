@@ -29,6 +29,15 @@ export function getISTTimestamp() {
   return Date.now()
 }
 
+// Full ISO timestamp with the IST (+05:30) offset, e.g. 2026-10-22T00:30:00+05:30.
+// The leading date is the IST calendar day, so it survives a plain YYYY-MM-DD match.
+export function getISTTimestampISO() {
+  const d = getISTNow()
+  const date = d.toISOString().split('T')[0]
+  const time = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:${String(d.getUTCSeconds()).padStart(2, '0')}`
+  return `${date}T${time}+05:30`
+}
+
 // All mutating functions are removed. State is handled by Google Sheets directly.
 export function logLogin() {}
 export function logLogout() {}

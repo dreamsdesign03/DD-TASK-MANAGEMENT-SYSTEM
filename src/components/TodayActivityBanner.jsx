@@ -3,8 +3,9 @@ import { getUserColor, getInitials } from '../utils/avatar'
 import { computeMissingToday, todayIST, todayLabel } from '../utils/todayActivity'
 
 // Top-of-board status strip for admins:
-//  • N > 0  -> amber banner listing the employees who haven't created a task today
-//  • N == 0 -> slim green "everyone has added tasks today" strip
+//  • N > 0  -> amber banner listing the employees who haven't added a task or
+//              updated a task status today
+//  • N == 0 -> slim green "everyone has been active on tasks today" strip
 // Always renders one of the two states (a skeleton while data is loading).
 export default function TodayActivityBanner({ tasks, employees, loaded, onSelectEmployee }) {
   // Recompute when the IST calendar day rolls over (check each minute)
@@ -30,7 +31,7 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
   const n = missing.length
   const label = todayLabel()
 
-  // ── Green strip: everyone has added a task today ──
+  // ── Green strip: everyone has been active on tasks today ──
   if (n === 0) {
     return (
       <div
@@ -38,7 +39,7 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
         style={{ height: 40, borderRadius: 12, background: '#ECFDF5', border: '1px solid #A7F3D0' }}
       >
         <span className="material-symbols-outlined text-[18px] text-[#059669]">check_circle</span>
-        <span className="text-[13px] font-bold text-[#065F46]">Everyone has added tasks today</span>
+        <span className="text-[13px] font-bold text-[#065F46]">Everyone has been active on tasks today</span>
         <span className="ml-auto text-[12px] font-semibold text-[#059669]">{label}</span>
       </div>
     )
@@ -57,7 +58,7 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
       <div className="flex items-center gap-2 flex-wrap">
         <span className="material-symbols-outlined text-[20px] text-[#D97706]">warning</span>
         <span className="text-[13px] font-extrabold text-[#9A3412]">
-          {n} {n === 1 ? 'employee has not' : 'employees have not'} added any task today
+          {n} {n === 1 ? 'employee has not' : 'employees have not'} added a task or updated a status today
         </span>
         <span className="ml-auto text-[12px] font-semibold text-[#B45309]">{label}</span>
       </div>

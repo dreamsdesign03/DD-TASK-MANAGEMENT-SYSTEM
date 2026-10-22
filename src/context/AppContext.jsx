@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import mqtt from 'mqtt'
 import { useToast } from './ToastContext'
-import { updateHeartbeat, logShutdown, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime, getISTTimeAt } from '../utils/activityLog'
+import { updateHeartbeat, logShutdown, getActiveUsers, getAllUsersMonthlyActivity, formatDuration, getAllLoggedUsers, getISTDate, getISTTime, getISTTimeAt, getISTTimestampISO } from '../utils/activityLog'
 import { formatDateShort, formatDateTime, computeRecurringDueDate } from '../utils/dateFormat'
 import { isElectron } from '../utils/isElectron'
 import { formatTaskId, normalizeTaskIdKey, isSameTaskId, deduplicateTasks } from '../utils/formatTaskId'
@@ -147,6 +147,8 @@ const mapWebhookTaskToApp = (item) => {
     assignedBy: data["Assigned By"] || data.assignedBy || 'Mansi Shah',
     timeTaken: data["Time Taken"] || data.timeTaken || '0h 0m',
     statusUpdatedOn: data["Status Updated On"] || data.statusUpdatedOn || null,
+    statusChangedBy: data["Status Changed By"] || data.statusChangedBy || '',
+    statusChangedAt: data["Status Changed At"] || data.statusChangedAt || null,
     daysOverdue: daysOverdueStr,
     employeeId: data["Employee ID"] || data.employeeId || '',
     assignedEmail: data["Assigned Email"] || data.assignedEmail || '',
@@ -2063,6 +2065,10 @@ export function AppProvider({ children }) {
     if (hasStatusChange && !fields.statusUpdatedOn) {
       fields.statusUpdatedOn = getISTDate();
     }
+    if (hasStatusChange) {
+      fields.statusChangedBy = profile?.name || currentTask.statusChangedBy || '';
+      fields.statusChangedAt = getISTTimestampISO();
+    }
 
     const mergedTask = {
       ...currentTask,
@@ -2132,6 +2138,8 @@ export function AppProvider({ children }) {
           priority: mergedTask.priority,
           status: mergedTask.status,
           statusUpdatedOn: mergedTask.statusUpdatedOn || new Date().toISOString().split('T')[0],
+          statusChangedBy: mergedTask.statusChangedBy || '',
+          statusChangedAt: mergedTask.statusChangedAt || '',
           timeTaken: mergedTask.timeTaken || '0h 0m',
           daysOverdue: mergedTask.daysOverdue || 'No',
           remarks: mergedTask.comments && mergedTask.comments.length > 0 ? mergedTask.comments[mergedTask.comments.length - 1].text : '',
@@ -2558,6 +2566,13 @@ export function AppProvider({ children }) {
                 })
               }
               newTask.comments = mergedComments
+            }
+
+            // Status-change tracking: the sheet is authoritative once it carries
+            // the columns; until then keep the value we already know locally.
+            if (existingTask && !newTask.statusChangedAt && existingTask.statusChangedAt) {
+              newTask.statusChangedAt = existingTask.statusChangedAt
+              newTask.statusChangedBy = existingTask.statusChangedBy
             }
 
             finalTasks.push(newTask)
