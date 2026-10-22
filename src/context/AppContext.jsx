@@ -586,6 +586,7 @@ export function AppProvider({ children }) {
       return updated
     })
     addToast('Punched In successfully', 'success')
+    window.dreamsdeskDesktop?.setPunchState(true)
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec';
     fetch(SCRIPT_URL, {
@@ -629,6 +630,7 @@ export function AppProvider({ children }) {
       return updated
     })
     addToast('Punched Out successfully', 'success')
+    window.dreamsdeskDesktop?.setPunchState(false)
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSh7jEuTds3Xqqchm-mQzEnNW2uBRiwhvtXJY4McwoVJvWBnc2uhBkEDqmSD27zl2-/exec';
     fetch(SCRIPT_URL, {
@@ -1011,6 +1013,57 @@ export function AppProvider({ children }) {
       }
     }
   }, [])
+
+  // ── Desktop app (dreamsdesk-desktop) integration ──
+  // All of this is a safe no-op in a normal browser: window.dreamsdeskDesktop is
+  // undefined there. Reuses the existing attendance state (isPunchedIn /
+  // handlePunchOut) — no new logic for punch in/out is added here.
+
+  // Best-effort "last seen" heartbeat, reusing the existing MQTT presence publish.
+  const sendLastSeenHeartbeat = () => {
+    const p = profileRef.current
+    if (p?.email && mqttClient && mqttClient.connected) {
+      mqttClient.publish('dd_status_engine_v1/status', JSON.stringify({
+        action: 'user_online', email: p.email, name: p.name, timestamp: Date.now()
+      }))
+    }
+  }
+
+  // 1) Report punch state to the desktop shell whenever it changes (and on first load).
+  useEffect(() => {
+    if (!isSessionRestored) return
+    window.dreamsdeskDesktop?.setPunchState(isPunchedIn)
+  }, [isPunchedIn, isSessionRestored])
+
+  // 2) Handle desktop shell events (shutdown/idle/power).
+  useEffect(() => {
+    const desktop = typeof window !== 'undefined' ? window.dreamsdeskDesktop : null
+    if (!desktop || typeof desktop.onSystemEvent !== 'function') return
+
+    const handleEvent = async (kind) => {
+      if (kind === 'shutdown-requested' || kind === 'request-punch-out') {
+        // Send a final heartbeat first (best effort), then punch out directly —
+        // the desktop app already asked the user, so no extra confirmation here.
+        sendLastSeenHeartbeat()
+        if (isPunchedInRef.current && handlePunchOutRef.current) {
+          handlePunchOutRef.current()
+          await new Promise(resolve => setTimeout(resolve, 1500))
+        }
+        desktop.notifyPunchedOut?.()
+        return
+      }
+      if (kind === 'suspend' || kind === 'lock-screen') {
+        sendLastSeenHeartbeat()
+        return
+      }
+      if (kind === 'idle') {
+        addToast('Are you still there?', 'info', 8000)
+      }
+    }
+
+    const off = desktop.onSystemEvent(handleEvent)
+    return () => { if (typeof off === 'function') off() }
+  }, [addToast])
 
   // Persist which chats have been cleared — stores { chatId: clearTimestamp }
   // Messages BEFORE the timestamp are hidden; messages AFTER still appear (new messages work!)
