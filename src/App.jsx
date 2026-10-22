@@ -16,6 +16,7 @@ import ClientsPage from './pages/ClientsPage'
 import AccountClientsPage from './pages/AccountClientsPage'
 import ActivityPage from './pages/ActivityPage'
 import TimerBadge from './components/TimerBadge'
+import PunchOutReminder from './components/PunchOutReminder'
 import Sidebar from './components/Sidebar'
 import TopNav from './components/TopNav'
 
@@ -132,6 +133,7 @@ export default function App() {
     <BrowserRouter>
       <GlobalNav />
       {typeof window !== 'undefined' && !window.require && <TimerBadge />}
+      <PunchOutReminder />
       <Routes>
         {/* Default */}
         <Route path="/" element={<RootRedirect />} />
