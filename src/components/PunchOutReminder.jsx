@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { isElectron } from '../utils/isElectron'
 
+const LEAVING_TITLE = "Don't Forget to Punch Out!"
+const LEAVING_MESSAGE = "You haven't punched out yet. Please punch out before leaving the task management system."
+
 export default function PunchOutReminder() {
   const { isPunchedIn, handlePunchOut } = useApp()
   const [visible, setVisible] = useState(false)
@@ -18,8 +21,8 @@ export default function PunchOutReminder() {
     if (!isPunchedIn || isElectron()) return
     const onBeforeUnload = (e) => {
       e.preventDefault()
-      e.returnValue = ''
-      return ''
+      e.returnValue = LEAVING_MESSAGE
+      return LEAVING_MESSAGE
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
@@ -105,12 +108,12 @@ export default function PunchOutReminder() {
           id="punch-out-reminder-title"
           style={{ margin: 0, fontSize: 17, fontWeight: 800, color: '#1E1B2E', fontFamily: 'Inter,sans-serif', textAlign: 'center' }}
         >
-          Leaving already?
+          {LEAVING_TITLE}
         </h2>
         <p
           style={{ margin: '8px 0 0', fontSize: 13, color: '#6B7280', fontFamily: 'Inter,sans-serif', textAlign: 'center', lineHeight: 1.6 }}
         >
-          Please make sure to Punch Out before leaving!
+          {LEAVING_MESSAGE}
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 20, width: '100%' }}>
           <button
