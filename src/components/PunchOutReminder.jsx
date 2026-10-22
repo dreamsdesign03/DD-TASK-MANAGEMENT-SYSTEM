@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { isElectron } from '../utils/isElectron'
 
 const LEAVING_TITLE = "Don't Forget to Punch Out!"
 const LEAVING_MESSAGE = "You haven't punched out yet. Please punch out before leaving the task management system."
@@ -16,17 +15,6 @@ export default function PunchOutReminder() {
     setShown(false)
     setVisible(false)
   }
-
-  useEffect(() => {
-    if (!isPunchedIn || isElectron()) return
-    const onBeforeUnload = (e) => {
-      e.preventDefault()
-      e.returnValue = LEAVING_MESSAGE
-      return LEAVING_MESSAGE
-    }
-    window.addEventListener('beforeunload', onBeforeUnload)
-    return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [isPunchedIn])
 
   useEffect(() => {
     if (!isPunchedIn) return
