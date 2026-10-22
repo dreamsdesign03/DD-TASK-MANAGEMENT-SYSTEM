@@ -9,7 +9,8 @@ export function systemRoleOf(user) {
 }
 
 export function isExcludedRole(user) {
-  return EXCLUDED_ROLES.includes(systemRoleOf(user))
+  const role = systemRoleOf(user).trim().toLowerCase()
+  return EXCLUDED_ROLES.some((r) => r.toLowerCase() === role)
 }
 
 // An admin is only ever the literal 'Admin' system role.

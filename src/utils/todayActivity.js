@@ -1,5 +1,5 @@
 import { taskDateToISO } from './taskStats'
-import { EXCLUDED_ROLES, systemRoleOf } from './roles'
+import { EXCLUDED_ROLES, isExcludedRole, systemRoleOf } from './roles'
 
 const TZ = 'Asia/Kolkata'
 
@@ -7,23 +7,23 @@ const TZ = 'Asia/Kolkata'
 export const REMINDER_START_HOUR = 10
 
 // Today's calendar day in IST as YYYY-MM-DD
-export function todayIST() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+export function todayIST(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
 }
 
 // Current hour (0-23) in IST
-export function hourIST() {
-  return Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hour12: false }).format(new Date())) % 24
+export function hourIST(date = new Date()) {
+  return Number(new Intl.DateTimeFormat('en-GB', { timeZone: TZ, hour: '2-digit', hour12: false }).format(date)) % 24
 }
 
 // True once it is >= REMINDER_START_HOUR IST
-export function isPastReminderStart() {
-  return hourIST() >= REMINDER_START_HOUR
+export function isPastReminderStart(date = new Date()) {
+  return hourIST(date) >= REMINDER_START_HOUR
 }
 
 // "Today, 21 Oct"
-export function todayLabel() {
-  const label = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: '2-digit', month: 'short' }).format(new Date())
+export function todayLabel(date = new Date()) {
+  const label = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, day: '2-digit', month: 'short' }).format(date)
   return `Today, ${label}`
 }
 
@@ -61,10 +61,14 @@ function calendarDayISO(raw) {
   return taskDateToISO(s)
 }
 
-// Active employees = roster everyone must belong to. isActive 'No' is excluded.
+// Active employees = roster everyone must belong to.
+//  • isActive 'No' (deactivated) is excluded
+//  • EXCLUDED_ROLES (Admin / Accountant / Manager) are excluded - they are not
+//    expected to create or move tasks day-to-day, so they are never "missing"
 export function activeRoster(employees) {
   return (employees || [])
     .filter((e) => String(e?.isActive ?? 'Yes').trim().toLowerCase() !== 'no')
+    .filter((e) => !isExcludedRole(e))
     .map((e) => ({ name: (e.name || '').trim(), email: (e.email || '').trim().toLowerCase() }))
     .filter((e) => e.name)
 }

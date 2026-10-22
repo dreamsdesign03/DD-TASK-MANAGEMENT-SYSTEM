@@ -58,7 +58,7 @@ export default function TodayActivityBanner({ tasks, employees, loaded, onSelect
       <div className="flex items-center gap-2 flex-wrap">
         <span className="material-symbols-outlined text-[20px] text-[#D97706]">warning</span>
         <span className="text-[13px] font-extrabold text-[#9A3412]">
-          {n} {n === 1 ? 'employee has not' : 'employees have not'} added a task or updated a status today
+          {n} {n === 1 ? "employee hasn't" : "employees haven't"} added a task or updated a task status today
         </span>
         <span className="ml-auto text-[12px] font-semibold text-[#B45309]">{label}</span>
       </div>

@@ -33,6 +33,9 @@ const employees = [
   { name: 'Bhavin Shah', email: 'bhavin@dreamsdesign.in', role: 'Developer', isActive: 'Yes' },
   { name: 'Chirag Mehta', email: 'chirag@dreamsdesign.in', role: 'SEO', isActive: 'Yes' },
   { name: 'Diya Nair', email: 'diya@dreamsdesign.in', role: 'Designer', isActive: 'No' },
+  { name: 'Farah Admin', email: 'farah@dreamsdesign.in', role: 'Admin', isActive: 'Yes' },
+  { name: 'Gaurav Mgr', email: 'gaurav@dreamsdesign.in', role: 'Manager', isActive: 'Yes' },
+  { name: 'Hina Acc', email: 'hina@dreamsdesign.in', role: 'Accountant', isActive: 'Yes' },
 ]
 
 const mk = (o) => ({
@@ -46,6 +49,10 @@ let missing = computeMissingToday(tasks, employees, DAY).map((e) => e.name)
 check('all 3 active employees missing when nothing today', missing.length === 3, JSON.stringify(missing))
 check('deactivated employee excluded from roster', !missing.includes('Diya Nair'))
 check('missing employee is not active', !isUserActiveToday(tasks, employees[0], DAY))
+check('EXCLUDED_ROLES (Admin) never counted as missing', !missing.includes('Farah Admin'))
+check('EXCLUDED_ROLES (Manager) never counted as missing', !missing.includes('Gaurav Mgr'))
+check('EXCLUDED_ROLES (Accountant) never counted as missing', !missing.includes('Hina Acc'))
+check('excluded-role match is case-insensitive', !computeMissingToday(tasks, [{ name: 'Farah Admin', role: 'admin', isActive: 'Yes' }], DAY).length)
 
 console.log('\n-- (b) status change counts as activity --')
 tasks = [
@@ -108,6 +115,10 @@ check('systemRoleOf default', systemRoleOf({}) === 'Employee')
 console.log('\n-- reminder start hour --')
 console.log(`  REMINDER_START_HOUR = ${REMINDER_START_HOUR}, isPastReminderStart() = ${isPastReminderStart()} (current IST hour)`)
 check('reminder gate is a function of the current IST hour', typeof isPastReminderStart() === 'boolean')
+check('gate closed at 09:59 IST', isPastReminderStart(new Date('2026-10-22T09:59:00+05:30')) === false)
+check('gate open at 10:00 IST', isPastReminderStart(new Date('2026-10-22T10:00:00+05:30')) === true)
+check('gate open at 23:59 IST', isPastReminderStart(new Date('2026-10-22T23:59:00+05:30')) === true)
+check('gate closed at 00:30 IST', isPastReminderStart(new Date('2026-10-22T00:30:00+05:30')) === false)
 
 console.log('\n-- label --')
 console.log(`  todayLabel() = "${todayLabel()}"`)

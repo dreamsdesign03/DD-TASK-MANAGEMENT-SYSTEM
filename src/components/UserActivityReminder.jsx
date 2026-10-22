@@ -10,16 +10,22 @@ import { isUserActiveToday, isPastReminderStart, todayIST, todayLabel } from '..
 export default function UserActivityReminder() {
   const { tasks, profile, setShowNewTaskModal } = useApp()
 
-  const [day, setDay] = useState(todayIST())
+  // `now` is refreshed every minute. It re-renders the component so the 10:00
+  // IST gate is re-evaluated (a page left open across 10:00 picks the banner
+  // up) and so the IST day rolls over at midnight.
+  const [now, setNow] = useState(() => new Date())
   const [showDone, setShowDone] = useState(false)
   // Starts as "active" so an already-active user never gets a green flash on load.
   const [wasActive, setWasActive] = useState(true)
 
-  // Re-check the IST day every minute so the reminder resets at midnight.
   useEffect(() => {
-    const id = setInterval(() => setDay(todayIST()), 60000)
+    const id = setInterval(() => setNow(new Date()), 60000)
     return () => clearInterval(id)
   }, [])
+
+  const day = useMemo(() => todayIST(now), [now])
+  const pastStart = useMemo(() => isPastReminderStart(now), [now])
+  const label = useMemo(() => todayLabel(now), [now])
 
   const isEligible = useMemo(() => {
     if (!profile) return false
@@ -48,7 +54,7 @@ export default function UserActivityReminder() {
   }, [showDone])
 
   if (!isEligible) return null
-  if (!isPastReminderStart()) return null
+  if (!pastStart) return null
 
   if (showDone) {
     return (
@@ -58,7 +64,7 @@ export default function UserActivityReminder() {
       >
         <span className="material-symbols-outlined text-[18px] text-[#059669]">check_circle</span>
         <span className="text-[13px] font-bold text-[#065F46]">Nice, you're all set for today</span>
-        <span className="ml-auto text-[12px] font-semibold text-[#059669]">{todayLabel()}</span>
+        <span className="ml-auto text-[12px] font-semibold text-[#059669]">{label}</span>
       </div>
     )
   }
@@ -89,7 +95,7 @@ export default function UserActivityReminder() {
         <span className="material-symbols-outlined text-[16px]">add</span>
         Add task
       </button>
-      <span className="text-[12px] font-semibold text-[#B45309]">{todayLabel()}</span>
+      <span className="text-[12px] font-semibold text-[#B45309]">{label}</span>
     </div>
   )
 }
