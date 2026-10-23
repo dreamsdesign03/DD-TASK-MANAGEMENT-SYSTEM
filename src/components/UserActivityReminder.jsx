@@ -76,12 +76,12 @@ export default function UserActivityReminder() {
       className="flex items-center gap-3 px-4 py-3 mb-4 flex-wrap"
       style={{ borderRadius: 14, background: '#FFF7ED', border: '1px solid #FED7AA' }}
     >
-      <span className="material-symbols-outlined text-[20px] text-[#D97706]">warning</span>
+      <span className="material-symbols-outlined text-[37px] text-[#D97706]">warning</span>
       <div className="min-w-0">
-        <p className="m-0 text-[13px] font-extrabold text-[#9A3412]">
+        <p className="m-0 font-extrabold text-[#9A3412]" style={{ fontSize: 28 }}>
           You haven't added a task or updated a task status today
         </p>
-        <p className="m-0 mt-0.5 text-[12px] font-medium text-[#B45309]">
+        <p className="m-0 mt-0.5 font-medium text-[#B45309]" style={{ fontSize: 16 }}>
           Add a new task or change the status of an existing one to clear this.
         </p>
       </div>
