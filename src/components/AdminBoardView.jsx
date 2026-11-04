@@ -96,6 +96,8 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
   // they always stay in sync with the table.
   const statusScopedTasks = useMemo(() => {
     if (!activeFilter || activeFilter === 'All') return baseTasks
+    // "Overdue" is the date-based stat card, not a status.
+    if (activeFilter === 'Overdue') return baseTasks.filter(isTaskOverdue)
     return baseTasks.filter((t) => t.status === activeFilter)
   }, [baseTasks, activeFilter])
 

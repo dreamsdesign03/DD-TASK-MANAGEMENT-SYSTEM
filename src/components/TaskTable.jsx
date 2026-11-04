@@ -9,7 +9,7 @@ import { useApp } from '../context/AppContext'
 import { getUserColor, getInitials } from '../utils/avatar'
 import { computeRecurringDueDate } from '../utils/dateFormat'
 import { formatTaskId, deduplicateTasks } from '../utils/formatTaskId'
-import { computeTaskStats, formatStatCount, passesMonthDoneRule } from '../utils/taskStats'
+import { computeTaskStats, formatStatCount, passesMonthDoneRule, isTaskOverdue } from '../utils/taskStats'
 import { PRIORITY_STYLES, STATUS_STYLES } from '../utils/taskBadges'
 import TaskCalendar from './TaskCalendar'
 import AdminBoardView from './AdminBoardView'
@@ -508,13 +508,13 @@ export default function TaskTable() {
     return ids
   }, [tasks, searchQuery])
 
-  // 1. Filter tasks
-  const filtered = deduplicateTasks(tasks)
+  // 1. Filter tasks. The status step is applied after this scope so the stat
+  // cards can count exactly the rows the list renders.
+  const scopedTasks = deduplicateTasks(tasks)
     .filter((t) => {
       // Exclude Sub Tasks from main table view
       if (t.taskType === 'Sub Task' || t.taskType === 'Subtask') return false;
 
-      const matchesStatus = activeFilter === 'All' || t.status === activeFilter
       const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient
       let matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser)
       // Strict disambiguation: If looking specifically at my tasks, ensure my exact email is assigned (if emails exist on task)
@@ -559,7 +559,14 @@ export default function TaskTable() {
       // unless the user switched to "All Tasks" mode.
       const matchesMonthDone = passesMonthDoneRule(t, showAllTasks)
 
-      return matchesStatus && matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate && matchesMonthDone
+      return matchesSearch && matchesClient && matchesUser && matchesDepartment && matchesDate && matchesMonthDone
+    })
+
+  // Status tab, or the Overdue stat card (date-based, not a status).
+  const filtered = scopedTasks
+    .filter((t) => {
+      if (activeFilter === 'Overdue') return isTaskOverdue(t)
+      return activeFilter === 'All' || t.status === activeFilter
     })
     // 2. Sort tasks
     .sort((a, b) => {
@@ -740,15 +747,9 @@ export default function TaskTable() {
   const currentTasks = filtered.slice(indexOfFirstTask, indexOfLastTask)
 
   // Metrics Logic — counting rules live in utils/taskStats so the Report page
-  // always shows the exact same numbers.
-  const baseTasksForStats = tasks.filter((t) => {
-    const matchesClient = selectedClient === 'All Clients' || t.client === selectedClient;
-    const matchesUser = selectedUser === 'All Users' || (t.assignedTo || '').includes(selectedUser);
-    const matchesDepartment = selectedDepartment === 'All Departments' || (t.department || 'COMMON').toUpperCase() === selectedDepartment;
-    return matchesClient && matchesUser && matchesDepartment && passesMonthDoneRule(t, showAllTasks);
-  });
-
-  const taskStats = computeTaskStats(baseTasksForStats);
+  // always shows the exact same numbers. Counting the same scoped list the
+  // table renders keeps each card's number equal to its row count.
+  const taskStats = computeTaskStats(scopedTasks);
   const totalTasks = taskStats.total;
   const pendingTasks = taskStats.pending;
   const inProgressTasks = taskStats.inProgress;
@@ -815,37 +816,55 @@ export default function TaskTable() {
       {/* ─── Summary Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-5">
         {[
-          { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91' },
-          { label: 'Pending', value: pendingTasks, icon: 'pending_actions', bg: '#F3F4F6', color: '#6B7280' },
-          { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB' },
-          { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A' },
-          { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true },
-        ].map(s => (
-          <div key={s.label} className="p-3.5 sm:p-5 flex items-start justify-between bg-white rounded-[16px] sm:rounded-[20px] cursor-pointer" style={{
-            border: `1px solid ${s.color}40`,
-            boxShadow: '0 8px 24px rgba(91,33,182,0.05)',
-            transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
-          }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = `0 12px 28px rgba(91,33,182,0.1)`;
-              e.currentTarget.style.borderColor = `${s.color}80`;
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(91,33,182,0.05)';
-              e.currentTarget.style.borderColor = `${s.color}40`;
-            }}
-          >
-            <div>
-              <p className="text-[10px] sm:text-[12px] font-semibold text-[#9CA3AF] tracking-[0.05em] uppercase mb-1">{s.label}</p>
-              <h2 className="text-[20px] sm:text-[28px] font-extrabold m-0" style={{ color: s.overdue ? '#DC2626' : '#1E1B2E' }}>{formatStatCount(s.value)}</h2>
+          { label: 'Total Tasks', value: totalTasks, icon: 'layers', bg: '#F5F3FF', color: '#702c91', filter: 'All' },
+          { label: 'Pending', value: pendingTasks, icon: 'pending_actions', bg: '#F3F4F6', color: '#6B7280', filter: 'Pending' },
+          { label: 'In Progress', value: inProgressTasks, icon: 'schedule', bg: '#EFF6FF', color: '#2563EB', filter: 'In Progress' },
+          { label: 'Completed', value: completedTasks, icon: 'task_alt', bg: '#F0FDF4', color: '#16A34A', filter: 'Done' },
+          { label: 'Overdue', value: overdueTasks, icon: 'error', bg: '#FEF2F2', color: '#DC2626', overdue: true, filter: 'Overdue' },
+        ].map(s => {
+          const isActive = activeFilter === s.filter
+          return (
+            <div
+              key={s.label}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isActive}
+              title={isActive ? 'Click again to clear the filter' : `Show ${s.label.toLowerCase()}`}
+              onClick={() => setActiveFilter(isActive ? 'All' : s.filter)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setActiveFilter(isActive ? 'All' : s.filter)
+                }
+              }}
+              className="p-3.5 sm:p-5 flex items-start justify-between bg-white rounded-[16px] sm:rounded-[20px] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#702c91] focus-visible:ring-offset-1"
+              style={{
+                border: `${isActive ? 2 : 1}px solid ${isActive ? s.color : `${s.color}40`}`,
+                background: isActive ? s.bg : 'white',
+                boxShadow: isActive ? '0 10px 26px rgba(91,33,182,0.12)' : '0 8px 24px rgba(91,33,182,0.05)',
+                transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.2s',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = isActive ? '0 14px 30px rgba(91,33,182,0.16)' : `0 12px 28px rgba(91,33,182,0.1)`;
+                e.currentTarget.style.borderColor = `${s.color}80`;
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = isActive ? '0 10px 26px rgba(91,33,182,0.12)' : '0 8px 24px rgba(91,33,182,0.05)';
+                e.currentTarget.style.borderColor = isActive ? s.color : `${s.color}40`;
+              }}
+            >
+              <div>
+                <p className="text-[10px] sm:text-[12px] font-semibold text-[#9CA3AF] tracking-[0.05em] uppercase mb-1">{s.label}</p>
+                <h2 className="text-[20px] sm:text-[28px] font-extrabold m-0" style={{ color: s.overdue ? '#DC2626' : '#1E1B2E' }}>{formatStatCount(s.value)}</h2>
+              </div>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
+                <span className="material-symbols-outlined text-[18px] sm:text-[22px]" style={{ color: s.color }}>{s.icon}</span>
+              </div>
             </div>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0" style={{ background: s.bg }}>
-              <span className="material-symbols-outlined text-[18px] sm:text-[22px]" style={{ color: s.color }}>{s.icon}</span>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* ─── Filter bar ───────────────────────────────────────────────────────── */}
