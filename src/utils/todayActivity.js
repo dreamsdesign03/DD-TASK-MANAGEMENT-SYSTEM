@@ -97,11 +97,33 @@ function statusChangerNamesToday(tasks, day) {
   return set
 }
 
+// Fallback for the Tasks sheet, which today only exposes "Status Updated On"
+// (no "Status Changed By/At" columns). A task whose status was updated on
+// `day` credits the people it belongs to - the assignees and the assigner -
+// because any of them can be the one who moved the status.
+// Tasks created on `day` are skipped: creation is already counted by
+// creatorNamesToday, and their assignees did no work yet.
+function statusUpdatedNamesToday(tasks, day) {
+  const set = new Set()
+  for (const t of tasks || []) {
+    if (calendarDayISO(t?.statusChangedAt || t?.statusUpdatedOn) !== day) continue
+    if (calendarDayISO(t?.assigned || t?.assignedDate) === day) continue
+    for (const raw of String(t?.assignedTo || '').split(',')) {
+      const name = raw.trim().toLowerCase()
+      if (name && name !== 'unassigned') set.add(name)
+    }
+    const by = (t?.assignedBy || '').trim().toLowerCase()
+    if (by) set.add(by)
+  }
+  return set
+}
+
 // Lowercased names of everyone active today = created a task OR changed a status.
 export function activeTodayNames(tasks, day) {
   const combined = new Set()
   for (const n of creatorNamesToday(tasks, day)) combined.add(n)
   for (const n of statusChangerNamesToday(tasks, day)) combined.add(n)
+  for (const n of statusUpdatedNamesToday(tasks, day)) combined.add(n)
   return combined
 }
 
