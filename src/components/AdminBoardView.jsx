@@ -317,7 +317,7 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
               <table className="w-full text-left border-collapse min-w-[660px]">
                 <thead>
                   <tr className="bg-white border-b border-[#E5E7EB]">
-                    {['Task Title', 'Client', 'Department', 'Assigned By', 'Due Date', 'Priority', 'Status'].map((h) => (
+                    {['Task Title', 'Client', 'Created Date', 'Assigned By', 'Due Date', 'Priority', 'Status'].map((h) => (
                       <th key={h} className="px-3 py-2.5 text-left text-[10px] font-bold text-[#6B7280] tracking-[0.05em] uppercase whitespace-nowrap" style={{ position: 'sticky', top: 0, background: 'white', zIndex: 2, paddingRight: h === 'Status' && floatingActive ? 112 : undefined }}>{h}</th>
                     ))}
                   </tr>
@@ -343,10 +343,10 @@ export default function AdminBoardView({ tasks, searchQuery, showAllTasks, onOpe
                             {task.client}
                           </span>
                         </td>
-                        <td className="px-3 py-3 text-[12px] text-[#6B7280] max-w-[160px]">
+                        <td className="px-3 py-3 text-[12px] text-[#6B7280] whitespace-nowrap">
                           <span className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">folder_open</span>
-                            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={task.department || 'COMMON'}>{(task.department || 'COMMON').toUpperCase()}</span>
+                            <span className="material-symbols-outlined text-[14px] text-[#9CA3AF]">calendar_today</span>
+                            {task.assignedDate || task.assigned || '—'}
                           </span>
                         </td>
                         <td className="px-3 py-3 whitespace-nowrap">
