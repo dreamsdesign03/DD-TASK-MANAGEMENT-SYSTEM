@@ -1074,7 +1074,10 @@ export default function TaskTable() {
               <table className="block md:table w-full text-left border-collapse">
                 <thead className="hidden md:table-header-group bg-[#F9FAFB] border-b border-[#E5E7EB]">
                   <tr>
-                    {['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action'].map(
+                    {(profile?.systemRole === 'Admin'
+                        ? ['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Created Date', 'Due Date', 'Priority', 'Status', 'Action']
+                        : ['Task ID', 'Task Title', 'Client', 'Assigned To', 'Assigned By', 'Due Date', 'Priority', 'Status', 'Action']
+                      ).map(
                       (h) => (
                         <th
                           key={h}
@@ -1474,6 +1477,14 @@ export default function TaskTable() {
                                       })()}
                                     </div>
                                   </td>
+
+                                  {/* Created Date — Admin only, shown before Due Date */}
+                                  {profile?.systemRole === 'Admin' && (
+                                    <td className="flex md:table-cell items-center justify-between px-4 py-5 text-[13px] font-normal whitespace-nowrap border-b border-outline-variant/30 md:border-none text-[#6B7280]">
+                                      <span className="md:hidden text-[10px] font-bold text-outline uppercase tracking-wider">Created Date</span>
+                                      <span>{task.assignedDate || task.assigned || '—'}</span>
+                                    </td>
+                                  )}
 
                                   {/* Due date */}
                                   <td
